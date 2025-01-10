@@ -16,6 +16,7 @@ import {
     Settings,
     Sparkles,
     Maximize2,
+    Loader2,
 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
@@ -30,6 +31,7 @@ import { Switch } from '@/components/ui/switch';
 import { SearchResults, YouTubeVideo } from '@/types/youtube.type';
 import { searchYouTube } from '@/actions/youtube';
 import { ThemeToggle } from '../theme-toggle';
+import { VideoSkeleton } from '@/components/video-skeleton';
 
 export default function YouTubePlayerLayout() {
     const [player, setPlayer] = React.useState<any>(null);
@@ -37,7 +39,7 @@ export default function YouTubePlayerLayout() {
     const [isMuted, setIsMuted] = React.useState(false);
     const [isKaraoke, setIsKaraoke] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
-    const [debouncedSearch] = useDebounce(searchQuery, 500);
+    const [debouncedSearch] = useDebounce(searchQuery, 3000);
     const [volume, setVolume] = React.useState(60);
     const [currentVideo, setCurrentVideo] = React.useState<string | null>(null);
     const [searchResults, setSearchResults] = React.useState<YouTubeVideo[]>([]);
@@ -64,6 +66,10 @@ export default function YouTubePlayerLayout() {
         };
         fetchResults();
     }, [debouncedSearch, isKaraoke]);
+
+    const handleSearch = () => {
+        setSearchQuery(searchQuery); // This will trigger the debounce
+    };
 
     const onPlayerReady = (event: any) => {
         setPlayer(event.target);
@@ -222,24 +228,12 @@ export default function YouTubePlayerLayout() {
                         toggleFavorite={toggleFavorite}
                         favorites={favorites}
                         history={history}
+                        isKaraoke={isKaraoke}
+                        setIsKaraoke={setIsKaraoke}
+                        handleSearch={handleSearch}
                     />
                 </div>
             </main>
-            <footer className="flex items-center justify-between p-4 border-t">
-                <div className="flex items-center gap-2">
-                    <Switch checked={isKaraoke} onCheckedChange={setIsKaraoke} id="karaoke-mode" />
-                    <label htmlFor="karaoke-mode" className="text-sm font-medium">
-                        Karaoke Mode
-                    </label>
-                    <Mic
-                        className={cn(
-                            'h-5 w-5 transition-opacity',
-                            isKaraoke ? 'opacity-100' : 'opacity-50',
-                        )}
-                    />
-                </div>
-                <ThemeToggle />
-            </footer>
         </div>
     );
 }
@@ -255,6 +249,9 @@ interface SidePanelProps {
     toggleFavorite: (video: YouTubeVideo) => void;
     favorites: YouTubeVideo[];
     history: YouTubeVideo[];
+    isKaraoke: boolean;
+    setIsKaraoke: (value: boolean) => void;
+    handleSearch: () => void;
 }
 
 function SidePanel({
@@ -268,11 +265,14 @@ function SidePanel({
     toggleFavorite,
     favorites,
     history,
+    isKaraoke,
+    setIsKaraoke,
+    handleSearch,
 }: SidePanelProps) {
     return (
         <Card className="flex flex-col h-full rounded-none border-0">
             <Tabs defaultValue="search" className="flex-1">
-                <TabsList className="flex flex-wrap h-auto w-full justify-start rounded-none border-b">
+                <TabsList className="flex flex-wrap h-auto w-full justify-start rounded-none border-b sticky top-0 z-10 bg-background">
                     <TabsTrigger value="search" className="flex-grow basis-1/3 py-2 px-1">
                         <Search className="h-4 w-4 mr-2" />
                         Search
@@ -294,159 +294,216 @@ function SidePanel({
                         Settings
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="search" className="flex-1 p-4">
-                    <Input
-                        type="search"
-                        placeholder="Search YouTube videos..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="mb-4"
-                    />
-                    <ScrollArea className="h-[calc(100vh-13rem)]">
-                        {isLoading && searchResults.length === 0 ? (
-                            <div className="flex items-center justify-center py-8">
-                                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
-                            </div>
-                        ) : error ? (
-                            <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                                {error}
-                            </div>
-                        ) : searchResults.length === 0 && searchQuery ? (
-                            <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                                No results found
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {searchResults.map((video) => (
-                                    <button
-                                        key={video.id.videoId}
-                                        onClick={() => handleVideoSelect(video)}
-                                        className={cn(
-                                            'group flex w-full items-start gap-3 rounded-lg p-2 text-left text-sm transition-colors hover:bg-accent',
-                                            currentVideo === video.id.videoId && 'bg-accent',
-                                        )}
-                                    >
-                                        <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
-                                            <img
-                                                src={video.snippet.thumbnails.default.url}
-                                                alt=""
-                                                className="absolute inset-0 h-full w-full object-cover"
-                                            />
-                                        </div>
-                                        <div className="flex flex-col flex-grow">
-                                            <div className="font-medium leading-snug mb-1 line-clamp-2">
-                                                {video.snippet.title}
-                                            </div>
-                                            <div className="text-xs text-muted-foreground">
-                                                {video.snippet.channelTitle}
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="self-start mt-2 opacity-0 transition-opacity group-hover:opacity-100"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    toggleFavorite(video);
-                                                }}
-                                            >
-                                                <Heart
-                                                    className={cn(
-                                                        'h-4 w-4 mr-2',
-                                                        favorites.some(
-                                                            (v) =>
-                                                                v.id.videoId === video.id.videoId,
-                                                        )
-                                                            ? 'fill-current text-red-500'
-                                                            : 'text-muted-foreground',
-                                                    )}
-                                                />
-                                                Favorite
-                                            </Button>
-                                        </div>
-                                    </button>
-                                ))}
-                                {isLoading && searchResults.length > 0 && (
-                                    <div className="flex items-center justify-center py-4">
-                                        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900"></div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </ScrollArea>
-                </TabsContent>
-                <TabsContent value="history" className="flex-1 p-4">
-                    <ScrollArea className="h-[calc(100vh-13rem)]">
-                        <div className="space-y-2">
-                            {history.map((video) => (
-                                <button
-                                    key={video.id.videoId}
-                                    onClick={() => handleVideoSelect(video)}
-                                    className={cn(
-                                        'flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm transition-colors hover:bg-accent',
-                                        currentVideo === video.id.videoId && 'bg-accent',
-                                    )}
-                                >
-                                    <img
-                                        src={video.snippet.thumbnails.default.url}
-                                        alt=""
-                                        className="h-12 w-12 rounded object-cover"
-                                    />
-                                    <div className="flex-1 truncate">
-                                        <div className="font-medium leading-none">
-                                            {video.snippet.title}
-                                        </div>
-                                        <div className="mt-1 text-xs text-muted-foreground">
-                                            {video.snippet.channelTitle}
-                                        </div>
-                                    </div>
-                                </button>
-                            ))}
-                        </div>
-                    </ScrollArea>
-                </TabsContent>
-                <TabsContent value="favorites" className="flex-1 p-4">
-                    <ScrollArea className="h-[calc(100vh-13rem)]">
-                        <div className="space-y-2">
-                            {favorites.map((video) => (
-                                <button
-                                    key={video.id.videoId}
-                                    onClick={() => handleVideoSelect(video)}
-                                    className={cn(
-                                        'flex w-full items-center gap-3 rounded-lg p-2 text-left text-sm transition-colors hover:bg-accent',
-                                        currentVideo === video.id.videoId && 'bg-accent',
-                                    )}
-                                >
-                                    <img
-                                        src={video.snippet.thumbnails.default.url}
-                                        alt=""
-                                        className="h-12 w-12 rounded object-cover"
-                                    />
-                                    <div className="flex-1 truncate">
-                                        <div className="font-medium leading-none">
-                                            {video.snippet.title}
-                                        </div>
-                                        <div className="mt-1 text-xs text-muted-foreground">
-                                            {video.snippet.channelTitle}
-                                        </div>
-                                    </div>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        className="ml-auto"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            toggleFavorite(video);
+                <TabsContent value="search" className="flex-1">
+                    <div className="sticky top-[41px] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 border-b space-y-4">
+                        <div className="flex flex-col gap-4">
+                            <div className="flex gap-2">
+                                <div className="relative flex-1">
+                                    <Input
+                                        type="search"
+                                        placeholder="Search YouTube videos..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleSearch();
+                                            }
                                         }}
+                                        className="pr-10"
+                                    />
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="absolute right-0 top-0 h-full px-3"
+                                        onClick={handleSearch}
+                                        disabled={isLoading}
                                     >
-                                        <Heart className="h-4 w-4 mr-2 fill-current text-red-500" />
-                                        Remove
+                                        {isLoading ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            <Search className="h-4 w-4" />
+                                        )}
                                     </Button>
-                                </button>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Switch
+                                    checked={isKaraoke}
+                                    onCheckedChange={setIsKaraoke}
+                                    id="karaoke-mode"
+                                />
+                                <label htmlFor="karaoke-mode" className="text-sm font-medium">
+                                    Karaoke Mode
+                                </label>
+                                <Mic
+                                    className={cn(
+                                        'h-4 w-4 transition-opacity',
+                                        isKaraoke ? 'opacity-100' : 'opacity-50',
+                                    )}
+                                />
+                            </div>
+                        </div>
+                    </div>
+                    <ScrollArea className="h-[calc(100vh-14rem)] pb-0">
+                        <div className="divide-y">
+                            {isLoading && searchResults.length === 0 ? (
+                                <div className="space-y-4 p-4">
+                                    {[...Array(5)].map((_, i) => (
+                                        <VideoSkeleton key={i} />
+                                    ))}
+                                </div>
+                            ) : error ? (
+                                <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
+                                    {error}
+                                </div>
+                            ) : searchResults.length === 0 && searchQuery ? (
+                                <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
+                                    No results found
+                                </div>
+                            ) : (
+                                <div className="divide-y">
+                                    {searchResults.map((video) => (
+                                        <div
+                                            key={video.id.videoId}
+                                            onClick={() => handleVideoSelect(video)}
+                                            className={cn(
+                                                'group flex w-full items-start gap-3 p-4 text-left text-sm transition-colors hover:bg-accent/50 cursor-pointer',
+                                                currentVideo === video.id.videoId && 'bg-accent',
+                                            )}
+                                        >
+                                            <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
+                                                <img
+                                                    src={video.snippet.thumbnails.default.url}
+                                                    alt=""
+                                                    className="absolute inset-0 h-full w-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="flex flex-col flex-grow min-w-0">
+                                                <div className="font-medium leading-snug mb-1 line-clamp-2">
+                                                    {video.snippet.title}
+                                                </div>
+                                                <div className="text-xs text-muted-foreground truncate">
+                                                    {video.snippet.channelTitle}
+                                                </div>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="self-start mt-2 opacity-0 transition-opacity group-hover:opacity-100"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        toggleFavorite(video);
+                                                    }}
+                                                >
+                                                    <Heart
+                                                        className={cn(
+                                                            'h-4 w-4 mr-2 transition-colors',
+                                                            favorites.some(
+                                                                (v) =>
+                                                                    v.id.videoId ===
+                                                                    video.id.videoId,
+                                                            )
+                                                                ? 'fill-current text-red-500'
+                                                                : 'text-muted-foreground',
+                                                        )}
+                                                    />
+                                                    {favorites.some(
+                                                        (v) => v.id.videoId === video.id.videoId,
+                                                    )
+                                                        ? 'Remove'
+                                                        : 'Favorite'}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {isLoading && searchResults.length > 0 && (
+                                        <div className="p-4 space-y-4">
+                                            {[...Array(2)].map((_, i) => (
+                                                <VideoSkeleton key={i} />
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </ScrollArea>
+                </TabsContent>
+                <TabsContent value="history" className="flex-1 p-0">
+                    <ScrollArea className="h-[calc(100vh-13rem)]">
+                        <div className="divide-y">
+                            {history.map((video) => (
+                                <div
+                                    key={video.id.videoId}
+                                    onClick={() => handleVideoSelect(video)}
+                                    className={cn(
+                                        'flex w-full items-start gap-3 p-4 text-left text-sm transition-colors hover:bg-accent/50 cursor-pointer',
+                                        currentVideo === video.id.videoId && 'bg-accent',
+                                    )}
+                                >
+                                    <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
+                                        <img
+                                            src={video.snippet.thumbnails.default.url}
+                                            alt=""
+                                            className="absolute inset-0 h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col flex-grow min-w-0">
+                                        <div className="font-medium leading-snug mb-1 line-clamp-2">
+                                            {video.snippet.title}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground truncate">
+                                            {video.snippet.channelTitle}
+                                        </div>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </ScrollArea>
                 </TabsContent>
-                <TabsContent value="recommended" className="flex-1 p-4">
+                <TabsContent value="favorites" className="flex-1 p-0">
+                    <ScrollArea className="h-[calc(100vh-13rem)]">
+                        <div className="divide-y">
+                            {favorites.map((video) => (
+                                <div
+                                    key={video.id.videoId}
+                                    onClick={() => handleVideoSelect(video)}
+                                    className={cn(
+                                        'flex w-full items-start gap-3 p-4 text-left text-sm transition-colors hover:bg-accent/50 cursor-pointer',
+                                        currentVideo === video.id.videoId && 'bg-accent',
+                                    )}
+                                >
+                                    <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
+                                        <img
+                                            src={video.snippet.thumbnails.default.url}
+                                            alt=""
+                                            className="absolute inset-0 h-full w-full object-cover"
+                                        />
+                                    </div>
+                                    <div className="flex flex-col flex-grow min-w-0">
+                                        <div className="font-medium leading-snug mb-1 line-clamp-2">
+                                            {video.snippet.title}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground truncate">
+                                            {video.snippet.channelTitle}
+                                        </div>
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            className="self-start mt-2"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                toggleFavorite(video);
+                                            }}
+                                        >
+                                            <Heart className="h-4 w-4 mr-2 fill-current text-red-500" />
+                                            Remove
+                                        </Button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </ScrollArea>
+                </TabsContent>
+                <TabsContent value="recommended" className="flex-1">
                     <div className="grid place-items-center h-full">
                         <p className="text-sm text-muted-foreground">
                             Recommendations will appear as you watch videos
@@ -455,6 +512,13 @@ function SidePanel({
                 </TabsContent>
                 <TabsContent value="settings" className="flex-1 p-4">
                     <div className="space-y-4">
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-medium">Appearance</h3>
+                            <div className="flex items-center justify-between">
+                                <label className="text-sm">Theme</label>
+                                <ThemeToggle />
+                            </div>
+                        </div>
                         <div className="space-y-2">
                             <h3 className="text-sm font-medium">Playback Settings</h3>
                             <div className="flex items-center gap-2">
