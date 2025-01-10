@@ -1,7 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @next/next/no-img-element */
+
 'use client';
 
 import * as React from 'react';
 import YouTube from 'react-youtube';
+import { useInView } from 'react-intersection-observer';
 import {
     Play,
     Pause,
@@ -39,7 +43,7 @@ export default function YouTubePlayerLayout() {
     const [isMuted, setIsMuted] = React.useState(false);
     const [isKaraoke, setIsKaraoke] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
-    const [debouncedSearch] = useDebounce(searchQuery, 3000);
+    const [debouncedSearch] = useDebounce(searchQuery, 500);
     const [volume, setVolume] = React.useState(60);
     const [currentVideo, setCurrentVideo] = React.useState<string | null>(null);
     const [searchResults, setSearchResults] = React.useState<YouTubeVideo[]>([]);
@@ -48,6 +52,11 @@ export default function YouTubePlayerLayout() {
     const [isLoading, setIsLoading] = React.useState(false);
     const [error, setError] = React.useState<string | null>(null);
     const [selectedVideo, setSelectedVideo] = React.useState<string | null>(null);
+    const [nextPageToken, setNextPageToken] = React.useState<string | null>(null);
+
+    const { ref, inView } = useInView({
+        threshold: 0.5,
+    });
 
     React.useEffect(() => {
         const handleClickOutside = (e: MouseEvent) => {
@@ -61,24 +70,37 @@ export default function YouTubePlayerLayout() {
         return () => document.removeEventListener('click', handleClickOutside);
     }, []);
 
-    React.useEffect(() => {
-        const fetchResults = async () => {
-            if (debouncedSearch) {
-                setIsLoading(true);
-                setError(null);
-                try {
-                    const results: SearchResults = await searchYouTube(debouncedSearch, isKaraoke);
-                    setSearchResults(results?.items || []);
-                } catch (err) {
-                    setError('Failed to fetch search results');
-                    setSearchResults([]);
-                } finally {
-                    setIsLoading(false);
-                }
+    const fetchResults = React.useCallback(async () => {
+        if (debouncedSearch) {
+            setIsLoading(true);
+            setError(null);
+            try {
+                const results: SearchResults = await searchYouTube(
+                    debouncedSearch,
+                    isKaraoke,
+                    nextPageToken || undefined,
+                );
+                setSearchResults((prev) => [...prev, ...(results?.items || [])]);
+                setNextPageToken(results.nextPageToken || null);
+            } catch {
+                setError('Failed to fetch search results');
+            } finally {
+                setIsLoading(false);
             }
-        };
+        }
+    }, [debouncedSearch, isKaraoke, nextPageToken]);
+
+    React.useEffect(() => {
+        setSearchResults([]);
+        setNextPageToken(null);
         fetchResults();
     }, [debouncedSearch, isKaraoke]);
+
+    React.useEffect(() => {
+        if (inView && nextPageToken) {
+            fetchResults();
+        }
+    }, [inView, nextPageToken, fetchResults]);
 
     const handleSearch = () => {
         setSearchQuery(searchQuery);
@@ -99,8 +121,13 @@ export default function YouTubePlayerLayout() {
     };
 
     const addToQueue = (video: YouTubeVideo) => {
-        setQueue((prev) => [...prev, video]);
-        setSelectedVideo(null);
+        if (!currentVideo && queue.length === 0) {
+            // If no video is playing and queue is empty, play immediately
+            playNow(video);
+        } else {
+            setQueue((prev) => [...prev, video]);
+            setSelectedVideo(null);
+        }
     };
 
     const removeFromQueue = (videoId: string) => {
@@ -353,7 +380,7 @@ export default function YouTubePlayerLayout() {
                                             </div>
                                         ) : (
                                             <div className="divide-y">
-                                                {searchResults.map((video) => (
+                                                {searchResults.map((video, index) => (
                                                     <div
                                                         key={video.id.videoId}
                                                         onClick={() =>
@@ -371,6 +398,11 @@ export default function YouTubePlayerLayout() {
                                                                     video.id.videoId) &&
                                                                 'bg-accent',
                                                         )}
+                                                        ref={
+                                                            index === searchResults.length - 1
+                                                                ? ref
+                                                                : undefined
+                                                        }
                                                     >
                                                         <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
                                                             <div
@@ -438,7 +470,7 @@ export default function YouTubePlayerLayout() {
                                                         </div>
                                                     </div>
                                                 ))}
-                                                {isLoading && searchResults.length > 0 && (
+                                                {isLoading && (
                                                     <div className="p-4 space-y-4">
                                                         {[...Array(2)].map((_, i) => (
                                                             <VideoSkeleton key={i} />

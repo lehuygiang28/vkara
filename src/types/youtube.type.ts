@@ -8,6 +8,8 @@ export interface YouTubeVideo {
         thumbnails: {
             default: {
                 url: string;
+                width: number;
+                height: number;
             };
         };
         publishedAt: string;
@@ -17,4 +19,8 @@ export interface YouTubeVideo {
 export interface SearchResults {
     items?: YouTubeVideo[];
     nextPageToken: string;
+    pageInfo: {
+        totalResults: number;
+        resultsPerPage: number;
+    };
 }
