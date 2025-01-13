@@ -9,10 +9,12 @@ import { YouTubeVideo } from '@/types/youtube.type';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { useScopedI18n } from '@/locales/client';
 
 export function VideoHistory() {
     const { room, selectedVideo, setSelectedVideo, playNow, addVideo } = useYouTubeStore();
     const { sendMessage } = useWebSocketStore();
+    const t = useScopedI18n('videoHistory');
 
     const playNowHandler = (video: YouTubeVideo) => {
         if (room) {
@@ -35,7 +37,7 @@ export function VideoHistory() {
             <div className="divide-y">
                 {!room?.historyQueue || room.historyQueue.length === 0 ? (
                     <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                        No watch history
+                        {t('noHistory')}
                     </div>
                 ) : (
                     room.historyQueue.map((video) => (
@@ -72,7 +74,7 @@ export function VideoHistory() {
                                             }}
                                         >
                                             <Play className="h-4 w-4" />
-                                            Play Now
+                                            {t('playNow')}
                                         </Button>
                                         <Button
                                             variant="outline"
@@ -83,7 +85,7 @@ export function VideoHistory() {
                                             }}
                                         >
                                             <ListVideo className="h-4 w-4" />
-                                            Add to Queue
+                                            {t('addToQueue')}
                                         </Button>
                                     </div>
                                 )}
