@@ -32,7 +32,7 @@ import { VideoSearch } from '@/components/VideoSearch';
 import { VideoHistory } from '@/components/VideoHistory';
 import { SeekToInput } from '../seek-to-input';
 
-export default function YouTubePlayerLayout() {
+export default function YoutubePlayerPage() {
     const {
         player,
         setPlayer,
