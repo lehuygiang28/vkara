@@ -1,4 +1,21 @@
 export default {
+    'youtubePage.play': 'Phát',
+    'youtubePage.pause': 'Tạm dừng',
+    'youtubePage.next': 'Tiếp theo',
+    'youtubePage.replay': 'Phát lại',
+    'youtubePage.mute': 'Tắt tiếng',
+    'youtubePage.unmute': 'Bật tiếng',
+    'youtubePage.volumeUp': 'Tăng âm lượng',
+    'youtubePage.volumeDown': 'Giảm âm lượng',
+    'youtubePage.search': 'Tìm kiếm',
+    'youtubePage.history': 'Lịch sử',
+    'youtubePage.list': 'Danh sách',
+    'youtubePage.settings': 'Cài đặt',
+    'youtubePage.searchPlaceholder': 'Tìm và chọn một video để phát',
+    'youtubePage.failedToFetch': 'Không thể tải kết quả tìm kiếm. Vui lòng thử lại.',
+    'youtubePage.playerPlaceholder':
+        'Chưa có video nào được phát. Tìm kiếm và chọn một video để bắt đầu.',
+
     'seekToInput.title': 'Nhảy đến thời gian cụ thể',
     'seekToInput.description': 'Nhập thời gian dưới dạng giây, MM:SS, hoặc HH:MM:SS',
     'seekToInput.label.time': 'Thời gian',

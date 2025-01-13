@@ -21,6 +21,7 @@ import { useDebounce } from 'use-debounce';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { searchYouTube } from '@/actions/youtube';
+import { useScopedI18n } from '@/locales/client';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -50,6 +51,7 @@ export default function YouTubePlayerLayout() {
         handleServerMessage,
     } = useYouTubeStore();
 
+    const t = useScopedI18n('youtubePage'); // Scoped localization
     const [debouncedSearch] = useDebounce(searchQuery, 500);
 
     const { sendMessage, lastMessage, connectionStatus } = useWebSocketStore();
@@ -76,7 +78,7 @@ export default function YouTubePlayerLayout() {
                     const results = await searchYouTube(debouncedSearch, isKaraoke);
                     setSearchResults(results?.items || []);
                 } catch (err) {
-                    setError('Failed to fetch search results. Please try again.');
+                    setError(t('failedToFetch')); // Localized error
                     console.error('Search error:', err);
                 } finally {
                     setIsLoading(false);
@@ -87,6 +89,7 @@ export default function YouTubePlayerLayout() {
         };
 
         performSearch();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [debouncedSearch, isKaraoke, setSearchResults, setIsLoading, setError]);
 
     const onPlayerReady = (event: YouTubeEvent) => {
@@ -184,9 +187,7 @@ export default function YouTubePlayerLayout() {
                             />
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center bg-black">
-                                <p className="text-muted-foreground">
-                                    Search and select a video to play
-                                </p>
+                                <p className="text-muted-foreground">{t('playerPlaceholder')}</p>
                             </div>
                         )}
                     </div>
@@ -195,12 +196,12 @@ export default function YouTubePlayerLayout() {
                             <div className="flex flex-wrap items-center gap-2">
                                 <Button variant="ghost" size="sm" onClick={playHandler}>
                                     <Play className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Play</span>
+                                    <span className="hidden sm:inline">{t('play')}</span>
                                 </Button>
 
                                 <Button variant="ghost" size="sm" onClick={pauseHandler}>
                                     <Pause className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Pause</span>
+                                    <span className="hidden sm:inline">{t('pause')}</span>
                                 </Button>
 
                                 <Button
@@ -210,7 +211,7 @@ export default function YouTubePlayerLayout() {
                                     disabled={!room?.videoQueue.length}
                                 >
                                     <SkipForward className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Next</span>
+                                    <span className="hidden sm:inline">{t('next')}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -219,7 +220,7 @@ export default function YouTubePlayerLayout() {
                                     disabled={!room?.playingNow}
                                 >
                                     <RotateCcw className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Replay</span>
+                                    <span className="hidden sm:inline">{t('replay')}</span>
                                 </Button>
                                 <SeekToInput onSeek={seekToHandler} disabled={!room?.playingNow} />
                             </div>
@@ -230,7 +231,7 @@ export default function YouTubePlayerLayout() {
                                     onClick={() => handleVolumeChange(0)}
                                 >
                                     <VolumeX className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Mute</span>
+                                    <span className="hidden sm:inline">{t('mute')}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -238,7 +239,7 @@ export default function YouTubePlayerLayout() {
                                     onClick={() => handleVolumeChange(100)}
                                 >
                                     <Volume2 className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Unmute</span>
+                                    <span className="hidden sm:inline">{t('unmute')}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -246,7 +247,7 @@ export default function YouTubePlayerLayout() {
                                     onClick={() => handleVolumeChange(Math.min(volume + 10, 100))}
                                 >
                                     <Plus className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Up</span>
+                                    <span className="hidden sm:inline">{t('volumeUp')}</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -254,7 +255,7 @@ export default function YouTubePlayerLayout() {
                                     onClick={() => handleVolumeChange(Math.max(volume - 10, 0))}
                                 >
                                     <Minus className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Down</span>
+                                    <span className="hidden sm:inline">{t('volumeDown')}</span>
                                 </Button>
                             </div>
                         </div>
@@ -269,29 +270,30 @@ export default function YouTubePlayerLayout() {
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
                                     <Search className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Search</span>
+                                    <span className="hidden sm:inline">{t('search')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="history"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
                                     <History className="h-4 w-4" />
-                                    <span className="hidden sm:inline">History</span>
+                                    <span className="hidden sm:inline">{t('history')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="queue"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
                                     <ListVideo className="h-4 w-4 mr-2" />
-                                    <span className="hidden sm:inline">List</span> (
-                                    {room?.videoQueue.length || 0})
+                                    <span className="hidden sm:inline">
+                                        {t('list')} ({room?.videoQueue.length || 0})
+                                    </span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="settings"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
                                     <Settings className="h-4 w-4" />
-                                    <span className="hidden sm:inline">Settings</span>
+                                    <span className="hidden sm:inline">{t('settings')}</span>
                                 </TabsTrigger>
                             </TabsList>
                             <TabsContent value="search" className="flex-1 overflow-auto">
