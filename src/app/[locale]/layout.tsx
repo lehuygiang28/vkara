@@ -42,7 +42,7 @@ export default async function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <I18nProvider locale={locale}>
+                    <I18nProvider locale={locale ?? 'vi'}>
                         <WebSocketProvider>{children}</WebSocketProvider>
                     </I18nProvider>
                 </ThemeProvider>
