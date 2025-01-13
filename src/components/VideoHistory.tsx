@@ -33,7 +33,7 @@ export function VideoHistory() {
     };
 
     return (
-        <ScrollArea className="h-[calc(100vh-13rem)]">
+        <ScrollArea className="h-[calc(100vh-30rem)] sm:h-[calc(100vh-20rem)] md:h-[calc(100vh-10rem)] pb-0">
             <div className="divide-y">
                 {!room?.historyQueue || room.historyQueue.length === 0 ? (
                     <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
