@@ -15,6 +15,7 @@ interface YouTubeState {
     searchResults: YouTubeVideo[];
     isLoading: boolean;
     error: string | null;
+    layoutMode: 'both' | 'remote' | 'player';
 
     setPlayer: (player: YT.Player) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
@@ -27,6 +28,7 @@ interface YouTubeState {
     setSearchResults: (searchResults: YouTubeVideo[]) => void;
     setIsLoading: (isLoading: boolean) => void;
     setError: (error: string | null) => void;
+    setLayoutMode: (mode: 'both' | 'remote' | 'player') => void;
 
     addVideo: (video: YouTubeVideo) => void;
     removeVideo: (videoId: string) => void;
@@ -50,6 +52,7 @@ export const useYouTubeStore = create(
             searchResults: [],
             isLoading: false,
             error: null,
+            layoutMode: 'both',
 
             setPlayer: (player) => set({ player }),
             setIsKaraoke: (isKaraoke) => set({ isKaraoke }),
@@ -62,6 +65,7 @@ export const useYouTubeStore = create(
             setSearchResults: (searchResults) => set({ searchResults }),
             setIsLoading: (isLoading) => set({ isLoading }),
             setError: (error) => set({ error }),
+            setLayoutMode: (layoutMode) => set({ layoutMode }),
 
             addVideo: (video) =>
                 set((state) => ({

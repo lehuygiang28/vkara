@@ -9,9 +9,16 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { useI18n, useScopedI18n } from '@/locales/client';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 export function RoomSettings() {
-    const { room, setRoom } = useYouTubeStore();
+    const { room, setRoom, layoutMode, setLayoutMode } = useYouTubeStore();
     const { sendMessage, connectionStatus } = useWebSocketStore();
     const [roomPassword, setRoomPassword] = useState<string>('');
     const [joinRoomId, setJoinRoomId] = useState<string>('');
@@ -55,6 +62,28 @@ export function RoomSettings() {
                         <Label htmlFor="theme-toggle">{t('appearance.theme')}</Label>
                         <ThemeToggle />
                     </div>
+                </CardContent>
+            </Card>
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('youtubePage.layout')}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <Select
+                        value={layoutMode}
+                        onValueChange={(value) =>
+                            setLayoutMode(value as 'both' | 'remote' | 'player')
+                        }
+                    >
+                        <SelectTrigger>
+                            <SelectValue placeholder={t('youtubePage.selectLayoutMode')} />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="both">{t('youtubePage.layoutBoth')}</SelectItem>
+                            <SelectItem value="remote">{t('youtubePage.layoutRemote')}</SelectItem>
+                            <SelectItem value="player">{t('youtubePage.layoutPlayer')}</SelectItem>
+                        </SelectContent>
+                    </Select>
                 </CardContent>
             </Card>
             <Card>

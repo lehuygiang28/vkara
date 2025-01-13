@@ -15,6 +15,12 @@ export default {
     'youtubePage.failedToFetch': 'Failed to fetch search results. Please try again.',
     'youtubePage.playerPlaceholder': 'No video is playing. Search and select a video to start.',
 
+    'youtubePage.layout': 'Layout',
+    'youtubePage.selectLayoutMode': 'Select layout mode',
+    'youtubePage.layoutBoth': 'Both Player and Remote',
+    'youtubePage.layoutRemote': 'Remote Only',
+    'youtubePage.layoutPlayer': 'Player Only',
+
     'seekToInput.title': 'Seek to specific time',
     'seekToInput.description': 'Enter time in seconds, MM:SS, or HH:MM:SS format',
     'seekToInput.label.time': 'Time',
