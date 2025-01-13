@@ -1,10 +1,12 @@
-import './globals.css';
+import '../globals.css';
 
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
 import { ThemeProvider } from '@/providers/theme-provider';
 import { WebSocketProvider } from '@/providers/websocket-provider';
+import { I18nProvider } from '@/providers/i18n-provider';
+import { ReactNode } from 'react';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -22,11 +24,15 @@ export const metadata: Metadata = {
         'vkara là ứng dụng hát karaoke trực tuyến, giúp bạn hát cùng nhau mọi lúc mọi nơi.',
 };
 
-export default function RootLayout({
+export default async function RootLayout({
+    params,
     children,
-}: Readonly<{
-    children: React.ReactNode;
-}>) {
+}: {
+    params: Promise<{ locale: string }>;
+    children: ReactNode;
+}) {
+    const { locale } = await params;
+
     return (
         <html lang="en" suppressHydrationWarning>
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
@@ -36,7 +42,9 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <WebSocketProvider>{children}</WebSocketProvider>
+                    <I18nProvider locale={locale}>
+                        <WebSocketProvider>{children}</WebSocketProvider>
+                    </I18nProvider>
                 </ThemeProvider>
             </body>
         </html>
