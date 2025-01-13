@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 'use client';
 
 import * as React from 'react';
@@ -10,31 +9,21 @@ import {
     Volume2,
     VolumeX,
     Search,
-    Mic,
     History,
     ListVideo,
     Settings,
     Maximize2,
-    Loader2,
-    Users,
 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
-import { useYouTubeStore } from '@/store/youtubeStore';
 
-import { cn } from '@/lib/utils';
+import { useYouTubeStore } from '@/store/youtubeStore';
+import { useWebSocketStore } from '@/store/websocketStore';
+import { searchYouTube } from '@/actions/youtube';
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
-import { SearchResults, YouTubeVideo } from '@/types/youtube.type';
-import { searchYouTube } from '@/actions/youtube';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { VideoSkeleton } from '@/components/video-skeleton';
-import { useWebSocketStore } from '@/store/websocketStore';
-import { ServerMessage } from '@/types/websocket.type';
 import { RoomSettings } from '@/components/RoomSettings';
 import { VideoQueue } from '@/components/VideoQueue';
 import { VideoSearch } from '@/components/VideoSearch';
@@ -47,28 +36,15 @@ export default function YouTubePlayerLayout() {
         isMuted,
         setIsMuted,
         isKaraoke,
-        setIsKaraoke,
         searchQuery,
-        setSearchQuery,
         volume,
         setVolume,
-        selectedVideo,
-        setSelectedVideo,
         currentTab,
         setCurrentTab,
         room,
-        setRoom,
-        currentVideo,
-        setCurrentVideo,
-        searchResults,
         setSearchResults,
-        isLoading,
         setIsLoading,
-        error,
         setError,
-        addVideo,
-        removeVideo,
-        playNow,
         nextVideo,
         setIsPlaying,
         handleServerMessage,
@@ -123,32 +99,6 @@ export default function YouTubePlayerLayout() {
             sendMessage({ type: 'videoFinished' });
         } else {
             nextVideo();
-        }
-    };
-
-    const handlePlayNow = (video: YouTubeVideo) => {
-        if (room) {
-            sendMessage({ type: 'playNow', video });
-        } else {
-            playNow(video);
-        }
-        setSelectedVideo(null);
-    };
-
-    const handleAddToQueue = (video: YouTubeVideo) => {
-        if (room) {
-            sendMessage({ type: 'addVideo', video });
-        } else {
-            addVideo(video);
-        }
-        setSelectedVideo(null);
-    };
-
-    const handleRemoveFromQueue = (videoId: string) => {
-        if (room) {
-            sendMessage({ type: 'removeVideo', videoId });
-        } else {
-            removeVideo(videoId);
         }
     };
 
