@@ -160,10 +160,10 @@ export default function YouTubePlayerLayout() {
     };
 
     return (
-        <div className="flex flex-col h-screen bg-background">
-            <main className="flex flex-1 overflow-hidden">
+        <div className="flex flex-col md:flex-row h-screen bg-background">
+            <main className="flex flex-col md:flex-row flex-1 overflow-hidden">
                 <div className="flex flex-col w-full md:w-2/3 lg:w-3/4">
-                    <div className="relative flex-1 bg-black">
+                    <div className="relative w-full pt-[56.25%] md:pt-0 md:h-0 md:flex-grow">
                         {room?.playingNow ? (
                             <YouTube
                                 videoId={room.playingNow.id.videoId}
@@ -183,24 +183,24 @@ export default function YouTubePlayerLayout() {
                                 className="absolute inset-0"
                             />
                         ) : (
-                            <div className="absolute inset-0 flex items-center justify-center">
+                            <div className="absolute inset-0 flex items-center justify-center bg-black">
                                 <p className="text-muted-foreground">
                                     Search and select a video to play
                                 </p>
                             </div>
                         )}
                     </div>
-                    <div className="p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                        <div className="flex flex-wrap items-center justify-between gap-4">
-                            <div className="flex items-center gap-2">
+                    <div className="p-2 md:p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                        <div className="flex flex-wrap items-center justify-center md:justify-between gap-2 md:gap-4">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <Button variant="ghost" size="sm" onClick={playHandler}>
-                                    <Play className="h-4 w-4 mr-2" />
-                                    Play
+                                    <Play className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Play</span>
                                 </Button>
 
                                 <Button variant="ghost" size="sm" onClick={pauseHandler}>
-                                    <Pause className="h-4 w-4 mr-2" />
-                                    Pause
+                                    <Pause className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Pause</span>
                                 </Button>
 
                                 <Button
@@ -209,8 +209,8 @@ export default function YouTubePlayerLayout() {
                                     onClick={handlePlayNext}
                                     disabled={!room?.videoQueue.length}
                                 >
-                                    <SkipForward className="h-4 w-4 mr-2" />
-                                    Next
+                                    <SkipForward className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Next</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -218,36 +218,27 @@ export default function YouTubePlayerLayout() {
                                     onClick={replayVideoHandler}
                                     disabled={!room?.playingNow}
                                 >
-                                    <RotateCcw className="h-4 w-4 mr-2" />
-                                    Replay
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={replayVideoHandler}
-                                    disabled={!room?.playingNow}
-                                >
-                                    <RotateCcw className="h-4 w-4 mr-2" />
-                                    Replay
+                                    <RotateCcw className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Replay</span>
                                 </Button>
                                 <SeekToInput onSeek={seekToHandler} disabled={!room?.playingNow} />
                             </div>
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleVolumeChange(0)}
                                 >
-                                    <VolumeX className="h-4 w-4 mr-2" />
-                                    Mute
-                                </Button>{' '}
+                                    <VolumeX className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Mute</span>
+                                </Button>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleVolumeChange(100)}
                                 >
-                                    <Volume2 className="h-4 w-4 mr-2" />
-                                    Unmute
+                                    <Volume2 className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Unmute</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -255,7 +246,7 @@ export default function YouTubePlayerLayout() {
                                     onClick={() => handleVolumeChange(Math.min(volume + 10, 100))}
                                 >
                                     <Plus className="h-4 w-4" />
-                                    Up
+                                    <span className="hidden sm:inline">Up</span>
                                 </Button>
                                 <Button
                                     variant="ghost"
@@ -263,13 +254,13 @@ export default function YouTubePlayerLayout() {
                                     onClick={() => handleVolumeChange(Math.max(volume - 10, 0))}
                                 >
                                     <Minus className="h-4 w-4" />
-                                    Down
+                                    <span className="hidden sm:inline">Down</span>
                                 </Button>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div className="w-full md:w-1/3 lg:w-1/4 border-l overflow-hidden">
+                <div className="w-full md:w-1/3 lg:w-1/4 md:border-l overflow-hidden">
                     <Card className="flex flex-col h-full rounded-none border-0">
                         <Tabs value={currentTab} onValueChange={setCurrentTab} className="flex-1">
                             <TabsList className="flex flex-wrap h-auto w-full justify-start rounded-none border-b sticky top-0 z-10 bg-background">
@@ -277,41 +268,42 @@ export default function YouTubePlayerLayout() {
                                     value="search"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
-                                    <Search className="h-4 w-4 mr-2" />
-                                    Search
+                                    <Search className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Search</span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="history"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
-                                    <History className="h-4 w-4 mr-2" />
-                                    History
+                                    <History className="h-4 w-4" />
+                                    <span className="hidden sm:inline">History</span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="queue"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
                                     <ListVideo className="h-4 w-4 mr-2" />
-                                    List ({room?.videoQueue.length || 0})
+                                    <span className="hidden sm:inline">List</span> (
+                                    {room?.videoQueue.length || 0})
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="settings"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
-                                    <Settings className="h-4 w-4 mr-2" />
-                                    Settings
+                                    <Settings className="h-4 w-4" />
+                                    <span className="hidden sm:inline">Settings</span>
                                 </TabsTrigger>
                             </TabsList>
-                            <TabsContent value="search" className="flex-1">
+                            <TabsContent value="search" className="flex-1 overflow-auto">
                                 <VideoSearch />
                             </TabsContent>
-                            <TabsContent value="history" className="flex-1 p-0">
+                            <TabsContent value="history" className="flex-1 overflow-auto p-0">
                                 <VideoHistory />
                             </TabsContent>
-                            <TabsContent value="queue" className="flex-1 p-0">
+                            <TabsContent value="queue" className="flex-1 overflow-auto p-0">
                                 <VideoQueue />
                             </TabsContent>
-                            <TabsContent value="settings" className="flex-1 p-4">
+                            <TabsContent value="settings" className="flex-1 overflow-auto p-4">
                                 <RoomSettings />
                             </TabsContent>
                         </Tabs>

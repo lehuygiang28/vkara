@@ -90,11 +90,11 @@ export function VideoSearch() {
                     </div>
                 </div>
             </div>
-            <ScrollArea className="h-[calc(100vh-14rem)] sm:h-[calc(100vh-16rem)] md:h-[calc(100vh-18rem)] pb-0">
+            <ScrollArea className="h-[calc(100vh-30rem)] sm:h-[calc(100vh-20rem)] md:h-[calc(100vh-10rem)] pb-0">
                 <div className="divide-y">
                     {isLoading && searchResults.length === 0 ? (
                         <div className="space-y-4 p-4">
-                            {[...Array(5)].map((_, i) => (
+                            {[...Array(10)].map((_, i) => (
                                 <VideoSkeleton key={i} />
                             ))}
                         </div>
@@ -134,7 +134,7 @@ export function VideoSearch() {
                                         />
                                         <img
                                             src={video.snippet.thumbnails.default.url}
-                                            alt=""
+                                            alt={video.snippet.title}
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
                                         <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded">
@@ -148,43 +148,43 @@ export function VideoSearch() {
                                         <div className="text-xs text-muted-foreground truncate">
                                             {video.snippet.channelTitle}
                                         </div>
-                                        <div className="text-xs text-muted-foreground hidden sm:block">
+                                        <div className="text-xs text-muted-foreground">
                                             {formatViewCount(video.views)} views
                                         </div>
                                         <div
                                             className={cn(
-                                                'flex items-center gap-2 mt-2',
-                                                'transition-all duration-200',
+                                                'overflow-hidden transition-all duration-300 ease-in-out',
                                                 selectedVideo === video.id.videoId
-                                                    ? 'opacity-100'
-                                                    : 'opacity-0 sm:opacity-100 sm:pointer-events-none',
+                                                    ? 'max-h-20 mt-2 opacity-100'
+                                                    : 'max-h-0 opacity-0',
                                             )}
-                                            onClick={(e) => e.stopPropagation()}
                                         >
-                                            <Button
-                                                variant="secondary"
-                                                size="sm"
-                                                className="h-7 px-2.5 transition-all hover:scale-105"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    playNowHandler(video);
-                                                }}
-                                            >
-                                                <Play className="h-3.5 w-3.5 mr-1.5" />
-                                                Play
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className="h-7 px-2.5 transition-all hover:scale-105"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    addVideoHandler(video);
-                                                }}
-                                            >
-                                                <ListVideo className="h-3.5 w-3.5 mr-1.5" />
-                                                Queue
-                                            </Button>
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    variant="secondary"
+                                                    size="sm"
+                                                    className="h-7 px-2.5 transition-all hover:scale-105"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        playNowHandler(video);
+                                                    }}
+                                                >
+                                                    <Play className="h-3.5 w-3.5" />
+                                                    Play
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    className="h-7 px-2.5 transition-all hover:scale-105"
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        addVideoHandler(video);
+                                                    }}
+                                                >
+                                                    <ListVideo className="h-3.5 w-3.5" />
+                                                    Queue
+                                                </Button>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
