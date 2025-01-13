@@ -7,10 +7,12 @@ export async function searchYouTube(query: string, isKaraoke: boolean): Promise<
     const searchQuery = `${isKaraoke ? 'karaoke' : ''} ${query}`;
 
     try {
+        // Can switch to youtube official API
         const results = await scrapeYt.search(searchQuery, { type: ResultType.video });
 
         // Transform the results to match our expected format
         const items = results.videos.map((video) => ({
+            ...video,
             id: { videoId: video.id },
             snippet: {
                 title: video.title,

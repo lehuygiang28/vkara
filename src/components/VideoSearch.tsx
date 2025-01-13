@@ -2,7 +2,7 @@
 import React from 'react';
 import { Search, Mic, Loader2, Play, ListVideo } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn, formatSeconds, formatViewCount } from '@/lib/utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -49,30 +49,28 @@ export function VideoSearch() {
 
     return (
         <>
-            <div className="sticky top-[41px] z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 border-b space-y-4">
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 border-b space-y-4">
                 <div className="flex flex-col gap-4">
-                    <div className="flex gap-2">
-                        <div className="relative flex-1">
-                            <Input
-                                type="search"
-                                placeholder="Search YouTube videos..."
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                                className="pr-10"
-                            />
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                className="absolute right-0 top-0 h-full px-3"
-                                disabled={isLoading}
-                            >
-                                {isLoading ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Search className="h-4 w-4" />
-                                )}
-                            </Button>
-                        </div>
+                    <div className="relative">
+                        <Input
+                            type="search"
+                            placeholder="Search YouTube videos..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pr-10"
+                        />
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="absolute right-0 top-0 h-full px-3"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Search className="h-4 w-4" />
+                            )}
+                        </Button>
                     </div>
                     <div className="flex items-center gap-2">
                         <Switch
@@ -92,7 +90,7 @@ export function VideoSearch() {
                     </div>
                 </div>
             </div>
-            <ScrollArea className="h-[calc(100vh-14rem)] pb-0">
+            <ScrollArea className="h-[calc(100vh-14rem)] sm:h-[calc(100vh-16rem)] md:h-[calc(100vh-18rem)] pb-0">
                 <div className="divide-y">
                     {isLoading && searchResults.length === 0 ? (
                         <div className="space-y-4 p-4">
@@ -121,12 +119,13 @@ export function VideoSearch() {
                                         )
                                     }
                                     className={cn(
-                                        'video-item group flex w-full items-start gap-3 p-4 text-left text-sm transition-all relative overflow-hidden',
+                                        'video-item group flex w-full items-start gap-3 p-4 text-left text-sm transition-all relative',
                                         'hover:bg-accent/50 cursor-pointer',
+                                        'sm:items-center',
                                         selectedVideo === video.id.videoId && 'bg-accent',
                                     )}
                                 >
-                                    <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
+                                    <div className="relative aspect-video w-24 sm:w-32 flex-shrink-0 overflow-hidden rounded-md">
                                         <div
                                             className={cn(
                                                 'absolute inset-0 transition-all duration-200',
@@ -138,23 +137,27 @@ export function VideoSearch() {
                                             alt=""
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
+                                        <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded">
+                                            {formatSeconds(video.duration)}
+                                        </div>
                                     </div>
-                                    <div className="flex flex-col flex-grow min-w-0 relative">
-                                        <div className="font-medium leading-snug mb-1 line-clamp-2">
+                                    <div className="flex flex-col flex-grow min-w-0">
+                                        <div className="font-medium leading-snug mb-1 line-clamp-2 sm:line-clamp-1">
                                             {video.snippet.title}
                                         </div>
-                                        <div className="text-xs text-muted-foreground truncate mb-2">
+                                        <div className="text-xs text-muted-foreground truncate">
                                             {video.snippet.channelTitle}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground hidden sm:block">
+                                            {formatViewCount(video.views)} views
                                         </div>
                                         <div
                                             className={cn(
-                                                'absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 px-4 pb-3 pt-8',
-                                                'bg-gradient-to-t from-background/80 to-transparent',
+                                                'flex items-center gap-2 mt-2',
                                                 'transition-all duration-200',
-                                                'rounded-sm',
                                                 selectedVideo === video.id.videoId
-                                                    ? 'translate-y-0 opacity-100'
-                                                    : 'translate-y-full opacity-0',
+                                                    ? 'opacity-100'
+                                                    : 'opacity-0 sm:opacity-100 sm:pointer-events-none',
                                             )}
                                             onClick={(e) => e.stopPropagation()}
                                         >

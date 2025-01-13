@@ -1,4 +1,6 @@
-export interface YouTubeVideo {
+import { Video } from 'scrape-youtube';
+
+export interface YouTubeVideo extends Omit<Video, 'id'> {
     id: {
         videoId: string;
     };
