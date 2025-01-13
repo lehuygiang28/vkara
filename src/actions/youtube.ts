@@ -1,38 +1,40 @@
 'use server';
 
 import { SearchResults } from '../types/youtube.type';
+import scrapeYt, { ResultType } from 'scrape-youtube';
 
-const maxResults = 12;
-
-export async function searchYouTube(
-    query: string,
-    isKaraoke: boolean,
-    pageToken?: string,
-): Promise<SearchResults> {
-    const apiKey = process.env.YOUTUBE_API_KEY;
-    const searchQuery = `${isKaraoke ? ' karaoke' : ''} ${query}`;
+export async function searchYouTube(query: string, isKaraoke: boolean): Promise<SearchResults> {
+    const searchQuery = `${isKaraoke ? 'karaoke' : ''} ${query}`;
 
     try {
-        const url = new URL('https://www.googleapis.com/youtube/v3/search');
-        url.searchParams.append('part', 'snippet');
-        url.searchParams.append('q', searchQuery);
-        url.searchParams.append('maxResults', maxResults.toString());
-        url.searchParams.append('type', 'video');
-        url.searchParams.append('key', apiKey || '');
+        const results = await scrapeYt.search(searchQuery, { type: ResultType.video });
 
-        if (pageToken) {
-            url.searchParams.append('pageToken', pageToken);
-        }
+        // Transform the results to match our expected format
+        const items = results.videos.map((video) => ({
+            id: { videoId: video.id },
+            snippet: {
+                title: video.title,
+                channelTitle: video.channel.name,
+                thumbnails: {
+                    default: {
+                        url: video.thumbnail,
+                        width: 120,
+                        height: 90,
+                    },
+                },
+                publishedAt: video.uploaded,
+            },
+        }));
 
-        const response = await fetch(url.toString());
-        const data = await response.json();
         return {
-            items: data.items || [],
-            nextPageToken: data.nextPageToken || '',
-            pageInfo: data.pageInfo || { totalResults: 0, resultsPerPage: 0 },
+            items,
+            pageInfo: {
+                totalResults: results.videos.length,
+                resultsPerPage: items.length,
+            },
         };
     } catch (error) {
         console.error('Error searching YouTube:', error);
-        return { items: [], nextPageToken: '', pageInfo: { totalResults: 0, resultsPerPage: 0 } };
+        return { items: [], pageInfo: { totalResults: 0, resultsPerPage: 0 } };
     }
 }
