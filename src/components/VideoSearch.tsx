@@ -2,6 +2,7 @@
 import React from 'react';
 import { Search, Mic, Loader2, Play, ListVideo } from 'lucide-react';
 
+import { useScopedI18n } from '@/locales/client';
 import { cn, formatSeconds, formatViewCount } from '@/lib/utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
@@ -30,6 +31,7 @@ export function VideoSearch() {
     } = useYouTubeStore();
 
     const { sendMessage } = useWebSocketStore();
+    const t = useScopedI18n('videoSearch');
 
     const playNowHandler = (video: YouTubeVideo) => {
         if (room) {
@@ -54,7 +56,7 @@ export function VideoSearch() {
                     <div className="relative">
                         <Input
                             type="search"
-                            placeholder="Search YouTube videos..."
+                            placeholder={t('searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="pr-10"
@@ -79,7 +81,7 @@ export function VideoSearch() {
                             id="karaoke-mode"
                         />
                         <label htmlFor="karaoke-mode" className="text-sm font-medium">
-                            Karaoke Mode
+                            {t('karaokeMode')}
                         </label>
                         <Mic
                             className={cn(
@@ -104,7 +106,7 @@ export function VideoSearch() {
                         </div>
                     ) : searchResults.length === 0 && searchQuery ? (
                         <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                            No results found
+                            {t('noResults')}
                         </div>
                     ) : (
                         <div className="divide-y">
@@ -149,7 +151,7 @@ export function VideoSearch() {
                                             {video.snippet.channelTitle}
                                         </div>
                                         <div className="text-xs text-muted-foreground">
-                                            {formatViewCount(video.views)} views
+                                            {formatViewCount(video.views)} {t('views')}
                                         </div>
                                         <div
                                             className={cn(
@@ -170,7 +172,7 @@ export function VideoSearch() {
                                                     }}
                                                 >
                                                     <Play className="h-3.5 w-3.5" />
-                                                    Play
+                                                    {t('playNow')}
                                                 </Button>
                                                 <Button
                                                     variant="outline"
@@ -182,7 +184,7 @@ export function VideoSearch() {
                                                     }}
                                                 >
                                                     <ListVideo className="h-3.5 w-3.5" />
-                                                    Queue
+                                                    {t('addToQueue')}
                                                 </Button>
                                             </div>
                                         </div>

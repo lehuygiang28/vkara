@@ -35,4 +35,14 @@ export default {
 
     'videoQueue.noVideos': 'Không có video nào trong danh sách',
     'videoQueue.remove': 'Xóa',
+
+    'videoSearch.searchPlaceholder': 'Tìm kiếm video trên YouTube...',
+    'videoSearch.karaokeMode': 'Chế độ Karaoke',
+    'videoSearch.karaokeModeOn': 'Chế độ Karaoke đang bật',
+    'videoSearch.karaokeModeOff': 'Chế độ Karaoke đang tắt',
+    'videoSearch.noResults': 'Không tìm thấy kết quả',
+    'videoSearch.playNow': 'Phát ngay',
+    'videoSearch.addToQueue': 'Thêm vào hàng chờ',
+    'videoSearch.loading': 'Đang tải video...',
+    'videoSearch.views': 'lượt xem',
 } as const;
