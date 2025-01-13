@@ -6,10 +6,13 @@ import { useWebSocketStore } from '@/store/websocketStore';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
+import { useScopedI18n } from '@/locales/client';
 
 export function VideoQueue() {
     const { room, removeVideo } = useYouTubeStore();
     const { sendMessage } = useWebSocketStore();
+
+    const t = useScopedI18n('videoQueue');
 
     const removeVideoHandler = (videoId: string) => {
         if (room) {
@@ -24,7 +27,7 @@ export function VideoQueue() {
             <div className="divide-y">
                 {!room?.videoQueue || room.videoQueue.length === 0 ? (
                     <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                        No videos in queue
+                        {t('noVideos')}
                     </div>
                 ) : (
                     room.videoQueue.map((video, index) => (
@@ -55,7 +58,7 @@ export function VideoQueue() {
                                     className="self-start mt-2"
                                     onClick={() => removeVideoHandler(video.id.videoId)}
                                 >
-                                    Remove
+                                    {t('remove')}
                                 </Button>
                             </div>
                         </div>

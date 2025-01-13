@@ -29,8 +29,10 @@ export default {
     'connectionStatus.notConnected': 'Not Connected',
     'connectionStatus.connected': 'Connected',
 
-    'videoHistory.title': 'Watch History',
     'videoHistory.noHistory': 'No watch history',
     'videoHistory.playNow': 'Play Now',
     'videoHistory.addToQueue': 'Add to Queue',
+
+    'videoQueue.noVideos': 'No videos in queue',
+    'videoQueue.remove': 'Remove',
 } as const;

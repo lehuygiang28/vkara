@@ -29,8 +29,10 @@ export default {
     'connectionStatus.notConnected': 'Không kết nối',
     'connectionStatus.connected': 'Đã kết nối',
 
-    'videoHistory.title': 'Lịch sử xem',
     'videoHistory.noHistory': 'Không có lịch sử xem',
     'videoHistory.playNow': 'Phát ngay',
     'videoHistory.addToQueue': 'Thêm vào hàng chờ',
+
+    'videoQueue.noVideos': 'Không có video nào trong danh sách',
+    'videoQueue.remove': 'Xóa',
 } as const;
