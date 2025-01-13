@@ -1,14 +1,14 @@
 'use server';
 
+import { search, ResultType } from 'scrape-youtube';
 import { SearchResults } from '../types/youtube.type';
-import scrapeYt, { ResultType } from 'scrape-youtube';
 
 export async function searchYouTube(query: string, isKaraoke: boolean): Promise<SearchResults> {
     const searchQuery = `${isKaraoke ? 'karaoke' : ''} ${query}`;
 
     try {
         // Can switch to youtube official API
-        const results = await scrapeYt.search(searchQuery, { type: ResultType.video });
+        const results = await search(searchQuery, { type: ResultType.video });
 
         // Transform the results to match our expected format
         const items = results.videos.map((video) => ({

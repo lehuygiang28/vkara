@@ -32,7 +32,7 @@ import { RoomSettings } from '@/components/RoomSettings';
 import { VideoQueue } from '@/components/VideoQueue';
 import { VideoSearch } from '@/components/VideoSearch';
 import { VideoHistory } from '@/components/VideoHistory';
-import { SeekToInput } from '../seek-to-input';
+import { SeekToInput } from '@/components/seek-to-input';
 
 export default function YoutubePlayerPage() {
     const {
