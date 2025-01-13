@@ -312,7 +312,7 @@ export default function YoutubePlayerPage() {
                                         playerVars: {
                                             autoplay: 1,
                                             controls: 1,
-                                            cc_load_policy: 1,
+                                            cc_load_policy: 0,
                                             iv_load_policy: 3,
                                             origin: 'https://youtube.com',
                                         },
