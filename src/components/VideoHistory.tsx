@@ -71,7 +71,7 @@ export function VideoHistory() {
                                                 playNowHandler(video);
                                             }}
                                         >
-                                            <Play className="h-4 w-4 mr-2" />
+                                            <Play className="h-4 w-4" />
                                             Play Now
                                         </Button>
                                         <Button
@@ -82,7 +82,7 @@ export function VideoHistory() {
                                                 addVideoHandler(video);
                                             }}
                                         >
-                                            <ListVideo className="h-4 w-4 mr-2" />
+                                            <ListVideo className="h-4 w-4" />
                                             Add to Queue
                                         </Button>
                                     </div>
