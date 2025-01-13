@@ -12,7 +12,9 @@ import {
     History,
     ListVideo,
     Settings,
-    Maximize2,
+    Plus,
+    Minus,
+    RotateCcw,
 } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
@@ -22,19 +24,17 @@ import { searchYouTube } from '@/actions/youtube';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RoomSettings } from '@/components/RoomSettings';
 import { VideoQueue } from '@/components/VideoQueue';
 import { VideoSearch } from '@/components/VideoSearch';
 import { VideoHistory } from '@/components/VideoHistory';
+import { SeekToInput } from '../seek-to-input';
 
 export default function YouTubePlayerLayout() {
     const {
         player,
         setPlayer,
-        isMuted,
-        setIsMuted,
         isKaraoke,
         searchQuery,
         volume,
@@ -52,7 +52,14 @@ export default function YouTubePlayerLayout() {
 
     const [debouncedSearch] = useDebounce(searchQuery, 500);
 
-    const { sendMessage, lastMessage } = useWebSocketStore();
+    const { sendMessage, lastMessage, connectionStatus } = useWebSocketStore();
+
+    React.useLayoutEffect(() => {
+        if (connectionStatus === 'Open') {
+            sendMessage({ type: 'joinRoom', roomId: room?.id || '' });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [connectionStatus]);
 
     React.useEffect(() => {
         if (lastMessage) {
@@ -110,54 +117,45 @@ export default function YouTubePlayerLayout() {
         }
     };
 
-    const togglePlayPause = () => {
-        if (player) {
-            if (room?.isPlaying) {
-                player.pauseVideo();
-                sendMessage({ type: 'pause' });
-            } else {
-                player.playVideo();
-                sendMessage({ type: 'play' });
-            }
+    const playHandler = () => {
+        if (room) {
+            sendMessage({ type: 'play' });
+        } else if (player) {
+            player.playVideo();
         }
     };
 
-    const handleVolumeChange = (value: number[]) => {
-        const newVolume = value[0];
-        setVolume(newVolume);
+    const pauseHandler = () => {
+        if (room) {
+            sendMessage({ type: 'pause' });
+        } else if (player) {
+            player.pauseVideo();
+        }
+    };
+
+    const handleVolumeChange = (volume: number) => {
+        setVolume(volume);
         if (player) {
-            player.setVolume(newVolume);
-            setIsMuted(newVolume === 0);
+            player.setVolume(volume);
         }
         if (room) {
-            sendMessage({ type: 'setVolume', volume: newVolume });
+            sendMessage({ type: 'setVolume', volume: volume });
         }
     };
 
-    const toggleMute = () => {
-        if (player) {
-            if (isMuted) {
-                player.unMute();
-                player.setVolume(volume);
-            } else {
-                player.mute();
-            }
-            setIsMuted(!isMuted);
+    const replayVideoHandler = () => {
+        if (room) {
+            sendMessage({ type: 'replay' });
+        } else if (player) {
+            player.seekTo(0, true);
         }
     };
 
-    const toggleFullscreen = () => {
-        if (player) {
-            const iframe = player.getIframe();
-            if (iframe.requestFullscreen) {
-                iframe.requestFullscreen();
-            } else if (iframe.mozRequestFullScreen) {
-                iframe.mozRequestFullScreen();
-            } else if (iframe.webkitRequestFullscreen) {
-                iframe.webkitRequestFullscreen();
-            } else if (iframe.msRequestFullscreen) {
-                iframe.msRequestFullscreen();
-            }
+    const seekToHandler = (seconds: number) => {
+        if (room) {
+            sendMessage({ type: 'seek', time: seconds });
+        } else if (player) {
+            player.seekTo(seconds, true);
         }
     };
 
@@ -175,7 +173,7 @@ export default function YouTubePlayerLayout() {
                                     playerVars: {
                                         autoplay: 1,
                                         controls: 1,
-                                        cc_load_policy: 0,
+                                        cc_load_policy: 1,
                                         iv_load_policy: 3,
                                         origin: 'https://youtube.com',
                                     },
@@ -195,14 +193,16 @@ export default function YouTubePlayerLayout() {
                     <div className="p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
                         <div className="flex flex-wrap items-center justify-between gap-4">
                             <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm" onClick={togglePlayPause}>
-                                    {room?.isPlaying ? (
-                                        <Pause className="h-4 w-4 mr-2" />
-                                    ) : (
-                                        <Play className="h-4 w-4 mr-2" />
-                                    )}
-                                    {room?.isPlaying ? 'Pause' : 'Play'}
+                                <Button variant="ghost" size="sm" onClick={playHandler}>
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Play
                                 </Button>
+
+                                <Button variant="ghost" size="sm" onClick={pauseHandler}>
+                                    <Pause className="h-4 w-4 mr-2" />
+                                    Pause
+                                </Button>
+
                                 <Button
                                     variant="ghost"
                                     size="sm"
@@ -212,26 +212,58 @@ export default function YouTubePlayerLayout() {
                                     <SkipForward className="h-4 w-4 mr-2" />
                                     Next
                                 </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={replayVideoHandler}
+                                    disabled={!room?.playingNow}
+                                >
+                                    <RotateCcw className="h-4 w-4 mr-2" />
+                                    Replay
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={replayVideoHandler}
+                                    disabled={!room?.playingNow}
+                                >
+                                    <RotateCcw className="h-4 w-4 mr-2" />
+                                    Replay
+                                </Button>
+                                <SeekToInput onSeek={seekToHandler} disabled={!room?.playingNow} />
                             </div>
                             <div className="flex items-center gap-2">
-                                <Button variant="ghost" size="sm" onClick={toggleMute}>
-                                    {isMuted ? (
-                                        <VolumeX className="h-4 w-4 mr-2" />
-                                    ) : (
-                                        <Volume2 className="h-4 w-4 mr-2" />
-                                    )}
-                                    {isMuted ? 'Unmute' : 'Mute'}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleVolumeChange(0)}
+                                >
+                                    <VolumeX className="h-4 w-4 mr-2" />
+                                    Mute
+                                </Button>{' '}
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleVolumeChange(100)}
+                                >
+                                    <Volume2 className="h-4 w-4 mr-2" />
+                                    Unmute
                                 </Button>
-                                <Slider
-                                    value={[volume]}
-                                    max={100}
-                                    step={1}
-                                    className="w-[80px] md:w-[120px]"
-                                    onValueChange={handleVolumeChange}
-                                />
-                                <Button variant="ghost" size="sm" onClick={toggleFullscreen}>
-                                    <Maximize2 className="h-4 w-4 mr-2" />
-                                    Fullscreen
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleVolumeChange(Math.min(volume + 10, 100))}
+                                >
+                                    <Plus className="h-4 w-4" />
+                                    Up
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleVolumeChange(Math.max(volume - 10, 0))}
+                                >
+                                    <Minus className="h-4 w-4" />
+                                    Down
                                 </Button>
                             </div>
                         </div>

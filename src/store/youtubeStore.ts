@@ -1,12 +1,10 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { YouTubePlayer } from 'react-youtube';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { Room, ServerMessage } from '@/types/websocket.type';
 
 interface YouTubeState {
-    player: YouTubePlayer | null;
-    isMuted: boolean;
+    player: YT.Player | null;
     isKaraoke: boolean;
     searchQuery: string;
     volume: number;
@@ -18,8 +16,7 @@ interface YouTubeState {
     isLoading: boolean;
     error: string | null;
 
-    setPlayer: (player: YouTubePlayer) => void;
-    setIsMuted: (isMuted: boolean) => void;
+    setPlayer: (player: YT.Player) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
     setSearchQuery: (searchQuery: string) => void;
     setVolume: (volume: number) => void;
@@ -43,7 +40,6 @@ export const useYouTubeStore = create(
     persist<YouTubeState>(
         (set) => ({
             player: null,
-            isMuted: false,
             isKaraoke: false,
             searchQuery: '',
             volume: 60,
@@ -56,7 +52,6 @@ export const useYouTubeStore = create(
             error: null,
 
             setPlayer: (player) => set({ player }),
-            setIsMuted: (isMuted) => set({ isMuted }),
             setIsKaraoke: (isKaraoke) => set({ isKaraoke }),
             setSearchQuery: (searchQuery) => set({ searchQuery }),
             setVolume: (volume) => set({ volume }),
@@ -138,6 +133,51 @@ export const useYouTubeStore = create(
                         break;
                     case 'roomClosed':
                         set({ room: null });
+                        break;
+                    case 'roomNotFound':
+                        set({ room: null });
+                        break;
+                    case 'currentTimeChanged':
+                        {
+                            set((state) => {
+                                state?.player?.seekTo(message.currentTime, true);
+                                return state;
+                            });
+                        }
+                        break;
+                    case 'volumeChanged':
+                        {
+                            set((state) => {
+                                // Ensure volume is between 0 and 100
+                                const volume = Math.min(100, Math.max(0, message.volume));
+                                state?.player?.setVolume(volume);
+                                return { ...state, volume };
+                            });
+                        }
+                        break;
+                    case 'replay':
+                        {
+                            set((state) => {
+                                state?.player?.seekTo(0, true);
+                                return state;
+                            });
+                        }
+                        break;
+                    case 'play':
+                        {
+                            set((state) => {
+                                state?.player?.playVideo();
+                                return state;
+                            });
+                        }
+                        break;
+                    case 'pause':
+                        {
+                            set((state) => {
+                                state?.player?.pauseVideo();
+                                return state;
+                            });
+                        }
                         break;
                     default:
                         break;
