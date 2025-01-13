@@ -8,11 +8,12 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { YouTubeVideo } from '@/types/youtube.type';
 
+import { VideoSkeleton } from '@/components/video-skeleton';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { VideoSkeleton } from '@/components/video-skeleton';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function VideoSearch() {
     const {
@@ -144,7 +145,7 @@ export function VideoSearch() {
                                         </div>
                                     </div>
                                     <div className="flex flex-col flex-grow min-w-0">
-                                        <div className="font-medium leading-snug mb-1 line-clamp-2 sm:line-clamp-1">
+                                        <div className="font-medium leading-snug mb-1 line-clamp-2">
                                             {video.snippet.title}
                                         </div>
                                         <div className="text-xs text-muted-foreground truncate">
@@ -161,31 +162,53 @@ export function VideoSearch() {
                                                     : 'max-h-0 opacity-0',
                                             )}
                                         >
-                                            <div className="flex items-center gap-2">
-                                                <Button
-                                                    variant="secondary"
-                                                    size="sm"
-                                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        playNowHandler(video);
-                                                    }}
-                                                >
-                                                    <Play className="h-3.5 w-3.5" />
-                                                    {t('playNow')}
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        addVideoHandler(video);
-                                                    }}
-                                                >
-                                                    <ListVideo className="h-3.5 w-3.5" />
-                                                    {t('addToQueue')}
-                                                </Button>
+                                            <div className="flex items-center gap-2 flex-wrap">
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="secondary"
+                                                                size="sm"
+                                                                className="h-7 px-2.5 transition-all hover:scale-105"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    playNowHandler(video);
+                                                                }}
+                                                            >
+                                                                <Play className="h-3.5 w-3.5 mr-1" />
+                                                                <span className="hidden sm:inline">
+                                                                    {t('playNow')}
+                                                                </span>
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{t('playNow')}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
+                                                <TooltipProvider>
+                                                    <Tooltip>
+                                                        <TooltipTrigger asChild>
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                className="h-7 px-2.5 transition-all hover:scale-105"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    addVideoHandler(video);
+                                                                }}
+                                                            >
+                                                                <ListVideo className="h-3.5 w-3.5 mr-1" />
+                                                                <span className="hidden sm:inline">
+                                                                    {t('addToQueue')}
+                                                                </span>
+                                                            </Button>
+                                                        </TooltipTrigger>
+                                                        <TooltipContent>
+                                                            <p>{t('addToQueue')}</p>
+                                                        </TooltipContent>
+                                                    </Tooltip>
+                                                </TooltipProvider>
                                             </div>
                                         </div>
                                     </div>
