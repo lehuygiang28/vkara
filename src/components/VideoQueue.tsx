@@ -1,10 +1,23 @@
+/* eslint-disable @next/next/no-img-element */
 import React from 'react';
+
+import { useYouTubeStore } from '@/store/youtubeStore';
+import { useWebSocketStore } from '@/store/websocketStore';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { useYouTubeStore } from '@/store/youtubeStore';
 
 export function VideoQueue() {
     const { room, removeVideo } = useYouTubeStore();
+    const { sendMessage } = useWebSocketStore();
+
+    const removeVideoHandler = (videoId: string) => {
+        if (room) {
+            sendMessage({ type: 'removeVideo', videoId });
+        } else {
+            removeVideo(videoId);
+        }
+    };
 
     return (
         <ScrollArea className="h-[calc(100vh-13rem)]">
@@ -40,7 +53,7 @@ export function VideoQueue() {
                                     variant="ghost"
                                     size="sm"
                                     className="self-start mt-2"
-                                    onClick={() => removeVideo(video.id.videoId)}
+                                    onClick={() => removeVideoHandler(video.id.videoId)}
                                 >
                                     Remove
                                 </Button>

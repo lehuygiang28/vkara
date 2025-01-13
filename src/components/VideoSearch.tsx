@@ -1,16 +1,21 @@
+/* eslint-disable @next/next/no-img-element */
 import React from 'react';
 import { Search, Mic, Loader2, Play, ListVideo } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import { useYouTubeStore } from '@/store/youtubeStore';
+import { useWebSocketStore } from '@/store/websocketStore';
+import { YouTubeVideo } from '@/types/youtube.type';
 
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { VideoSkeleton } from '@/components/video-skeleton';
-import { cn } from '@/lib/utils';
-import { useYouTubeStore } from '@/store/youtubeStore';
 
 export function VideoSearch() {
     const {
+        room,
         isKaraoke,
         setIsKaraoke,
         searchQuery,
@@ -23,6 +28,24 @@ export function VideoSearch() {
         playNow,
         addVideo,
     } = useYouTubeStore();
+
+    const { sendMessage } = useWebSocketStore();
+
+    const playNowHandler = (video: YouTubeVideo) => {
+        if (room) {
+            sendMessage({ type: 'playNow', video });
+        } else {
+            playNow(video);
+        }
+    };
+
+    const addVideoHandler = (video: YouTubeVideo) => {
+        if (room) {
+            sendMessage({ type: 'addVideo', video });
+        } else {
+            addVideo(video);
+        }
+    };
 
     return (
         <>
@@ -141,7 +164,7 @@ export function VideoSearch() {
                                                 className="h-7 px-2.5 transition-all hover:scale-105"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    playNow(video);
+                                                    playNowHandler(video);
                                                 }}
                                             >
                                                 <Play className="h-3.5 w-3.5 mr-1.5" />
@@ -153,7 +176,7 @@ export function VideoSearch() {
                                                 className="h-7 px-2.5 transition-all hover:scale-105"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    addVideo(video);
+                                                    addVideoHandler(video);
                                                 }}
                                             >
                                                 <ListVideo className="h-3.5 w-3.5 mr-1.5" />

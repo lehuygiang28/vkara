@@ -1,12 +1,34 @@
+/* eslint-disable @next/next/no-img-element */
 import React from 'react';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
 import { Play, ListVideo } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
+import { useWebSocketStore } from '@/store/websocketStore';
+import { YouTubeVideo } from '@/types/youtube.type';
+
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Button } from '@/components/ui/button';
 
 export function VideoHistory() {
     const { room, selectedVideo, setSelectedVideo, playNow, addVideo } = useYouTubeStore();
+    const { sendMessage } = useWebSocketStore();
+
+    const playNowHandler = (video: YouTubeVideo) => {
+        if (room) {
+            sendMessage({ type: 'playNow', video });
+        } else {
+            playNow(video);
+        }
+    };
+
+    const addVideoHandler = (video: YouTubeVideo) => {
+        if (room) {
+            sendMessage({ type: 'addVideo', video });
+        } else {
+            addVideo(video);
+        }
+    };
 
     return (
         <ScrollArea className="h-[calc(100vh-13rem)]">
@@ -46,7 +68,7 @@ export function VideoHistory() {
                                             size="sm"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                playNow(video);
+                                                playNowHandler(video);
                                             }}
                                         >
                                             <Play className="h-4 w-4 mr-2" />
@@ -57,7 +79,7 @@ export function VideoHistory() {
                                             size="sm"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                addVideo(video);
+                                                addVideoHandler(video);
                                             }}
                                         >
                                             <ListVideo className="h-4 w-4 mr-2" />
