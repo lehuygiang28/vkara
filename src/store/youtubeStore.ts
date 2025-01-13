@@ -144,6 +144,14 @@ export const useYouTubeStore = create(
                 }
             },
         }),
-        { name: 'youtube-storage', storage: createJSONStorage(() => localStorage) },
+        {
+            name: 'youtube-storage',
+            storage: createJSONStorage(() => localStorage),
+            partialize: (state) => {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const { player, ...rest } = state;
+                return { ...rest, player: null };
+            },
+        },
     ),
 );
