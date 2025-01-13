@@ -34,6 +34,7 @@ export default {
     'appearance.toggleTheme': 'Chuyển đổi chủ đề',
     'appearance.dark': 'Tối',
     'appearance.light': 'Sáng',
+    'appearance.switchToggleStyle': 'Chuyển đổi chủ đề',
 
     'roomSettings.title': 'Cài đặt Phòng',
     'roomSettings.roomId': 'ID Phòng',

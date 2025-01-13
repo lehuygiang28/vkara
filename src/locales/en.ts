@@ -34,6 +34,7 @@ export default {
     'appearance.toggleTheme': 'Toggle theme',
     'appearance.dark': 'Dark',
     'appearance.light': 'Light',
+    'appearance.switchToggleStyle': 'Switch toggle style',
 
     'roomSettings.title': 'Room Settings',
     'roomSettings.roomId': 'Room ID',
