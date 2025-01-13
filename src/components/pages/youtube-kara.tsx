@@ -269,21 +269,21 @@ export default function YoutubePlayerPage() {
                                     value="search"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
-                                    <Search className="h-4 w-4" />
+                                    <Search className="h-4 w-4 mr-0 md:mr-2" />
                                     <span className="hidden sm:inline">{t('search')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="history"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
-                                    <History className="h-4 w-4" />
+                                    <History className="h-4 w-4 mr-0 md:mr-2" />
                                     <span className="hidden sm:inline">{t('history')}</span>
                                 </TabsTrigger>
                                 <TabsTrigger
                                     value="queue"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
-                                    <ListVideo className="h-4 w-4 mr-2" />
+                                    <ListVideo className="h-4 w-4 mr-0 md:mr-2" />
                                     <span className="hidden sm:inline">
                                         {t('list')} ({room?.videoQueue.length || 0})
                                     </span>
@@ -292,7 +292,7 @@ export default function YoutubePlayerPage() {
                                     value="settings"
                                     className="flex-grow basis-1/4 py-2 px-1"
                                 >
-                                    <Settings className="h-4 w-4" />
+                                    <Settings className="h-4 w-4 mr-0 md:mr-2" />
                                     <span className="hidden sm:inline">{t('settings')}</span>
                                 </TabsTrigger>
                             </TabsList>
