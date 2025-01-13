@@ -18,7 +18,6 @@ export interface YouTubeVideo {
 
 export interface SearchResults {
     items?: YouTubeVideo[];
-    nextPageToken: string;
     pageInfo: {
         totalResults: number;
         resultsPerPage: number;

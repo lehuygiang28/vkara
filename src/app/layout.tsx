@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
 import { ThemeProvider } from '@/providers/theme-provider';
+import { WebSocketProvider } from '@/providers/websocket-provider';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -34,7 +35,7 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
-                    {children}
+                    <WebSocketProvider>{children}</WebSocketProvider>
                 </ThemeProvider>
             </body>
         </html>
