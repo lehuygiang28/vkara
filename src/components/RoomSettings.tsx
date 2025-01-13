@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { useI18n, useScopedI18n } from '@/locales/client';
 
 export function RoomSettings() {
     const { room, setRoom } = useYouTubeStore();
@@ -17,6 +18,9 @@ export function RoomSettings() {
     const [joinRoomPassword, setJoinRoomPassword] = useState<string>('');
 
     const isConnected = connectionStatus === 'Open';
+
+    const t = useI18n();
+    const t_RoomSettings = useScopedI18n('roomSettings');
 
     const createRoom = () => {
         sendMessage({ type: 'createRoom', password: roomPassword });
@@ -44,25 +48,27 @@ export function RoomSettings() {
         <div className="space-y-4">
             <Card>
                 <CardHeader>
-                    <CardTitle>Appearance</CardTitle>
+                    <CardTitle>{t('appearance.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div className="flex items-center justify-between">
-                        <Label htmlFor="theme-toggle">Theme</Label>
+                        <Label htmlFor="theme-toggle">{t('appearance.theme')}</Label>
                         <ThemeToggle />
                     </div>
                 </CardContent>
             </Card>
             <Card>
                 <CardHeader>
-                    <CardTitle>Room Settings</CardTitle>
+                    <CardTitle>{t_RoomSettings('title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                     {room ? (
                         <div className="space-y-4">
-                            <p className="text-sm">Room ID: {room.id}</p>
+                            <p className="text-sm">
+                                {t_RoomSettings('roomId')}: {room.id}
+                            </p>
                             <Button onClick={leaveRoom} className="w-full">
-                                Leave Room
+                                {t_RoomSettings('leaveRoom')}
                             </Button>
                             {room.creatorId === room.clients[0] && (
                                 <Button
@@ -70,7 +76,7 @@ export function RoomSettings() {
                                     variant="destructive"
                                     className="w-full"
                                 >
-                                    Close Room
+                                    {t_RoomSettings('closeRoom')}
                                 </Button>
                             )}
                         </div>
@@ -78,45 +84,49 @@ export function RoomSettings() {
                         <div className="space-y-4">
                             <div className="space-y-2">
                                 <Label htmlFor="create-room-password">
-                                    Room Password (optional)
+                                    {t_RoomSettings('roomPassword.label')}
                                 </Label>
                                 <Input
                                     id="create-room-password"
                                     type="password"
                                     value={roomPassword}
                                     onChange={(e) => setRoomPassword(e.target.value)}
-                                    placeholder="Enter room password"
+                                    placeholder={t_RoomSettings('roomPassword.placeholder')}
                                 />
                                 <Button
                                     onClick={createRoom}
                                     disabled={!isConnected}
                                     className="w-full"
                                 >
-                                    Create Room
+                                    {t_RoomSettings('createRoom')}
                                 </Button>
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="join-room-id">Room ID</Label>
+                                <Label htmlFor="join-room-id">
+                                    {t_RoomSettings('joinRoomId.label')}
+                                </Label>
                                 <Input
                                     id="join-room-id"
                                     value={joinRoomId}
                                     onChange={(e) => setJoinRoomId(e.target.value)}
-                                    placeholder="Enter room ID"
+                                    placeholder={t_RoomSettings('joinRoomId.placeholder')}
                                 />
-                                <Label htmlFor="join-room-password">Room Password (optional)</Label>
+                                <Label htmlFor="join-room-password">
+                                    {t_RoomSettings('joinRoomPassword.label')}
+                                </Label>
                                 <Input
                                     id="join-room-password"
                                     type="password"
                                     value={joinRoomPassword}
                                     onChange={(e) => setJoinRoomPassword(e.target.value)}
-                                    placeholder="Enter room password"
+                                    placeholder={t_RoomSettings('joinRoomPassword.placeholder')}
                                 />
                                 <Button
                                     onClick={joinRoom}
                                     disabled={!isConnected}
                                     className="w-full"
                                 >
-                                    Join Room
+                                    {t_RoomSettings('joinRoom')}
                                 </Button>
                             </div>
                         </div>
