@@ -7,6 +7,7 @@ export default {
     'toast.moveVideoToTopHandler': 'Video moved to top of queue',
     'toast.shuffleQueueHandler': 'Queue shuffled',
 	'toast.clearQueueHandler': 'All videos removed from queue',
+	'toast.clearHistoryHandler': 'All videos removed from history',
 
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
@@ -65,6 +66,7 @@ export default {
     'videoHistory.noHistory': 'No watch history',
     'videoHistory.playNow': 'Play Now',
     'videoHistory.addToQueue': 'Add to Queue',
+	'videoHistory.clearHistory': 'Clear All History',
 
     'videoQueue.noVideos': 'No videos in queue',
     'videoQueue.remove': 'Remove',

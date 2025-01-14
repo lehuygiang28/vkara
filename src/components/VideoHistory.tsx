@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, ListVideo } from 'lucide-react';
+import { Play, ListVideo, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
@@ -15,7 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 
 export function VideoHistory() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-    const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
+    const { handlePlayVideoNow, handleAddVideoToQueue, handleClearHistory } = usePlayerAction();
     const { room } = useYouTubeStore();
     const t = useScopedI18n('videoHistory');
 
@@ -77,6 +77,35 @@ export function VideoHistory() {
 
     return (
         <div className="flex flex-col h-screen">
+            {(room?.historyQueue?.length || 0) > 0 && (
+                <div className="flex items-center justify-center p-2 bg-background shadow-sm">
+                    <div className="flex items-center space-x-2">
+                        <TooltipProvider>
+                            <Tooltip>
+                                <TooltipTrigger asChild>
+                                    <Button
+                                        variant="destructive"
+                                        size="sm"
+                                        className="h-8 px-2 transition-all hover:scale-105"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleClearHistory();
+                                        }}
+                                    >
+                                        <X className="h-4 w-4 mr-2" />
+                                        <span className="hidden sm:inline">
+                                            {t('clearHistory')}
+                                        </span>
+                                    </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                    <p>{t('clearHistory')}</p>
+                                </TooltipContent>
+                            </Tooltip>
+                        </TooltipProvider>
+                    </div>
+                </div>
+            )}
             <VideoList
                 videos={room?.historyQueue || []}
                 emptyMessage={t('noHistory')}

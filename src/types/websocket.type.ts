@@ -41,6 +41,7 @@ export type RawClientMessage = {
     | { type: 'moveToTop'; videoId: string }
     | { type: 'shuffleQueue' }
     | { type: 'clearQueue' }
+    | { type: 'clearHistory' }
 );
 
 export type ClientMessage = MessageBase & RawClientMessage;

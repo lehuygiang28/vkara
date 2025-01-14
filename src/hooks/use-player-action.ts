@@ -19,6 +19,7 @@ export type PlayerAction = {
     handleMoveVideoToTop: (video: YouTubeVideo) => void;
     handleShuffleQueue: () => void;
     handleClearQueue: () => void;
+    handleClearHistory: () => void;
 };
 
 export const usePlayerAction = (): PlayerAction => {
@@ -95,7 +96,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handlePlayerPlay = useCallback(() => {
         if (room) {
-            sendMessage({ type: 'pause' });
+            sendMessage({ type: 'play' });
         } else if (player) {
             player.playVideo();
         }
@@ -177,6 +178,17 @@ export const usePlayerAction = (): PlayerAction => {
         });
     }, []);
 
+    const handleClearHistory = useCallback(() => {
+        if (room?.id) {
+            sendMessage({ type: 'clearHistory' });
+        } else if (room) {
+            setRoom({ ...room, historyQueue: [] });
+        }
+        toast({
+            title: t('toast.clearHistoryHandler'),
+        });
+    }, []);
+
     return {
         handlePlayerPlay,
         handlePlayerPause,
@@ -190,5 +202,6 @@ export const usePlayerAction = (): PlayerAction => {
         handleMoveVideoToTop,
         handleShuffleQueue,
         handleClearQueue,
+        handleClearHistory,
     };
 };

@@ -6,7 +6,8 @@ export default {
     'toast.setVolumeHandler': 'Âm lượng đã được thay đổi',
     'toast.moveVideoToTopHandler': 'Video đã được ưu tiên',
     'toast.shuffleQueueHandler': 'Hàng chờ đã được xáo trộn',
-    'toast.clearQueueHandler': 'Tất cả video đã được xóa',
+    'toast.clearQueueHandler': 'Hàng chờ đã được xóa',
+    'toast.clearHistoryHandler': 'Lịch sử video đã được xóa',
 
     'youtubePage.play': 'Phát',
     'youtubePage.pause': 'Tạm dừng',
@@ -65,6 +66,7 @@ export default {
     'videoHistory.noHistory': 'Không có lịch sử xem',
     'videoHistory.playNow': 'Phát ngay',
     'videoHistory.addToQueue': 'Thêm vào hàng chờ',
+	'videoHistory.clearHistory': 'Xóa lịch sử',
 
     'videoQueue.noVideos': 'Không có video nào trong danh sách',
     'videoQueue.remove': 'Xóa',
