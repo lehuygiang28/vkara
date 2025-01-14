@@ -36,7 +36,22 @@ export const usePlayerAction = (): PlayerAction => {
         setRoom,
     } = useYouTubeStore();
 
-    const handlePlayVideoNow = useCallback((video: YouTubeVideo) => {
+    const createRoomIfNeeded = useCallback(async () => {
+        if (!room?.id) {
+            await new Promise<void>((resolve) => {
+                sendMessage({ type: 'createRoom' });
+                const unsubscribe = useYouTubeStore.subscribe((state) => {
+                    if (state.room?.id) {
+                        unsubscribe();
+                        resolve();
+                    }
+                });
+            });
+        }
+    }, [room?.id]);
+
+    const handlePlayVideoNow = useCallback(async (video: YouTubeVideo) => {
+        await createRoomIfNeeded();
         if (room?.id) {
             sendMessage({ type: 'playNow', video });
         } else {
@@ -48,7 +63,8 @@ export const usePlayerAction = (): PlayerAction => {
         });
     }, []);
 
-    const handleAddVideoToQueue = useCallback((video: YouTubeVideo) => {
+    const handleAddVideoToQueue = useCallback(async (video: YouTubeVideo) => {
+        await createRoomIfNeeded();
         if (room?.id) {
             sendMessage({ type: 'addVideo', video });
         } else {
@@ -60,7 +76,8 @@ export const usePlayerAction = (): PlayerAction => {
         });
     }, []);
 
-    const handlePlayNextVideo = useCallback(() => {
+    const handlePlayNextVideo = useCallback(async () => {
+        await createRoomIfNeeded();
         if (room?.id) {
             sendMessage({ type: 'nextVideo' });
         } else {
@@ -83,7 +100,8 @@ export const usePlayerAction = (): PlayerAction => {
         });
     }, []);
 
-    const handleSetVideoVolume = useCallback((volume: number) => {
+    const handleSetVideoVolume = useCallback(async (volume: number) => {
+        await createRoomIfNeeded();
         if (room?.id) {
             sendMessage({ type: 'setVolume', volume });
         } else {
