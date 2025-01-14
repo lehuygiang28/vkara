@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trash2 } from 'lucide-react';
+import { Trash2, MoveUp } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
@@ -16,7 +16,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 export function VideoQueue() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
     const { room } = useYouTubeStore();
-    const { handleRemoveVideoFromQueue } = usePlayerAction();
+    const { handleRemoveVideoFromQueue, handleMoveVideoToTop } = usePlayerAction();
     const t = useScopedI18n('videoQueue');
 
     function renderButtons(video: YouTubeVideo) {
@@ -28,6 +28,28 @@ export function VideoQueue() {
                 )}
             >
                 <div className="flex items-center gap-2 flex-wrap">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 px-2.5 transition-all hover:scale-105"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleMoveVideoToTop(video);
+                                    }}
+                                >
+                                    <MoveUp className="h-3.5 w-3.5 mr-1" />
+                                    <span className="hidden sm:inline">{t('moveToTop')}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('moveToTop')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>

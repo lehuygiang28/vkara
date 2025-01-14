@@ -4,6 +4,7 @@ export default {
     'toast.nextVideoHandler': 'Video tiếp theo đang được phát',
     'toast.removeVideoHandler': 'Video đã được xóa',
     'toast.setVolumeHandler': 'Âm lượng đã được thay đổi',
+    'toast.moveVideoToTopHandler': 'Video đã được ưu tiên',
 
     'youtubePage.play': 'Phát',
     'youtubePage.pause': 'Tạm dừng',
@@ -66,6 +67,7 @@ export default {
     'videoQueue.noVideos': 'Không có video nào trong danh sách',
     'videoQueue.remove': 'Xóa',
     'videoQueue.videoRemoved': 'Video đã được xóa',
+    'videoQueue.moveToTop': 'Ưu tiên',
 
     'videoSearch.searchPlaceholder': 'Tìm kiếm video trên YouTube...',
     'videoSearch.karaokeMode': 'Chế độ Karaoke',

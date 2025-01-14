@@ -38,6 +38,7 @@ export type RawClientMessage = {
     | { type: 'pause' }
     | { type: 'seek'; time: number }
     | { type: 'videoFinished' }
+    | { type: 'moveToTop'; videoId: string }
 );
 
 export type ClientMessage = MessageBase & RawClientMessage;

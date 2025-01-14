@@ -16,6 +16,7 @@ export type PlayerAction = {
     handlePlayNextVideo: () => void;
     handleRemoveVideoFromQueue: (video: YouTubeVideo) => void;
     handleSetVideoVolume: (volume: number) => void;
+    handleMoveVideoToTop: (video: YouTubeVideo) => void;
 };
 
 export const usePlayerAction = (): PlayerAction => {
@@ -29,6 +30,7 @@ export const usePlayerAction = (): PlayerAction => {
         removeVideo: removeVideoFromQueue,
         setVolume: setVideoVolume,
         player,
+        setRoom,
     } = useYouTubeStore();
 
     const handlePlayVideoNow = useCallback((video: YouTubeVideo) => {
@@ -136,6 +138,21 @@ export const usePlayerAction = (): PlayerAction => {
         [player],
     );
 
+    const handleMoveVideoToTop = useCallback((video: YouTubeVideo) => {
+        if (room?.id) {
+            sendMessage({ type: 'moveToTop', videoId: video.id });
+        } else {
+            const newQueue = room?.videoQueue.filter((v) => v.id !== video.id);
+            if (room) {
+                setRoom({ ...room, videoQueue: [video, ...(newQueue || [])] });
+            }
+        }
+        toast({
+            title: t('toast.moveVideoToTopHandler'),
+            description: video.title,
+        });
+    }, []);
+
     return {
         handlePlayerPlay,
         handlePlayerPause,
@@ -146,5 +163,6 @@ export const usePlayerAction = (): PlayerAction => {
         handlePlayNextVideo,
         handleRemoveVideoFromQueue,
         handleSetVideoVolume,
+        handleMoveVideoToTop,
     };
 };
