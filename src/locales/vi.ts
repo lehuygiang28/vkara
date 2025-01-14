@@ -61,6 +61,9 @@ export default {
     'roomSettings.joinRoomPassword.label': 'Mật khẩu phòng (tùy chọn)',
     'roomSettings.joinRoomPassword.placeholder': 'Nhập mật khẩu phòng',
     'roomSettings.joinRoom': 'Tham gia phòng',
+    'roomSettings.shareableUrl': 'URL chia sẻ',
+    'roomSettings.copyUrl': 'Sao chép',
+    'roomSettings.copyUrlSuccess': 'URL đã được sao chép',
 
     'connectionStatus.notConnected': 'Không kết nối',
     'connectionStatus.connected': 'Đã kết nối',

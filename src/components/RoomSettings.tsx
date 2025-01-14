@@ -19,6 +19,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { generateShareableUrl } from '@/lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 export function RoomSettings() {
     const { room, setRoom, layoutMode, setLayoutMode, setCurrentTab } = useYouTubeStore();
@@ -69,6 +71,39 @@ export function RoomSettings() {
                                         {t_RoomSettings('roomId')}:{' '}
                                         <span className="font-normal">{room.id}</span>
                                     </p>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="shareable-url">
+                                            {t_RoomSettings('shareableUrl')}
+                                        </Label>
+                                        <div className="flex">
+                                            <Input
+                                                id="shareable-url"
+                                                value={generateShareableUrl({
+                                                    roomId: room.id,
+                                                    password: roomPassword,
+                                                    layoutMode,
+                                                })}
+                                                readOnly
+                                            />
+                                            <Button
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(
+                                                        generateShareableUrl({
+                                                            roomId: room.id,
+                                                            password: roomPassword,
+                                                            layoutMode,
+                                                        }),
+                                                    );
+                                                    toast({
+                                                        title: t_RoomSettings('copyUrlSuccess'),
+                                                    });
+                                                }}
+                                                className="ml-2"
+                                            >
+                                                {t_RoomSettings('copyUrl')}
+                                            </Button>
+                                        </div>
+                                    </div>
                                     <Button onClick={leaveRoom} className="w-full">
                                         {t_RoomSettings('leaveRoom')}
                                     </Button>

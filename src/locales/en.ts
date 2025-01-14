@@ -61,6 +61,9 @@ export default {
     'roomSettings.joinRoomPassword.label': 'Room Password (optional)',
     'roomSettings.joinRoomPassword.placeholder': 'Enter room password',
     'roomSettings.joinRoom': 'Join Room',
+    'roomSettings.shareableUrl': 'Shareable URL',
+    'roomSettings.copyUrl': 'Copy',
+    'roomSettings.copyUrlSuccess': 'URL copied to clipboard',
 
     'connectionStatus.notConnected': 'Not Connected',
     'connectionStatus.connected': 'Connected',

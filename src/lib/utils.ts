@@ -56,3 +56,49 @@ export function formatViewCount(viewCount: number): string {
 
     return viewCount.toLocaleString('en-US');
 }
+
+/**
+ * Generate a shareable URL that includes the given room ID, password, and optional
+ * layout mode. The returned URL is of the form:
+ *
+ * <baseUrl>?roomId=<roomId>&password=<password>[&layoutMode=<layoutMode>]
+ *
+ * @param {Object} options - An object containing the parameters to include in the shareable URL.
+ * @param {string} options.roomId - The room ID to include in the shareable URL.
+ * @param {string} options.password - The password to include in the shareable URL.
+ * @param {string} [options.layoutMode] - The optional layout mode to include in the shareable URL.
+ * @returns {string} A shareable URL that includes the given parameters.
+ */
+export function generateShareableUrl({
+    roomId,
+    password,
+    layoutMode,
+}: {
+    roomId: string;
+    password: string;
+    layoutMode?: string;
+}): string {
+    const baseUrl = window?.location.origin ?? '';
+    const params = new URLSearchParams({
+        roomId,
+        password,
+        ...(layoutMode && { layoutMode }),
+    });
+
+    return `${baseUrl}?${params.toString()}`;
+}
+
+/**
+ * Checks if a room ID is valid.
+ *
+ * A valid room ID must be exactly 8 characters long and contain only digits.
+ *
+ * @param roomId - The room ID to validate.
+ * @returns `true` if the room ID is valid, otherwise `false`.
+ */
+
+export function isValidRoomId(roomId?: string | null | undefined): boolean {
+    if (!roomId) return false;
+    const pattern = /^\d{8}$/;
+    return pattern.test(roomId);
+}
