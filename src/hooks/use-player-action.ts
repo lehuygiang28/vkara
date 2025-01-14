@@ -17,6 +17,8 @@ export type PlayerAction = {
     handleRemoveVideoFromQueue: (video: YouTubeVideo) => void;
     handleSetVideoVolume: (volume: number) => void;
     handleMoveVideoToTop: (video: YouTubeVideo) => void;
+    handleShuffleQueue: () => void;
+    handleClearQueue: () => void;
 };
 
 export const usePlayerAction = (): PlayerAction => {
@@ -153,6 +155,28 @@ export const usePlayerAction = (): PlayerAction => {
         });
     }, []);
 
+    const handleShuffleQueue = useCallback(() => {
+        if (room?.id) {
+            sendMessage({ type: 'shuffleQueue' });
+        } else if (room) {
+            room.videoQueue.sort(() => Math.random() - 0.5);
+        }
+        toast({
+            title: t('toast.shuffleQueueHandler'),
+        });
+    }, []);
+
+    const handleClearQueue = useCallback(() => {
+        if (room?.id) {
+            sendMessage({ type: 'clearQueue' });
+        } else if (room) {
+            setRoom({ ...room, videoQueue: [] });
+        }
+        toast({
+            title: t('toast.clearQueueHandler'),
+        });
+    }, []);
+
     return {
         handlePlayerPlay,
         handlePlayerPause,
@@ -164,5 +188,7 @@ export const usePlayerAction = (): PlayerAction => {
         handleRemoveVideoFromQueue,
         handleSetVideoVolume,
         handleMoveVideoToTop,
+        handleShuffleQueue,
+        handleClearQueue,
     };
 };

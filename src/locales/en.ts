@@ -5,6 +5,8 @@ export default {
     'toast.removeVideoHandler': 'Video removed from queue',
     'toast.setVolumeHandler': 'Volume changed',
     'toast.moveVideoToTopHandler': 'Video moved to top of queue',
+    'toast.shuffleQueueHandler': 'Queue shuffled',
+	'toast.clearQueueHandler': 'All videos removed from queue',
 
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
@@ -68,6 +70,8 @@ export default {
     'videoQueue.remove': 'Remove',
     'videoQueue.videoRemoved': 'Video removed',
     'videoQueue.moveToTop': 'Move to Top',
+    'videoQueue.shuffle': 'Shuffle',
+    'videoQueue.clearQueue': 'Clear All Queue',
 
     'videoSearch.searchPlaceholder': 'Search YouTube videos...',
     'videoSearch.karaokeMode': 'Karaoke Mode',

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trash2, MoveUp } from 'lucide-react';
+import { Trash2, MoveUp, Shuffle, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
@@ -16,7 +16,12 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 export function VideoQueue() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
     const { room } = useYouTubeStore();
-    const { handleRemoveVideoFromQueue, handleMoveVideoToTop } = usePlayerAction();
+    const {
+        handleRemoveVideoFromQueue,
+        handleMoveVideoToTop,
+        handleShuffleQueue,
+        handleClearQueue,
+    } = usePlayerAction();
     const t = useScopedI18n('videoQueue');
 
     function renderButtons(video: YouTubeVideo) {
@@ -78,6 +83,53 @@ export function VideoQueue() {
 
     return (
         <div className="flex flex-col h-screen">
+            <div className="flex items-center justify-center p-2 bg-background shadow-sm">
+                <div className="flex items-center space-x-2">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-8 px-2 transition-all hover:scale-105"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleShuffleQueue();
+                                    }}
+                                >
+                                    <Shuffle className="h-4 w-4 mr-2" />
+                                    <span className="hidden sm:inline">{t('shuffle')}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('shuffle')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    className="h-8 px-2 transition-all hover:scale-105"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleClearQueue();
+                                    }}
+                                >
+                                    <X className="h-4 w-4 mr-2" />
+                                    <span className="hidden sm:inline">{t('clearQueue')}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('clearQueue')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+            </div>
             <VideoList
                 videos={room?.videoQueue || []}
                 emptyMessage={t('noVideos')}
