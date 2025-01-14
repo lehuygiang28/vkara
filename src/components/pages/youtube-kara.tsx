@@ -5,6 +5,7 @@ import YouTube, { YouTubeEvent } from 'react-youtube';
 import { ChevronRight, Search, Settings, History, SlidersVertical, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { motion, AnimatePresence } from 'framer-motion';
+import { QRCode } from 'react-qrcode-logo';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
@@ -20,6 +21,7 @@ import { VideoSearch } from '@/components/VideoSearch';
 import { VideoHistory } from '@/components/VideoHistory';
 import { PlayerControls } from '@/components/PlayerControls';
 import { PlayerControlsTabs } from '@/components/PlayerControlsTabs';
+import { generateShareableUrl } from '@/lib/utils';
 
 export default function YoutubePlayerPage() {
     const {
@@ -179,8 +181,28 @@ export default function YoutubePlayerPage() {
                     <p className="text-muted-foreground">{t('playerPlaceholder')}</p>
                 </div>
             )}
+            {room?.id && (
+                <div className="absolute top-2 left-2 flex flex-col opacity-30 hover:opacity-80">
+                    <div className="flex justify-center">
+                        <QRCode
+                            value={generateShareableUrl({
+                                roomId: room.id,
+                                password: room?.password || '',
+                                layoutMode,
+                            })}
+                            size={80}
+                            qrStyle="dots"
+                            eyeRadius={5}
+                            quietZone={2}
+                            ecLevel="L"
+                        />
+                    </div>
+                    <span className="text-sm text-center">{room.id}</span>
+                </div>
+            )}
+
             {layoutMode === 'player' && (
-                <div className="absolute top-20 right-6 flex flex-col gap-2 opacity-50 hover:opacity-80">
+                <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-50 hover:opacity-80">
                     <Button
                         className="text-center font-medium focus-within:ring-4 focus-within:outline-none justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 focus-within:bg-gray-900 focus-within:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 focus-within:ring-gray-300 dark:focus-within:ring-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
                         variant="ghost"

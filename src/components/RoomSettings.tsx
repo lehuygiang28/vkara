@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import { QRCode } from 'react-qrcode-logo';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -102,6 +103,26 @@ export function RoomSettings() {
                                             >
                                                 {t_RoomSettings('copyUrl')}
                                             </Button>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="shareable-qr-code">
+                                            {t_RoomSettings('qrCode')}
+                                        </Label>
+                                        <div className="flex justify-center">
+                                            <QRCode
+                                                id="shareable-qr-code"
+                                                value={generateShareableUrl({
+                                                    roomId: room.id,
+                                                    password: room?.password || '',
+                                                    layoutMode,
+                                                })}
+                                                size={200}
+                                                qrStyle="dots"
+                                                eyeRadius={5}
+                                                quietZone={2}
+                                                ecLevel="L"
+                                            />
                                         </div>
                                     </div>
                                     <Button onClick={leaveRoom} className="w-full">

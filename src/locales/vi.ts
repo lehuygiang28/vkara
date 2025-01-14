@@ -64,6 +64,7 @@ export default {
     'roomSettings.shareableUrl': 'URL chia sẻ',
     'roomSettings.copyUrl': 'Sao chép',
     'roomSettings.copyUrlSuccess': 'URL đã được sao chép',
+    'roomSettings.qrCode': 'QR Code',
 
     'connectionStatus.notConnected': 'Không kết nối',
     'connectionStatus.connected': 'Đã kết nối',

@@ -64,6 +64,7 @@ export default {
     'roomSettings.shareableUrl': 'Shareable URL',
     'roomSettings.copyUrl': 'Copy',
     'roomSettings.copyUrlSuccess': 'URL copied to clipboard',
+    'roomSettings.qrCode': 'QR Code',
 
     'connectionStatus.notConnected': 'Not Connected',
     'connectionStatus.connected': 'Connected',
