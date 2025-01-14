@@ -175,15 +175,16 @@ export default function YoutubePlayerPage() {
                     }}
                     onReady={onPlayerReady}
                     onStateChange={onPlayerStateChange}
-                    className="absolute inset-0"
+                    className="absolute inset-0 z-0"
                 />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-black">
                     <p className="text-muted-foreground">{t('playerPlaceholder')}</p>
                 </div>
             )}
+
             {room?.id && (
-                <div className="absolute top-2 left-2 flex flex-col opacity-30 hover:opacity-80">
+                <div className="absolute top-2 left-2 flex flex-col opacity-30 hover:opacity-80 z-10">
                     <div className="flex justify-center">
                         <QRCode
                             value={generateShareableUrl({
@@ -203,7 +204,7 @@ export default function YoutubePlayerPage() {
             )}
 
             {layoutMode === 'player' && (
-                <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-50 hover:opacity-80">
+                <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-50 hover:opacity-80 z-10">
                     <Button
                         className="text-center font-medium focus-within:ring-4 focus-within:outline-none justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 focus-within:bg-gray-900 focus-within:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 focus-within:ring-gray-300 dark:focus-within:ring-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
                         variant="ghost"
@@ -285,7 +286,7 @@ export default function YoutubePlayerPage() {
                             animate={{ x: 0 }}
                             exit={{ x: '100%' }}
                             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-background shadow-lg"
+                            className="fixed inset-y-0 right-0 z-50 w-11/12 md:w-3/4 lg:w-1/4 bg-background shadow-lg"
                         >
                             {renderSidebar()}
                             <Button
