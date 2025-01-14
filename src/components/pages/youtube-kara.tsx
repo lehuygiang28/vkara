@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -255,6 +256,24 @@ export default function YoutubePlayerPage() {
                             layoutMode === 'both' ? 'md:w-1/3 lg:w-1/4 md:border-l' : ''
                         } overflow-hidden`}
                     >
+                        {layoutMode === 'remote' && room?.playingNow && (
+                            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 border-b">
+                                <h2 className="text-lg font-semibold mb-2">{t('nowPlaying')}</h2>
+                                <div className="flex items-center space-x-4">
+                                    <img
+                                        src={room.playingNow.thumbnail.url}
+                                        alt={room.playingNow.title}
+                                        className="w-16 h-16 object-cover rounded"
+                                    />
+                                    <div>
+                                        <p className="font-medium">{room.playingNow.title}</p>
+                                        <p className="text-sm text-muted-foreground">
+                                            {room.playingNow.channel.name}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                         {renderSidebar()}
                     </div>
                 )}

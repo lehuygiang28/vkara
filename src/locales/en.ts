@@ -27,6 +27,7 @@ export default {
     'youtubePage.seekTo': 'Seek to',
     'youtubePage.controls': 'Controls',
     'youtubePage.queue': 'Queue',
+    'youtubePage.nowPlaying': 'Now Playing',
 
     'youtubePage.layout': 'Layout',
     'youtubePage.selectLayoutMode': 'Select layout mode',

@@ -33,6 +33,7 @@ export default {
     'youtubePage.seekTo': 'Nhảy tới',
     'youtubePage.controls': 'Điều khiển',
     'youtubePage.queue': 'Danh sách',
+    'youtubePage.nowPlaying': 'Đang phát',
 
     'seekToInput.title': 'Nhảy đến thời gian cụ thể',
     'seekToInput.description': 'Nhập thời gian dưới dạng giây, MM:SS, hoặc HH:MM:SS',
