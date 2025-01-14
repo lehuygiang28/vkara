@@ -26,6 +26,7 @@ export default {
     'youtubePage.playerPlaceholder': 'No video is playing. Search and select a video to start.',
     'youtubePage.seekTo': 'Seek to',
     'youtubePage.controls': 'Controls',
+    'youtubePage.queue': 'Queue',
 
     'youtubePage.layout': 'Layout',
     'youtubePage.selectLayoutMode': 'Select layout mode',

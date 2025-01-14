@@ -180,17 +180,30 @@ export default function YoutubePlayerPage() {
                 </div>
             )}
             {layoutMode === 'player' && (
-                <div className="absolute top-4 right-4 flex gap-2">
+                <div className="absolute top-20 right-6 flex flex-col gap-2 opacity-50 hover:opacity-80">
                     <Button
+                        className="text-center font-medium focus-within:ring-4 focus-within:outline-none justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 focus-within:bg-gray-900 focus-within:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 focus-within:ring-gray-300 dark:focus-within:ring-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
                         variant="ghost"
-                        size="sm"
                         onClick={() => {
                             setShowSidebar(true);
-                            setCurrentTab('controls');
+                            setCurrentTab('queue');
                         }}
                     >
-                        <Settings className="h-4 w-4 mr-2" />
-                        {t('controls')}
+                        <ListVideo className="scale-150" />
+                        <span className="text-sm">
+                            {t('queue')} ({room?.videoQueue.length || 0})
+                        </span>
+                    </Button>
+                    <Button
+                        className="text-center font-medium focus-within:ring-4 focus-within:outline-none justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 focus-within:bg-gray-900 focus-within:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 focus-within:ring-gray-300 dark:focus-within:ring-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
+                        variant="ghost"
+                        onClick={() => {
+                            setShowSidebar(true);
+                            setCurrentTab('settings');
+                        }}
+                    >
+                        <Settings className="scale-150" />
+                        <span className="text-sm">{t('settings')}</span>
                     </Button>
                 </div>
             )}
