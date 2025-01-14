@@ -14,7 +14,14 @@ export interface Room {
     currentTime: number;
 }
 
-export type ClientMessage =
+export interface MessageBase {
+    id: string;
+    timestamp: number;
+}
+
+export type RawClientMessage = {
+    requiresAck?: boolean;
+} & (
     | { type: 'ping' }
     | { type: 'createRoom'; password?: string }
     | { type: 'joinRoom'; roomId: string; password?: string }
@@ -30,10 +37,14 @@ export type ClientMessage =
     | { type: 'play' }
     | { type: 'pause' }
     | { type: 'seek'; time: number }
-    | { type: 'videoFinished' };
+    | { type: 'videoFinished' }
+);
+
+export type ClientMessage = MessageBase & RawClientMessage;
 
 export type ServerMessage =
     | { type: 'pong' }
+    | { type: 'ack'; messageId: string }
     | { type: 'roomCreated'; roomId: string }
     | { type: 'roomUpdate'; room: Room }
     | { type: 'roomNotFound' }
@@ -47,7 +58,23 @@ export type ServerMessage =
     | { type: 'volumeChanged'; volume: number }
     | { type: 'currentTimeChanged'; currentTime: number };
 
-export interface ClientInfo {
-    id: string;
-    roomId?: string;
+export type ConnectionStatus = 'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED';
+
+export interface WebSocketState {
+    sendMessage: (message: RawClientMessage) => void;
+    lastMessage: ServerMessage | null;
+    connectionStatus: ConnectionStatus;
+    connect: () => void;
+    disconnect: () => void;
+    isMessagePending: (messageId: string) => boolean;
+    getPendingMessages: () => ClientMessage[];
+}
+
+export interface WebSocketConfig {
+    url: string;
+    reconnectAttempts?: number;
+    initialRetryDelay?: number;
+    maxRetryDelay?: number;
+    heartbeatInterval?: number;
+    messageTimeout?: number;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import * as React from 'react';
+import { useEffect, useState, useRef } from 'react';
 import YouTube, { YouTubeEvent } from 'react-youtube';
 import {
     Play,
@@ -56,24 +56,18 @@ export default function YoutubePlayerPage() {
 
     const t = useScopedI18n('youtubePage');
     const [debouncedSearch] = useDebounce(searchQuery, 500);
-    const [showSidebar, setShowSidebar] = React.useState(false);
-    const sidebarRef = React.useRef<HTMLDivElement>(null);
+    const [showSidebar, setShowSidebar] = useState(false);
+    const sidebarRef = useRef<HTMLDivElement>(null);
 
-    const { sendMessage, lastMessage, connectionStatus } = useWebSocketStore();
+    const { sendMessage, lastMessage } = useWebSocketStore();
 
-    React.useLayoutEffect(() => {
-        if (connectionStatus === 'Open') {
-            sendMessage({ type: 'joinRoom', roomId: room?.id || '' });
-        }
-    }, [connectionStatus, room?.id, sendMessage]);
-
-    React.useEffect(() => {
+    useEffect(() => {
         if (lastMessage) {
             handleServerMessage(lastMessage);
         }
     }, [lastMessage, handleServerMessage]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const performSearch = async () => {
             if (debouncedSearch) {
                 setIsLoading(true);
@@ -95,7 +89,7 @@ export default function YoutubePlayerPage() {
         performSearch();
     }, [debouncedSearch, isKaraoke, setSearchResults, setIsLoading, setError, t]);
 
-    React.useEffect(() => {
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
                 setShowSidebar(false);

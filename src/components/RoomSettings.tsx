@@ -25,7 +25,7 @@ export function RoomSettings() {
     const [joinRoomId, setJoinRoomId] = useState<string>('');
     const [joinRoomPassword, setJoinRoomPassword] = useState<string>('');
 
-    const isConnected = connectionStatus === 'Open';
+    const isConnected = connectionStatus === 'OPEN';
 
     const t = useI18n();
     const t_RoomSettings = useScopedI18n('roomSettings');
