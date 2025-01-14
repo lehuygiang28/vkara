@@ -21,7 +21,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export function RoomSettings() {
-    const { room, setRoom, layoutMode, setLayoutMode } = useYouTubeStore();
+    const { room, setRoom, layoutMode, setLayoutMode, setCurrentTab } = useYouTubeStore();
     const { sendMessage, connectionStatus } = useWebSocketStore();
     const [roomPassword, setRoomPassword] = useState<string>('');
     const [joinRoomId, setJoinRoomId] = useState<string>('');
@@ -144,9 +144,15 @@ export function RoomSettings() {
                         <CardContent>
                             <Select
                                 value={layoutMode}
-                                onValueChange={(value) =>
-                                    setLayoutMode(value as 'both' | 'remote' | 'player')
-                                }
+                                onValueChange={(value) => {
+                                    const val = value as 'both' | 'remote' | 'player';
+                                    setLayoutMode(val);
+                                    if (val === 'remote') {
+                                        setCurrentTab('controls');
+                                    } else if (val === 'player') {
+                                        setCurrentTab('queue');
+                                    }
+                                }}
                             >
                                 <SelectTrigger className="w-full">
                                     <SelectValue placeholder={t('youtubePage.selectLayoutMode')} />
