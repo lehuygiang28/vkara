@@ -13,7 +13,6 @@ export async function searchYouTube(query: string, isKaraoke: boolean): Promise<
         }
 
         const items = results.map((video) => video?.toJSON());
-        console.log({ i: items[0] });
         return {
             items,
             pageInfo: {

@@ -58,6 +58,7 @@ export default {
 
     'videoQueue.noVideos': 'Không có video nào trong danh sách',
     'videoQueue.remove': 'Xóa',
+    'videoQueue.videoRemoved': 'Video đã được xóa',
 
     'videoSearch.searchPlaceholder': 'Tìm kiếm video trên YouTube...',
     'videoSearch.karaokeMode': 'Chế độ Karaoke',
@@ -68,4 +69,6 @@ export default {
     'videoSearch.addToQueue': 'Thêm vào hàng chờ',
     'videoSearch.loading': 'Đang tải video...',
     'videoSearch.views': 'lượt xem',
+    'videoSearch.playThisNow': 'Phát ngay',
+    'videoSearch.videoAdded': 'Video đã được thêm vào hàng chờ',
 } as const;

@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
-import { toast } from '@/hooks/use-toast';
 import type {
     WebSocketState,
     ClientMessage,
@@ -75,11 +74,6 @@ class WebSocketManager {
                     } else {
                         // Message failed after 3 retries
                         this.messageQueue.delete(messageId);
-                        toast({
-                            title: 'Message failed',
-                            description: 'Failed to send message after multiple attempts',
-                            variant: 'destructive',
-                        });
                     }
                 }
             }
@@ -125,35 +119,18 @@ class WebSocketManager {
             this.sendMessageToServer(message);
         }
         this.startHeartbeat();
-
-        toast({
-            title: 'Connected to server',
-            description: 'WebSocket connection established successfully.',
-        });
     };
 
     private handleClose = () => {
         this.setStatus('CLOSED');
         this.cleanup();
         this.scheduleReconnect();
-
-        toast({
-            title: 'Disconnected from server',
-            description: 'Connection lost. Attempting to reconnect...',
-            variant: 'destructive',
-        });
     };
 
     private handleError = (error: Event) => {
         console.error('WebSocket error:', error);
         this.cleanup();
         this.scheduleReconnect();
-
-        toast({
-            title: 'Connection error',
-            description: 'An error occurred with the WebSocket connection.',
-            variant: 'destructive',
-        });
     };
 
     private handleMessage = (event: MessageEvent) => {
@@ -245,10 +222,6 @@ class WebSocketManager {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.sendMessageToServer(message);
         } else {
-            toast({
-                title: 'Message queued',
-                description: 'Connection lost. Message will be sent when reconnected.',
-            });
             this.connect();
         }
 

@@ -9,11 +9,13 @@ import { YouTubeVideo } from '@/types/youtube.type';
 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { useScopedI18n } from '@/locales/client';
+import { useI18n, useScopedI18n } from '@/locales/client';
+import { toast } from '@/hooks/use-toast';
 
 export function VideoHistory() {
     const { room, selectedVideo, setSelectedVideo, playNow, addVideo } = useYouTubeStore();
     const { sendMessage } = useWebSocketStore();
+    const t_global = useI18n();
     const t = useScopedI18n('videoHistory');
 
     const playNowHandler = (video: YouTubeVideo) => {
@@ -22,6 +24,10 @@ export function VideoHistory() {
         } else {
             playNow(video);
         }
+        toast({
+            title: t_global('videoSearch.playThisNow'),
+            description: video.title,
+        });
     };
 
     const addVideoHandler = (video: YouTubeVideo) => {
@@ -30,6 +36,10 @@ export function VideoHistory() {
         } else {
             addVideo(video);
         }
+        toast({
+            title: t_global('videoSearch.videoAdded'),
+            description: video.title,
+        });
     };
 
     return (

@@ -7,6 +7,7 @@ import { cn, formatViewCount } from '@/lib/utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { YouTubeVideo } from '@/types/youtube.type';
+import { toast } from '@/hooks/use-toast';
 
 import { VideoSkeleton } from '@/components/video-skeleton';
 import { Input } from '@/components/ui/input';
@@ -40,6 +41,10 @@ export function VideoSearch() {
         } else {
             playNow(video);
         }
+        toast({
+            title: t('playThisNow'),
+            description: video.title,
+        });
     };
 
     const addVideoHandler = (video: YouTubeVideo) => {
@@ -48,6 +53,10 @@ export function VideoSearch() {
         } else {
             addVideo(video);
         }
+        toast({
+            title: t('videoAdded'),
+            description: video.title,
+        });
     };
 
     return (

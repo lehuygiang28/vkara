@@ -4,9 +4,12 @@ import React from 'react';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 
+import { useScopedI18n } from '@/locales/client';
+import { YouTubeVideo } from '@/types/youtube.type';
+import { toast } from '@/hooks/use-toast';
+
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
-import { useScopedI18n } from '@/locales/client';
 
 export function VideoQueue() {
     const { room, removeVideo } = useYouTubeStore();
@@ -14,12 +17,16 @@ export function VideoQueue() {
 
     const t = useScopedI18n('videoQueue');
 
-    const removeVideoHandler = (videoId: string) => {
+    const removeVideoHandler = (video: YouTubeVideo) => {
         if (room) {
-            sendMessage({ type: 'removeVideo', videoId });
+            sendMessage({ type: 'removeVideo', videoId: video.id });
         } else {
-            removeVideo(videoId);
+            removeVideo(video.id);
         }
+        toast({
+            title: t('videoRemoved'),
+            description: video.title,
+        });
     };
 
     return (
@@ -56,7 +63,7 @@ export function VideoQueue() {
                                     variant="ghost"
                                     size="sm"
                                     className="self-start mt-2"
-                                    onClick={() => removeVideoHandler(video.id || String(index))}
+                                    onClick={() => removeVideoHandler(video)}
                                 >
                                     {t('remove')}
                                 </Button>

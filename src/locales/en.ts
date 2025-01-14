@@ -58,6 +58,7 @@ export default {
 
     'videoQueue.noVideos': 'No videos in queue',
     'videoQueue.remove': 'Remove',
+    'videoQueue.videoRemoved': 'Video removed',
 
     'videoSearch.searchPlaceholder': 'Search YouTube videos...',
     'videoSearch.karaokeMode': 'Karaoke Mode',
@@ -68,4 +69,6 @@ export default {
     'videoSearch.addToQueue': 'Add to Queue',
     'videoSearch.loading': 'Loading videos...',
     'videoSearch.views': 'views',
+    'videoSearch.playThisNow': 'Play this now',
+    'videoSearch.videoAdded': 'Video added to queue',
 } as const;

@@ -1,12 +1,13 @@
 import '../globals.css';
 
+import { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 
 import { ThemeProvider } from '@/providers/theme-provider';
 import { WebSocketProvider } from '@/providers/websocket-provider';
 import { I18nProvider } from '@/providers/i18n-provider';
-import { ReactNode } from 'react';
+import { Toaster } from '@/components/ui/toaster';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -43,7 +44,10 @@ export default async function RootLayout({
                     disableTransitionOnChange
                 >
                     <I18nProvider locale={locale ?? 'vi'}>
-                        <WebSocketProvider>{children}</WebSocketProvider>
+                        <WebSocketProvider>
+                            {children}
+                            <Toaster />
+                        </WebSocketProvider>
                     </I18nProvider>
                 </ThemeProvider>
             </body>
