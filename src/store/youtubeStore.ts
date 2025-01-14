@@ -82,9 +82,7 @@ export const useYouTubeStore = create(
                     room: state.room
                         ? {
                               ...state.room,
-                              videoQueue: state.room.videoQueue.filter(
-                                  (v) => v.id.videoId !== videoId,
-                              ),
+                              videoQueue: state.room.videoQueue.filter((v) => v.id !== videoId),
                           }
                         : null,
                 })),
@@ -97,9 +95,7 @@ export const useYouTubeStore = create(
                               playingNow: video,
                               isPlaying: true,
                               currentTime: 0,
-                              videoQueue: state.room.videoQueue.filter(
-                                  (v) => v.id.videoId !== video.id.videoId,
-                              ),
+                              videoQueue: state.room.videoQueue.filter((v) => v.id !== video.id),
                               historyQueue: state.room.playingNow
                                   ? [state.room.playingNow, ...state.room.historyQueue]
                                   : state.room.historyQueue,

@@ -3,7 +3,7 @@ import React from 'react';
 import { Search, Mic, Loader2, Play, ListVideo } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
-import { cn, formatSeconds, formatViewCount } from '@/lib/utils';
+import { cn, formatViewCount } from '@/lib/utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -113,43 +113,43 @@ export function VideoSearch() {
                         <div className="divide-y">
                             {searchResults.map((video) => (
                                 <div
-                                    key={video.id.videoId}
+                                    key={video.id}
                                     onClick={() =>
                                         setSelectedVideo(
-                                            selectedVideo === video.id.videoId
+                                            selectedVideo === (video?.id ?? null)
                                                 ? null
-                                                : video.id.videoId,
+                                                : video?.id ?? null,
                                         )
                                     }
                                     className={cn(
                                         'video-item group flex w-full items-start gap-3 p-4 text-left text-sm transition-all relative',
                                         'hover:bg-accent/50 cursor-pointer',
                                         'sm:items-center',
-                                        selectedVideo === video.id.videoId && 'bg-accent',
+                                        selectedVideo === video.id && 'bg-accent',
                                     )}
                                 >
                                     <div className="relative aspect-video w-24 sm:w-32 flex-shrink-0 overflow-hidden rounded-md">
                                         <div
                                             className={cn(
                                                 'absolute inset-0 transition-all duration-200',
-                                                selectedVideo === video.id.videoId && 'bg-black/20',
+                                                selectedVideo === video.id && 'bg-black/20',
                                             )}
                                         />
                                         <img
-                                            src={video.snippet.thumbnails.default.url}
-                                            alt={video.snippet.title}
+                                            src={video.thumbnail?.url}
+                                            alt={video.title}
                                             className="absolute inset-0 h-full w-full object-cover"
                                         />
                                         <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded">
-                                            {formatSeconds(video.duration)}
+                                            {video.duration_formatted}
                                         </div>
                                     </div>
                                     <div className="flex flex-col flex-grow min-w-0">
                                         <div className="font-medium leading-snug mb-1 line-clamp-2">
-                                            {video.snippet.title}
+                                            {video.title}
                                         </div>
                                         <div className="text-xs text-muted-foreground truncate">
-                                            {video.snippet.channelTitle}
+                                            {video.channel?.name}
                                         </div>
                                         <div className="text-xs text-muted-foreground">
                                             {formatViewCount(video.views)} {t('views')}
@@ -157,7 +157,7 @@ export function VideoSearch() {
                                         <div
                                             className={cn(
                                                 'overflow-hidden transition-all duration-300 ease-in-out',
-                                                selectedVideo === video.id.videoId
+                                                selectedVideo === video.id
                                                     ? 'max-h-20 mt-2 opacity-100'
                                                     : 'max-h-0 opacity-0',
                                             )}

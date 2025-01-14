@@ -305,7 +305,7 @@ export default function YoutubePlayerPage() {
                         >
                             {room?.playingNow ? (
                                 <YouTube
-                                    videoId={room.playingNow.id.videoId}
+                                    videoId={room.playingNow.id}
                                     opts={{
                                         height: '100%',
                                         width: '100%',

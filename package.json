@@ -32,10 +32,10 @@
         "react-dom": "^19.0.0",
         "react-use-websocket": "^4.11.1",
         "react-youtube": "^10.1.0",
-        "scrape-youtube": "^2.4.0",
         "tailwind-merge": "^2.6.0",
         "tailwindcss-animate": "^1.0.7",
         "use-debounce": "^10.0.4",
+        "youtube-sr": "^4.3.11",
         "zustand": "^5.0.3"
     },
     "devDependencies": {

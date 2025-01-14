@@ -40,30 +40,30 @@ export function VideoHistory() {
                         {t('noHistory')}
                     </div>
                 ) : (
-                    room.historyQueue.map((video) => (
+                    room.historyQueue.map((video, index) => (
                         <div
-                            key={video.id.videoId}
-                            onClick={() => setSelectedVideo(video.id.videoId)}
+                            key={video.id}
+                            onClick={() => setSelectedVideo(video?.id || String(index))}
                             className={cn(
                                 'flex w-full items-start gap-3 p-4 text-left text-sm transition-colors hover:bg-accent/50 cursor-pointer',
-                                selectedVideo === video.id.videoId && 'bg-accent',
+                                selectedVideo === video.id && 'bg-accent',
                             )}
                         >
                             <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
                                 <img
-                                    src={video.snippet.thumbnails.default.url}
+                                    src={video.thumbnail?.url}
                                     alt=""
                                     className="absolute inset-0 h-full w-full object-cover"
                                 />
                             </div>
                             <div className="flex flex-col flex-grow min-w-0">
                                 <div className="font-medium leading-snug mb-1 line-clamp-2">
-                                    {video.snippet.title}
+                                    {video.title}
                                 </div>
                                 <div className="text-xs text-muted-foreground truncate">
-                                    {video.snippet.channelTitle}
+                                    {video.channel?.name}
                                 </div>
-                                {selectedVideo === video.id.videoId && (
+                                {selectedVideo === video.id && (
                                     <div className="flex gap-2 mt-2">
                                         <Button
                                             variant="secondary"

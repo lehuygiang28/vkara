@@ -1,22 +1,6 @@
-import { Video } from 'scrape-youtube';
+import { Video } from 'youtube-sr';
 
-export interface YouTubeVideo extends Omit<Video, 'id'> {
-    id: {
-        videoId: string;
-    };
-    snippet: {
-        title: string;
-        channelTitle: string;
-        thumbnails: {
-            default: {
-                url: string;
-                width: number;
-                height: number;
-            };
-        };
-        publishedAt: string;
-    };
-}
+export type YouTubeVideo = ReturnType<Video['toJSON']>;
 
 export interface SearchResults {
     items?: YouTubeVideo[];

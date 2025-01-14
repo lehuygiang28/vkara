@@ -32,7 +32,7 @@ export function VideoQueue() {
                 ) : (
                     room.videoQueue.map((video, index) => (
                         <div
-                            key={video.id.videoId}
+                            key={video.id}
                             className="flex w-full items-start gap-3 p-4 text-left text-sm group"
                         >
                             <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
@@ -40,23 +40,23 @@ export function VideoQueue() {
                                     #{index + 1}
                                 </div>
                                 <img
-                                    src={video.snippet.thumbnails.default.url}
-                                    alt=""
+                                    src={video.thumbnail?.url}
+                                    alt={video.title}
                                     className="absolute inset-0 h-full w-full object-cover"
                                 />
                             </div>
                             <div className="flex flex-col flex-grow min-w-0">
                                 <div className="font-medium leading-snug mb-1 line-clamp-2">
-                                    {video.snippet.title}
+                                    {video.title}
                                 </div>
                                 <div className="text-xs text-muted-foreground truncate">
-                                    {video.snippet.channelTitle}
+                                    {video.channel?.name}
                                 </div>
                                 <Button
                                     variant="ghost"
                                     size="sm"
                                     className="self-start mt-2"
-                                    onClick={() => removeVideoHandler(video.id.videoId)}
+                                    onClick={() => removeVideoHandler(video.id || String(index))}
                                 >
                                     {t('remove')}
                                 </Button>

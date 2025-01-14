@@ -1,38 +1,24 @@
 'use server';
 
-import { search, ResultType } from 'scrape-youtube';
+import youtube from 'youtube-sr';
 import { SearchResults } from '../types/youtube.type';
 
 export async function searchYouTube(query: string, isKaraoke: boolean): Promise<SearchResults> {
     const searchQuery = `${isKaraoke ? 'karaoke' : ''} ${query}`;
 
     try {
-        // Can switch to youtube official API
-        const results = await search(searchQuery, { type: ResultType.video });
+        const results = await youtube.search(searchQuery);
+        if (!results) {
+            return { items: [], pageInfo: { totalResults: 0, resultsPerPage: 0 } };
+        }
 
-        // Transform the results to match our expected format
-        const items = results.videos.map((video) => ({
-            ...video,
-            id: { videoId: video.id },
-            snippet: {
-                title: video.title,
-                channelTitle: video.channel.name,
-                thumbnails: {
-                    default: {
-                        url: video.thumbnail,
-                        width: 120,
-                        height: 90,
-                    },
-                },
-                publishedAt: video.uploaded,
-            },
-        }));
-
+        const items = results.map((video) => video?.toJSON());
+        console.log({ i: items[0] });
         return {
             items,
             pageInfo: {
-                totalResults: results.videos.length,
-                resultsPerPage: items.length,
+                totalResults: results.length,
+                resultsPerPage: results.length,
             },
         };
     } catch (error) {
