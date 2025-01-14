@@ -31,6 +31,7 @@ export default {
     'youtubePage.layoutRemote': 'Chỉ điều khiển',
     'youtubePage.layoutPlayer': 'Chỉ video',
     'youtubePage.seekTo': 'Nhảy tới',
+    'youtubePage.controls': 'Điều khiển',
 
     'seekToInput.title': 'Nhảy đến thời gian cụ thể',
     'seekToInput.description': 'Nhập thời gian dưới dạng giây, MM:SS, hoặc HH:MM:SS',
@@ -66,7 +67,7 @@ export default {
     'videoHistory.noHistory': 'Không có lịch sử xem',
     'videoHistory.playNow': 'Phát ngay',
     'videoHistory.addToQueue': 'Thêm vào hàng chờ',
-	'videoHistory.clearHistory': 'Xóa lịch sử',
+    'videoHistory.clearHistory': 'Xóa lịch sử',
 
     'videoQueue.noVideos': 'Không có video nào trong danh sách',
     'videoQueue.remove': 'Xóa',

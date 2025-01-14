@@ -6,8 +6,8 @@ export default {
     'toast.setVolumeHandler': 'Volume changed',
     'toast.moveVideoToTopHandler': 'Video moved to top of queue',
     'toast.shuffleQueueHandler': 'Queue shuffled',
-	'toast.clearQueueHandler': 'All videos removed from queue',
-	'toast.clearHistoryHandler': 'All videos removed from history',
+    'toast.clearQueueHandler': 'All videos removed from queue',
+    'toast.clearHistoryHandler': 'All videos removed from history',
 
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
@@ -25,6 +25,7 @@ export default {
     'youtubePage.failedToFetch': 'Failed to fetch search results. Please try again.',
     'youtubePage.playerPlaceholder': 'No video is playing. Search and select a video to start.',
     'youtubePage.seekTo': 'Seek to',
+    'youtubePage.controls': 'Controls',
 
     'youtubePage.layout': 'Layout',
     'youtubePage.selectLayoutMode': 'Select layout mode',
@@ -66,7 +67,7 @@ export default {
     'videoHistory.noHistory': 'No watch history',
     'videoHistory.playNow': 'Play Now',
     'videoHistory.addToQueue': 'Add to Queue',
-	'videoHistory.clearHistory': 'Clear All History',
+    'videoHistory.clearHistory': 'Clear All History',
 
     'videoQueue.noVideos': 'No videos in queue',
     'videoQueue.remove': 'Remove',

@@ -2,21 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import YouTube, { YouTubeEvent } from 'react-youtube';
-import {
-    Play,
-    Pause,
-    SkipForward,
-    Volume2,
-    VolumeX,
-    Search,
-    History,
-    ListVideo,
-    Settings,
-    Plus,
-    Minus,
-    RotateCcw,
-    ChevronRight,
-} from 'lucide-react';
+import { ChevronRight, Search, Settings, History, SlidersVertical, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,7 +10,6 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { searchYouTube } from '@/actions/youtube';
 import { useScopedI18n } from '@/locales/client';
-import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -33,14 +18,14 @@ import { RoomSettings } from '@/components/RoomSettings';
 import { VideoQueue } from '@/components/VideoQueue';
 import { VideoSearch } from '@/components/VideoSearch';
 import { VideoHistory } from '@/components/VideoHistory';
-import { SeekToInput } from '@/components/seek-to-input';
+import { PlayerControls } from '@/components/PlayerControls';
+import { PlayerControlsTabs } from '@/components/PlayerControlsTabs';
 
 export default function YoutubePlayerPage() {
     const {
         setPlayer,
         isKaraoke,
         searchQuery,
-        volume,
         currentTab,
         setCurrentTab,
         room,
@@ -59,14 +44,6 @@ export default function YoutubePlayerPage() {
     const sidebarRef = useRef<HTMLDivElement>(null);
 
     const { sendMessage, lastMessage } = useWebSocketStore();
-    const {
-        handlePlayerPlay,
-        handlePlayerPause,
-        handleReplayVideo,
-        handlePlayNextVideo,
-        handleSeekToSeconds,
-        handleSetVideoVolume,
-    } = usePlayerAction();
 
     useEffect(() => {
         if (lastMessage) {
@@ -139,15 +116,19 @@ export default function YoutubePlayerPage() {
                         <Search className="h-4 w-4 mr-0 md:mr-2" />
                         <span className="hidden sm:inline">{t('search')}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="history" className="flex-grow basis-1/4 py-2 px-1">
-                        <History className="h-4 w-4 mr-0 md:mr-2" />
-                        <span className="hidden sm:inline">{t('history')}</span>
-                    </TabsTrigger>
                     <TabsTrigger value="queue" className="flex-grow basis-1/4 py-2 px-1">
                         <ListVideo className="h-4 w-4 mr-0 md:mr-2" />
                         <span className="hidden sm:inline">
                             {t('list')} ({room?.videoQueue.length || 0})
                         </span>
+                    </TabsTrigger>
+                    <TabsTrigger value="history" className="flex-grow basis-1/4 py-2 px-1">
+                        <History className="h-4 w-4 mr-0 md:mr-2" />
+                        <span className="hidden sm:inline">{t('history')}</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="controls" className="flex-grow basis-1/5 py-2 px-1">
+                        <SlidersVertical className="h-4 w-4 mr-0 md:mr-2" />
+                        <span className="hidden sm:inline">{t('controls')}</span>
                     </TabsTrigger>
                     <TabsTrigger value="settings" className="flex-grow basis-1/4 py-2 px-1">
                         <Settings className="h-4 w-4 mr-0 md:mr-2" />
@@ -163,6 +144,9 @@ export default function YoutubePlayerPage() {
                 <TabsContent value="queue" className="flex-1 overflow-auto p-0">
                     <VideoQueue />
                 </TabsContent>
+                <TabsContent value="controls" className="flex-1 overflow-auto p-4">
+                    <PlayerControlsTabs />
+                </TabsContent>
                 <TabsContent value="settings" className="flex-1 overflow-auto p-4">
                     <RoomSettings />
                 </TabsContent>
@@ -170,157 +154,72 @@ export default function YoutubePlayerPage() {
         </Card>
     );
 
-    const renderControls = () => (
-        <div className="flex flex-wrap items-center justify-center md:justify-between gap-2 md:gap-4">
-            <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={handlePlayerPlay}>
-                    <Play className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('play')}</span>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={handlePlayerPause}>
-                    <Pause className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('pause')}</span>
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handlePlayNextVideo}
-                    disabled={!room?.videoQueue.length}
-                >
-                    <SkipForward className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('next')}</span>
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleReplayVideo}
-                    disabled={!room?.playingNow}
-                >
-                    <RotateCcw className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('replay')}</span>
-                </Button>
-                <SeekToInput onSeek={handleSeekToSeconds} disabled={!room?.playingNow} />
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => handleSetVideoVolume(0)}>
-                    <VolumeX className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('mute')}</span>
-                </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleSetVideoVolume(100)}>
-                    <Volume2 className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('unmute')}</span>
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleSetVideoVolume(Math.min(volume + 10, 100))}
-                >
-                    <Plus className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('volumeUp')}</span>
-                </Button>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleSetVideoVolume(Math.max(volume - 10, 0))}
-                >
-                    <Minus className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('volumeDown')}</span>
-                </Button>
-            </div>
+    const renderPlayer = () => (
+        <div className="relative w-full h-full">
+            {room?.playingNow ? (
+                <YouTube
+                    videoId={room.playingNow.id}
+                    opts={{
+                        height: '100%',
+                        width: '100%',
+                        playerVars: {
+                            autoplay: 1,
+                            controls: 1,
+                            cc_load_policy: 0,
+                            iv_load_policy: 3,
+                            origin: 'https://youtube.com',
+                        },
+                    }}
+                    onReady={onPlayerReady}
+                    onStateChange={onPlayerStateChange}
+                    className="absolute inset-0"
+                />
+            ) : (
+                <div className="absolute inset-0 flex items-center justify-center bg-black">
+                    <p className="text-muted-foreground">{t('playerPlaceholder')}</p>
+                </div>
+            )}
+            {layoutMode === 'player' && (
+                <div className="absolute top-4 right-4 flex gap-2">
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                            setShowSidebar(true);
+                            setCurrentTab('controls');
+                        }}
+                    >
+                        <Settings className="h-4 w-4 mr-2" />
+                        {t('controls')}
+                    </Button>
+                </div>
+            )}
         </div>
     );
 
     return (
-        <div
-            className={`flex flex-col ${
-                layoutMode === 'player' ? 'h-screen w-screen' : 'h-screen'
-            } bg-background`}
-        >
-            <main
-                className={`flex flex-col md:flex-row flex-1 overflow-hidden ${
-                    layoutMode === 'player' ? 'h-full w-full' : ''
-                }`}
-            >
+        <div className={`flex flex-col h-screen w-screen bg-background`}>
+            <main className={`flex flex-col md:flex-row flex-1 overflow-hidden`}>
                 {layoutMode !== 'remote' && (
                     <div
                         className={`flex flex-col ${
                             layoutMode === 'both' ? 'w-full md:w-2/3 lg:w-3/4' : 'w-full h-full'
                         }`}
                     >
-                        <div
-                            className={`relative w-full ${
-                                layoutMode === 'player'
-                                    ? 'h-full'
-                                    : 'pt-[56.25%] md:pt-0 md:h-0 md:flex-grow'
-                            }`}
-                        >
-                            {room?.playingNow ? (
-                                <YouTube
-                                    videoId={room.playingNow.id}
-                                    opts={{
-                                        height: '100%',
-                                        width: '100%',
-                                        playerVars: {
-                                            autoplay: 1,
-                                            controls: 1,
-                                            cc_load_policy: 0,
-                                            iv_load_policy: 3,
-                                            origin: 'https://youtube.com',
-                                        },
-                                    }}
-                                    onReady={onPlayerReady}
-                                    onStateChange={onPlayerStateChange}
-                                    className="absolute inset-0"
-                                />
-                            ) : (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black">
-                                    <p className="text-muted-foreground">
-                                        {t('playerPlaceholder')}
-                                    </p>
-                                </div>
-                            )}
-                            {layoutMode === 'player' && (
-                                <div className="absolute top-4 right-4 flex gap-2">
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                            setShowSidebar(true);
-                                            setCurrentTab('settings');
-                                        }}
-                                    >
-                                        <Settings className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                            setShowSidebar(true);
-                                            setCurrentTab('queue');
-                                        }}
-                                    >
-                                        <ListVideo className="h-4 w-4" />
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                        {layoutMode !== 'player' && (
+                        {renderPlayer()}
+                        {layoutMode === 'both' && (
                             <div className="p-2 md:p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                                {renderControls()}
+                                <PlayerControls />
                             </div>
                         )}
                     </div>
                 )}
-                {layoutMode === 'remote' && (
-                    <div className="w-full overflow-hidden">
-                        <div className="p-2 md:p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-                            {renderControls()}
-                        </div>
-                        {renderSidebar()}
-                    </div>
-                )}
-                {layoutMode === 'both' && (
-                    <div className="w-full md:w-1/3 lg:w-1/4 md:border-l overflow-hidden">
+                {(layoutMode === 'remote' || layoutMode === 'both') && (
+                    <div
+                        className={`w-full ${
+                            layoutMode === 'both' ? 'md:w-1/3 lg:w-1/4 md:border-l' : ''
+                        } overflow-hidden`}
+                    >
                         {renderSidebar()}
                     </div>
                 )}
