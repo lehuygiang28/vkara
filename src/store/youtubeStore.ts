@@ -8,7 +8,6 @@ interface YouTubeState {
     isKaraoke: boolean;
     searchQuery: string;
     volume: number;
-    selectedVideo: string | null;
     currentTab: string;
     room: Room | null;
     currentVideo: string | null;
@@ -21,7 +20,6 @@ interface YouTubeState {
     setIsKaraoke: (isKaraoke: boolean) => void;
     setSearchQuery: (searchQuery: string) => void;
     setVolume: (volume: number) => void;
-    setSelectedVideo: (selectedVideo: string | null) => void;
     setCurrentTab: (currentTab: string) => void;
     setRoom: (room: Room | null) => void;
     setCurrentVideo: (currentVideo: string | null) => void;
@@ -45,7 +43,6 @@ export const useYouTubeStore = create(
             isKaraoke: false,
             searchQuery: '',
             volume: 60,
-            selectedVideo: null,
             currentTab: 'search',
             room: null,
             currentVideo: null,
@@ -58,7 +55,6 @@ export const useYouTubeStore = create(
             setIsKaraoke: (isKaraoke) => set({ isKaraoke }),
             setSearchQuery: (searchQuery) => set({ searchQuery }),
             setVolume: (volume) => set({ volume }),
-            setSelectedVideo: (selectedVideo) => set({ selectedVideo }),
             setCurrentTab: (currentTab) => set({ currentTab }),
             setRoom: (room) => set({ room }),
             setCurrentVideo: (currentVideo) => set({ currentVideo }),

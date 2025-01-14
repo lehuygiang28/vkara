@@ -1,109 +1,89 @@
-/* eslint-disable @next/next/no-img-element */
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { Play, ListVideo } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useYouTubeStore } from '@/store/youtubeStore';
-import { useWebSocketStore } from '@/store/websocketStore';
+import { useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
+import { useYouTubeStore } from '@/store/youtubeStore';
+import { usePlayerAction } from '@/hooks/use-player-action';
 
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { VideoList } from '@/components/VideoList';
 import { Button } from '@/components/ui/button';
-import { useI18n, useScopedI18n } from '@/locales/client';
-import { toast } from '@/hooks/use-toast';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function VideoHistory() {
-    const { room, selectedVideo, setSelectedVideo, playNow, addVideo } = useYouTubeStore();
-    const { sendMessage } = useWebSocketStore();
-    const t_global = useI18n();
+    const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+    const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
+    const { room } = useYouTubeStore();
     const t = useScopedI18n('videoHistory');
 
-    const playNowHandler = (video: YouTubeVideo) => {
-        if (room) {
-            sendMessage({ type: 'playNow', video });
-        } else {
-            playNow(video);
-        }
-        toast({
-            title: t_global('videoSearch.playThisNow'),
-            description: video.title,
-        });
-    };
-
-    const addVideoHandler = (video: YouTubeVideo) => {
-        if (room) {
-            sendMessage({ type: 'addVideo', video });
-        } else {
-            addVideo(video);
-        }
-        toast({
-            title: t_global('videoSearch.videoAdded'),
-            description: video.title,
-        });
-    };
+    function renderButtons(video: YouTubeVideo) {
+        return (
+            <div
+                className={cn(
+                    'overflow-hidden transition-all duration-300 ease-in-out',
+                    selectedVideo === video.id ? 'max-h-20 mt-2 opacity-100' : 'max-h-0 opacity-0',
+                )}
+            >
+                <div className="flex items-center gap-2 flex-wrap">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="secondary"
+                                    size="sm"
+                                    className="h-7 px-2.5 transition-all hover:scale-105"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePlayVideoNow(video);
+                                    }}
+                                >
+                                    <Play className="h-3.5 w-3.5 mr-1" />
+                                    <span className="hidden sm:inline">{t('playNow')}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('playNow')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 px-2.5 transition-all hover:scale-105"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddVideoToQueue(video);
+                                    }}
+                                >
+                                    <ListVideo className="h-3.5 w-3.5 mr-1" />
+                                    <span className="hidden sm:inline">{t('addToQueue')}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('addToQueue')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
+            </div>
+        );
+    }
 
     return (
-        <ScrollArea className="h-[calc(100vh-30rem)] sm:h-[calc(100vh-20rem)] md:h-[calc(100vh-10rem)] pb-0">
-            <div className="divide-y">
-                {!room?.historyQueue || room.historyQueue.length === 0 ? (
-                    <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                        {t('noHistory')}
-                    </div>
-                ) : (
-                    room.historyQueue.map((video, index) => (
-                        <div
-                            key={video.id}
-                            onClick={() => setSelectedVideo(video?.id || String(index))}
-                            className={cn(
-                                'flex w-full items-start gap-3 p-4 text-left text-sm transition-colors hover:bg-accent/50 cursor-pointer',
-                                selectedVideo === video.id && 'bg-accent',
-                            )}
-                        >
-                            <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
-                                <img
-                                    src={video.thumbnail?.url}
-                                    alt=""
-                                    className="absolute inset-0 h-full w-full object-cover"
-                                />
-                            </div>
-                            <div className="flex flex-col flex-grow min-w-0">
-                                <div className="font-medium leading-snug mb-1 line-clamp-2">
-                                    {video.title}
-                                </div>
-                                <div className="text-xs text-muted-foreground truncate">
-                                    {video.channel?.name}
-                                </div>
-                                {selectedVideo === video.id && (
-                                    <div className="flex gap-2 mt-2">
-                                        <Button
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                playNowHandler(video);
-                                            }}
-                                        >
-                                            <Play className="h-4 w-4" />
-                                            {t('playNow')}
-                                        </Button>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                addVideoHandler(video);
-                                            }}
-                                        >
-                                            <ListVideo className="h-4 w-4" />
-                                            {t('addToQueue')}
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
-        </ScrollArea>
+        <div className="flex flex-col h-screen">
+            <VideoList
+                videos={room?.historyQueue || []}
+                emptyMessage={t('noHistory')}
+                renderButtons={renderButtons}
+                onVideoClick={(video) => setSelectedVideo(video.id)}
+                selectedVideoId={selectedVideo}
+            />
+        </div>
     );
 }

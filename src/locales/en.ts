@@ -1,4 +1,10 @@
 export default {
+    'toast.playNowHandler': 'Play now',
+    'toast.addVideoHandler': 'Video added to queue',
+    'toast.nextVideoHandler': 'Next video is playing',
+    'toast.removeVideoHandler': 'Video removed from queue',
+    'toast.setVolumeHandler': 'Volume changed',
+
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
     'youtubePage.next': 'Next',
@@ -14,6 +20,7 @@ export default {
     'youtubePage.searchPlaceholder': 'Search and select a video to play',
     'youtubePage.failedToFetch': 'Failed to fetch search results. Please try again.',
     'youtubePage.playerPlaceholder': 'No video is playing. Search and select a video to start.',
+    'youtubePage.seekTo': 'Seek to',
 
     'youtubePage.layout': 'Layout',
     'youtubePage.selectLayoutMode': 'Select layout mode',

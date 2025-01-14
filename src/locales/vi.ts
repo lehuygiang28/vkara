@@ -1,4 +1,10 @@
 export default {
+    'toast.playNowHandler': 'Phát ngay',
+    'toast.addVideoHandler': 'Video đã được thêm vào hàng chờ',
+    'toast.nextVideoHandler': 'Video tiếp theo đang được phát',
+    'toast.removeVideoHandler': 'Video đã được xóa',
+    'toast.setVolumeHandler': 'Âm lượng đã được thay đổi',
+
     'youtubePage.play': 'Phát',
     'youtubePage.pause': 'Tạm dừng',
     'youtubePage.next': 'Tiếp theo',
@@ -20,6 +26,7 @@ export default {
     'youtubePage.layoutBoth': 'Cả video và điều khiển',
     'youtubePage.layoutRemote': 'Chỉ điều khiển',
     'youtubePage.layoutPlayer': 'Chỉ video',
+    'youtubePage.seekTo': 'Nhảy tới',
 
     'seekToInput.title': 'Nhảy đến thời gian cụ thể',
     'seekToInput.description': 'Nhập thời gian dưới dạng giây, MM:SS, hoặc HH:MM:SS',

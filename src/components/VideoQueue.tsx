@@ -1,77 +1,68 @@
-/* eslint-disable @next/next/no-img-element */
-import React from 'react';
+'use client';
 
-import { useYouTubeStore } from '@/store/youtubeStore';
-import { useWebSocketStore } from '@/store/websocketStore';
+import React, { useState } from 'react';
+import { Trash2 } from 'lucide-react';
 
+import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
-import { toast } from '@/hooks/use-toast';
+import { useYouTubeStore } from '@/store/youtubeStore';
+import { usePlayerAction } from '@/hooks/use-player-action';
 
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { VideoList } from '@/components/VideoList';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export function VideoQueue() {
-    const { room, removeVideo } = useYouTubeStore();
-    const { sendMessage } = useWebSocketStore();
-
+    const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+    const { room } = useYouTubeStore();
+    const { handleRemoveVideoFromQueue } = usePlayerAction();
     const t = useScopedI18n('videoQueue');
 
-    const removeVideoHandler = (video: YouTubeVideo) => {
-        if (room) {
-            sendMessage({ type: 'removeVideo', videoId: video.id });
-        } else {
-            removeVideo(video.id);
-        }
-        toast({
-            title: t('videoRemoved'),
-            description: video.title,
-        });
-    };
-
-    return (
-        <ScrollArea className="h-[calc(100vh-30rem)] sm:h-[calc(100vh-20rem)] md:h-[calc(100vh-10rem)] pb-0">
-            <div className="divide-y">
-                {!room?.videoQueue || room.videoQueue.length === 0 ? (
-                    <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                        {t('noVideos')}
-                    </div>
-                ) : (
-                    room.videoQueue.map((video, index) => (
-                        <div
-                            key={video.id}
-                            className="flex w-full items-start gap-3 p-4 text-left text-sm group"
-                        >
-                            <div className="relative aspect-video w-32 flex-shrink-0 overflow-hidden rounded-md">
-                                <div className="absolute top-0 left-0 bg-background/80 backdrop-blur-sm px-2 py-1 text-xs font-medium">
-                                    #{index + 1}
-                                </div>
-                                <img
-                                    src={video.thumbnail?.url}
-                                    alt={video.title}
-                                    className="absolute inset-0 h-full w-full object-cover"
-                                />
-                            </div>
-                            <div className="flex flex-col flex-grow min-w-0">
-                                <div className="font-medium leading-snug mb-1 line-clamp-2">
-                                    {video.title}
-                                </div>
-                                <div className="text-xs text-muted-foreground truncate">
-                                    {video.channel?.name}
-                                </div>
+    function renderButtons(video: YouTubeVideo) {
+        return (
+            <div
+                className={cn(
+                    'overflow-hidden transition-all duration-300 ease-in-out',
+                    selectedVideo === video.id ? 'max-h-20 mt-2 opacity-100' : 'max-h-0 opacity-0',
+                )}
+            >
+                <div className="flex items-center gap-2 flex-wrap">
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
                                 <Button
                                     variant="ghost"
                                     size="sm"
-                                    className="self-start mt-2"
-                                    onClick={() => removeVideoHandler(video)}
+                                    className="h-7 px-2.5 transition-all hover:scale-105"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleRemoveVideoFromQueue(video);
+                                    }}
                                 >
-                                    {t('remove')}
+                                    <Trash2 className="h-3.5 w-3.5 mr-1" />
+                                    <span className="hidden sm:inline">{t('remove')}</span>
                                 </Button>
-                            </div>
-                        </div>
-                    ))
-                )}
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('remove')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </div>
-        </ScrollArea>
+        );
+    }
+
+    return (
+        <div className="flex flex-col h-screen">
+            <VideoList
+                videos={room?.videoQueue || []}
+                emptyMessage={t('noVideos')}
+                renderButtons={renderButtons}
+                onVideoClick={(video) => setSelectedVideo(video.id)}
+                selectedVideoId={selectedVideo}
+            />
+        </div>
     );
 }

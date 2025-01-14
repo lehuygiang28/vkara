@@ -24,6 +24,7 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { searchYouTube } from '@/actions/youtube';
 import { useScopedI18n } from '@/locales/client';
+import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -36,12 +37,10 @@ import { SeekToInput } from '@/components/seek-to-input';
 
 export default function YoutubePlayerPage() {
     const {
-        player,
         setPlayer,
         isKaraoke,
         searchQuery,
         volume,
-        setVolume,
         currentTab,
         setCurrentTab,
         room,
@@ -60,6 +59,14 @@ export default function YoutubePlayerPage() {
     const sidebarRef = useRef<HTMLDivElement>(null);
 
     const { sendMessage, lastMessage } = useWebSocketStore();
+    const {
+        handlePlayerPlay,
+        handlePlayerPause,
+        handleReplayVideo,
+        handlePlayNextVideo,
+        handleSeekToSeconds,
+        handleSetVideoVolume,
+    } = usePlayerAction();
 
     useEffect(() => {
         if (lastMessage) {
@@ -124,56 +131,6 @@ export default function YoutubePlayerPage() {
         }
     };
 
-    const handlePlayNext = () => {
-        if (room) {
-            sendMessage({ type: 'nextVideo' });
-        } else {
-            nextVideo();
-        }
-    };
-
-    const playHandler = () => {
-        if (room) {
-            sendMessage({ type: 'play' });
-        } else if (player) {
-            player.playVideo();
-        }
-    };
-
-    const pauseHandler = () => {
-        if (room) {
-            sendMessage({ type: 'pause' });
-        } else if (player) {
-            player.pauseVideo();
-        }
-    };
-
-    const handleVolumeChange = (volume: number) => {
-        setVolume(volume);
-        if (player) {
-            player.setVolume(volume);
-        }
-        if (room) {
-            sendMessage({ type: 'setVolume', volume: volume });
-        }
-    };
-
-    const replayVideoHandler = () => {
-        if (room) {
-            sendMessage({ type: 'replay' });
-        } else if (player) {
-            player.seekTo(0, true);
-        }
-    };
-
-    const seekToHandler = (seconds: number) => {
-        if (room) {
-            sendMessage({ type: 'seek', time: seconds });
-        } else if (player) {
-            player.seekTo(seconds, true);
-        }
-    };
-
     const renderSidebar = () => (
         <Card className="flex flex-col h-full rounded-none border-0">
             <Tabs value={currentTab} onValueChange={setCurrentTab} className="flex-1">
@@ -216,18 +173,18 @@ export default function YoutubePlayerPage() {
     const renderControls = () => (
         <div className="flex flex-wrap items-center justify-center md:justify-between gap-2 md:gap-4">
             <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={playHandler}>
+                <Button variant="ghost" size="sm" onClick={handlePlayerPlay}>
                     <Play className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('play')}</span>
                 </Button>
-                <Button variant="ghost" size="sm" onClick={pauseHandler}>
+                <Button variant="ghost" size="sm" onClick={handlePlayerPause}>
                     <Pause className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('pause')}</span>
                 </Button>
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handlePlayNext}
+                    onClick={handlePlayNextVideo}
                     disabled={!room?.videoQueue.length}
                 >
                     <SkipForward className="h-4 w-4" />
@@ -236,27 +193,27 @@ export default function YoutubePlayerPage() {
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={replayVideoHandler}
+                    onClick={handleReplayVideo}
                     disabled={!room?.playingNow}
                 >
                     <RotateCcw className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('replay')}</span>
                 </Button>
-                <SeekToInput onSeek={seekToHandler} disabled={!room?.playingNow} />
+                <SeekToInput onSeek={handleSeekToSeconds} disabled={!room?.playingNow} />
             </div>
             <div className="flex flex-wrap items-center gap-2">
-                <Button variant="ghost" size="sm" onClick={() => handleVolumeChange(0)}>
+                <Button variant="ghost" size="sm" onClick={() => handleSetVideoVolume(0)}>
                     <VolumeX className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('mute')}</span>
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => handleVolumeChange(100)}>
+                <Button variant="ghost" size="sm" onClick={() => handleSetVideoVolume(100)}>
                     <Volume2 className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('unmute')}</span>
                 </Button>
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleVolumeChange(Math.min(volume + 10, 100))}
+                    onClick={() => handleSetVideoVolume(Math.min(volume + 10, 100))}
                 >
                     <Plus className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('volumeUp')}</span>
@@ -264,7 +221,7 @@ export default function YoutubePlayerPage() {
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleVolumeChange(Math.max(volume - 10, 0))}
+                    onClick={() => handleSetVideoVolume(Math.max(volume - 10, 0))}
                 >
                     <Minus className="h-4 w-4" />
                     <span className="hidden sm:inline">{t('volumeDown')}</span>
