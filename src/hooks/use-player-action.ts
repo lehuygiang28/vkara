@@ -73,7 +73,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleRemoveVideoFromQueue = useCallback((video: YouTubeVideo) => {
         if (room?.id) {
-            sendMessage({ type: 'removeVideo', videoId: video.id });
+            sendMessage({ type: 'removeVideoFromQueue', videoId: video.id });
         } else {
             removeVideoFromQueue(video.id);
         }
