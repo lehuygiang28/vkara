@@ -91,7 +91,7 @@ export function generateShareableUrl({
 /**
  * Checks if a room ID is valid.
  *
- * A valid room ID must be exactly 8 characters long and contain only digits.
+ * A valid room ID must be exactly 6 characters long and contain only digits.
  *
  * @param roomId - The room ID to validate.
  * @returns `true` if the room ID is valid, otherwise `false`.
@@ -99,6 +99,6 @@ export function generateShareableUrl({
 
 export function isValidRoomId(roomId?: string | null | undefined): boolean {
     if (!roomId) return false;
-    const pattern = /^\d{8}$/;
+    const pattern = /^\d{6}$/;
     return pattern.test(roomId);
 }
