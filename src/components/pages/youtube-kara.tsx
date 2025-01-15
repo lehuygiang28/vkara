@@ -115,57 +115,42 @@ export default function YoutubePlayerPage() {
         <Card className="flex flex-col h-full rounded-none border-0">
             <Tabs value={currentTab} onValueChange={setCurrentTab} className="flex-1">
                 <TabsList className="flex flex-wrap h-auto w-full justify-start rounded-none border-b sticky top-0 z-10 bg-background">
-                    <TabsTrigger
-                        value="search"
-                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
-                    >
+                    <TabsTrigger value="search" className="flex-grow basis-1/3 lg:basis-1/5">
                         <Search className="h-4 w-4 mr-2" />
                         <span>{t('search')}</span>
                     </TabsTrigger>
-                    <TabsTrigger
-                        value="queue"
-                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
-                    >
+                    <TabsTrigger value="queue" className="flex-grow basis-1/3 lg:basis-1/5">
                         <ListVideo className="h-4 w-4 mr-2" />
                         <span>
                             {t('list')} ({room?.videoQueue.length || 0})
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger
-                        value="history"
-                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
-                    >
+                    <TabsTrigger value="history" className="flex-grow basis-1/3 lg:basis-1/5">
                         <History className="h-4 w-4 mr-2" />
                         <span>{t('history')}</span>
                     </TabsTrigger>
-                    <TabsTrigger
-                        value="controls"
-                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
-                    >
+                    <TabsTrigger value="controls" className="flex-grow basis-1/3 lg:basis-1/5">
                         <SlidersVertical className="h-4 w-4 mr-2" />
                         <span>{t('controls')}</span>
                     </TabsTrigger>
-                    <TabsTrigger
-                        value="settings"
-                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
-                    >
+                    <TabsTrigger value="settings" className="flex-grow basis-1/3 lg:basis-1/5">
                         <Settings className="h-4 w-4 mr-2" />
                         <span>{t('settings')}</span>
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="search" className="flex-1 overflow-auto p-0">
+                <TabsContent value="search" className="flex-1 overflow-auto">
                     <VideoSearch />
                 </TabsContent>
-                <TabsContent value="history" className="flex-1 overflow-auto p-0">
+                <TabsContent value="history" className="flex-1 overflow-auto">
                     <VideoHistory />
                 </TabsContent>
-                <TabsContent value="queue" className="flex-1 overflow-auto p-0">
+                <TabsContent value="queue" className="flex-1 overflow-auto">
                     <VideoQueue />
                 </TabsContent>
-                <TabsContent value="controls" className="flex-1 overflow-auto p-0">
+                <TabsContent value="controls" className="flex-1 overflow-auto">
                     <PlayerControlsTabs />
                 </TabsContent>
-                <TabsContent value="settings" className="flex-1 overflow-auto p-0">
+                <TabsContent value="settings" className="flex-1 overflow-auto">
                     <RoomSettings />
                 </TabsContent>
             </Tabs>
