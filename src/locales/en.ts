@@ -83,9 +83,8 @@ export default {
     'videoQueue.clearQueue': 'Clear All Queue',
 
     'videoSearch.searchPlaceholder': 'Search YouTube videos...',
-    'videoSearch.karaokeMode': 'Karaoke Mode',
-    'videoSearch.karaokeModeOn': 'Karaoke mode is on',
-    'videoSearch.karaokeModeOff': 'Karaoke mode is off',
+    'videoSearch.karaokeMode': 'Karaoke',
+    'videoSearch.allMode': 'All',
     'videoSearch.noResults': 'No results found',
     'videoSearch.playNow': 'Play Now',
     'videoSearch.addToQueue': 'Add to Queue',

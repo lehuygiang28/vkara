@@ -83,9 +83,8 @@ export default {
     'videoQueue.clearQueue': 'Xóa tất cả',
 
     'videoSearch.searchPlaceholder': 'Tìm kiếm video trên YouTube...',
-    'videoSearch.karaokeMode': 'Chế độ Karaoke',
-    'videoSearch.karaokeModeOn': 'Chế độ Karaoke đang bật',
-    'videoSearch.karaokeModeOff': 'Chế độ Karaoke đang tắt',
+    'videoSearch.karaokeMode': 'Karaoke',
+    'videoSearch.allMode': 'Tất cả',
     'videoSearch.noResults': 'Không tìm thấy kết quả',
     'videoSearch.playNow': 'Phát ngay',
     'videoSearch.addToQueue': 'Thêm vào hàng chờ',
