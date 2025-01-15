@@ -1,3 +1,4 @@
+import { ErrorCode } from './server-errors.type';
 import { YouTubeVideo } from './youtube.type';
 
 export interface Room {
@@ -55,6 +56,7 @@ export type ServerMessage =
     | { type: 'leftRoom' }
     | { type: 'message'; sender: string; content: string }
     | { type: 'error'; message: string }
+    | { type: 'errorWithCode'; code: ErrorCode; message?: string }
     | { type: 'roomClosed'; reason: string }
     | { type: 'replay' }
     | { type: 'play' }

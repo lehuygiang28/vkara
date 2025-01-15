@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { Room, ServerMessage } from '@/types/websocket.type';
+import { ErrorCode } from '@/types/server-errors.type';
 
 interface YouTubeState {
     player: YT.Player | null;
@@ -173,6 +174,16 @@ export const useYouTubeStore = create(
                                 state?.player?.pauseVideo();
                                 return state;
                             });
+                        }
+                        break;
+                    case 'errorWithCode':
+                        {
+                            switch (message.code) {
+                                case ErrorCode.ROOM_NOT_FOUND:
+                                case ErrorCode.NOT_IN_ROOM:
+                                    set({ room: null });
+                                    break;
+                            }
                         }
                         break;
                     default:
