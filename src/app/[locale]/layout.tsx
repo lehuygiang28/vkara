@@ -3,6 +3,8 @@ import '../globals.css';
 import { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/react';
+import { GoogleAnalytics } from '@next/third-parties/google';
 
 import { ThemeProvider } from '@/providers/theme-provider';
 import { WebSocketProvider } from '@/providers/websocket-provider';
@@ -50,6 +52,10 @@ export default async function RootLayout({
                         </WebSocketProvider>
                     </I18nProvider>
                 </ThemeProvider>
+                <Analytics />
+                {process.env?.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
+                    <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
+                )}
             </body>
         </html>
     );
