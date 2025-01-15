@@ -56,9 +56,9 @@ export function SeekToInput({ onSeek, disabled }: SeekToInputProps) {
     return (
         <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
-                <Button variant="ghost" size="sm" disabled={disabled}>
+                <Button variant="outline" size="sm" disabled={disabled}>
                     <Clock className="h-4 w-4" />
-                    <span className="hidden sm:inline">{t('button.seek')}</span>
+                    <span>{t('button.seek')}</span>
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-80">
