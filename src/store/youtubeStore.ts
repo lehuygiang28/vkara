@@ -5,6 +5,7 @@ import { Room, ServerMessage } from '@/types/websocket.type';
 import { ErrorCode } from '@/types/server-errors.type';
 
 interface YouTubeState {
+    wsId: string | null;
     player: YT.Player | null;
     isKaraoke: boolean;
     searchQuery: string;
@@ -17,6 +18,7 @@ interface YouTubeState {
     error: string | null;
     layoutMode: 'both' | 'remote' | 'player';
 
+    setWsId: (wsId: string | null) => void;
     setPlayer: (player: YT.Player) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
     setSearchQuery: (searchQuery: string) => void;
@@ -40,6 +42,7 @@ interface YouTubeState {
 export const useYouTubeStore = create(
     persist<YouTubeState>(
         (set) => ({
+            wsId: null,
             player: null,
             isKaraoke: false,
             searchQuery: '',
@@ -52,6 +55,7 @@ export const useYouTubeStore = create(
             error: null,
             layoutMode: 'both',
 
+            setWsId: (wsId) => set({ wsId }),
             setPlayer: (player) => set({ player }),
             setIsKaraoke: (isKaraoke) => set({ isKaraoke }),
             setSearchQuery: (searchQuery) => set({ searchQuery }),
@@ -125,6 +129,9 @@ export const useYouTubeStore = create(
 
             handleServerMessage: (message) => {
                 switch (message.type) {
+                    case 'roomJoined':
+                        set({ room: message.room, wsId: message.yourId });
+                        break;
                     case 'roomUpdate':
                         set({ room: message.room });
                         break;

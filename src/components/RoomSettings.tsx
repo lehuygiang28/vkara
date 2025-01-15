@@ -1,6 +1,7 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
@@ -24,7 +25,7 @@ import { generateShareableUrl } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
 export function RoomSettings() {
-    const { room, setRoom, layoutMode, setLayoutMode, setCurrentTab } = useYouTubeStore();
+    const { wsId, room, setRoom, layoutMode, setLayoutMode, setCurrentTab } = useYouTubeStore();
     const { sendMessage, connectionStatus } = useWebSocketStore();
     const [roomPassword, setRoomPassword] = useState<string>('');
     const [joinRoomId, setJoinRoomId] = useState<string>('');
@@ -35,27 +36,27 @@ export function RoomSettings() {
     const t = useI18n();
     const t_RoomSettings = useScopedI18n('roomSettings');
 
-    const createRoom = () => {
+    const createRoom = useCallback(() => {
         sendMessage({ type: 'createRoom', password: roomPassword });
-    };
+    }, [roomPassword]);
 
-    const joinRoom = () => {
+    const joinRoom = useCallback(() => {
         sendMessage({ type: 'joinRoom', roomId: joinRoomId, password: joinRoomPassword });
-    };
+    }, [joinRoomId, joinRoomPassword]);
 
-    const leaveRoom = () => {
+    const leaveRoom = useCallback(() => {
         if (room) {
             sendMessage({ type: 'leaveRoom' });
             setRoom(null);
         }
-    };
+    }, []);
 
-    const closeRoom = () => {
+    const closeRoom = useCallback(() => {
         if (room) {
             sendMessage({ type: 'closeRoom' });
             setRoom(null);
         }
-    };
+    }, []);
 
     return (
         <div className="flex flex-col h-screen">
@@ -128,7 +129,7 @@ export function RoomSettings() {
                                     <Button onClick={leaveRoom} className="w-full">
                                         {t_RoomSettings('leaveRoom')}
                                     </Button>
-                                    {room.creatorId === room.clients[0] && (
+                                    {room.creatorId === wsId && (
                                         <Button
                                             onClick={closeRoom}
                                             variant="destructive"
