@@ -12,7 +12,19 @@ export async function searchYouTube(query: string, isKaraoke: boolean): Promise<
             return { items: [], pageInfo: { totalResults: 0, resultsPerPage: 0 } };
         }
 
-        const items = results.map((video) => video?.toJSON());
+        const items = results.map((video) => {
+            const videoJSON = video.toJSON();
+            const channelJSON = video.channel?.toJSON();
+
+            return {
+                ...videoJSON,
+                channel: {
+                    ...videoJSON.channel,
+                    ...channelJSON,
+                    verified: channelJSON?.verified || false,
+                },
+            };
+        });
         return {
             items,
             pageInfo: {
