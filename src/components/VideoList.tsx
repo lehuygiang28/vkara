@@ -61,13 +61,13 @@ export const VideoList = memo(function VideoList({
                                     <div className="text-md font-medium leading-snug line-clamp-2">
                                         {video.title}
                                     </div>
-                                    <div className="text-sm text-muted-foreground truncate inline-flex items-center align-middle">
+                                    <div className="text-sm text-muted-foreground inline-flex items-center align-middle line-clamp-1">
                                         {video.channel?.name}
                                         {video.channel?.verified && (
                                             <BadgeCheck className="ml-1 h-4 w-4" />
                                         )}
                                     </div>
-                                    <div className="text-xs text-muted-foreground">
+                                    <div className="text-xs text-muted-foreground line-clamp-2">
                                         {formatViewCount(video.views)} {t('videoSearch.views')}
                                         {video.uploadedAt && <> • {video.uploadedAt}</>}
                                     </div>
