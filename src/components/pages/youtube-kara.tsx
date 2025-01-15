@@ -115,30 +115,45 @@ export default function YoutubePlayerPage() {
         <Card className="flex flex-col h-full rounded-none border-0">
             <Tabs value={currentTab} onValueChange={setCurrentTab} className="flex-1">
                 <TabsList className="flex flex-wrap h-auto w-full justify-start rounded-none border-b sticky top-0 z-10 bg-background">
-                    <TabsTrigger value="search" className="flex-grow basis-1/4 py-2 px-1">
-                        <Search className="h-4 w-4 mr-0 md:mr-2" />
-                        <span className="hidden sm:inline">{t('search')}</span>
+                    <TabsTrigger
+                        value="search"
+                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
+                    >
+                        <Search className="h-4 w-4 mr-2" />
+                        <span>{t('search')}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="queue" className="flex-grow basis-1/4 py-2 px-1">
-                        <ListVideo className="h-4 w-4 mr-0 md:mr-2" />
-                        <span className="hidden sm:inline">
+                    <TabsTrigger
+                        value="queue"
+                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
+                    >
+                        <ListVideo className="h-4 w-4 mr-2" />
+                        <span>
                             {t('list')} ({room?.videoQueue.length || 0})
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger value="history" className="flex-grow basis-1/4 py-2 px-1">
-                        <History className="h-4 w-4 mr-0 md:mr-2" />
-                        <span className="hidden sm:inline">{t('history')}</span>
+                    <TabsTrigger
+                        value="history"
+                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
+                    >
+                        <History className="h-4 w-4 mr-2" />
+                        <span>{t('history')}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="controls" className="flex-grow basis-1/5 py-2 px-1">
-                        <SlidersVertical className="h-4 w-4 mr-0 md:mr-2" />
-                        <span className="hidden sm:inline">{t('controls')}</span>
+                    <TabsTrigger
+                        value="controls"
+                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
+                    >
+                        <SlidersVertical className="h-4 w-4 mr-2" />
+                        <span>{t('controls')}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="settings" className="flex-grow basis-1/4 py-2 px-1">
-                        <Settings className="h-4 w-4 mr-0 md:mr-2" />
-                        <span className="hidden sm:inline">{t('settings')}</span>
+                    <TabsTrigger
+                        value="settings"
+                        className="flex-grow basis-1/3 lg:basis-1/5 py-2 px-1"
+                    >
+                        <Settings className="h-4 w-4 mr-2" />
+                        <span>{t('settings')}</span>
                     </TabsTrigger>
                 </TabsList>
-                <TabsContent value="search" className="flex-1 overflow-auto">
+                <TabsContent value="search" className="flex-1 overflow-auto p-0">
                     <VideoSearch />
                 </TabsContent>
                 <TabsContent value="history" className="flex-1 overflow-auto p-0">
@@ -147,10 +162,10 @@ export default function YoutubePlayerPage() {
                 <TabsContent value="queue" className="flex-1 overflow-auto p-0">
                     <VideoQueue />
                 </TabsContent>
-                <TabsContent value="controls" className="flex-1 overflow-auto p-4">
+                <TabsContent value="controls" className="flex-1 overflow-auto p-0">
                     <PlayerControlsTabs />
                 </TabsContent>
-                <TabsContent value="settings" className="flex-1 overflow-auto p-4">
+                <TabsContent value="settings" className="flex-1 overflow-auto p-0">
                     <RoomSettings />
                 </TabsContent>
             </Tabs>
@@ -158,7 +173,7 @@ export default function YoutubePlayerPage() {
     );
 
     const renderPlayer = () => (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full z-0">
             {room?.playingNow ? (
                 <YouTube
                     videoId={room.playingNow.id}
@@ -241,9 +256,9 @@ export default function YoutubePlayerPage() {
                 {layoutMode !== 'remote' && (
                     <div
                         className={cn(
-                            'flex flex-col',
-                            layoutMode === 'both' ? 'w-full md:w-2/3 lg:w-3/4' : 'w-full',
-                            layoutMode === 'player' ? 'h-full' : 'h-[22rem]',
+                            'flex flex-col w-full',
+                            layoutMode === 'both' && 'md:w-2/3 lg:w-3/4 h-[20rem] md:h-full',
+                            layoutMode === 'player' && 'h-full',
                         )}
                     >
                         {renderPlayer()}
