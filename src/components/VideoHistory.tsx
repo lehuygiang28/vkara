@@ -41,7 +41,7 @@ export function VideoHistory() {
                                     }}
                                 >
                                     <Play className="h-3.5 w-3.5 mr-1" />
-                                    <span className="hidden sm:inline">{t('playNow')}</span>
+                                    <span>{t('playNow')}</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -62,7 +62,7 @@ export function VideoHistory() {
                                     }}
                                 >
                                     <ListVideo className="h-3.5 w-3.5 mr-1" />
-                                    <span className="hidden sm:inline">{t('addToQueue')}</span>
+                                    <span>{t('addToQueue')}</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -93,9 +93,7 @@ export function VideoHistory() {
                                         }}
                                     >
                                         <X className="h-4 w-4 mr-2" />
-                                        <span className="hidden sm:inline">
-                                            {t('clearHistory')}
-                                        </span>
+                                        <span>{t('clearHistory')}</span>
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>

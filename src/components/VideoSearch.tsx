@@ -53,7 +53,7 @@ export function VideoSearch() {
                                     }}
                                 >
                                     <Play className="h-3.5 w-3.5 mr-1" />
-                                    <span className="hidden sm:inline">{t('playNow')}</span>
+                                    <span>{t('playNow')}</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -74,7 +74,7 @@ export function VideoSearch() {
                                     }}
                                 >
                                     <ListVideo className="h-3.5 w-3.5 mr-1" />
-                                    <span className="hidden sm:inline">{t('addToQueue')}</span>
+                                    <span>{t('addToQueue')}</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>

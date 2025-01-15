@@ -46,7 +46,7 @@ export function VideoQueue() {
                                     }}
                                 >
                                     <MoveUp className="h-3.5 w-3.5 mr-1" />
-                                    <span className="hidden sm:inline">{t('moveToTop')}</span>
+                                    <span>{t('moveToTop')}</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -68,7 +68,7 @@ export function VideoQueue() {
                                     }}
                                 >
                                     <Trash2 className="h-3.5 w-3.5 mr-1" />
-                                    <span className="hidden sm:inline">{t('remove')}</span>
+                                    <span>{t('remove')}</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>
@@ -100,7 +100,7 @@ export function VideoQueue() {
                                             }}
                                         >
                                             <Shuffle className="h-4 w-4 mr-2" />
-                                            <span className="hidden sm:inline">{t('shuffle')}</span>
+                                            <span>{t('shuffle')}</span>
                                         </Button>
                                     </TooltipTrigger>
                                     <TooltipContent>
@@ -123,7 +123,7 @@ export function VideoQueue() {
                                         }}
                                     >
                                         <X className="h-4 w-4 mr-2" />
-                                        <span className="hidden sm:inline">{t('clearQueue')}</span>
+                                        <span>{t('clearQueue')}</span>
                                     </Button>
                                 </TooltipTrigger>
                                 <TooltipContent>
