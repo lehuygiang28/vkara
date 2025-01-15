@@ -12,6 +12,7 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { searchYouTube } from '@/actions/youtube';
 import { useScopedI18n } from '@/locales/client';
+import { cn, generateShareableUrl } from '@/lib/utils';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -22,7 +23,6 @@ import { VideoSearch } from '@/components/VideoSearch';
 import { VideoHistory } from '@/components/VideoHistory';
 import { PlayerControls } from '@/components/PlayerControls';
 import { PlayerControlsTabs } from '@/components/PlayerControlsTabs';
-import { generateShareableUrl } from '@/lib/utils';
 
 export default function YoutubePlayerPage() {
     const {
@@ -240,13 +240,15 @@ export default function YoutubePlayerPage() {
             <main className={`flex flex-col md:flex-row flex-1 overflow-hidden`}>
                 {layoutMode !== 'remote' && (
                     <div
-                        className={`flex flex-col ${
-                            layoutMode === 'both' ? 'w-full md:w-2/3 lg:w-3/4' : 'w-full h-full'
-                        }`}
+                        className={cn(
+                            'flex flex-col',
+                            layoutMode === 'both' ? 'w-full md:w-2/3 lg:w-3/4' : 'w-full',
+                            layoutMode === 'player' ? 'h-full' : 'h-[22rem]',
+                        )}
                     >
                         {renderPlayer()}
                         {layoutMode === 'both' && (
-                            <div className="p-2 md:p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                            <div className="p-2 md:p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:block">
                                 <PlayerControls />
                             </div>
                         )}
