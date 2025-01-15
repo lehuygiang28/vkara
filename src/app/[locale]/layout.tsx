@@ -25,6 +25,10 @@ export const metadata: Metadata = {
     title: 'vkara - Hát cùng nhau nàooooo',
     description:
         'vkara là ứng dụng hát karaoke trực tuyến, giúp bạn hát cùng nhau mọi lúc mọi nơi.',
+    other: {
+        'apple-mobile-web-app-capable': 'yes',
+        'mobile-web-app-capable': 'yes',
+    },
 };
 
 export default async function RootLayout({

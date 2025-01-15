@@ -61,7 +61,7 @@ export function RoomSettings() {
     return (
         <div className="flex flex-col h-screen">
             <ScrollArea className="h-full" hideScrollbar>
-                <div className="space-y-3 pb-[12rem]">
+                <div className="space-y-3 pb-[20rem]">
                     <Card>
                         <CardHeader>
                             <CardTitle>{t_RoomSettings('title')}</CardTitle>

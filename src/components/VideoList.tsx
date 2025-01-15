@@ -24,13 +24,13 @@ export const VideoList = memo(function VideoList({
         <div className="flex-1 overflow-hidden">
             {/* Scrollable Container */}
             <ScrollArea className="h-full" hideScrollbar>
-                <div className="space-y-3 pb-[12rem]">
+                <div className="space-y-3 pb-[20rem]">
                     {videos.length === 0 ? (
                         <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
                             {emptyMessage}
                         </div>
                     ) : (
-                        videos.map((video, index) => (
+                        videos.map((video) => (
                             <div
                                 key={video.id}
                                 onClick={() => onVideoClick?.(video)}
@@ -47,11 +47,6 @@ export const VideoList = memo(function VideoList({
                                         alt={video.title}
                                         className="absolute inset-0 h-full w-full object-cover"
                                     />
-                                    {index !== undefined && (
-                                        <div className="absolute top-0 left-0 bg-background/80 backdrop-blur-sm px-2 py-1 text-xs font-medium">
-                                            #{index + 1}
-                                        </div>
-                                    )}
                                     {video.duration_formatted && (
                                         <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded">
                                             {video.duration_formatted}

@@ -259,8 +259,8 @@ export default function YoutubePlayerPage() {
                         } overflow-hidden`}
                     >
                         {layoutMode === 'remote' && room?.playingNow && (
-                            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 border-b">
-                                <h2 className="text-lg font-semibold mb-2">{t('nowPlaying')}</h2>
+                            <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2 border-b">
+                                <h2 className="text-lg font-semibold">{t('nowPlaying')}</h2>
                                 <div className="flex items-center space-x-4">
                                     <img
                                         src={room.playingNow.thumbnail.url}
@@ -268,8 +268,10 @@ export default function YoutubePlayerPage() {
                                         className="w-16 h-16 object-cover rounded"
                                     />
                                     <div>
-                                        <p className="font-medium">{room.playingNow.title}</p>
-                                        <p className="text-sm text-muted-foreground">
+                                        <p className="font-medium line-clamp-2">
+                                            {room.playingNow.title}
+                                        </p>
+                                        <p className="text-sm text-muted-foreground line-clamp-1">
                                             {room.playingNow.channel.name}
                                         </p>
                                     </div>
