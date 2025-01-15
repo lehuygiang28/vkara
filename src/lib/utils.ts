@@ -37,24 +37,39 @@ export function formatSeconds(durationInSeconds: number): string {
 }
 
 /**
- * Format a view count number into a human-readable string with commas as thousands separators.
+ * Format a view count number into a human-readable string with commas as thousands separators and with metric prefixes (K, M, B, T).
  *
  * If the input is negative or NaN, returns '0'.
  *
- * Otherwise, returns a string representation of the number with commas separating thousands.
+ * Otherwise, returns a string representation of the number with a metric prefix if the number is greater than 1000.
  *
  * @example
  * formatViewCount(0) // '0'
- * formatViewCount(1000) // '1,000'
- * formatViewCount(1000000) // '1,000,000'
+ * formatViewCount(1000) // '1K'
+ * formatViewCount(1000000) // '1M'
  */
-
 export function formatViewCount(viewCount: number): string {
     if (isNaN(viewCount) || viewCount < 0) {
         return '0';
     }
 
-    return viewCount.toLocaleString('en-US');
+    const units = ['', 'K', 'M', 'B', 'T'];
+    let unitIndex = 0;
+    let count = viewCount;
+
+    while (count >= 1000 && unitIndex < units.length - 1) {
+        count /= 1000;
+        unitIndex++;
+    }
+
+    // Round numbers very close to an integer to that integer
+    if (Math.abs(count - Math.round(count)) < 0.01) {
+        count = Math.round(count);
+    }
+
+    const formattedCount = count % 1 === 0 ? count.toFixed(0) : count.toFixed(1);
+
+    return `${formattedCount}${units[unitIndex]}`;
 }
 
 /**
