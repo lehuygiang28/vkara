@@ -59,7 +59,7 @@ export function RoomSettings() {
 
     return (
         <div className="flex flex-col h-screen">
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full" hideScrollbar>
                 <div className="space-y-3 pb-[12rem]">
                     <Card>
                         <CardHeader>

@@ -23,7 +23,7 @@ export const VideoList = memo(function VideoList({
     return (
         <div className="flex-1 overflow-hidden">
             {/* Scrollable Container */}
-            <ScrollArea className="h-full">
+            <ScrollArea className="h-full" hideScrollbar>
                 <div className="space-y-3 pb-[12rem]">
                     {videos.length === 0 ? (
                         <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
