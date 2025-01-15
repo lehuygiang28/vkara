@@ -10,6 +10,7 @@ import { useI18n } from '@/locales/client';
 interface VideoListProps {
     videos: YouTubeVideo[];
     emptyMessage: string;
+    renderHeaders?: () => React.ReactNode;
     renderButtons: (video: YouTubeVideo) => React.ReactNode;
     onVideoClick?: (video: YouTubeVideo) => void;
     selectedVideoId?: string | null;
@@ -18,6 +19,7 @@ interface VideoListProps {
 export const VideoList = memo(function VideoList({
     videos,
     emptyMessage,
+    renderHeaders,
     renderButtons,
     onVideoClick,
     selectedVideoId,
@@ -28,6 +30,7 @@ export const VideoList = memo(function VideoList({
         <div className="flex-1 overflow-hidden">
             {/* Scrollable Container */}
             <ScrollArea className="h-full" hideScrollbar>
+                {renderHeaders && renderHeaders()}
                 <div className="space-y-3 pb-[20rem]">
                     {videos.length === 0 ? (
                         <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">

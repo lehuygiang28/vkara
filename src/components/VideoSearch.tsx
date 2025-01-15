@@ -31,15 +31,61 @@ export function VideoSearch() {
     const t = useScopedI18n('videoSearch');
     const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
 
+    function renderHeader() {
+        return (
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2 border-b space-y-4">
+                <div className="flex flex-col gap-2">
+                    <div className="relative">
+                        <Input
+                            type="search"
+                            placeholder={t('searchPlaceholder')}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pr-10"
+                        />
+                        <Button
+                            size="sm"
+                            variant="ghost"
+                            className="absolute right-0 top-0 h-full px-3"
+                            disabled={isLoading}
+                        >
+                            {isLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                                <Search className="h-4 w-4" />
+                            )}
+                        </Button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Switch
+                            checked={isKaraoke}
+                            onCheckedChange={setIsKaraoke}
+                            id="karaoke-mode"
+                        />
+                        <label htmlFor="karaoke-mode" className="text-sm font-medium">
+                            {t('karaokeMode')}
+                        </label>
+                        <Mic
+                            className={cn(
+                                'h-4 w-4 transition-opacity',
+                                isKaraoke ? 'opacity-100' : 'opacity-50',
+                            )}
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
     function renderButtons(video: YouTubeVideo) {
         return (
             <div
                 className={cn(
                     'overflow-hidden transition-all duration-300 ease-in-out',
-                    selectedVideo === video.id ? 'max-h-20 mt-2 opacity-100' : 'max-h-0 opacity-0',
+                    selectedVideo === video.id ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0',
                 )}
             >
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap mt-2">
                     <TooltipProvider>
                         <Tooltip>
                             <TooltipTrigger asChild>
@@ -89,47 +135,6 @@ export function VideoSearch() {
 
     return (
         <div className="flex flex-col h-screen">
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 p-4 border-b space-y-4">
-                <div className="flex flex-col gap-4">
-                    <div className="relative">
-                        <Input
-                            type="search"
-                            placeholder={t('searchPlaceholder')}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pr-10"
-                        />
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            className="absolute right-0 top-0 h-full px-3"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Search className="h-4 w-4" />
-                            )}
-                        </Button>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Switch
-                            checked={isKaraoke}
-                            onCheckedChange={setIsKaraoke}
-                            id="karaoke-mode"
-                        />
-                        <label htmlFor="karaoke-mode" className="text-sm font-medium">
-                            {t('karaokeMode')}
-                        </label>
-                        <Mic
-                            className={cn(
-                                'h-4 w-4 transition-opacity',
-                                isKaraoke ? 'opacity-100' : 'opacity-50',
-                            )}
-                        />
-                    </div>
-                </div>
-            </div>
             {isLoading && searchResults.length === 0 ? (
                 <div className="space-y-4 p-4">
                     {[...Array(10)].map((_, i) => (
@@ -144,6 +149,7 @@ export function VideoSearch() {
                 <VideoList
                     videos={searchResults}
                     emptyMessage={searchQuery ? t('noResults') : ''}
+                    renderHeaders={renderHeader}
                     renderButtons={renderButtons}
                     onVideoClick={(video) =>
                         setSelectedVideo(video.id === selectedVideo ? null : video.id)
