@@ -77,6 +77,7 @@ export default {
     'roomSettings.showQRInPlayer': 'Show QR code in player',
     'roomSettings.show': 'Show',
     'roomSettings.hide': 'Hide',
+    'roomSettings.showBottomControls': 'Show bottom controls',
 
     'connectionStatus.notConnected': 'Not Connected',
     'connectionStatus.connected': 'Connected',

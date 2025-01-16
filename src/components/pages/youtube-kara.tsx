@@ -34,6 +34,7 @@ export default function YoutubePlayerPage() {
         currentTab,
         layoutMode,
         showQRInPlayer,
+        showBottomControls,
         setPlayer,
         setCurrentTab,
         setSearchResults,
@@ -274,7 +275,7 @@ export default function YoutubePlayerPage() {
                         )}
                     >
                         {renderPlayer()}
-                        {layoutMode === 'both' && (
+                        {layoutMode === 'both' && showBottomControls && (
                             <div className="p-2 md:p-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:block">
                                 <PlayerControls />
                             </div>

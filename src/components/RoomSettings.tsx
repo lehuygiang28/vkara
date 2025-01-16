@@ -30,10 +30,12 @@ export function RoomSettings() {
         room,
         layoutMode,
         showQRInPlayer,
+        showBottomControls,
         setRoom,
         setLayoutMode,
         setCurrentTab,
         setShowQRInPlayer,
+        setShowBottomControls,
     } = useYouTubeStore();
     const { sendMessage, connectionStatus } = useWebSocketStore();
     const [roomPassword, setRoomPassword] = useState<string>('');
@@ -250,6 +252,31 @@ export function RoomSettings() {
                                     <SelectTrigger className="w-full mt-2">
                                         <SelectValue
                                             placeholder={t_RoomSettings('showQRInPlayer')}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="true">
+                                            {t_RoomSettings('show')}
+                                        </SelectItem>
+                                        <SelectItem value="false">
+                                            {t_RoomSettings('hide')}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="mt-4">
+                                <Label htmlFor="show-bottom-controls">
+                                    {t_RoomSettings('showBottomControls')}
+                                </Label>
+                                <Select
+                                    value={showBottomControls ? 'true' : 'false'}
+                                    onValueChange={(value) =>
+                                        setShowBottomControls(value === 'true')
+                                    }
+                                >
+                                    <SelectTrigger className="w-full mt-2">
+                                        <SelectValue
+                                            placeholder={t_RoomSettings('showBottomControls')}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>

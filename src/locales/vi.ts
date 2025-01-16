@@ -75,9 +75,10 @@ export default {
     'roomSettings.copyUrl': 'Sao chép',
     'roomSettings.copyUrlSuccess': 'URL đã được sao chép',
     'roomSettings.qrCode': 'QR Code',
-    'roomSettings.showQRInPlayer': 'Hiển thị QR trong video',
+    'roomSettings.showQRInPlayer': 'Hiện QR trong video',
     'roomSettings.show': 'Hiển thị',
     'roomSettings.hide': 'Ẩn',
+    'roomSettings.showBottomControls': 'Hiện nút điều khiển bên dưới',
 
     'connectionStatus.notConnected': 'Không kết nối',
     'connectionStatus.connected': 'Đã kết nối',
