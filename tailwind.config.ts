@@ -58,5 +58,6 @@ export default {
             },
         },
     },
+    safelist: [...Array.from({ length: 96 }, (_, i) => `opacity-${i + 5}`)],
     plugins: [require('tailwindcss-animate')],
 } satisfies Config;

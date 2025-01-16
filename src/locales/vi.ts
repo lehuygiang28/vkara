@@ -79,6 +79,7 @@ export default {
     'roomSettings.show': 'Hiển thị',
     'roomSettings.hide': 'Ẩn',
     'roomSettings.showBottomControls': 'Hiện nút điều khiển bên dưới',
+    'roomSettings.opacityOfButtonsInPlayer': 'Độ mờ nút điều khiển trong video',
 
     'connectionStatus.notConnected': 'Không kết nối',
     'connectionStatus.connected': 'Đã kết nối',

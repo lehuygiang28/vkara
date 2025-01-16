@@ -35,6 +35,7 @@ export default function YoutubePlayerPage() {
         layoutMode,
         showQRInPlayer,
         showBottomControls,
+        opacityOfButtonsInPlayer,
         setPlayer,
         setCurrentTab,
         setSearchResults,
@@ -233,7 +234,12 @@ export default function YoutubePlayerPage() {
             )}
 
             {layoutMode === 'player' && (
-                <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-50 hover:opacity-80 z-10">
+                <div
+                    className={cn(
+                        'absolute top-2 right-2 flex flex-col gap-2 z-10 hover:opacity-80',
+                        `opacity-${opacityOfButtonsInPlayer}`,
+                    )}
+                >
                     <Button
                         className="z-10 text-center font-medium focus-within:ring-4 focus-within:outline-none justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 focus-within:bg-gray-900 focus-within:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 focus-within:ring-gray-300 dark:focus-within:ring-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
                         variant="ghost"

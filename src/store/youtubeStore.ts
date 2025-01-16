@@ -19,6 +19,7 @@ interface YouTubeState {
     layoutMode: 'both' | 'remote' | 'player';
     showQRInPlayer: boolean;
     showBottomControls: boolean;
+    opacityOfButtonsInPlayer: number;
 
     setWsId: (wsId: string | null) => void;
     setPlayer: (player: YT.Player) => void;
@@ -34,6 +35,7 @@ interface YouTubeState {
     setLayoutMode: (mode: 'both' | 'remote' | 'player') => void;
     setShowQRInPlayer: (show: boolean) => void;
     setShowBottomControls: (show: boolean) => void;
+    setOpacityOfButtonsInPlayer: (opacity: number) => void;
 
     addVideo: (video: YouTubeVideo) => void;
     removeVideo: (videoId: string) => void;
@@ -60,6 +62,7 @@ export const useYouTubeStore = create(
             layoutMode: 'both',
             showQRInPlayer: true,
             showBottomControls: true,
+            opacityOfButtonsInPlayer: 50,
 
             setWsId: (wsId) => set({ wsId }),
             setPlayer: (player) => set({ player }),
@@ -80,6 +83,20 @@ export const useYouTubeStore = create(
             },
             setShowQRInPlayer: (show) => set({ showQRInPlayer: show }),
             setShowBottomControls: (show) => set({ showBottomControls: show }),
+            setOpacityOfButtonsInPlayer: (opacity) => {
+                const MIN_OPACITY = 0;
+                const MAX_OPACITY = 100;
+
+                const adjustedOpacity = Math.round(opacity / 5) * 5;
+
+                if (adjustedOpacity < MIN_OPACITY) {
+                    set({ opacityOfButtonsInPlayer: MIN_OPACITY });
+                } else if (adjustedOpacity > MAX_OPACITY) {
+                    set({ opacityOfButtonsInPlayer: MAX_OPACITY });
+                } else {
+                    set({ opacityOfButtonsInPlayer: adjustedOpacity });
+                }
+            },
 
             addVideo: (video) =>
                 set((state) => ({

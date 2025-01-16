@@ -78,6 +78,7 @@ export default {
     'roomSettings.show': 'Show',
     'roomSettings.hide': 'Hide',
     'roomSettings.showBottomControls': 'Show bottom controls',
+    'roomSettings.opacityOfButtonsInPlayer': 'Opacity of buttons in player',
 
     'connectionStatus.notConnected': 'Not Connected',
     'connectionStatus.connected': 'Connected',

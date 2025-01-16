@@ -23,6 +23,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { generateShareableUrl } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
+import { Slider } from '@/components/ui/slider';
 
 export function RoomSettings() {
     const {
@@ -31,11 +32,13 @@ export function RoomSettings() {
         layoutMode,
         showQRInPlayer,
         showBottomControls,
+        opacityOfButtonsInPlayer,
         setRoom,
         setLayoutMode,
         setCurrentTab,
         setShowQRInPlayer,
         setShowBottomControls,
+        setOpacityOfButtonsInPlayer,
     } = useYouTubeStore();
     const { sendMessage, connectionStatus } = useWebSocketStore();
     const [roomPassword, setRoomPassword] = useState<string>('');
@@ -287,6 +290,22 @@ export function RoomSettings() {
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
+                            </div>
+                            <div className="mt-4 space-y-2">
+                                <Label htmlFor="opacity-slider">
+                                    {t_RoomSettings('opacityOfButtonsInPlayer')}
+                                </Label>
+                                <Slider
+                                    id="opacity-slider"
+                                    min={0}
+                                    max={100}
+                                    step={5}
+                                    value={[opacityOfButtonsInPlayer]}
+                                    onValueChange={(value) => setOpacityOfButtonsInPlayer(value[0])}
+                                />
+                                <div className="text-sm text-muted-foreground">
+                                    {opacityOfButtonsInPlayer}%
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
