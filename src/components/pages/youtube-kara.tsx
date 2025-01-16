@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import YouTube from 'react-youtube';
 import { ChevronRight, Search, Settings, History, SlidersVertical, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
@@ -46,7 +46,6 @@ export default function YoutubePlayerPage() {
     const t = useScopedI18n('youtubePage');
     const [debouncedSearch] = useDebounce(searchQuery, 500);
     const [showSidebar, setShowSidebar] = useState(false);
-    const sidebarRef = useRef<HTMLDivElement>(null);
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
 
     const { sendMessage, lastMessage } = useWebSocketStore();
@@ -79,22 +78,6 @@ export default function YoutubePlayerPage() {
         performSearch();
     }, [debouncedSearch, isKaraoke, setSearchResults, setIsLoading, setError, t]);
 
-    useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (sidebarRef.current && !sidebarRef.current.contains(event.target as Node)) {
-                setShowSidebar(false);
-            }
-        };
-
-        if (showSidebar) {
-            document.addEventListener('mousedown', handleClickOutside);
-        }
-
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, [showSidebar]);
-
     const onPlayerReady = (event: YT.PlayerEvent) => {
         setPlayer(event.target);
     };
@@ -117,6 +100,10 @@ export default function YoutubePlayerPage() {
         } else {
             nextVideo();
         }
+    };
+
+    const handleOverlayClick = () => {
+        setShowSidebar(false);
     };
 
     const renderSidebar = () => (
@@ -220,30 +207,29 @@ export default function YoutubePlayerPage() {
                 </div>
             )}
 
-            {layoutMode === 'player' ||
-                (layoutMode === 'both' && (
-                    <>
-                        {room?.id && (
-                            <div className="absolute top-2 left-2 hidden lg:flex flex-col opacity-30 hover:opacity-80 z-10">
-                                <div className="flex justify-center">
-                                    <QRCode
-                                        value={generateShareableUrl({
-                                            roomId: room.id,
-                                            password: room?.password || '',
-                                            layoutMode,
-                                        })}
-                                        size={80}
-                                        qrStyle="dots"
-                                        eyeRadius={5}
-                                        quietZone={2}
-                                        ecLevel="L"
-                                    />
-                                </div>
-                                <span className="text-sm text-center">{room.id}</span>
+            {(layoutMode === 'player' || layoutMode === 'both') && (
+                <>
+                    {room?.id && (
+                        <div className="absolute top-2 left-2 hidden lg:flex flex-col opacity-30 hover:opacity-80 z-10">
+                            <div className="flex justify-center">
+                                <QRCode
+                                    value={generateShareableUrl({
+                                        roomId: room.id,
+                                        password: room?.password || '',
+                                        layoutMode,
+                                    })}
+                                    size={80}
+                                    qrStyle="dots"
+                                    eyeRadius={5}
+                                    quietZone={2}
+                                    ecLevel="L"
+                                />
                             </div>
-                        )}
-                    </>
-                ))}
+                            <span className="text-sm text-center">{room.id}</span>
+                        </div>
+                    )}
+                </>
+            )}
 
             {layoutMode === 'player' && (
                 <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-50 hover:opacity-80 z-10">
@@ -328,25 +314,34 @@ export default function YoutubePlayerPage() {
                 )}
                 <AnimatePresence>
                     {layoutMode === 'player' && showSidebar && (
-                        <motion.div
-                            ref={sidebarRef}
-                            initial={{ x: '100%' }}
-                            animate={{ x: 0 }}
-                            exit={{ x: '100%' }}
-                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                            className="fixed inset-y-0 right-0 z-50 w-11/12 md:w-3/4 lg:w-1/4 bg-background shadow-lg"
-                        >
-                            {renderSidebar()}
-                            <Button
-                                variant="ghost"
-                                size="icon"
-                                className="absolute top-1/2 -left-6 transform -translate-y-1/2 h-16 w-8 rounded-l-full bg-background/80 hover:bg-background"
-                                onClick={() => setShowSidebar(false)}
-                                aria-label="Close sidebar"
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.3 }}
+                                className="fixed inset-0 bg-black/50 z-40"
+                                onClick={handleOverlayClick}
+                            />
+                            <motion.div
+                                initial={{ x: '100%' }}
+                                animate={{ x: 0 }}
+                                exit={{ x: '100%' }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                                className="fixed inset-y-0 right-0 z-50 w-11/12 md:w-3/4 lg:w-1/4 bg-background shadow-lg"
                             >
-                                <ChevronRight className="h-6 w-6" />
-                            </Button>
-                        </motion.div>
+                                {renderSidebar()}
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="absolute top-1/2 -left-6 transform -translate-y-1/2 h-16 w-8 rounded-l-full bg-background/80 hover:bg-background"
+                                    onClick={() => setShowSidebar(false)}
+                                    aria-label="Close sidebar"
+                                >
+                                    <ChevronRight className="h-6 w-6" />
+                                </Button>
+                            </motion.div>
+                        </>
                     )}
                 </AnimatePresence>
             </main>
