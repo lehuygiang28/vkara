@@ -1,4 +1,19 @@
+/**
+ * Flag Symbol Country: 🇺🇸 🇻🇳
+ * You can find your `Flag Symbol Country` in https://www.alt-codes.net/flags
+ */
+
 export default {
+    'appearance.title': 'Appearance',
+    'appearance.theme': 'Theme',
+    'appearance.toggleTheme': 'Toggle theme',
+    'appearance.dark': 'Dark',
+    'appearance.light': 'Light',
+    'appearance.switchToggleStyle': 'Switch toggle style',
+    'appearance.language': 'Language',
+    'appearance.languageEnglish': '🇺🇸 English',
+    'appearance.languageVietnamese': '🇻🇳 Tiếng Việt',
+
     'toast.playNowHandler': 'Play now',
     'toast.addVideoHandler': 'Video added to queue',
     'toast.nextVideoHandler': 'Next video is playing',
@@ -42,14 +57,6 @@ export default {
     'seekToInput.placeholder': 'e.g., 120, 2:00, or 1:02:00',
     'seekToInput.error.invalidInput': 'Invalid input format',
     'seekToInput.button.seek': 'Seek',
-
-    'appearance.title': 'Appearance',
-    'appearance.theme': 'Theme',
-    'appearance.language': 'Language',
-    'appearance.toggleTheme': 'Toggle theme',
-    'appearance.dark': 'Dark',
-    'appearance.light': 'Light',
-    'appearance.switchToggleStyle': 'Switch toggle style',
 
     'roomSettings.title': 'Room Settings',
     'roomSettings.roomId': 'Room ID',

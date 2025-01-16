@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useCallback, useState } from 'react';
+import React, { Suspense, useCallback, useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
+import { useChangeLocale, useCurrentLocale, SUPPORTED_LOCALES } from '@/locales/client';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +30,8 @@ export function RoomSettings() {
     const [roomPassword, setRoomPassword] = useState<string>('');
     const [joinRoomId, setJoinRoomId] = useState<string>('');
     const [joinRoomPassword, setJoinRoomPassword] = useState<string>('');
+    const changeLocale = useChangeLocale({ preserveSearchParams: true });
+    const locale = useCurrentLocale();
 
     const isConnected = connectionStatus === 'OPEN';
 
@@ -236,6 +239,34 @@ export function RoomSettings() {
                                 <Label htmlFor="theme-toggle">{t('appearance.theme')}</Label>
                                 <ThemeToggle />
                             </div>
+                            <Suspense>
+                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4">
+                                    <Label
+                                        htmlFor="language-chooser"
+                                        className="text-sm font-medium flex items-center"
+                                    >
+                                        {t('appearance.language')}
+                                    </Label>
+                                    <Select
+                                        value={locale}
+                                        onValueChange={(value: SUPPORTED_LOCALES) => {
+                                            changeLocale(value);
+                                        }}
+                                    >
+                                        <SelectTrigger className="flex items-center justify-between w-full sm:w-auto border rounded-md px-3 py-2 min-w-[12rem]">
+                                            <SelectValue placeholder={t('appearance.language')} />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="en">
+                                                <span>{t('appearance.languageEnglish')}</span>
+                                            </SelectItem>
+                                            <SelectItem value="vi">
+                                                <span>{t('appearance.languageVietnamese')}</span>
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            </Suspense>
                         </CardContent>
                     </Card>
                 </div>

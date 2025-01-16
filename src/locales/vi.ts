@@ -1,4 +1,19 @@
+/**
+ * Flag Symbol Country: 🇺🇸 🇻🇳
+ * You can find your `Flag Symbol Country` in https://www.alt-codes.net/flags
+ */
+
 export default {
+    'appearance.title': 'Giao diện',
+    'appearance.theme': 'Chủ đề',
+    'appearance.toggleTheme': 'Chuyển đổi chủ đề',
+    'appearance.dark': 'Tối',
+    'appearance.light': 'Sáng',
+    'appearance.switchToggleStyle': 'Chuyển đổi chủ đề',
+    'appearance.language': 'Ngôn ngữ',
+    'appearance.languageEnglish': '🇺🇸 English',
+    'appearance.languageVietnamese': '🇻🇳 Tiếng Việt',
+
     'toast.playNowHandler': 'Phát ngay',
     'toast.addVideoHandler': 'Video đã được thêm vào hàng chờ',
     'toast.nextVideoHandler': 'Video tiếp theo đang được phát',
@@ -43,14 +58,6 @@ export default {
     'seekToInput.placeholder': 'ví dụ: 120, 2:00, hoặc 1:02:00',
     'seekToInput.error.invalidInput': 'Định dạng nhập không hợp lệ',
     'seekToInput.button.seek': 'Nhảy',
-
-    'appearance.title': 'Giao diện',
-    'appearance.theme': 'Chủ đề',
-    'appearance.language': 'Ngôn ngữ',
-    'appearance.toggleTheme': 'Chuyển đổi chủ đề',
-    'appearance.dark': 'Tối',
-    'appearance.light': 'Sáng',
-    'appearance.switchToggleStyle': 'Chuyển đổi chủ đề',
 
     'roomSettings.title': 'Cài đặt Phòng',
     'roomSettings.roomId': 'ID Phòng',

@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import Locale from 'intl-locale-textinfo-polyfill';
 
 import { ThemeProvider } from '@/providers/theme-provider';
 import { WebSocketProvider } from '@/providers/websocket-provider';
@@ -39,9 +40,10 @@ export default async function RootLayout({
     children: ReactNode;
 }) {
     const { locale } = await params;
+    const { direction: dir } = new Locale(locale).textInfo;
 
     return (
-        <html lang="en" suppressHydrationWarning>
+        <html lang={locale ?? 'vi'} dir={dir} suppressHydrationWarning>
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
                 <ThemeProvider
                     attribute="class"
