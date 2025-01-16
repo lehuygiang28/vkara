@@ -213,7 +213,14 @@ export default function YoutubePlayerPage() {
             {(layoutMode === 'player' || layoutMode === 'both') && (
                 <>
                     {room?.id && showQRInPlayer && (
-                        <div className="absolute top-2 left-2 hidden lg:flex flex-col opacity-30 hover:opacity-80 z-10 cursor-auto">
+                        <div
+                            className="absolute top-2 left-2 hidden lg:flex flex-col opacity-30 hover:opacity-80 z-10 cursor-auto"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowSidebar(true);
+                                setCurrentTab('settings');
+                            }}
+                        >
                             <div className="flex justify-center cursor-none">
                                 <QRCode
                                     value={generateShareableUrl({
@@ -228,7 +235,9 @@ export default function YoutubePlayerPage() {
                                 />
                             </div>
                             <span className="text-sm text-center">
-                                {room.id?.slice(0, 3) + ' ' + room.id?.slice(3)}
+                                {room.id?.slice(0, Math.round(room.id.length / 2)) +
+                                    ' ' +
+                                    room.id?.slice(-Math.round(room.id.length / 2))}
                             </span>
                         </div>
                     )}

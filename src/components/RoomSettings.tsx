@@ -90,6 +90,25 @@ export function RoomSettings() {
                                         <span className="font-normal">{room.id}</span>
                                     </p>
                                     <div className="space-y-2">
+                                        <Label htmlFor="shareable-qr-code">
+                                            {t_RoomSettings('qrCode')}
+                                        </Label>
+                                        <div className="flex justify-center">
+                                            <QRCode
+                                                id="shareable-qr-code"
+                                                value={generateShareableUrl({
+                                                    roomId: room.id,
+                                                    password: room?.password || '',
+                                                })}
+                                                size={200}
+                                                qrStyle="dots"
+                                                eyeRadius={5}
+                                                quietZone={2}
+                                                ecLevel="L"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
                                         <Label htmlFor="shareable-url">
                                             {t_RoomSettings('shareableUrl')}
                                         </Label>
@@ -119,25 +138,6 @@ export function RoomSettings() {
                                             >
                                                 {t_RoomSettings('copyUrl')}
                                             </Button>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="shareable-qr-code">
-                                            {t_RoomSettings('qrCode')}
-                                        </Label>
-                                        <div className="flex justify-center">
-                                            <QRCode
-                                                id="shareable-qr-code"
-                                                value={generateShareableUrl({
-                                                    roomId: room.id,
-                                                    password: room?.password || '',
-                                                })}
-                                                size={200}
-                                                qrStyle="dots"
-                                                eyeRadius={5}
-                                                quietZone={2}
-                                                ecLevel="L"
-                                            />
                                         </div>
                                     </div>
                                     <Button onClick={leaveRoom} className="w-full">
