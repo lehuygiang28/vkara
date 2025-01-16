@@ -44,7 +44,7 @@ export default async function RootLayout({
 
     return (
         <html lang={locale ?? 'vi'} dir={dir} suppressHydrationWarning>
-            <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+            <body className={`${geistSans.variable} ${geistMono.variable} antialiased cursor-auto`}>
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"
