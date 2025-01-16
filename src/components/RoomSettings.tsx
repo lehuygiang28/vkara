@@ -127,7 +127,6 @@ export function RoomSettings() {
                                                 value={generateShareableUrl({
                                                     roomId: room.id,
                                                     password: room?.password || '',
-                                                    layoutMode,
                                                 })}
                                                 size={200}
                                                 qrStyle="dots"
