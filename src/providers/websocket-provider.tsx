@@ -4,7 +4,7 @@ import React, { createContext, useContext, useLayoutEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { noop } from 'framer-motion';
 
-import { isValidRoomId } from '@/lib/utils';
+import { isValidRoomId, resolveUrl } from '@/lib/utils';
 import type { WebSocketState } from '@/types/websocket.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore, initializeWebSocket } from '@/store/websocketStore';
@@ -26,7 +26,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     useLayoutEffect(() => {
         const cleanup = initializeWebSocket({
-            url: process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws',
+            url: `${resolveUrl(process.env.NEXT_PUBLIC_API_URL || 'ws://localhost:8000')}/ws`,
             reconnectAttempts: Infinity,
             initialRetryDelay: 1000,
             maxRetryDelay: 30000,

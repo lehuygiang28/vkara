@@ -117,3 +117,13 @@ export function isValidRoomId(roomId?: string | null | undefined): boolean {
     const pattern = /^\d{6}$/;
     return pattern.test(roomId);
 }
+
+/**
+ * Removes a trailing slash from a URL, if present.
+ *
+ * @param {string} url - The URL to resolve.
+ * @returns {string} The resolved URL.
+ */
+export function resolveUrl(url: string): string {
+    return url.replace(/\/$/, '');
+}
