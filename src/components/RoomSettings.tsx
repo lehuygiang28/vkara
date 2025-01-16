@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 'use client';
 
 import React, { useCallback, useState } from 'react';
@@ -38,25 +37,25 @@ export function RoomSettings() {
 
     const createRoom = useCallback(() => {
         sendMessage({ type: 'createRoom', password: roomPassword });
-    }, [roomPassword]);
+    }, [roomPassword, sendMessage]);
 
     const joinRoom = useCallback(() => {
         sendMessage({ type: 'joinRoom', roomId: joinRoomId, password: joinRoomPassword });
-    }, [joinRoomId, joinRoomPassword]);
+    }, [joinRoomId, joinRoomPassword, sendMessage]);
 
     const leaveRoom = useCallback(() => {
-        if (room) {
+        if (room?.id) {
             sendMessage({ type: 'leaveRoom' });
             setRoom(null);
         }
-    }, []);
+    }, [sendMessage, room?.id, setRoom]);
 
     const closeRoom = useCallback(() => {
-        if (room) {
+        if (room?.id) {
             sendMessage({ type: 'closeRoom' });
             setRoom(null);
         }
-    }, []);
+    }, [sendMessage, room?.id, setRoom]);
 
     return (
         <div className="flex flex-col h-screen">
