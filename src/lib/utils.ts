@@ -96,7 +96,7 @@ export function generateShareableUrl({
     const baseUrl = window?.location.origin ?? '';
     const params = new URLSearchParams({
         roomId,
-        password,
+        ...(password && { password }),
         ...(layoutMode && { layoutMode }),
     });
 

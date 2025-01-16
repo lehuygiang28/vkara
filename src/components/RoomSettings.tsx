@@ -106,7 +106,6 @@ export function RoomSettings() {
                                                         generateShareableUrl({
                                                             roomId: room.id,
                                                             password: roomPassword,
-                                                            layoutMode,
                                                         }),
                                                     );
                                                     toast({
