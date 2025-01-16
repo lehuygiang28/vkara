@@ -186,7 +186,11 @@ export default function YoutubePlayerPage() {
                     className="absolute inset-0 z-0"
                 />
             ) : (
-                <p className="text-muted-foreground">{t('playerPlaceholder')}</p>
+                <div className="absolute inset-0 flex items-center justify-center bg-black">
+                    <div className="text-center mx-6 py-4 border border-muted rounded-md shadow-sm">
+                        <p className="text-muted-foreground text-sm">{t('playerPlaceholder')}</p>
+                    </div>
+                </div>
             )}
 
             {room?.playingNow && shouldShowTimer && room?.videoQueue.length > 0 && (
