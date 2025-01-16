@@ -1,69 +1,59 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, RefObject } from 'react';
+import screenfull from 'screenfull';
 
-export function useFullscreen() {
+type FullscreenElement = HTMLElement | null;
+
+/**
+ * A hook that provides a state and a function to toggle the full screen mode
+ *
+ * @param elementOrRef - Optional HTMLElement or RefObject<HTMLElement> to be used for fullscreen
+ * @returns An object with two properties: `isFullScreen` which is a boolean
+ * indicating whether the app is currently in full screen mode, and
+ * `toggleFullScreen` which is a function that toggles the full screen mode on
+ * and off
+ */
+export function useFullscreen(elementOrRef?: FullscreenElement | RefObject<FullscreenElement>): {
+    readonly isFullScreen: boolean;
+    readonly toggleFullScreen: () => void;
+} {
     const [isFullScreen, setIsFullScreen] = useState(false);
 
-    const toggleFullScreen = useCallback(() => {
-        const elem = document.documentElement;
-        if (!isFullScreen) {
-            if (elem?.requestFullscreen) {
-                elem.requestFullscreen();
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } else if ((elem as any)?.webkitRequestFullscreen) {
-                // Safari
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (elem as any)?.webkitRequestFullscreen();
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } else if ((elem as any)?.msRequestFullscreen) {
-                // IE11
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (elem as any)?.msRequestFullscreen();
-            }
-            setIsFullScreen(true);
-        } else {
-            if (document?.exitFullscreen) {
-                document.exitFullscreen();
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } else if ((document as any)?.webkitExitFullscreen) {
-                // Safari
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (document as any)?.webkitExitFullscreen();
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } else if ((document as any)?.msExitFullscreen) {
-                // IE11
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (document as any)?.msExitFullscreen();
-            }
-            setIsFullScreen(false);
-        }
-    }, [isFullScreen]);
+    const handleFullScreenChange = useCallback(() => {
+        setIsFullScreen(screenfull.isFullscreen);
+    }, []);
 
     useEffect(() => {
-        const fullscreenChangeHandler = () => {
-            setIsFullScreen(
-                !!(
-                    document.fullscreenElement ||
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (document as any)?.webkitFullscreenElement ||
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    (document as any)?.msFullscreenElement
-                ),
-            );
-        };
+        if (!screenfull.isEnabled) {
+            return;
+        }
 
-        document.addEventListener('fullscreenchange', fullscreenChangeHandler);
-        document.addEventListener('webkitfullscreenchange', fullscreenChangeHandler);
-        document.addEventListener('msfullscreenchange', fullscreenChangeHandler);
+        screenfull.on('change', handleFullScreenChange);
 
         return () => {
-            document.removeEventListener('fullscreenchange', fullscreenChangeHandler);
-            document.removeEventListener('webkitfullscreenchange', fullscreenChangeHandler);
-            document.removeEventListener('msfullscreenchange', fullscreenChangeHandler);
+            screenfull.off('change', handleFullScreenChange);
         };
-    }, []);
+    }, [handleFullScreenChange]);
+
+    const getElement = (): FullscreenElement => {
+        if (elementOrRef && 'current' in elementOrRef) {
+            return elementOrRef.current;
+        }
+        return elementOrRef || document.documentElement;
+    };
 
     return {
         isFullScreen,
-        toggleFullScreen,
+        toggleFullScreen: () => {
+            if (!screenfull.isEnabled) return;
+
+            const element = getElement();
+            if (!element) return;
+
+            if (screenfull.isFullscreen) {
+                screenfull.exit();
+            } else {
+                screenfull.request(element);
+            }
+        },
     };
 }

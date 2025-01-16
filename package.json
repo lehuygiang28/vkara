@@ -35,6 +35,7 @@
         "react-dom": "^19.0.0",
         "react-qrcode-logo": "^3.0.0",
         "react-youtube": "^10.1.0",
+        "screenfull": "^6.0.2",
         "tailwind-merge": "^2.6.0",
         "tailwindcss-animate": "^1.0.7",
         "use-debounce": "^10.0.4",
