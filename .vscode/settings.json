@@ -1,5 +1,5 @@
 {
     "biome.enabled": false,
-    "cSpell.words": ["shadcn", "vkara"],
+    "cSpell.words": ["qrcode", "shadcn", "vkara"],
     "typescript.tsdk": "node_modules\\typescript\\lib"
 }
