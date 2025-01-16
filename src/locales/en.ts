@@ -50,6 +50,8 @@ export default {
     'youtubePage.layoutPlayer': 'Player Only',
     'youtubePage.nextUp': 'Next Up',
     'youtubePage.startingIn': 'Starting in',
+    'youtubePage.exitFullscreen': 'Exit Fullscreen',
+    'youtubePage.fullscreen': 'Fullscreen',
 
     'seekToInput.title': 'Seek to specific time',
     'seekToInput.description': 'Enter time in seconds, MM:SS, or HH:MM:SS format',

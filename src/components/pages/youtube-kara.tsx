@@ -3,7 +3,16 @@
 
 import { useEffect, useState } from 'react';
 import YouTube from 'react-youtube';
-import { ChevronRight, Search, Settings, History, SlidersVertical, ListVideo } from 'lucide-react';
+import {
+    ChevronRight,
+    Search,
+    Settings,
+    History,
+    SlidersVertical,
+    ListVideo,
+    Maximize,
+    Minimize,
+} from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCode } from 'react-qrcode-logo';
@@ -25,6 +34,7 @@ import { PlayerControls } from '@/components/PlayerControls';
 import { PlayerControlsTabs } from '@/components/PlayerControlsTabs';
 import { CountdownTimer } from '@/components/countdown-timer';
 import { useCountdownStore } from '@/store/countdownTimersStore';
+import { useFullscreen } from '@/hooks/use-fullscreen';
 
 export default function YoutubePlayerPage() {
     const {
@@ -49,6 +59,7 @@ export default function YoutubePlayerPage() {
     const t = useScopedI18n('youtubePage');
     const [debouncedSearch] = useDebounce(searchQuery, 500);
     const [showSidebar, setShowSidebar] = useState(false);
+    const { isFullScreen, toggleFullScreen } = useFullscreen();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
 
     const { sendMessage, lastMessage } = useWebSocketStore();
@@ -252,7 +263,7 @@ export default function YoutubePlayerPage() {
                     )}
                 >
                     <Button
-                        className="z-10 text-center font-medium focus-within:ring-4 focus-within:outline-none justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 focus-within:bg-gray-900 focus-within:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 focus-within:ring-gray-300 dark:focus-within:ring-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
+                        className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
                         variant="ghost"
                         onClick={() => {
                             setShowSidebar(true);
@@ -265,7 +276,7 @@ export default function YoutubePlayerPage() {
                         </span>
                     </Button>
                     <Button
-                        className="z-10 text-center font-medium focus-within:ring-4 focus-within:outline-none justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 focus-within:bg-gray-900 focus-within:text-white dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 focus-within:ring-gray-300 dark:focus-within:ring-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
+                        className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
                         variant="ghost"
                         onClick={() => {
                             setShowSidebar(true);
@@ -274,6 +285,20 @@ export default function YoutubePlayerPage() {
                     >
                         <Settings className="scale-150" />
                         <span className="text-sm">{t('settings')}</span>
+                    </Button>
+                    <Button
+                        className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
+                        variant="ghost"
+                        onClick={toggleFullScreen}
+                    >
+                        {isFullScreen ? (
+                            <Minimize className="scale-150" />
+                        ) : (
+                            <Maximize className="scale-150" />
+                        )}
+                        <span className="text-sm">
+                            {isFullScreen ? t('exitFullscreen') : t('fullscreen')}
+                        </span>
                     </Button>
                 </div>
             )}

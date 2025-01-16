@@ -1,5 +1,5 @@
 {
     "biome.enabled": false,
-    "cSpell.words": ["qrcode", "shadcn", "vkara"],
+    "cSpell.words": ["msfullscreenchange", "qrcode", "shadcn", "vkara"],
     "typescript.tsdk": "node_modules\\typescript\\lib"
 }
