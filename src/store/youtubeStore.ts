@@ -66,7 +66,12 @@ export const useYouTubeStore = create(
             setSearchResults: (searchResults) => set({ searchResults }),
             setIsLoading: (isLoading) => set({ isLoading }),
             setError: (error) => set({ error }),
-            setLayoutMode: (layoutMode) => set({ layoutMode }),
+            setLayoutMode: (layoutMode) => {
+                if (layoutMode === 'remote') {
+                    return set({ layoutMode: 'remote', player: null });
+                }
+                return set({ layoutMode });
+            },
 
             addVideo: (video) =>
                 set((state) => ({
