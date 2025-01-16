@@ -62,6 +62,13 @@ export default {
     'roomSettings.roomId': 'Room ID',
     'roomSettings.leaveRoom': 'Leave Room',
     'roomSettings.closeRoom': 'Close Room',
+    'roomSettings.cancel': 'Cancel',
+    'roomSettings.confirmLeaveRoomTitle': 'Are you sure you want to leave the room?',
+    'roomSettings.leaveRoomWarning':
+        'You will be disconnected from the room. All videos in queue and history will be cleared.',
+    'roomSettings.confirmCloseRoomTitle': 'Are you sure you want to close the room?',
+    'roomSettings.closeRoomWarning':
+        'All users will be disconnected from the room. All videos in queue and history will be cleared.',
     'roomSettings.roomPassword.label': 'Room Password (optional)',
     'roomSettings.roomPassword.placeholder': 'Enter room password',
     'roomSettings.createRoom': 'Create Room',

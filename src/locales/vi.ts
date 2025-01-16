@@ -63,6 +63,12 @@ export default {
     'roomSettings.roomId': 'ID Phòng',
     'roomSettings.leaveRoom': 'Rời khỏi phòng',
     'roomSettings.closeRoom': 'Đóng phòng',
+    'roomSettings.cancel': 'Hủy',
+    'roomSettings.confirmLeaveRoomTitle': 'Xác nhận rời khỏi phòng?',
+    'roomSettings.leaveRoomWarning': 'Tất cả video trong hàng chờ và lịch sử xem sẽ bị xóa.',
+    'roomSettings.confirmCloseRoomTitle': 'Xác nhận đóng phòng?',
+    'roomSettings.closeRoomWarning':
+        'Tất cả người dùng sẽ bị ngắt kết nối khỏi phòng. Tất cả video trong hàng chờ và lịch sử xem sẽ bị xóa.',
     'roomSettings.roomPassword.label': 'Mật khẩu phòng (tùy chọn)',
     'roomSettings.roomPassword.placeholder': 'Nhập mật khẩu phòng',
     'roomSettings.createRoom': 'Tạo phòng',
