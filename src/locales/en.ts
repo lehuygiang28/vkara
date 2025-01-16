@@ -74,6 +74,9 @@ export default {
     'roomSettings.copyUrl': 'Copy',
     'roomSettings.copyUrlSuccess': 'URL copied to clipboard',
     'roomSettings.qrCode': 'QR Code',
+    'roomSettings.showQRInPlayer': 'Show QR code in player',
+    'roomSettings.show': 'Show',
+    'roomSettings.hide': 'Hide',
 
     'connectionStatus.notConnected': 'Not Connected',
     'connectionStatus.connected': 'Connected',

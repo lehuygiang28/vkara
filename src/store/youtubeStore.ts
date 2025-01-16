@@ -17,6 +17,7 @@ interface YouTubeState {
     isLoading: boolean;
     error: string | null;
     layoutMode: 'both' | 'remote' | 'player';
+    showQRInPlayer: boolean;
 
     setWsId: (wsId: string | null) => void;
     setPlayer: (player: YT.Player) => void;
@@ -30,6 +31,7 @@ interface YouTubeState {
     setIsLoading: (isLoading: boolean) => void;
     setError: (error: string | null) => void;
     setLayoutMode: (mode: 'both' | 'remote' | 'player') => void;
+    setShowQRInPlayer: (show: boolean) => void;
 
     addVideo: (video: YouTubeVideo) => void;
     removeVideo: (videoId: string) => void;
@@ -54,6 +56,7 @@ export const useYouTubeStore = create(
             isLoading: false,
             error: null,
             layoutMode: 'both',
+            showQRInPlayer: true,
 
             setWsId: (wsId) => set({ wsId }),
             setPlayer: (player) => set({ player }),
@@ -72,6 +75,7 @@ export const useYouTubeStore = create(
                 }
                 return set({ layoutMode });
             },
+            setShowQRInPlayer: (show) => set({ showQRInPlayer: show }),
 
             addVideo: (video) =>
                 set((state) => ({

@@ -33,6 +33,7 @@ export default function YoutubePlayerPage() {
         searchQuery,
         currentTab,
         layoutMode,
+        showQRInPlayer,
         setPlayer,
         setCurrentTab,
         setSearchResults,
@@ -209,7 +210,7 @@ export default function YoutubePlayerPage() {
 
             {(layoutMode === 'player' || layoutMode === 'both') && (
                 <>
-                    {room?.id && (
+                    {room?.id && showQRInPlayer && (
                         <div className="absolute top-2 left-2 hidden lg:flex flex-col opacity-30 hover:opacity-80 z-10 cursor-auto">
                             <div className="flex justify-center cursor-none">
                                 <QRCode

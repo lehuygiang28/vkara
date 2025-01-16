@@ -25,7 +25,16 @@ import { generateShareableUrl } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 
 export function RoomSettings() {
-    const { wsId, room, setRoom, layoutMode, setLayoutMode, setCurrentTab } = useYouTubeStore();
+    const {
+        wsId,
+        room,
+        layoutMode,
+        showQRInPlayer,
+        setRoom,
+        setLayoutMode,
+        setCurrentTab,
+        setShowQRInPlayer,
+    } = useYouTubeStore();
     const { sendMessage, connectionStatus } = useWebSocketStore();
     const [roomPassword, setRoomPassword] = useState<string>('');
     const [joinRoomId, setJoinRoomId] = useState<string>('');
@@ -201,6 +210,9 @@ export function RoomSettings() {
                             <CardTitle>{t('youtubePage.layout')}</CardTitle>
                         </CardHeader>
                         <CardContent>
+                            <Label htmlFor="selectLayoutMode">
+                                {t('youtubePage.selectLayoutMode')}
+                            </Label>
                             <Select
                                 value={layoutMode}
                                 onValueChange={(value) => {
@@ -213,7 +225,7 @@ export function RoomSettings() {
                                     }
                                 }}
                             >
-                                <SelectTrigger className="w-full">
+                                <SelectTrigger className="w-full mt-2">
                                     <SelectValue placeholder={t('youtubePage.selectLayoutMode')} />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -228,6 +240,29 @@ export function RoomSettings() {
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
+                            <div className="mt-4">
+                                <Label htmlFor="show-qr-in-player">
+                                    {t_RoomSettings('showQRInPlayer')}
+                                </Label>
+                                <Select
+                                    value={showQRInPlayer ? 'true' : 'false'}
+                                    onValueChange={(value) => setShowQRInPlayer(value === 'true')}
+                                >
+                                    <SelectTrigger className="w-full mt-2">
+                                        <SelectValue
+                                            placeholder={t_RoomSettings('showQRInPlayer')}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="true">
+                                            {t_RoomSettings('show')}
+                                        </SelectItem>
+                                        <SelectItem value="false">
+                                            {t_RoomSettings('hide')}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </CardContent>
                     </Card>
                     <Card>
