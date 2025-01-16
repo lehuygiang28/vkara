@@ -293,9 +293,11 @@ export default function YoutubePlayerPage() {
                 )}
                 {(layoutMode === 'remote' || layoutMode === 'both') && (
                     <div
-                        className={`w-full ${
-                            layoutMode === 'both' ? 'md:w-1/3 lg:w-1/4 md:border-l' : ''
-                        } overflow-hidden`}
+                        className={cn(
+                            'w-full overflow-hidden',
+                            layoutMode === 'both' && 'md:w-1/3 lg:w-1/4 md:border-l',
+                            layoutMode === 'remote' && 'mx-auto max-w-3xl border-l border-r',
+                        )}
                     >
                         {layoutMode === 'remote' && room?.playingNow && (
                             <div className="bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-4 py-2 border-b">
