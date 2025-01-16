@@ -174,7 +174,7 @@ export default function YoutubePlayerPage() {
                 />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-black">
-                    <div className="text-center mx-6 py-4 border border-muted rounded-md shadow-sm">
+                    <div className="text-center mx-4 md:mx-0 md:px-4 py-4 border border-muted rounded-md shadow-sm">
                         <p className="text-muted-foreground text-sm">{t('playerPlaceholder')}</p>
                     </div>
                 </div>
