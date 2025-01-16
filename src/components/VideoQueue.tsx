@@ -135,6 +135,7 @@ export function VideoQueue() {
                 </div>
             )}
             <VideoList
+                keyPrefix={'queue-list'}
                 videos={room?.videoQueue || []}
                 emptyMessage={t('noVideos')}
                 renderButtons={renderButtons}

@@ -105,6 +105,7 @@ export function VideoHistory() {
                 </div>
             )}
             <VideoList
+                keyPrefix={'history-list'}
                 videos={room?.historyQueue || []}
                 emptyMessage={t('noHistory')}
                 renderButtons={renderButtons}

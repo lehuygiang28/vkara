@@ -148,6 +148,7 @@ export function VideoSearch() {
                 </div>
             ) : (
                 <VideoList
+                    keyPrefix={'search-list'}
                     videos={searchResults}
                     emptyMessage={searchQuery ? t('noResults') : ''}
                     renderButtons={renderButtons}

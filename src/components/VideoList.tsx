@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useI18n } from '@/locales/client';
 
 interface VideoListProps {
+    keyPrefix?: string;
     videos: YouTubeVideo[];
     emptyMessage: string;
     renderButtons: (video: YouTubeVideo) => React.ReactNode;
@@ -16,6 +17,7 @@ interface VideoListProps {
 }
 
 export const VideoList = memo(function VideoList({
+    keyPrefix = 'video-list',
     videos,
     emptyMessage,
     renderButtons,
@@ -36,7 +38,7 @@ export const VideoList = memo(function VideoList({
                     ) : (
                         videos.map((video) => (
                             <div
-                                key={video.id}
+                                key={`${keyPrefix}-${video.id}`}
                                 onClick={() => onVideoClick?.(video)}
                                 className={cn(
                                     'flex w-full items-start gap-3 p-4 text-left text-sm transition-all relative rounded-lg',
