@@ -227,7 +227,9 @@ export default function YoutubePlayerPage() {
                                     ecLevel="L"
                                 />
                             </div>
-                            <span className="text-sm text-center">{room.id}</span>
+                            <span className="text-sm text-center">
+                                {room.id?.slice(0, 3) + ' ' + room.id?.slice(3)}
+                            </span>
                         </div>
                     )}
                 </>
