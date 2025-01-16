@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import YouTube, { YouTubeEvent } from 'react-youtube';
+import YouTube from 'react-youtube';
 import { ChevronRight, Search, Settings, History, SlidersVertical, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,28 +23,31 @@ import { VideoSearch } from '@/components/VideoSearch';
 import { VideoHistory } from '@/components/VideoHistory';
 import { PlayerControls } from '@/components/PlayerControls';
 import { PlayerControlsTabs } from '@/components/PlayerControlsTabs';
+import { CountdownTimer } from '@/components/countdown-timer';
+import { useCountdownStore } from '@/store/countdownTimersStore';
 
 export default function YoutubePlayerPage() {
     const {
-        setPlayer,
+        room,
         isKaraoke,
         searchQuery,
         currentTab,
+        layoutMode,
+        setPlayer,
         setCurrentTab,
-        room,
         setSearchResults,
         setIsLoading,
         setError,
         nextVideo,
         setIsPlaying,
         handleServerMessage,
-        layoutMode,
     } = useYouTubeStore();
 
     const t = useScopedI18n('youtubePage');
     const [debouncedSearch] = useDebounce(searchQuery, 500);
     const [showSidebar, setShowSidebar] = useState(false);
     const sidebarRef = useRef<HTMLDivElement>(null);
+    const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
 
     const { sendMessage, lastMessage } = useWebSocketStore();
 
@@ -92,14 +95,19 @@ export default function YoutubePlayerPage() {
         };
     }, [showSidebar]);
 
-    const onPlayerReady = (event: YouTubeEvent) => {
+    const onPlayerReady = (event: YT.PlayerEvent) => {
         setPlayer(event.target);
     };
 
-    const onPlayerStateChange = (event: YouTubeEvent) => {
-        setIsPlaying(event.data === 1);
-        if (event.data === 0) {
-            handleVideoFinished();
+    const onPlayerStateChange = (event: YT.PlayerEvent) => {
+        setIsPlaying(event.target.getPlayerState() === YT.PlayerState.PLAYING);
+
+        if (event.target.getPlayerState() === YT.PlayerState.PLAYING) {
+            cancelCountdown();
+        }
+
+        if (event.target.getPlayerState() === YT.PlayerState.ENDED) {
+            setShouldShowTimer(true);
         }
     };
 
@@ -178,8 +186,33 @@ export default function YoutubePlayerPage() {
                     className="absolute inset-0 z-0"
                 />
             ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-black">
-                    <p className="text-muted-foreground">{t('playerPlaceholder')}</p>
+                <p className="text-muted-foreground">{t('playerPlaceholder')}</p>
+            )}
+
+            {room?.playingNow && shouldShowTimer && room?.videoQueue.length > 0 && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 text-center p-4 z-10">
+                    <h3 className="text-xl font-semibold mb-4">{t('nextUp')}</h3>
+                    <div className="flex flex-col items-center gap-4 max-w-md">
+                        <img
+                            src={room.videoQueue[0].thumbnail.url}
+                            alt={room.videoQueue[0].title}
+                            className="w-48 h-27 object-cover rounded-lg"
+                        />
+                        <div className="space-y-2">
+                            <p className="font-medium line-clamp-2">{room.videoQueue[0].title}</p>
+                            <p className="text-sm text-muted-foreground">
+                                {room.videoQueue[0].channel.name}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                                {t('startingIn')}:{' '}
+                                <CountdownTimer
+                                    classNames={cn('text-sm font-medium', 'text-white')}
+                                    initialSeconds={5}
+                                    onCountdownComplete={handleVideoFinished}
+                                />
+                            </p>
+                        </div>
+                    </div>
                 </div>
             )}
 

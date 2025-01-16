@@ -28,12 +28,13 @@ export default {
     'youtubePage.controls': 'Controls',
     'youtubePage.queue': 'Queue',
     'youtubePage.nowPlaying': 'Now Playing',
-
     'youtubePage.layout': 'Layout',
     'youtubePage.selectLayoutMode': 'Select layout mode',
     'youtubePage.layoutBoth': 'Both Player and Remote',
     'youtubePage.layoutRemote': 'Remote Only',
     'youtubePage.layoutPlayer': 'Player Only',
+    'youtubePage.nextUp': 'Next Up',
+    'youtubePage.startingIn': 'Starting in',
 
     'seekToInput.title': 'Seek to specific time',
     'seekToInput.description': 'Enter time in seconds, MM:SS, or HH:MM:SS format',
