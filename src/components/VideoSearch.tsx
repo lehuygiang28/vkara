@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Search, Loader2, Play, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
@@ -42,29 +42,49 @@ export function VideoSearch() {
     const t = useScopedI18n('videoSearch');
     const t_Global = useI18n();
     const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
-    const [debouncedSearch] = useDebounce(searchQuery, 1000);
+    const [debouncedSearch] = useDebounce(searchQuery, 5000);
 
-    useEffect(() => {
-        const performSearch = async () => {
-            if (debouncedSearch) {
-                setIsLoading(true);
-                setError(null);
-                try {
-                    const results = await searchYouTube(debouncedSearch, isKaraoke);
-                    setSearchResults(results?.items || []);
-                } catch (err) {
-                    setError(t_Global('youtubePage.failedToFetch'));
-                    console.error('Search error:', err);
-                } finally {
-                    setIsLoading(false);
-                }
-            } else {
+    const performSearch = useCallback(
+        async (query: string) => {
+            if (!query) {
                 setSearchResults([]);
+                return;
             }
-        };
 
-        performSearch();
-    }, [debouncedSearch, isKaraoke, setSearchResults, setIsLoading, setError, t_Global]);
+            setIsLoading(true);
+            setError(null);
+            try {
+                const results = await searchYouTube(query, isKaraoke);
+                setSearchResults(results?.items || []);
+            } catch (err) {
+                setError(t_Global('youtubePage.failedToFetch'));
+                console.error('Search error:', err);
+            } finally {
+                setIsLoading(false);
+            }
+        },
+        [isKaraoke, setSearchResults, setIsLoading, setError, t_Global],
+    );
+
+    // Handle debounced search
+    useEffect(() => {
+        performSearch(debouncedSearch);
+    }, [debouncedSearch, isKaraoke, performSearch]);
+
+    // Handle manual search (button click or enter key)
+    const handleManualSearch = () => {
+        if (searchQuery) {
+            performSearch(searchQuery);
+        }
+    };
+
+    // Handle enter key press
+    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleManualSearch();
+        }
+    };
 
     function renderButtons(video: YouTubeVideo) {
         return (
@@ -132,6 +152,7 @@ export function VideoSearch() {
                             placeholder={t('searchPlaceholder')}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
+                            onKeyDown={handleKeyPress}
                             className="pr-10"
                         />
                         <Button
@@ -139,6 +160,7 @@ export function VideoSearch() {
                             variant="ghost"
                             className="absolute right-0 top-0 h-full px-3"
                             disabled={isLoading}
+                            onClick={handleManualSearch}
                         >
                             {isLoading ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
