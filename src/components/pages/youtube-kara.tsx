@@ -13,13 +13,11 @@ import {
     Maximize,
     Minimize,
 } from 'lucide-react';
-import { useDebounce } from 'use-debounce';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCode } from 'react-qrcode-logo';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
-import { searchYouTube } from '@/actions/youtube';
 import { useScopedI18n } from '@/locales/client';
 import { cn, generateShareableUrl } from '@/lib/utils';
 
@@ -39,8 +37,6 @@ import { useFullscreen } from '@/hooks/use-fullscreen';
 export default function YoutubePlayerPage() {
     const {
         room,
-        isKaraoke,
-        searchQuery,
         currentTab,
         layoutMode,
         showQRInPlayer,
@@ -48,16 +44,12 @@ export default function YoutubePlayerPage() {
         opacityOfButtonsInPlayer,
         setPlayer,
         setCurrentTab,
-        setSearchResults,
-        setIsLoading,
-        setError,
         nextVideo,
         setIsPlaying,
         handleServerMessage,
     } = useYouTubeStore();
 
     const t = useScopedI18n('youtubePage');
-    const [debouncedSearch] = useDebounce(searchQuery, 500);
     const [showSidebar, setShowSidebar] = useState(false);
     const { isFullScreen, toggleFullScreen } = useFullscreen();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
@@ -69,28 +61,6 @@ export default function YoutubePlayerPage() {
             handleServerMessage(lastMessage);
         }
     }, [lastMessage, handleServerMessage]);
-
-    useEffect(() => {
-        const performSearch = async () => {
-            if (debouncedSearch) {
-                setIsLoading(true);
-                setError(null);
-                try {
-                    const results = await searchYouTube(debouncedSearch, isKaraoke);
-                    setSearchResults(results?.items || []);
-                } catch (err) {
-                    setError(t('failedToFetch'));
-                    console.error('Search error:', err);
-                } finally {
-                    setIsLoading(false);
-                }
-            } else {
-                setSearchResults([]);
-            }
-        };
-
-        performSearch();
-    }, [debouncedSearch, isKaraoke, setSearchResults, setIsLoading, setError, t]);
 
     const onPlayerReady = (event: YT.PlayerEvent) => {
         setPlayer(event.target);

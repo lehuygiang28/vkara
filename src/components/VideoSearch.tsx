@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Search, Loader2, Play, ListVideo } from 'lucide-react';
+import { useDebounce } from 'use-debounce';
 
 import { cn } from '@/lib/utils';
-import { useScopedI18n } from '@/locales/client';
+import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
+import { searchYouTube } from '@/actions/youtube';
 
 import { VideoList } from '@/components/VideoList';
 import { VideoSkeleton } from '@/components/video-skeleton';
@@ -26,16 +28,43 @@ export function VideoSearch() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
     const {
         isKaraoke,
-        setIsKaraoke,
         searchQuery,
+        setIsKaraoke,
         setSearchQuery,
         isLoading,
         searchResults,
         error,
+        setSearchResults,
+        setIsLoading,
+        setError,
     } = useYouTubeStore();
 
     const t = useScopedI18n('videoSearch');
+    const t_Global = useI18n();
     const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
+    const [debouncedSearch] = useDebounce(searchQuery, 1000);
+
+    useEffect(() => {
+        const performSearch = async () => {
+            if (debouncedSearch) {
+                setIsLoading(true);
+                setError(null);
+                try {
+                    const results = await searchYouTube(debouncedSearch, isKaraoke);
+                    setSearchResults(results?.items || []);
+                } catch (err) {
+                    setError(t_Global('youtubePage.failedToFetch'));
+                    console.error('Search error:', err);
+                } finally {
+                    setIsLoading(false);
+                }
+            } else {
+                setSearchResults([]);
+            }
+        };
+
+        performSearch();
+    }, [debouncedSearch, isKaraoke, setSearchResults, setIsLoading, setError, t_Global]);
 
     function renderButtons(video: YouTubeVideo) {
         return (
