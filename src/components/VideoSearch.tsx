@@ -40,6 +40,7 @@ export function VideoSearch() {
         isLoading,
         searchResults,
         setSearchResults,
+        appendSearchResults,
         setIsLoading,
         setError,
     } = useYouTubeStore();
@@ -67,20 +68,13 @@ export function VideoSearch() {
             }));
 
             setPendingResults((prev) => prev.slice(BATCH_SIZE));
-            setSearchResults(
-                Array.from(
-                    new Set([
-                        ...(searchResults || []),
-                        ...processedBatch.filter((video) => video.canEmbed),
-                    ]),
-                ),
-            );
+            appendSearchResults(processedBatch.filter((video) => video.canEmbed));
         } catch (error) {
             console.error('Error processing batch:', error);
         } finally {
             setIsProcessingBatch(false);
         }
-    }, [isProcessingBatch, pendingResults, searchResults, setSearchResults]);
+    }, [isProcessingBatch, pendingResults, appendSearchResults]);
 
     // Schedule next batch processing
     useEffect(() => {

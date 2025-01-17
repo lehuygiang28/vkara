@@ -30,6 +30,7 @@ interface YouTubeState {
     setRoom: (room: Omit<Room, 'clients'> | null) => void;
     setCurrentVideo: (currentVideo: string | null) => void;
     setSearchResults: (searchResults: YouTubeVideo[]) => void;
+    appendSearchResults: (searchResults: YouTubeVideo[]) => void;
     setIsLoading: (isLoading: boolean) => void;
     setError: (error: string | null) => void;
     setLayoutMode: (mode: 'both' | 'remote' | 'player') => void;
@@ -73,6 +74,12 @@ export const useYouTubeStore = create(
             setRoom: (room) => set({ room }),
             setCurrentVideo: (currentVideo) => set({ currentVideo }),
             setSearchResults: (searchResults) => set({ searchResults }),
+            appendSearchResults: (searchResults) =>
+                set((state) => {
+                    const existingIds = state.searchResults.map((v) => v.id);
+                    const newVideos = searchResults.filter((v) => !existingIds.includes(v.id));
+                    return { searchResults: [...state.searchResults, ...newVideos] };
+                }),
             setIsLoading: (isLoading) => set({ isLoading }),
             setError: (error) => set({ error }),
             setLayoutMode: (layoutMode) => {
