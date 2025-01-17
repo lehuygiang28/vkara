@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { Search, Loader2, Play, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
@@ -9,7 +9,7 @@ import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
-import { searchYouTube } from '@/actions/youtube';
+import { searchYouTube, checkEmbeddableStatus } from '@/actions/youtube';
 
 import { VideoList } from '@/components/VideoList';
 import { VideoSkeleton } from '@/components/video-skeleton';
@@ -24,8 +24,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 
+const BATCH_SIZE = 4;
+
 export function VideoSearch() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
+    const [pendingResults, setPendingResults] = useState<YouTubeVideo[]>([]);
+    const [isProcessingBatch, setIsProcessingBatch] = useState(false);
+    const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
     const {
         isKaraoke,
         searchQuery,
@@ -33,7 +39,6 @@ export function VideoSearch() {
         setSearchQuery,
         isLoading,
         searchResults,
-        error,
         setSearchResults,
         setIsLoading,
         setError,
@@ -44,18 +49,67 @@ export function VideoSearch() {
     const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
     const [debouncedSearch] = useDebounce(searchQuery, 5000);
 
+    // Process next batch of videos
+    const processNextBatch = useCallback(async () => {
+        if (isProcessingBatch || pendingResults.length === 0) return;
+
+        setIsProcessingBatch(true);
+        const batch = pendingResults.slice(0, BATCH_SIZE);
+        const videoIds = batch.map((video) => video.id);
+
+        try {
+            const embedResults = await checkEmbeddableStatus(videoIds);
+            const processedBatch = batch.map((video) => ({
+                ...video,
+                isEmbedChecked: true,
+                canEmbed:
+                    embedResults.find((result) => result.videoId === video.id)?.canEmbed || false,
+            }));
+
+            setPendingResults((prev) => prev.slice(BATCH_SIZE));
+            setSearchResults(
+                Array.from(
+                    new Set([
+                        ...(searchResults || []),
+                        ...processedBatch.filter((video) => video.canEmbed),
+                    ]),
+                ),
+            );
+        } catch (error) {
+            console.error('Error processing batch:', error);
+        } finally {
+            setIsProcessingBatch(false);
+        }
+    }, [isProcessingBatch, pendingResults, searchResults, setSearchResults]);
+
+    // Schedule next batch processing
+    useEffect(() => {
+        if (pendingResults.length > 0 && !isProcessingBatch) {
+            processingTimeoutRef.current = setTimeout(processNextBatch, 100);
+        }
+
+        return () => {
+            if (processingTimeoutRef.current) {
+                clearTimeout(processingTimeoutRef.current);
+            }
+        };
+    }, [pendingResults, isProcessingBatch, processNextBatch]);
+
     const performSearch = useCallback(
         async (query: string) => {
             if (!query) {
+                setPendingResults([]);
                 setSearchResults([]);
                 return;
             }
 
             setIsLoading(true);
             setError(null);
+
             try {
                 const results = await searchYouTube(query, isKaraoke);
-                setSearchResults(results?.items || []);
+                setPendingResults(results);
+                setSearchResults([]);
             } catch (err) {
                 setError(t_Global('youtubePage.failedToFetch'));
                 console.error('Search error:', err);
@@ -69,9 +123,9 @@ export function VideoSearch() {
     // Handle debounced search
     useEffect(() => {
         performSearch(debouncedSearch);
-    }, [debouncedSearch, isKaraoke, performSearch]);
+    }, [debouncedSearch, performSearch]);
 
-    // Handle manual search (button click or enter key)
+    // Handle manual search
     const handleManualSearch = () => {
         if (searchQuery) {
             performSearch(searchQuery);
@@ -187,21 +241,17 @@ export function VideoSearch() {
                     </Select>
                 </div>
             </div>
-            {isLoading && searchResults.length === 0 ? (
+            {isLoading && (searchResults?.length || 0) <= 0 ? (
                 <div className="space-y-4 p-4">
-                    {[...Array(10)].map((_, i) => (
+                    {[...Array(4)].map((_, i) => (
                         <VideoSkeleton key={i} />
                     ))}
-                </div>
-            ) : error ? (
-                <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                    {error}
                 </div>
             ) : (
                 <VideoList
                     keyPrefix={'search-list'}
                     videos={searchResults}
-                    emptyMessage={searchQuery ? t('noResults') : ''}
+                    emptyMessage={searchQuery && !pendingResults.length ? t('noResults') : ''}
                     renderButtons={renderButtons}
                     onVideoClick={(video) =>
                         setSelectedVideo(video.id === selectedVideo ? null : video.id)
