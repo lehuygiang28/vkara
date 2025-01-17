@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { Video } from 'youtube-sr';
+import { YouTubeVideo } from '@/types/youtube.type';
 
 export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
@@ -126,4 +128,55 @@ export function isValidRoomId(roomId?: string | null | undefined): boolean {
  */
 export function resolveUrl(url: string): string {
     return url.replace(/\/$/, '');
+}
+
+/**
+ * Takes a YouTube video object and cleans up its fields to match the YouTubeVideo
+ * type, which is used throughout the application.
+ *
+ * @param {Video} video The YouTube video object.
+ * @returns {YouTubeVideo} The cleaned up YouTube video object.
+ * @example
+ * const video = YouTubeVideo.fromURL('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+ * const cleanVideo = cleanUpVideoField(video);
+ * console.log(cleanVideo);
+ * // {
+ * //   id: 'dQw4w9WgXcQ',
+ * //   duration: 213,
+ * //   duration_formatted: '3:33',
+ * //   title: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
+ * //   type: 'video',
+ * //   uploadedAt: '2009-10-24T07:32:03.000Z',
+ * //   url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+ * //   views: 123456,
+ * //   channel: {
+ * //     name: 'Rick Astley',
+ * //     verified: true,
+ * //   },
+ * //   thumbnail: {
+ * //     url: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
+ * //   },
+ * // }
+ */
+export function cleanUpVideoField(video: Video): YouTubeVideo {
+    const videoJSON = video.toJSON();
+    const channel = video.channel?.toJSON();
+
+    return {
+        id: videoJSON.id,
+        duration: videoJSON.duration,
+        duration_formatted: videoJSON.duration_formatted || '0:00',
+        title: videoJSON.title,
+        type: videoJSON.type,
+        uploadedAt: videoJSON.uploadedAt,
+        url: videoJSON.url,
+        views: videoJSON.views,
+        channel: {
+            name: channel?.name || '',
+            verified: video.channel?.verified || false,
+        },
+        thumbnail: {
+            url: videoJSON.thumbnail.url || '',
+        },
+    };
 }

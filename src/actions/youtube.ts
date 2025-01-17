@@ -2,17 +2,17 @@
 
 import youtube from 'youtube-sr';
 import { SearchResults } from '../types/youtube.type';
-import { resolveUrl } from '@/lib/utils';
+import { cleanUpVideoField, resolveUrl } from '@/lib/utils';
 
 export async function searchYouTube(query: string, isKaraoke: boolean): Promise<SearchResults> {
     const searchQuery = `${isKaraoke ? 'karaoke' : ''} ${query}`;
 
     try {
-        let results = await youtube.search(searchQuery, {
+        const youtubeSearchResults = await youtube.search(searchQuery, {
             limit: 30,
             type: 'video',
         });
-        if (!results) {
+        if (!youtubeSearchResults) {
             return { items: [], pageInfo: { totalResults: 0, resultsPerPage: 0 } };
         }
 
@@ -23,34 +23,22 @@ export async function searchYouTube(query: string, isKaraoke: boolean): Promise<
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ videoIds: results.map((item) => item.id) }),
+                body: JSON.stringify({ videoIds: youtubeSearchResults.map((item) => item.id) }),
             },
         );
 
         const resultEmbed = (await isCanEmbed.json()) as { videoId: string; canEmbed: boolean }[];
-        results = results.filter((item) => {
-            return resultEmbed.find((resItem) => resItem.videoId === item.id)?.canEmbed;
-        });
-
-        const items = results.map((video) => {
-            const videoJSON = video.toJSON();
-            const channelJSON = video.channel?.toJSON();
-
-            return {
-                ...videoJSON,
-                channel: {
-                    ...videoJSON.channel,
-                    ...channelJSON,
-                    verified: channelJSON?.verified || false,
-                },
-            };
-        });
+        const items = youtubeSearchResults
+            .filter((item) => {
+                return resultEmbed.find((resItem) => resItem.videoId === item.id)?.canEmbed;
+            })
+            .map(cleanUpVideoField);
 
         return {
             items,
             pageInfo: {
-                totalResults: results.length,
-                resultsPerPage: results.length,
+                totalResults: youtubeSearchResults.length,
+                resultsPerPage: youtubeSearchResults.length,
             },
         };
     } catch (error) {
