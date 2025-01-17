@@ -61,13 +61,23 @@ export function VideoSearch() {
         const videoIds = batch.map((video) => video.id);
 
         try {
-            const embedResults = await checkEmbeddableStatus(videoIds);
-            const processedBatch = batch.map((video) => ({
-                ...video,
-                isEmbedChecked: true,
-                canEmbed:
-                    embedResults.find((result) => result.videoId === video.id)?.canEmbed || false,
-            }));
+            let processedBatch;
+            if (process.env.NEXT_PUBLIC_SKIP_EMBEDDABLE_CHECK === 'true') {
+                processedBatch = batch.map((video) => ({
+                    ...video,
+                    isEmbedChecked: true,
+                    canEmbed: true,
+                }));
+            } else {
+                const embedResults = await checkEmbeddableStatus(videoIds);
+                processedBatch = batch.map((video) => ({
+                    ...video,
+                    isEmbedChecked: true,
+                    canEmbed:
+                        embedResults.find((result) => result.videoId === video.id)?.canEmbed ||
+                        false,
+                }));
+            }
 
             setPendingResults((prev) => prev.slice(BATCH_SIZE));
             appendSearchResults(processedBatch.filter((video) => video.canEmbed));
