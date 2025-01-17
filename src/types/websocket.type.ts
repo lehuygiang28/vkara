@@ -50,9 +50,9 @@ export type ClientMessage = MessageBase & RawClientMessage;
 export type ServerMessage =
     | { type: 'pong' }
     | { type: 'ack'; messageId: string }
-    | { type: 'roomJoined'; yourId: string; room: Room }
+    | { type: 'roomJoined'; yourId: string; room: Omit<Room, 'clients'> }
     | { type: 'roomCreated'; roomId: string }
-    | { type: 'roomUpdate'; room: Room }
+    | { type: 'roomUpdate'; room: Omit<Room, 'clients'> }
     | { type: 'roomNotFound' }
     | { type: 'leftRoom' }
     | { type: 'message'; sender: string; content: string }
