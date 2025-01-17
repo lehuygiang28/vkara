@@ -3,9 +3,9 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { Search, Loader2, Play, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
+
 import { AutoComplete } from '@/components/autocomplete';
 import { getYoutubeSuggestions } from '@/actions/youtube';
-
 import { cn } from '@/lib/utils';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -126,6 +126,12 @@ export function VideoSearch() {
         [isKaraoke, setSearchResults, setIsLoading, setError, t_Global],
     );
 
+    const handleManualSearch = useCallback(() => {
+        if (searchQuery) {
+            performSearch(searchQuery);
+        }
+    }, [searchQuery, performSearch]);
+
     useEffect(() => {
         const fetchSuggestions = async () => {
             if (debouncedSearchQuery) {
@@ -146,15 +152,12 @@ export function VideoSearch() {
         fetchSuggestions();
     }, [debouncedSearchQuery]);
 
-    const handleManualSearch = useCallback(() => {
-        if (searchQuery) {
-            performSearch(searchQuery);
-        }
-    }, [searchQuery, performSearch]);
-
     useEffect(() => {
-        performSearch(searchQuery);
-    }, [isKaraoke, performSearch, searchQuery]);
+        // Trigger search is karaoke mode is toggled
+        // isKaraoke set by state, so just use it as dependency
+        performSearch(debouncedSearchQuery);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isKaraoke, performSearch]);
 
     function renderButtons(video: YouTubeVideo) {
         return (
@@ -233,7 +236,7 @@ export function VideoSearch() {
                             placeholder={t('searchPlaceholder')}
                             classNames="flex-grow"
                             showCheck={false}
-                            onSearch={performSearch}
+                            onSearch={handleManualSearch}
                         />
                         <Button
                             size="sm"
