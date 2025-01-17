@@ -51,3 +51,12 @@ export async function checkEmbeddableStatus(
         return videoIds.map((id) => ({ videoId: id, canEmbed: false }));
     }
 }
+
+export async function getYoutubeSuggestions(query: string): Promise<string[]> {
+    try {
+        const getSuggestions = await youtube.getSuggestions(query);
+        return getSuggestions;
+    } catch {
+        return [];
+    }
+}

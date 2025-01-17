@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { Search, Loader2, Play, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
+import { AutoComplete } from '@/components/autocomplete';
+import { getYoutubeSuggestions } from '@/actions/youtube';
 
 import { cn } from '@/lib/utils';
 import { useI18n, useScopedI18n } from '@/locales/client';
@@ -13,7 +15,6 @@ import { searchYouTube, checkEmbeddableStatus } from '@/actions/youtube';
 
 import { VideoList } from '@/components/VideoList';
 import { VideoSkeleton } from '@/components/video-skeleton';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -31,6 +32,10 @@ export function VideoSearch() {
     const [pendingResults, setPendingResults] = useState<YouTubeVideo[]>([]);
     const [isProcessingBatch, setIsProcessingBatch] = useState(false);
     const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
+    const t = useScopedI18n('videoSearch');
+    const t_Global = useI18n();
 
     const {
         isKaraoke,
@@ -44,11 +49,8 @@ export function VideoSearch() {
         setIsLoading,
         setError,
     } = useYouTubeStore();
-
-    const t = useScopedI18n('videoSearch');
-    const t_Global = useI18n();
+    const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
     const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
-    const [debouncedSearch] = useDebounce(searchQuery, 5000);
 
     // Process next batch of videos
     const processNextBatch = useCallback(async () => {
@@ -114,25 +116,35 @@ export function VideoSearch() {
         [isKaraoke, setSearchResults, setIsLoading, setError, t_Global],
     );
 
-    // Handle debounced search
     useEffect(() => {
-        performSearch(debouncedSearch);
-    }, [debouncedSearch, performSearch]);
+        const fetchSuggestions = async () => {
+            if (debouncedSearchQuery) {
+                setIsLoadingSuggestions(true);
+                try {
+                    const fetchedSuggestions = await getYoutubeSuggestions(debouncedSearchQuery);
+                    setSuggestions(fetchedSuggestions);
+                } catch (error) {
+                    console.error('Error fetching suggestions:', error);
+                } finally {
+                    setIsLoadingSuggestions(false);
+                }
+            } else {
+                setSuggestions([]);
+            }
+        };
 
-    // Handle manual search
-    const handleManualSearch = () => {
+        fetchSuggestions();
+    }, [debouncedSearchQuery]);
+
+    const handleManualSearch = useCallback(() => {
         if (searchQuery) {
             performSearch(searchQuery);
         }
-    };
+    }, [searchQuery, performSearch]);
 
-    // Handle enter key press
-    const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleManualSearch();
-        }
-    };
+    useEffect(() => {
+        performSearch(searchQuery);
+    }, [isKaraoke, performSearch, searchQuery]);
 
     function renderButtons(video: YouTubeVideo) {
         return (
@@ -195,13 +207,23 @@ export function VideoSearch() {
             <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 pb-3 pt-1 border-b">
                 <div className="flex flex-row items-center gap-2">
                     <div className="relative flex-grow">
-                        <Input
-                            type="search"
+                        <AutoComplete
+                            selectedValue={searchQuery}
+                            onSelectedValueChange={(value) => {
+                                setSearchQuery(value);
+                                handleManualSearch();
+                            }}
+                            searchValue={searchQuery}
+                            onSearchValueChange={setSearchQuery}
+                            items={suggestions.map((suggestion) => ({
+                                value: suggestion,
+                                label: suggestion,
+                            }))}
+                            isLoading={isLoadingSuggestions}
                             placeholder={t('searchPlaceholder')}
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            onKeyDown={handleKeyPress}
-                            className="pr-10"
+                            classNames="flex-grow"
+                            showCheck={false}
+                            onSearch={performSearch}
                         />
                         <Button
                             size="sm"
@@ -219,7 +241,9 @@ export function VideoSearch() {
                     </div>
                     <Select
                         value={isKaraoke ? 'karaoke' : 'all'}
-                        onValueChange={(value) => setIsKaraoke(value === 'karaoke')}
+                        onValueChange={(value) => {
+                            setIsKaraoke(value === 'karaoke');
+                        }}
                     >
                         <SelectTrigger className="w-[6rem]">
                             <SelectValue placeholder="Select mode" />
