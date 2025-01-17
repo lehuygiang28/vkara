@@ -49,7 +49,7 @@ export function VideoSearch() {
         setIsLoading,
         setError,
     } = useYouTubeStore();
-    const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+    const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
     const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
 
     // Process next batch of videos
