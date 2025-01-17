@@ -1,6 +1,9 @@
 /* eslint-disable @next/next/no-img-element */
+'use client';
+
 import React, { memo } from 'react';
 import { BadgeCheck } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 import { cn, formatViewCount } from '@/lib/utils';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -18,7 +21,7 @@ interface VideoListProps {
 
 export const VideoList = memo(function VideoList({
     keyPrefix = 'video-list',
-    videos,
+    videos = [],
     emptyMessage,
     renderButtons,
     onVideoClick,
@@ -28,56 +31,87 @@ export const VideoList = memo(function VideoList({
 
     return (
         <div className="flex-1 overflow-hidden">
-            {/* Scrollable Container */}
             <ScrollArea className="h-full" hideScrollbar>
                 <div className="space-y-3 pb-[20rem]">
-                    {videos.length === 0 ? (
-                        <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
-                            {emptyMessage}
-                        </div>
-                    ) : (
-                        videos.map((video) => (
-                            <div
-                                key={`${keyPrefix}-${video.id}`}
-                                onClick={() => onVideoClick?.(video)}
-                                className={cn(
-                                    'flex w-full items-start gap-3 p-4 text-left text-sm transition-all relative rounded-lg',
-                                    'hover:bg-accent/50 cursor-pointer',
-                                    'sm:items-center',
-                                    selectedVideoId === video.id && 'bg-accent',
-                                )}
+                    <AnimatePresence mode="popLayout" initial={false}>
+                        {videos.length === 0 ? (
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="flex items-center justify-center py-8 text-sm text-muted-foreground"
                             >
-                                <div className="relative aspect-video w-24 sm:w-32 flex-shrink-0 overflow-hidden rounded-md">
-                                    <img
-                                        src={video.thumbnail?.url}
-                                        alt={video.title}
-                                        className="absolute inset-0 h-full w-full object-cover"
-                                    />
-                                    {video.duration_formatted && (
-                                        <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded">
-                                            {video.duration_formatted}
-                                        </div>
+                                {emptyMessage}
+                            </motion.div>
+                        ) : (
+                            videos.map((video) => (
+                                <motion.div
+                                    key={`${keyPrefix}-${video.id}`}
+                                    layout
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: -20 }}
+                                    transition={{
+                                        duration: 0.3,
+                                        ease: 'easeOut',
+                                        layout: { duration: 0.2 },
+                                    }}
+                                    onClick={() => onVideoClick?.(video)}
+                                    className={cn(
+                                        'flex w-full items-start gap-3 p-4 text-left text-sm relative rounded-lg',
+                                        'hover:bg-accent/50 cursor-pointer',
+                                        'sm:items-center',
+                                        selectedVideoId === video.id && 'bg-accent',
                                     )}
-                                </div>
-                                <div className="flex flex-col flex-grow min-w-0">
-                                    <div className="text-md font-medium leading-snug line-clamp-2">
-                                        {video.title}
-                                    </div>
-                                    <div className="text-sm text-muted-foreground inline-flex items-center align-middle line-clamp-1">
-                                        {video.channel?.name}
-                                        {video.channel?.verified && (
-                                            <BadgeCheck className="ml-1 h-4 w-4" />
+                                >
+                                    <motion.div
+                                        layout
+                                        className="relative aspect-video w-24 sm:w-32 flex-shrink-0 overflow-hidden rounded-md"
+                                    >
+                                        <img
+                                            src={video.thumbnail?.url}
+                                            alt={video.title}
+                                            className="absolute inset-0 h-full w-full object-cover"
+                                        />
+                                        {video.duration_formatted && (
+                                            <div className="absolute bottom-1 right-1 bg-black/80 text-white text-xs px-1 rounded">
+                                                {video.duration_formatted}
+                                            </div>
                                         )}
-                                    </div>
-                                    <div className="text-xs text-muted-foreground line-clamp-2">
-                                        {formatViewCount(video.views)} {t('videoSearch.views')}
-                                        {video.uploadedAt && <> • {video.uploadedAt}</>}
-                                    </div>
-                                    {renderButtons(video)}
-                                </div>
-                            </div>
-                        ))
-                    )}
+                                    </motion.div>
+                                    <motion.div layout className="flex flex-col flex-grow min-w-0">
+                                        <div className="text-md font-medium leading-snug line-clamp-2">
+                                            {video.title}
+                                        </div>
+                                        <div className="text-sm text-muted-foreground inline-flex items-center align-middle line-clamp-1">
+                                            {video.channel?.name}
+                                            {video.channel?.verified && (
+                                                <BadgeCheck className="ml-1 h-4 w-4" />
+                                            )}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground line-clamp-2">
+                                            {formatViewCount(video.views)} {t('videoSearch.views')}
+                                            {video.uploadedAt && <> • {video.uploadedAt}</>}
+                                        </div>
+                                        <motion.div
+                                            initial={false}
+                                            animate={{
+                                                height: selectedVideoId === video.id ? 'auto' : 0,
+                                                opacity: selectedVideoId === video.id ? 1 : 0,
+                                                marginTop: selectedVideoId === video.id ? 8 : 0,
+                                            }}
+                                            transition={{
+                                                duration: 0.2,
+                                                ease: 'easeInOut',
+                                            }}
+                                        >
+                                            {renderButtons(video)}
+                                        </motion.div>
+                                    </motion.div>
+                                </motion.div>
+                            ))
+                        )}
+                    </AnimatePresence>
                 </div>
             </ScrollArea>
         </div>
