@@ -11,7 +11,7 @@ interface YouTubeState {
     searchQuery: string;
     volume: number;
     currentTab: string;
-    room: Room | null;
+    room: Omit<Room, 'clients'> | null;
     currentVideo: string | null;
     searchResults: YouTubeVideo[];
     isLoading: boolean;
@@ -27,7 +27,7 @@ interface YouTubeState {
     setSearchQuery: (searchQuery: string) => void;
     setVolume: (volume: number) => void;
     setCurrentTab: (currentTab: string) => void;
-    setRoom: (room: Room | null) => void;
+    setRoom: (room: Omit<Room, 'clients'> | null) => void;
     setCurrentVideo: (currentVideo: string | null) => void;
     setSearchResults: (searchResults: YouTubeVideo[]) => void;
     setIsLoading: (isLoading: boolean) => void;
