@@ -24,16 +24,7 @@ export type PlayerAction = {
 export const usePlayerAction = (): PlayerAction => {
     const t = useI18n();
     const { sendMessage } = useWebSocketStore();
-    const {
-        room,
-        playNow: playVideoNow,
-        addVideo: addVideoToQueue,
-        nextVideo: playNextVideo,
-        removeVideo: removeVideoFromQueue,
-        setVolume: setVideoVolume,
-        player,
-        setRoom,
-    } = useYouTubeStore();
+    const { room } = useYouTubeStore();
 
     const createRoomIfNeeded = useCallback(async () => {
         if (!room?.id) {
@@ -52,176 +43,131 @@ export const usePlayerAction = (): PlayerAction => {
     const handlePlayVideoNow = useCallback(
         async (video: YouTubeVideo) => {
             await createRoomIfNeeded();
-            if (room?.id) {
-                sendMessage({ type: 'playNow', video });
-            } else {
-                playVideoNow(video);
-            }
+            sendMessage({ type: 'playNow', video });
             toast({
                 title: t('toast.playNowHandler'),
                 description: video.title,
             });
         },
-        [room?.id, sendMessage, playVideoNow, t, createRoomIfNeeded],
+        [sendMessage, t, createRoomIfNeeded],
     );
 
     const handleAddVideoToQueue = useCallback(
         async (video: YouTubeVideo) => {
             await createRoomIfNeeded();
-            if (room?.id) {
-                sendMessage({ type: 'addVideo', video });
-            } else {
-                addVideoToQueue(video);
-            }
+            sendMessage({ type: 'addVideo', video });
             toast({
                 title: t('toast.addVideoHandler'),
                 description: video.title,
             });
         },
-        [addVideoToQueue, createRoomIfNeeded, room?.id, sendMessage, t],
+        [createRoomIfNeeded, sendMessage, t],
     );
 
     const handlePlayNextVideo = useCallback(async () => {
         await createRoomIfNeeded();
-        if (room?.id) {
-            sendMessage({ type: 'nextVideo' });
-        } else {
-            playNextVideo();
-        }
+        sendMessage({ type: 'nextVideo' });
         toast({
             title: t('toast.nextVideoHandler'),
         });
-    }, [createRoomIfNeeded, playNextVideo, room?.id, sendMessage, t]);
+    }, [createRoomIfNeeded, sendMessage, t]);
 
     const handleRemoveVideoFromQueue = useCallback(
-        (video: YouTubeVideo) => {
-            if (room?.id) {
-                sendMessage({ type: 'removeVideoFromQueue', videoId: video.id });
-            } else {
-                removeVideoFromQueue(video.id);
-            }
+        async (video: YouTubeVideo) => {
+            await createRoomIfNeeded();
+
+            sendMessage({ type: 'removeVideoFromQueue', videoId: video.id });
+
             toast({
                 title: t('toast.removeVideoHandler'),
                 description: video.title,
             });
         },
-        [removeVideoFromQueue, room?.id, sendMessage, t],
+        [createRoomIfNeeded, sendMessage, t],
     );
 
     const handleSetVideoVolume = useCallback(
         async (volume: number) => {
             await createRoomIfNeeded();
-            if (room?.id) {
-                sendMessage({ type: 'setVolume', volume });
-            } else {
-                setVideoVolume(volume);
-            }
+            sendMessage({ type: 'setVolume', volume });
             toast({
                 title: t('toast.setVolumeHandler'),
             });
         },
-        [createRoomIfNeeded, room?.id, sendMessage, setVideoVolume, t],
+        [createRoomIfNeeded, sendMessage, t],
     );
 
-    const handlePlayerPlay = useCallback(() => {
-        if (room?.id) {
-            sendMessage({ type: 'play' });
-        } else if (player) {
-            player.playVideo();
-        }
+    const handlePlayerPlay = useCallback(async () => {
+        await createRoomIfNeeded();
+        sendMessage({ type: 'play' });
         toast({
             title: t('youtubePage.play'),
         });
-    }, [player, room?.id, sendMessage, t]);
+    }, [createRoomIfNeeded, sendMessage, t]);
 
-    const handlePlayerPause = useCallback(() => {
-        if (room?.id) {
-            sendMessage({ type: 'pause' });
-        } else if (player) {
-            player.pauseVideo();
-        }
+    const handlePlayerPause = useCallback(async () => {
+        await createRoomIfNeeded();
+        sendMessage({ type: 'pause' });
         toast({
             title: t('youtubePage.pause'),
         });
-    }, [player, room?.id, sendMessage, t]);
+    }, [createRoomIfNeeded, sendMessage, t]);
 
-    const handleReplayVideo = useCallback(() => {
-        if (room?.id) {
-            sendMessage({ type: 'replay' });
-        } else if (player) {
-            player.seekTo(0, true);
-        }
+    const handleReplayVideo = useCallback(async () => {
+        await createRoomIfNeeded();
+        sendMessage({ type: 'replay' });
         toast({
             title: t('youtubePage.replay'),
         });
-    }, [player, room?.id, sendMessage, t]);
+    }, [createRoomIfNeeded, sendMessage, t]);
 
     const handleSeekToSeconds = useCallback(
-        (seconds: number) => {
-            if (room?.id) {
-                sendMessage({ type: 'seek', time: seconds });
-            } else if (player) {
-                player.seekTo(seconds, true);
-            }
+        async (seconds: number) => {
+            await createRoomIfNeeded();
+            sendMessage({ type: 'seek', time: seconds });
             toast({
                 title: `${t('youtubePage.seekTo')} ${seconds}s`,
             });
         },
-        [player, room?.id, sendMessage, t],
+        [createRoomIfNeeded, sendMessage, t],
     );
 
     const handleMoveVideoToTop = useCallback(
-        (video: YouTubeVideo) => {
-            if (room?.id) {
-                sendMessage({ type: 'moveToTop', videoId: video.id });
-            } else {
-                const newQueue = room?.videoQueue.filter((v) => v.id !== video.id);
-                if (room) {
-                    setRoom({ ...room, videoQueue: [video, ...(newQueue || [])] });
-                }
-            }
-
+        async (video: YouTubeVideo) => {
+            await createRoomIfNeeded();
+            sendMessage({ type: 'moveToTop', videoId: video.id });
             toast({
                 title: t('toast.moveVideoToTopHandler'),
                 description: video.title,
             });
         },
-        [room, sendMessage, setRoom, t],
+        [createRoomIfNeeded, sendMessage, t],
     );
 
-    const handleShuffleQueue = useCallback(() => {
-        if (room?.id) {
-            sendMessage({ type: 'shuffleQueue' });
-        } else if (room) {
-            setRoom({ ...room, videoQueue: room.videoQueue.sort(() => Math.random() - 0.5) });
-        }
-
+    const handleShuffleQueue = useCallback(async () => {
+        await createRoomIfNeeded();
+        sendMessage({ type: 'shuffleQueue' });
         toast({
             title: t('toast.shuffleQueueHandler'),
         });
-    }, [room, sendMessage, setRoom, t]);
+    }, [createRoomIfNeeded, sendMessage, t]);
 
-    const handleClearQueue = useCallback(() => {
-        if (room?.id) {
-            sendMessage({ type: 'clearQueue' });
-        } else if (room) {
-            setRoom({ ...room, videoQueue: [] });
-        }
+    const handleClearQueue = useCallback(async () => {
+        await createRoomIfNeeded();
+        sendMessage({ type: 'clearQueue' });
         toast({
             title: t('toast.clearQueueHandler'),
         });
-    }, [room, sendMessage, setRoom, t]);
+    }, [createRoomIfNeeded, sendMessage, t]);
 
-    const handleClearHistory = useCallback(() => {
-        if (room?.id) {
-            sendMessage({ type: 'clearHistory' });
-        } else if (room) {
-            setRoom({ ...room, historyQueue: [] });
-        }
+    const handleClearHistory = useCallback(async () => {
+        await createRoomIfNeeded();
+        sendMessage({ type: 'clearHistory' });
+
         toast({
             title: t('toast.clearHistoryHandler'),
         });
-    }, [room, sendMessage, setRoom, t]);
+    }, [createRoomIfNeeded, sendMessage, t]);
 
     return {
         handlePlayerPlay,
