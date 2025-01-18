@@ -190,7 +190,7 @@ export function VideoSearch() {
             <div
                 className={cn(
                     'overflow-hidden transition-all duration-300 ease-in-out',
-                    selectedVideo === video.id ? 'max-h-20 opacity-100' : 'max-h-0 opacity-0',
+                    selectedVideo === video.id ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0',
                 )}
             >
                 <div className="flex items-center gap-2 flex-wrap">
