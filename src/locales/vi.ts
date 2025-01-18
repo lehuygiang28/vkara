@@ -4,6 +4,9 @@
  */
 
 export default {
+    confirm: 'Xác nhận',
+    cancel: 'Hủy',
+
     'appearance.title': 'Giao diện',
     'appearance.theme': 'Chủ đề',
     'appearance.toggleTheme': 'Chuyển đổi chủ đề',
@@ -97,6 +100,7 @@ export default {
     'videoHistory.playNow': 'Phát ngay',
     'videoHistory.addToQueue': 'Thêm vào hàng chờ',
     'videoHistory.clearHistory': 'Xóa lịch sử',
+    'videoHistory.clearHistoryConfirm': 'Xác nhận xóa lịch sử?',
 
     'videoQueue.noVideos': 'Không có video nào trong danh sách',
     'videoQueue.remove': 'Xóa',
@@ -104,6 +108,7 @@ export default {
     'videoQueue.moveToTop': 'Ưu tiên',
     'videoQueue.shuffle': 'Ngẫu nhiên',
     'videoQueue.clearQueue': 'Xóa tất cả',
+    'videoQueue.clearQueueConfirm': 'Xác nhận xóa tất cả?',
 
     'videoSearch.searchPlaceholder': 'Tìm kiếm video trên YouTube...',
     'videoSearch.karaokeMode': 'Karaoke',

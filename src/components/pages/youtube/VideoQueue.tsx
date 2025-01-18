@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Trash2, MoveUp, Shuffle, X } from 'lucide-react';
+import { Trash2, MoveUp, Shuffle } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
@@ -9,8 +9,7 @@ import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
 
 export function VideoQueue() {
@@ -33,49 +32,20 @@ export function VideoQueue() {
                 )}
             >
                 <div className="flex items-center gap-2 flex-wrap">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleMoveVideoToTop(video);
-                                    }}
-                                >
-                                    <MoveUp className="h-3.5 w-3.5 mr-1" />
-                                    <span>{t('moveToTop')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{t('moveToTop')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <TooltipButton
+                        tooltipContent={t('moveToTop')}
+                        buttonText={t('moveToTop')}
+                        icon={<MoveUp className="h-3.5 w-3.5 mr-1" />}
+                        onConfirm={() => handleMoveVideoToTop(video)}
+                    />
 
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleRemoveVideoFromQueue(video);
-                                    }}
-                                >
-                                    <Trash2 className="h-3.5 w-3.5 mr-1" />
-                                    <span>{t('remove')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{t('remove')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <TooltipButton
+                        tooltipContent={t('remove')}
+                        buttonText={t('remove')}
+                        icon={<Trash2 className="h-3.5 w-3.5 mr-1" />}
+                        onConfirm={() => handleRemoveVideoFromQueue(video)}
+                        variant={'destructive'}
+                    />
                 </div>
             </div>
         );
@@ -87,50 +57,23 @@ export function VideoQueue() {
                 <div className="flex items-center justify-center p-2 bg-background shadow-sm">
                     <div className="flex items-center space-x-2">
                         {(room?.videoQueue?.length || 0) > 2 && (
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="h-8 px-2 transition-all hover:scale-105"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleShuffleQueue();
-                                            }}
-                                        >
-                                            <Shuffle className="h-4 w-4 mr-2" />
-                                            <span>{t('shuffle')}</span>
-                                        </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{t('shuffle')}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
+                            <TooltipButton
+                                tooltipContent={t('shuffle')}
+                                buttonText={t('shuffle')}
+                                icon={<Shuffle className="h-4 w-4 mr-2" />}
+                                onConfirm={handleShuffleQueue}
+                            />
                         )}
 
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        className="h-8 px-2 transition-all hover:scale-105"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleClearQueue();
-                                        }}
-                                    >
-                                        <X className="h-4 w-4 mr-2" />
-                                        <span>{t('clearQueue')}</span>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{t('clearQueue')}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                        <TooltipButton
+                            tooltipContent={t('clearQueue')}
+                            buttonText={t('clearQueue')}
+                            icon={<Trash2 className="h-4 w-4 mr-2" />}
+                            onConfirm={handleClearQueue}
+                            confirmMode
+                            confirmContent={t('clearQueueConfirm')}
+                            variant={'destructive'}
+                        />
                     </div>
                 </div>
             )}

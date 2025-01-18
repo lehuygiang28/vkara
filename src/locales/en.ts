@@ -4,6 +4,9 @@
  */
 
 export default {
+    confirm: 'Confirm',
+    cancel: 'Cancel',
+
     'appearance.title': 'Appearance',
     'appearance.theme': 'Theme',
     'appearance.toggleTheme': 'Toggle theme',
@@ -71,7 +74,7 @@ export default {
         'You will be disconnected from the room. All videos in queue and history will be cleared.',
     'roomSettings.confirmCloseRoomTitle': 'Are you sure you want to close the room?',
     'roomSettings.closeRoomWarning':
-        'All users will be disconnected from the room. All videos in queue and history will be cleared.',
+        'All users in the room will be disconnected. All videos in queue and history will be cleared.',
     'roomSettings.roomPassword.label': 'Room Password (optional)',
     'roomSettings.roomPassword.placeholder': 'Enter room password',
     'roomSettings.createRoom': 'Create Room',
@@ -97,6 +100,7 @@ export default {
     'videoHistory.playNow': 'Play Now',
     'videoHistory.addToQueue': 'Add to Queue',
     'videoHistory.clearHistory': 'Clear All History',
+    'videoHistory.clearHistoryConfirm': 'Are you sure you want to clear the history?',
 
     'videoQueue.noVideos': 'No videos in queue',
     'videoQueue.remove': 'Remove',
@@ -104,6 +108,7 @@ export default {
     'videoQueue.moveToTop': 'Move to Top',
     'videoQueue.shuffle': 'Shuffle',
     'videoQueue.clearQueue': 'Clear All Queue',
+    'videoQueue.clearQueueConfirm': 'Are you sure you want to clear the queue?',
 
     'videoSearch.searchPlaceholder': 'Search YouTube videos...',
     'videoSearch.karaokeMode': 'Karaoke',

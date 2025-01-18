@@ -25,7 +25,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { generateShareableUrl } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { TooltipButton } from '@/components/tooltip-button';
 
 export function RoomSettings() {
     const {
@@ -197,46 +197,37 @@ export function RoomSettings() {
                                             </Button>
                                         </div>
                                     </div>
-                                    <Popover>
-                                        <PopoverTrigger asChild>
-                                            <Button className="w-full">
-                                                {t_RoomSettings('leaveRoom')}
-                                            </Button>
-                                        </PopoverTrigger>
-                                        <PopoverContent className="w-80">
-                                            <div className="grid gap-4">
-                                                <div className="space-y-2">
+
+                                    <div className="flex space-x-3">
+                                        <TooltipButton
+                                            title={t_RoomSettings('leaveRoom')}
+                                            buttonText={t_RoomSettings('leaveRoom')}
+                                            tooltipContent={t_RoomSettings('leaveRoom')}
+                                            onConfirm={leaveRoom}
+                                            className="w-full"
+                                            confirmMode
+                                            confirmContent={
+                                                <>
                                                     <h4 className="font-medium leading-none">
                                                         {t_RoomSettings('confirmLeaveRoomTitle')}
                                                     </h4>
                                                     <p className="text-sm text-muted-foreground">
                                                         {t_RoomSettings('leaveRoomWarning')}
                                                     </p>
-                                                </div>
-                                                <div className="flex justify-end space-x-2">
-                                                    <Button variant="outline" onClick={() => {}}>
-                                                        {t_RoomSettings('cancel')}
-                                                    </Button>
-                                                    <Button
-                                                        variant="destructive"
-                                                        onClick={leaveRoom}
-                                                    >
-                                                        {t_RoomSettings('leaveRoom')}
-                                                    </Button>
-                                                </div>
-                                            </div>
-                                        </PopoverContent>
-                                    </Popover>
-                                    {room.creatorId === wsId && (
-                                        <Popover>
-                                            <PopoverTrigger asChild>
-                                                <Button variant="destructive" className="w-full">
-                                                    {t_RoomSettings('closeRoom')}
-                                                </Button>
-                                            </PopoverTrigger>
-                                            <PopoverContent className="w-80">
-                                                <div className="grid gap-4">
-                                                    <div className="space-y-2">
+                                                </>
+                                            }
+                                        />
+
+                                        {room.creatorId === wsId && (
+                                            <TooltipButton
+                                                buttonText={t_RoomSettings('closeRoom')}
+                                                tooltipContent={t_RoomSettings('closeRoom')}
+                                                onConfirm={closeRoom}
+                                                variant={'destructive'}
+                                                className="w-full"
+                                                confirmMode
+                                                confirmContent={
+                                                    <>
                                                         <h4 className="font-medium leading-none">
                                                             {t_RoomSettings(
                                                                 'confirmCloseRoomTitle',
@@ -245,25 +236,11 @@ export function RoomSettings() {
                                                         <p className="text-sm text-muted-foreground">
                                                             {t_RoomSettings('closeRoomWarning')}
                                                         </p>
-                                                    </div>
-                                                    <div className="flex justify-end space-x-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            onClick={() => {}}
-                                                        >
-                                                            {t_RoomSettings('cancel')}
-                                                        </Button>
-                                                        <Button
-                                                            variant="destructive"
-                                                            onClick={closeRoom}
-                                                        >
-                                                            {t_RoomSettings('closeRoom')}
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
+                                                    </>
+                                                }
+                                            />
+                                        )}
+                                    </div>
                                 </div>
                             ) : (
                                 <div className="space-y-4">

@@ -18,7 +18,6 @@ import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { VideoSkeleton } from '@/components/video-skeleton';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
     Select,
     SelectContent,
@@ -26,6 +25,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
 
 const BATCH_SIZE = 6;
@@ -194,70 +194,26 @@ export function VideoSearch() {
                 )}
             >
                 <div className="flex items-center gap-2 flex-wrap">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlePlayVideoNow(video);
-                                    }}
-                                >
-                                    <Play className="h-3.5 w-3.5 mr-1" />
-                                    <span>{t('playNow')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{t('playNow')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAddVideoToQueue(video);
-                                    }}
-                                >
-                                    <ListVideo className="h-3.5 w-3.5 mr-1" />
-                                    <span>{t('addToQueue')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{t('addToQueue')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <TooltipButton
+                        buttonText={t('playNow')}
+                        tooltipContent={t('playNow')}
+                        icon={<Play className="h-3.5 w-3.5 mr-1" />}
+                        onConfirm={() => handlePlayVideoNow(video)}
+                    />
 
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAddVideoAndMoveToTop(video);
-                                    }}
-                                >
-                                    <MoveUp className="h-3.5 w-3.5 mr-1" />
-                                    <span>{t('addVideoAndMoveToTop')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{t('addVideoAndMoveToTop')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <TooltipButton
+                        buttonText={t('addToQueue')}
+                        tooltipContent={t('addToQueue')}
+                        icon={<ListVideo className="h-3.5 w-3.5 mr-1" />}
+                        onConfirm={() => handleAddVideoToQueue(video)}
+                    />
+
+                    <TooltipButton
+                        buttonText={t('addVideoAndMoveToTop')}
+                        tooltipContent={t('addVideoAndMoveToTop')}
+                        icon={<MoveUp className="h-3.5 w-3.5 mr-1" />}
+                        onConfirm={() => handleAddVideoAndMoveToTop(video)}
+                    />
                 </div>
             </div>
         );

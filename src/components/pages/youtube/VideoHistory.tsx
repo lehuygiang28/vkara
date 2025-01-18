@@ -9,8 +9,7 @@ import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
 
 export function VideoHistory() {
@@ -28,48 +27,19 @@ export function VideoHistory() {
                 )}
             >
                 <div className="flex items-center gap-2 flex-wrap">
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="secondary"
-                                    size="sm"
-                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handlePlayVideoNow(video);
-                                    }}
-                                >
-                                    <Play className="h-3.5 w-3.5 mr-1" />
-                                    <span>{t('playNow')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{t('playNow')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="h-7 px-2.5 transition-all hover:scale-105"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleAddVideoToQueue(video);
-                                    }}
-                                >
-                                    <ListVideo className="h-3.5 w-3.5 mr-1" />
-                                    <span>{t('addToQueue')}</span>
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>
-                                <p>{t('addToQueue')}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </TooltipProvider>
+                    <TooltipButton
+                        tooltipContent={t('playNow')}
+                        buttonText={t('playNow')}
+                        icon={<Play className="h-3.5 w-3.5 mr-1" />}
+                        onConfirm={() => handlePlayVideoNow(video)}
+                    />
+
+                    <TooltipButton
+                        tooltipContent={t('addToQueue')}
+                        buttonText={t('addToQueue')}
+                        icon={<ListVideo className="h-3.5 w-3.5 mr-1" />}
+                        onConfirm={() => handleAddVideoToQueue(video)}
+                    />
                 </div>
             </div>
         );
@@ -80,27 +50,15 @@ export function VideoHistory() {
             {(room?.historyQueue?.length || 0) > 0 && (
                 <div className="flex items-center justify-center p-2 bg-background shadow-sm">
                     <div className="flex items-center space-x-2">
-                        <TooltipProvider>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <Button
-                                        variant="destructive"
-                                        size="sm"
-                                        className="h-8 px-2 transition-all hover:scale-105"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleClearHistory();
-                                        }}
-                                    >
-                                        <X className="h-4 w-4 mr-2" />
-                                        <span>{t('clearHistory')}</span>
-                                    </Button>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                    <p>{t('clearHistory')}</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </TooltipProvider>
+                        <TooltipButton
+                            tooltipContent={t('clearHistory')}
+                            buttonText={t('clearHistory')}
+                            icon={<X className="h-3.5 w-3.5 mr-1" />}
+                            onConfirm={handleClearHistory}
+                            variant={'destructive'}
+                            confirmMode
+                            confirmContent={t('clearHistoryConfirm')}
+                        />
                     </div>
                 </div>
             )}
