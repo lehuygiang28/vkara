@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useCallback, useEffect, useState, useRef } from 'react';
-import { Search, Loader2, Play, ListVideo } from 'lucide-react';
+import { Search, Loader2, Play, ListVideo, MoveUp } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
 import {
@@ -55,7 +55,8 @@ export function VideoSearch() {
         setError,
     } = useYouTubeStore();
     const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
-    const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
+    const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop } =
+        usePlayerAction();
 
     // Process next batch of videos
     const processNextBatch = useCallback(async () => {
@@ -232,6 +233,28 @@ export function VideoSearch() {
                             </TooltipTrigger>
                             <TooltipContent>
                                 <p>{t('addToQueue')}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="h-7 px-2.5 transition-all hover:scale-105"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleAddVideoAndMoveToTop(video);
+                                    }}
+                                >
+                                    <MoveUp className="h-3.5 w-3.5 mr-1" />
+                                    <span>{t('addVideoAndMoveToTop')}</span>
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>{t('addVideoAndMoveToTop')}</p>
                             </TooltipContent>
                         </Tooltip>
                     </TooltipProvider>

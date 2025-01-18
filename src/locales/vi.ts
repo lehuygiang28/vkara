@@ -23,6 +23,7 @@ export default {
     'toast.shuffleQueueHandler': 'Hàng chờ đã được xáo trộn',
     'toast.clearQueueHandler': 'Hàng chờ đã được xóa',
     'toast.clearHistoryHandler': 'Lịch sử video đã được xóa',
+    'toast.addVideoAndMoveToTopHandler': 'Video đã được ưu tiên vào hàng chờ',
 
     'youtubePage.play': 'Phát',
     'youtubePage.pause': 'Tạm dừng',
@@ -114,4 +115,5 @@ export default {
     'videoSearch.views': 'lượt xem',
     'videoSearch.playThisNow': 'Phát ngay',
     'videoSearch.videoAdded': 'Video đã được thêm vào hàng chờ',
+    'videoSearch.addVideoAndMoveToTop': 'Ưu tiên',
 } as const;

@@ -19,6 +19,7 @@ export type PlayerAction = {
     handleShuffleQueue: () => void;
     handleClearQueue: () => void;
     handleClearHistory: () => void;
+    handleAddVideoAndMoveToTop: (video: YouTubeVideo) => void;
 };
 
 export const usePlayerAction = (): PlayerAction => {
@@ -169,6 +170,18 @@ export const usePlayerAction = (): PlayerAction => {
         });
     }, [createRoomIfNeeded, sendMessage, t]);
 
+    const handleAddVideoAndMoveToTop = useCallback(
+        async (video: YouTubeVideo) => {
+            await createRoomIfNeeded();
+            sendMessage({ type: 'addVideoAndMoveToTop', video });
+            toast({
+                title: t('toast.addVideoAndMoveToTopHandler'),
+                description: video.title,
+            });
+        },
+        [createRoomIfNeeded, sendMessage, t],
+    );
+
     return {
         handlePlayerPlay,
         handlePlayerPause,
@@ -183,5 +196,6 @@ export const usePlayerAction = (): PlayerAction => {
         handleShuffleQueue,
         handleClearQueue,
         handleClearHistory,
+        handleAddVideoAndMoveToTop,
     };
 };

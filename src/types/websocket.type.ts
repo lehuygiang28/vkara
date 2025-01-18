@@ -43,6 +43,7 @@ export type RawClientMessage = {
     | { type: 'shuffleQueue' }
     | { type: 'clearQueue' }
     | { type: 'clearHistory' }
+    | { type: 'addVideoAndMoveToTop'; video: YouTubeVideo }
 );
 
 export type ClientMessage = MessageBase & RawClientMessage;

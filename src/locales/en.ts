@@ -23,6 +23,7 @@ export default {
     'toast.shuffleQueueHandler': 'Queue shuffled',
     'toast.clearQueueHandler': 'All videos removed from queue',
     'toast.clearHistoryHandler': 'All videos removed from history',
+    'toast.addVideoAndMoveToTopHandler': 'Video added to top of queue',
 
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
@@ -114,4 +115,5 @@ export default {
     'videoSearch.views': 'views',
     'videoSearch.playThisNow': 'Play this now',
     'videoSearch.videoAdded': 'Video added to queue',
+    'videoSearch.addVideoAndMoveToTop': 'Add to top',
 } as const;
