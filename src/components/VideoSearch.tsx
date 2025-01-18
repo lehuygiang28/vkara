@@ -112,7 +112,7 @@ export function VideoSearch() {
                 return;
             }
 
-            query = `${isKaraoke ? 'karaoke' : ''} ${query}`;
+            query = `${isKaraoke ? 'karaoke ' : ''}${query}`;
 
             if (!token) {
                 setIsLoading(true);
