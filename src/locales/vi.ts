@@ -80,7 +80,6 @@ export default {
     'roomSettings.joinRoomPassword.placeholder': 'Nhập mật khẩu phòng',
     'roomSettings.joinRoom': 'Tham gia phòng',
     'roomSettings.shareableUrl': 'URL chia sẻ',
-    'roomSettings.copyUrl': 'Sao chép',
     'roomSettings.copyUrlSuccess': 'URL đã được sao chép',
     'roomSettings.qrCode': 'QR Code',
     'roomSettings.showQRInPlayer': 'Hiện QR trong video',
@@ -88,6 +87,7 @@ export default {
     'roomSettings.hide': 'Ẩn',
     'roomSettings.showBottomControls': 'Hiện nút điều khiển bên dưới',
     'roomSettings.opacityOfButtonsInPlayer': 'Độ mờ nút điều khiển trong video',
+    'roomSettings.copyPasswordSuccess': 'Mật khẩu đã được sao chép',
 
     'connectionStatus.notConnected': 'Không kết nối',
     'connectionStatus.connected': 'Đã kết nối',

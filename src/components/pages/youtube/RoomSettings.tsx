@@ -2,6 +2,7 @@
 
 import React, { Suspense, useCallback, useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
+import { Eye, EyeOff, Copy } from 'lucide-react';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -45,6 +46,7 @@ export function RoomSettings() {
     const [roomPassword, setRoomPassword] = useState<string>('');
     const [joinRoomId, setJoinRoomId] = useState<string>('');
     const [joinRoomPassword, setJoinRoomPassword] = useState<string>('');
+    const [showPassword, setShowPassword] = useState(false);
     const changeLocale = useChangeLocale({ preserveSearchParams: true });
     const locale = useCurrentLocale();
 
@@ -88,8 +90,59 @@ export function RoomSettings() {
                                 <div className="space-y-4">
                                     <p className="text-sm font-medium">
                                         {t_RoomSettings('roomId')}:{' '}
-                                        <span className="font-normal">{room.id}</span>
+                                        <span className="font-bold">
+                                            {room.id?.slice(0, Math.round(room.id.length / 2)) +
+                                                ' ' +
+                                                room.id?.slice(-Math.round(room.id.length / 2))}
+                                        </span>
                                     </p>
+                                    {room?.id && room?.password && (
+                                        <div className="space-y-2">
+                                            <Label htmlFor="room-password">
+                                                {t_RoomSettings('roomPassword.label')}
+                                            </Label>
+                                            <div className="flex">
+                                                <Input
+                                                    id="room-password"
+                                                    type={showPassword ? 'text' : 'password'}
+                                                    value={room.password || ''}
+                                                    className="pr-20"
+                                                    disabled
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => setShowPassword(!showPassword)}
+                                                    className="ml-2"
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="h-4 w-4" />
+                                                    ) : (
+                                                        <Eye className="h-4 w-4" />
+                                                    )}
+                                                </Button>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(
+                                                            room.password || '',
+                                                        );
+                                                        toast({
+                                                            title: t_RoomSettings(
+                                                                'copyPasswordSuccess',
+                                                            ),
+                                                        });
+                                                    }}
+                                                    className="ml-2"
+                                                >
+                                                    <Copy className="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
                                     <div className="space-y-2">
                                         <Label htmlFor="shareable-qr-code">
                                             {t_RoomSettings('qrCode')}
@@ -124,6 +177,9 @@ export function RoomSettings() {
                                                 readOnly
                                             />
                                             <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="icon"
                                                 onClick={() => {
                                                     navigator.clipboard.writeText(
                                                         generateShareableUrl({
@@ -137,7 +193,7 @@ export function RoomSettings() {
                                                 }}
                                                 className="ml-2"
                                             >
-                                                {t_RoomSettings('copyUrl')}
+                                                <Copy className="h-4 w-4" />
                                             </Button>
                                         </div>
                                     </div>
@@ -239,6 +295,7 @@ export function RoomSettings() {
                                             value={joinRoomId}
                                             onChange={(e) => setJoinRoomId(e.target.value)}
                                             placeholder={t_RoomSettings('joinRoomId.placeholder')}
+                                            type="number"
                                         />
                                         <Label htmlFor="join-room-password">
                                             {t_RoomSettings('joinRoomPassword.label')}

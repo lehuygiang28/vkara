@@ -80,7 +80,6 @@ export default {
     'roomSettings.joinRoomPassword.placeholder': 'Enter room password',
     'roomSettings.joinRoom': 'Join Room',
     'roomSettings.shareableUrl': 'Shareable URL',
-    'roomSettings.copyUrl': 'Copy',
     'roomSettings.copyUrlSuccess': 'URL copied to clipboard',
     'roomSettings.qrCode': 'QR Code',
     'roomSettings.showQRInPlayer': 'Show QR code in player',
@@ -88,6 +87,7 @@ export default {
     'roomSettings.hide': 'Hide',
     'roomSettings.showBottomControls': 'Show bottom controls',
     'roomSettings.opacityOfButtonsInPlayer': 'Opacity of buttons in player',
+    'roomSettings.copyPasswordSuccess': 'Password copied to clipboard',
 
     'connectionStatus.notConnected': 'Not Connected',
     'connectionStatus.connected': 'Connected',
