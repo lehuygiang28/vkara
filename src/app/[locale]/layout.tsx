@@ -27,8 +27,9 @@ export const metadata: Metadata = {
     description:
         'vkara là ứng dụng hát karaoke trực tuyến, giúp bạn hát cùng nhau mọi lúc mọi nơi.',
     other: {
-        'apple-mobile-web-app-capable': 'yes',
         'mobile-web-app-capable': 'yes',
+        'apple-mobile-web-app-capable': 'yes',
+        'apple-mobile-web-app-status-bar-style': 'black-translucent',
     },
 };
 

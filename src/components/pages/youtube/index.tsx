@@ -277,7 +277,7 @@ export default function YoutubePlayerPage() {
     );
 
     return (
-        <div className={`flex flex-col h-screen w-screen bg-background`}>
+        <div className={cn('flex flex-col w-screen bg-background', 'h-full md:h-screen')}>
             <main className={`flex flex-col md:flex-row flex-1 overflow-hidden`}>
                 {layoutMode !== 'remote' && (
                     <div
