@@ -199,6 +199,7 @@ export function VideoSearch() {
                         tooltipContent={t('playNow')}
                         icon={<Play className="h-3.5 w-3.5 mr-1" />}
                         onConfirm={() => handlePlayVideoNow(video)}
+                        variant={'outline'}
                     />
 
                     <TooltipButton
