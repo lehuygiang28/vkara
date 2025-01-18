@@ -6,12 +6,12 @@ import { useDebounce } from 'use-debounce';
 
 import { AutoComplete } from '@/components/autocomplete';
 import { getYoutubeSuggestions } from '@/actions/youtube';
-import { cn } from '@/lib/utils';
+import { cn, resolveUrl } from '@/lib/utils';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
-import { searchYouTube, checkEmbeddableStatus } from '@/actions/youtube';
+import { checkEmbeddableStatus } from '@/actions/youtube';
 
 import { VideoList } from '@/components/VideoList';
 import { VideoSkeleton } from '@/components/video-skeleton';
@@ -31,6 +31,8 @@ export function VideoSearch() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
     const [pendingResults, setPendingResults] = useState<YouTubeVideo[]>([]);
     const [isProcessingBatch, setIsProcessingBatch] = useState(false);
+    const [nextToken, setNextToken] = useState<string | null>(null);
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
     const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
     const [suggestions, setSuggestions] = useState<string[]>([]);
     const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
@@ -102,25 +104,52 @@ export function VideoSearch() {
     }, [pendingResults, isProcessingBatch, processNextBatch]);
 
     const performSearch = useCallback(
-        async (query: string) => {
+        async (query: string, token?: string | null) => {
             if (!query) {
                 setPendingResults([]);
                 setSearchResults([]);
+                setNextToken(null);
                 return;
             }
 
-            setIsLoading(true);
+            query = `${isKaraoke ? 'karaoke' : ''} ${query}`;
+
+            if (!token) {
+                setIsLoading(true);
+                setSearchResults([]);
+                setPendingResults([]);
+            } else {
+                setIsLoadingMore(true);
+            }
             setError(null);
 
             try {
-                const results = await searchYouTube(query, isKaraoke);
-                setPendingResults(results);
-                setSearchResults([]);
+                const results = await fetch(
+                    `${resolveUrl(
+                        process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000',
+                    )}/search`,
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            Accept: 'application/json',
+                        },
+                        body: JSON.stringify({
+                            query,
+                            continuation: token,
+                        }),
+                    },
+                );
+                const { items, continuation } = await results.json();
+
+                setPendingResults((prev) => [...prev, ...items]);
+                setNextToken(continuation);
             } catch (err) {
                 setError(t_Global('youtubePage.failedToFetch'));
                 console.error('Search error:', err);
             } finally {
                 setIsLoading(false);
+                setIsLoadingMore(false);
             }
         },
         [isKaraoke, setSearchResults, setIsLoading, setError, t_Global],
@@ -151,6 +180,12 @@ export function VideoSearch() {
 
         fetchSuggestions();
     }, [debouncedSearchQuery]);
+
+    const loadMore = useCallback(() => {
+        if (nextToken && !isLoadingMore && !isProcessingBatch) {
+            performSearch(searchQuery, nextToken);
+        }
+    }, [nextToken, isLoadingMore, isProcessingBatch, performSearch, searchQuery]);
 
     useEffect(() => {
         // Trigger search is karaoke mode is toggled
@@ -279,16 +314,20 @@ export function VideoSearch() {
                     ))}
                 </div>
             ) : (
-                <VideoList
-                    keyPrefix={'search-list'}
-                    videos={searchResults}
-                    emptyMessage={searchQuery && !pendingResults.length ? t('noResults') : ''}
-                    renderButtons={renderButtons}
-                    onVideoClick={(video) =>
-                        setSelectedVideo(video.id === selectedVideo ? null : video.id)
-                    }
-                    selectedVideoId={selectedVideo}
-                />
+                <>
+                    <VideoList
+                        keyPrefix={'search-list'}
+                        videos={searchResults}
+                        emptyMessage={searchQuery && !pendingResults.length ? t('noResults') : ''}
+                        renderButtons={renderButtons}
+                        onVideoClick={(video) =>
+                            setSelectedVideo(video.id === selectedVideo ? null : video.id)
+                        }
+                        selectedVideoId={selectedVideo}
+                        onLoadMore={loadMore}
+                        hasMore={!!nextToken && !isProcessingBatch}
+                    />
+                </>
             )}
         </div>
     );

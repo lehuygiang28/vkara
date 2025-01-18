@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { memo } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 import { BadgeCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,6 +17,8 @@ interface VideoListProps {
     renderButtons: (video: YouTubeVideo) => React.ReactNode;
     onVideoClick?: (video: YouTubeVideo) => void;
     selectedVideoId?: string | null;
+    onLoadMore?: () => void;
+    hasMore?: boolean;
 }
 
 export const VideoList = memo(function VideoList({
@@ -26,8 +28,32 @@ export const VideoList = memo(function VideoList({
     renderButtons,
     onVideoClick,
     selectedVideoId,
+    onLoadMore,
+    hasMore = false,
 }: VideoListProps) {
     const t = useI18n();
+    const observerTarget = useRef(null);
+
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                if (entries[0].isIntersecting && hasMore) {
+                    onLoadMore?.();
+                }
+            },
+            { threshold: 0.5 },
+        );
+
+        if (observerTarget.current) {
+            observer.observe(observerTarget.current);
+        }
+
+        return () => {
+            if (observerTarget.current) {
+                observer.unobserve(observerTarget.current);
+            }
+        };
+    }, [onLoadMore, hasMore]);
 
     return (
         <div className="flex-1 overflow-hidden">
@@ -79,7 +105,7 @@ export const VideoList = memo(function VideoList({
                                             </div>
                                         )}
                                     </motion.div>
-                                    <motion.div layout className="flex flex-col flex-grow min-w-0">
+                                    <motion.div layout className="flex flex-col min-w-0">
                                         <div className="text-md font-medium leading-snug line-clamp-2">
                                             {video.title}
                                         </div>
@@ -112,6 +138,9 @@ export const VideoList = memo(function VideoList({
                             ))
                         )}
                     </AnimatePresence>
+                    {hasMore && (
+                        <div ref={observerTarget} className="flex w-full items-start gap-3" />
+                    )}
                 </div>
             </ScrollArea>
         </div>

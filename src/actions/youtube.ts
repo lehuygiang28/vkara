@@ -1,31 +1,66 @@
 'use server';
 
 import youtube from 'youtube-sr';
-import { YouTubeVideo } from '../types/youtube.type';
-import { cleanUpVideoField, resolveUrl } from '@/lib/utils';
+import { VideoCompact, Client as YoutubeiClient, SearchType } from 'youtubei';
+import { YouTubeVideo } from '@/types/youtube.type';
+import { formatSeconds, resolveUrl } from '@/lib/utils';
+
+const youtubei = new YoutubeiClient();
+
+const mapYoutubeiVideo = ({
+    video,
+    searchType,
+}: {
+    video: VideoCompact;
+    searchType: SearchType;
+}): YouTubeVideo => ({
+    id: video.id,
+    duration: video.duration || 0,
+    duration_formatted: formatSeconds(video.duration || 0),
+    thumbnail: {
+        url: video.thumbnails[0].url,
+    },
+    title: video.title,
+    type: searchType,
+    url: '',
+    uploadedAt: video.uploadDate || '',
+    views: video.viewCount || 0,
+    channel: {
+        name: video.channel?.name || 'N/A',
+        verified: false,
+    },
+});
 
 // Function to get initial search results
-export async function searchYouTube(query: string, isKaraoke: boolean): Promise<YouTubeVideo[]> {
+export async function searchYouTube(
+    query: string,
+    isKaraoke: boolean,
+): Promise<{
+    items: YouTubeVideo[];
+}> {
+    const SEARCH_TYPE = 'video';
     const searchQuery = `${isKaraoke ? 'karaoke' : ''} ${query}`;
 
     try {
-        const youtubeSearchResults = await youtube.search(searchQuery, {
-            limit: 30,
-            type: 'video',
+        const youtubeSearchResults = await youtubei.search(searchQuery, {
+            type: SEARCH_TYPE,
+            sortBy: 'relevance',
         });
+        await youtubeSearchResults.next();
 
         if (!youtubeSearchResults) {
-            return [];
+            return { items: [] };
         }
 
-        return youtubeSearchResults.map((video) => ({
-            ...cleanUpVideoField(video),
-            isEmbedChecked: false,
-            canEmbed: false,
-        }));
+        return {
+            items: youtubeSearchResults.items.map((video) =>
+                mapYoutubeiVideo({ video, searchType: SEARCH_TYPE }),
+            ),
+            // next: youtubeSearchResults.next,
+        };
     } catch (error) {
         console.error('Error searching YouTube:', error);
-        return [];
+        return { items: [] };
     }
 }
 

@@ -1,4 +1,5 @@
 import { Video } from 'youtube-sr';
+import { SearchType } from 'youtubei';
 
 export interface SearchResults {
     items?: YouTubeVideo[];
@@ -22,6 +23,7 @@ export type YouTubeVideo = Omit<
     | 'music'
     | 'channel'
     | 'thumbnail'
+    | 'type'
 > & {
     channel: {
         name: string;
@@ -30,4 +32,5 @@ export type YouTubeVideo = Omit<
     thumbnail: {
         url: string;
     };
+    type: SearchType;
 };
