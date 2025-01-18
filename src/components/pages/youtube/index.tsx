@@ -34,6 +34,7 @@ import { VideoSearch } from './VideoSearch';
 import { VideoHistory } from './VideoHistory';
 import { PlayerControls } from './PlayerControls';
 import { PlayerControlsTabs } from './PlayerControlsTabs';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 export default function YoutubePlayerPage() {
     const {
@@ -277,7 +278,8 @@ export default function YoutubePlayerPage() {
     );
 
     return (
-        <div className={cn('flex flex-col w-screen bg-background', 'h-full md:h-screen')}>
+        <div className={cn('flex flex-col bg-background w-screen', 'h-full md:h-screen')}>
+            <ScrollToTop />
             <main className={`flex flex-col md:flex-row flex-1 overflow-hidden`}>
                 {layoutMode !== 'remote' && (
                     <div
