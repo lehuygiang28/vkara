@@ -16,7 +16,6 @@ import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
-import { VideoList } from '@/components/VideoList';
 import { VideoSkeleton } from '@/components/video-skeleton';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -27,8 +26,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { VideoList } from './VideoList';
 
-const BATCH_SIZE = 4;
+const BATCH_SIZE = 6;
 
 export function VideoSearch() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);

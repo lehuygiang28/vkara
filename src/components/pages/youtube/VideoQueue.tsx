@@ -9,9 +9,9 @@ import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
-import { VideoList } from '@/components/VideoList';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { VideoList } from './VideoList';
 
 export function VideoQueue() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);

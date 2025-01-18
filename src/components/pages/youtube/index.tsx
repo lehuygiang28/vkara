@@ -20,19 +20,20 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { useScopedI18n } from '@/locales/client';
 import { cn, generateShareableUrl } from '@/lib/utils';
+import { useFullscreen } from '@/hooks/use-fullscreen';
+import { useCountdownStore } from '@/store/countdownTimersStore';
 
+import { CountdownTimer } from '@/components/countdown-timer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RoomSettings } from '@/components/RoomSettings';
-import { VideoQueue } from '@/components/VideoQueue';
-import { VideoSearch } from '@/components/VideoSearch';
-import { VideoHistory } from '@/components/VideoHistory';
-import { PlayerControls } from '@/components/PlayerControls';
-import { PlayerControlsTabs } from '@/components/PlayerControlsTabs';
-import { CountdownTimer } from '@/components/countdown-timer';
-import { useCountdownStore } from '@/store/countdownTimersStore';
-import { useFullscreen } from '@/hooks/use-fullscreen';
+
+import { RoomSettings } from './RoomSettings';
+import { VideoQueue } from './VideoQueue';
+import { VideoSearch } from './VideoSearch';
+import { VideoHistory } from './VideoHistory';
+import { PlayerControls } from './PlayerControls';
+import { PlayerControlsTabs } from './PlayerControlsTabs';
 
 export default function YoutubePlayerPage() {
     const {

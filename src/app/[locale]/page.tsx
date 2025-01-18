@@ -1,3 +1,3 @@
-import YoutubePlayerPage from '@/components/pages/youtube-kara';
+import YoutubePlayerPage from '@/components/pages/youtube';
 
 export default YoutubePlayerPage;
