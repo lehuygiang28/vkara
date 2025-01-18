@@ -4,14 +4,17 @@ import React, { useCallback, useEffect, useState, useRef } from 'react';
 import { Search, Loader2, Play, ListVideo } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
+import {
+    checkEmbeddableStatus,
+    getYoutubeSuggestions,
+    searchYoutube,
+} from '@/services/youtube-api';
 import { AutoComplete } from '@/components/autocomplete';
-import { getYoutubeSuggestions } from '@/actions/youtube';
-import { cn, resolveUrl } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
-import { checkEmbeddableStatus } from '@/actions/youtube';
 
 import { VideoList } from '@/components/VideoList';
 import { VideoSkeleton } from '@/components/video-skeleton';
@@ -124,24 +127,11 @@ export function VideoSearch() {
             setError(null);
 
             try {
-                const results = await fetch(
-                    `${resolveUrl(
-                        process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000',
-                    )}/search`,
-                    {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            Accept: 'application/json',
-                        },
-                        body: JSON.stringify({
-                            query,
-                            continuation: token,
-                        }),
-                    },
-                );
-                const { items, continuation } = await results.json();
-
+                const { items, continuation } = await searchYoutube({
+                    query,
+                    isKaraoke,
+                    continuation: token,
+                });
                 setPendingResults((prev) => [...prev, ...items]);
                 setNextToken(continuation);
             } catch (err) {
