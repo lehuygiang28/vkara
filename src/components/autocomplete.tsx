@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Command as CommandPrimitive } from 'cmdk';
-import { Check } from 'lucide-react';
-import { useMemo, useState, KeyboardEvent } from 'react';
+import { Check, Search, Loader2 } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import {
     Command,
     CommandEmpty,
@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 
 type Props<T extends string> = {
     selectedValue: T;
@@ -53,12 +54,14 @@ export function AutoComplete<T extends string>({
 
     const reset = () => {
         onSelectedValueChange('' as T);
-        onSearchValueChange('');
+        // Remove this line to prevent clearing the search value
+        // onSearchValueChange('');
     };
 
     const onInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         if (!e.relatedTarget?.hasAttribute('cmdk-list') && labels[selectedValue] !== searchValue) {
-            reset();
+            // Only reset the selected value, not the search value
+            onSelectedValueChange('' as T);
         }
     };
 
@@ -67,19 +70,17 @@ export function AutoComplete<T extends string>({
             reset();
         } else {
             onSelectedValueChange(inputValue as T);
-            onSearchValueChange(labels[inputValue] ?? '');
+            onSearchValueChange(labels[inputValue] ?? inputValue);
         }
         setOpen(false);
         onSearch(inputValue);
     };
 
-    const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === 'Enter') {
             e.preventDefault();
             onSearch(searchValue);
             setOpen(false);
-        } else {
-            setOpen(e.key !== 'Escape');
         }
     };
 
@@ -87,19 +88,39 @@ export function AutoComplete<T extends string>({
         <div className={cn('flex items-center', classNames)}>
             <Popover open={open} onOpenChange={setOpen}>
                 <Command shouldFilter={false}>
-                    <PopoverAnchor asChild>
-                        <CommandPrimitive.Input
-                            asChild
-                            value={searchValue}
-                            onValueChange={onSearchValueChange}
-                            onKeyDown={handleKeyDown}
-                            onMouseDown={() => setOpen((open) => !!searchValue || !open)}
-                            onFocus={() => setOpen(true)}
-                            onBlur={onInputBlur}
+                    <div className="relative">
+                        <PopoverAnchor asChild>
+                            <CommandPrimitive.Input
+                                asChild
+                                value={searchValue}
+                                onValueChange={onSearchValueChange}
+                                onMouseDown={() => setOpen((open) => !!searchValue || !open)}
+                                onFocus={() => setOpen(true)}
+                                onBlur={onInputBlur}
+                                onKeyDown={handleKeyDown}
+                            >
+                                <Input
+                                    placeholder={placeholder}
+                                    className="pr-10" // Add padding for the icon
+                                />
+                            </CommandPrimitive.Input>
+                        </PopoverAnchor>
+                        <Button
+                            className="absolute right-0 top-0 h-full px-3 flex items-center justify-center"
+                            onClick={() => onSearch(searchValue)}
+                            type="button"
+                            aria-label="Search"
+                            size="sm"
+                            variant="ghost"
+                            disabled={isLoading}
                         >
-                            <Input placeholder={placeholder} />
-                        </CommandPrimitive.Input>
-                    </PopoverAnchor>
+                            {isLoading ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                            ) : (
+                                <Search className="h-4 w-4 text-muted-foreground" />
+                            )}
+                        </Button>
+                    </div>
                     {!open && <CommandList aria-hidden="true" className="hidden" />}
                     <PopoverContent
                         asChild

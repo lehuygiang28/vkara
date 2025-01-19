@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { Search, Loader2, Play, ListVideo, MoveUp } from 'lucide-react';
+import { Play, ListVideo, MoveUp } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
 import { AutoComplete } from '@/components/autocomplete';
@@ -12,7 +12,6 @@ import { useSearchStore } from '@/store/searchStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { VideoSkeleton } from '@/components/video-skeleton';
-import { Button } from '@/components/ui/button';
 import {
     Select,
     SelectContent,
@@ -134,19 +133,6 @@ export function VideoSearch() {
                             showCheck={false}
                             onSearch={handleManualSearch}
                         />
-                        <Button
-                            size="sm"
-                            variant="ghost"
-                            className="absolute right-0 top-0 h-full px-3"
-                            disabled={isLoading}
-                            onClick={handleManualSearch}
-                        >
-                            {isLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                                <Search className="h-4 w-4" />
-                            )}
-                        </Button>
                     </div>
                     <Select
                         value={isKaraoke ? 'karaoke' : 'all'}
