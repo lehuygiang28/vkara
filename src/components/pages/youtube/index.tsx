@@ -209,6 +209,7 @@ export default function YoutubePlayerPage() {
                                     value={generateShareableUrl({
                                         roomId: room.id,
                                         password: room?.password || '',
+                                        layoutMode: 'remote',
                                     })}
                                     size={80}
                                     qrStyle="dots"
