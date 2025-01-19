@@ -28,7 +28,7 @@ import {
 import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
 
-const BATCH_SIZE = 6;
+const BATCH_SIZE = 10;
 
 export function VideoSearch() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);

@@ -1,8 +1,7 @@
 import { resolveUrl } from '@/lib/utils';
 import { YouTubeVideo } from '@/types/youtube.type';
 
-const API_URL = resolveUrl(process.env.NEXT_PUBLIC_WS_URL || 'http://localhost:8000');
-const CHECK_URL = resolveUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001');
+const API_URL = resolveUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
 
 export async function searchYoutube({
     query,
@@ -43,7 +42,7 @@ export async function getYoutubeSuggestions(query: string) {
 }
 
 export async function checkEmbeddableStatus(videoIds: string[]) {
-    const url = new URL('/check-embed', CHECK_URL);
+    const url = new URL('/check-embeddable', API_URL);
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
