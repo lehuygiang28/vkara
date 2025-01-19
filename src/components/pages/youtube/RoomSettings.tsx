@@ -305,100 +305,121 @@ export function RoomSettings() {
                             <CardTitle>{t('youtubePage.layout')}</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <Label htmlFor="selectLayoutMode">
-                                {t('youtubePage.selectLayoutMode')}
-                            </Label>
-                            <Select
-                                value={layoutMode}
-                                onValueChange={(value) => {
-                                    const val = value as 'both' | 'remote' | 'player';
-                                    setLayoutMode(val);
-                                    if (val === 'remote') {
-                                        setCurrentTab('controls');
-                                    } else if (val === 'player') {
-                                        setCurrentTab('queue');
-                                    }
-                                }}
-                            >
-                                <SelectTrigger className="w-full mt-2">
-                                    <SelectValue placeholder={t('youtubePage.selectLayoutMode')} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="both">
-                                        {t('youtubePage.layoutBoth')}
-                                    </SelectItem>
-                                    <SelectItem value="remote">
-                                        {t('youtubePage.layoutRemote')}
-                                    </SelectItem>
-                                    <SelectItem value="player">
-                                        {t('youtubePage.layoutPlayer')}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <div className="mt-4">
-                                <Label htmlFor="show-qr-in-player">
-                                    {t_RoomSettings('showQRInPlayer')}
+                            {/* Setting layout mode */}
+                            <div className="mt-0">
+                                <Label htmlFor="selectLayoutMode">
+                                    {t('youtubePage.selectLayoutMode')}
                                 </Label>
                                 <Select
-                                    value={showQRInPlayer ? 'true' : 'false'}
-                                    onValueChange={(value) => setShowQRInPlayer(value === 'true')}
+                                    value={layoutMode}
+                                    onValueChange={(value) => {
+                                        const val = value as 'both' | 'remote' | 'player';
+                                        setLayoutMode(val);
+                                        if (val === 'remote') {
+                                            setCurrentTab('controls');
+                                        } else if (val === 'player') {
+                                            setCurrentTab('queue');
+                                        }
+                                    }}
                                 >
                                     <SelectTrigger className="w-full mt-2">
                                         <SelectValue
-                                            placeholder={t_RoomSettings('showQRInPlayer')}
+                                            placeholder={t('youtubePage.selectLayoutMode')}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="true">
-                                            {t_RoomSettings('show')}
+                                        <SelectItem value="both">
+                                            {t('youtubePage.layoutBoth')}
                                         </SelectItem>
-                                        <SelectItem value="false">
-                                            {t_RoomSettings('hide')}
+                                        <SelectItem value="remote">
+                                            {t('youtubePage.layoutRemote')}
+                                        </SelectItem>
+                                        <SelectItem value="player">
+                                            {t('youtubePage.layoutPlayer')}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="mt-4">
-                                <Label htmlFor="show-bottom-controls">
-                                    {t_RoomSettings('showBottomControls')}
-                                </Label>
-                                <Select
-                                    value={showBottomControls ? 'true' : 'false'}
-                                    onValueChange={(value) =>
-                                        setShowBottomControls(value === 'true')
-                                    }
-                                >
-                                    <SelectTrigger className="w-full mt-2">
-                                        <SelectValue
-                                            placeholder={t_RoomSettings('showBottomControls')}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="true">
-                                            {t_RoomSettings('show')}
-                                        </SelectItem>
-                                        <SelectItem value="false">
-                                            {t_RoomSettings('hide')}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="mt-4 space-y-2">
-                                <Label htmlFor="opacity-slider">
-                                    {t_RoomSettings('opacityOfButtonsInPlayer')}
-                                </Label>
-                                <Slider
-                                    id="opacity-slider"
-                                    min={0}
-                                    max={100}
-                                    step={5}
-                                    value={[opacityOfButtonsInPlayer]}
-                                    onValueChange={(value) => setOpacityOfButtonsInPlayer(value[0])}
-                                />
-                                <div className="text-sm text-muted-foreground">
-                                    {opacityOfButtonsInPlayer}%
+
+                            {/* Setting show QR in player */}
+                            {layoutMode !== 'remote' && (
+                                <div className="mt-4">
+                                    <Label htmlFor="show-qr-in-player">
+                                        {t_RoomSettings('showQRInPlayer')}
+                                    </Label>
+                                    <Select
+                                        value={showQRInPlayer ? 'true' : 'false'}
+                                        onValueChange={(value) =>
+                                            setShowQRInPlayer(value === 'true')
+                                        }
+                                    >
+                                        <SelectTrigger className="w-full mt-2">
+                                            <SelectValue
+                                                placeholder={t_RoomSettings('showQRInPlayer')}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="true">
+                                                {t_RoomSettings('show')}
+                                            </SelectItem>
+                                            <SelectItem value="false">
+                                                {t_RoomSettings('hide')}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
-                            </div>
+                            )}
+
+                            {/* Setting show bottom controls */}
+                            {layoutMode === 'both' && (
+                                <div className="mt-4">
+                                    <Label htmlFor="show-bottom-controls">
+                                        {t_RoomSettings('showBottomControls')}
+                                    </Label>
+                                    <Select
+                                        value={showBottomControls ? 'true' : 'false'}
+                                        onValueChange={(value) =>
+                                            setShowBottomControls(value === 'true')
+                                        }
+                                    >
+                                        <SelectTrigger className="w-full mt-2">
+                                            <SelectValue
+                                                placeholder={t_RoomSettings('showBottomControls')}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="true">
+                                                {t_RoomSettings('show')}
+                                            </SelectItem>
+                                            <SelectItem value="false">
+                                                {t_RoomSettings('hide')}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                            )}
+
+                            {/* Setting opacity of buttons in player */}
+                            {layoutMode === 'player' && (
+                                <div className="mt-4 space-y-2">
+                                    <Label htmlFor="opacity-slider">
+                                        {t_RoomSettings('opacityOfButtonsInPlayer')}
+                                    </Label>
+                                    <Slider
+                                        id="opacity-slider"
+                                        min={0}
+                                        max={100}
+                                        step={5}
+                                        value={[opacityOfButtonsInPlayer]}
+                                        onValueChange={(value) =>
+                                            setOpacityOfButtonsInPlayer(value[0])
+                                        }
+                                    />
+                                    <div className="text-sm text-muted-foreground">
+                                        {opacityOfButtonsInPlayer}%
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                     <Card>
