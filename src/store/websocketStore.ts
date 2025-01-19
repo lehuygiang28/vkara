@@ -207,7 +207,6 @@ class WebSocketManager {
         const message = {
             id: uuid(),
             timestamp: Date.now(),
-            requiresAck: true,
             ...messageData,
         } as ClientMessage;
 
