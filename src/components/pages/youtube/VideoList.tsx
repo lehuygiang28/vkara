@@ -116,8 +116,19 @@ export const VideoList = memo(function VideoList({
                                             )}
                                         </div>
                                         <div className="text-xs text-muted-foreground line-clamp-2">
-                                            {formatViewCount(video.views)} {t('videoSearch.views')}
-                                            {video.uploadedAt && <> • {video.uploadedAt}</>}
+                                            {video.views > 0 && (
+                                                <>
+                                                    {formatViewCount(video.views)}{' '}
+                                                    {t('videoSearch.views')}
+                                                    {video.uploadedAt && ' • '}
+                                                </>
+                                            )}
+                                            {video.uploadedAt && (
+                                                <>
+                                                    {video.views > 0 ? '' : '• '}
+                                                    {video.uploadedAt}
+                                                </>
+                                            )}
                                         </div>
                                         <motion.div
                                             initial={false}
