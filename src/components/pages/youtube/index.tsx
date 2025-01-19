@@ -184,7 +184,7 @@ export default function YoutubePlayerPage() {
                                 {t('startingIn')}:{' '}
                                 <CountdownTimer
                                     classNames={cn('text-sm font-medium', 'text-white')}
-                                    initialSeconds={5}
+                                    initialSeconds={3}
                                     onCountdownComplete={handleVideoFinished}
                                 />
                             </p>
