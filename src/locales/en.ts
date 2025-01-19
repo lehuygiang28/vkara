@@ -27,6 +27,7 @@ export default {
     'toast.clearQueueHandler': 'All videos removed from queue',
     'toast.clearHistoryHandler': 'All videos removed from history',
     'toast.addVideoAndMoveToTopHandler': 'Video added to top of queue',
+    'toast.importPlaylistHandler': 'Playlist imported to queue',
 
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
@@ -109,6 +110,10 @@ export default {
     'videoQueue.shuffle': 'Shuffle',
     'videoQueue.clearQueue': 'Clear All Queue',
     'videoQueue.clearQueueConfirm': 'Are you sure you want to clear the queue?',
+    'videoQueue.importPlaylist': 'Import Playlist',
+    'videoQueue.importPlaylistDescription':
+        'Import a playlist from YouTube to the queue by providing the ID or URL',
+    'videoQueue.importPlaylistPlaceholder': 'Playlist ID/URL',
 
     'videoSearch.searchPlaceholder': 'Search YouTube videos...',
     'videoSearch.karaokeMode': 'Karaoke',

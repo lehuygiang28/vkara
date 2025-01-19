@@ -27,6 +27,7 @@ export default {
     'toast.clearQueueHandler': 'Hàng chờ đã được xóa',
     'toast.clearHistoryHandler': 'Lịch sử video đã được xóa',
     'toast.addVideoAndMoveToTopHandler': 'Video đã được ưu tiên vào hàng chờ',
+    'toast.importPlaylistHandler': 'Danh sách phát đã được nhập vào hàng chờ',
 
     'youtubePage.play': 'Phát',
     'youtubePage.pause': 'Tạm dừng',
@@ -109,6 +110,9 @@ export default {
     'videoQueue.shuffle': 'Ngẫu nhiên',
     'videoQueue.clearQueue': 'Xóa tất cả',
     'videoQueue.clearQueueConfirm': 'Xác nhận xóa tất cả?',
+    'videoQueue.importPlaylist': 'Nhập danh sách',
+    'videoQueue.importPlaylistDescription': 'Nhập danh sách video từ YouTube bằng ID hoặc URL.',
+    'videoQueue.importPlaylistPlaceholder': 'Playlist ID/URL',
 
     'videoSearch.searchPlaceholder': 'Tìm kiếm video trên YouTube...',
     'videoSearch.karaokeMode': 'Karaoke',

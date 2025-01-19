@@ -44,6 +44,7 @@ export type RawClientMessage = {
     | { type: 'clearQueue' }
     | { type: 'clearHistory' }
     | { type: 'addVideoAndMoveToTop'; video: YouTubeVideo }
+    | { type: 'importPlaylist'; playlistUrlOrId: string }
 );
 
 export type ClientMessage = MessageBase & RawClientMessage;

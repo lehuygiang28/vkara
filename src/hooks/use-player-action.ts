@@ -20,6 +20,7 @@ export type PlayerAction = {
     handleClearQueue: () => void;
     handleClearHistory: () => void;
     handleAddVideoAndMoveToTop: (video: YouTubeVideo) => void;
+    handleImportPlaylist: (playlistUrlOrId: string) => void;
 };
 
 export const usePlayerAction = (): PlayerAction => {
@@ -182,6 +183,17 @@ export const usePlayerAction = (): PlayerAction => {
         [createRoomIfNeeded, sendMessage, t],
     );
 
+    const handleImportPlaylist = useCallback(
+        async (playlistUrlOrId: string) => {
+            await createRoomIfNeeded();
+            sendMessage({ type: 'importPlaylist', playlistUrlOrId });
+            toast({
+                title: t('toast.importPlaylistHandler'),
+            });
+        },
+        [createRoomIfNeeded, sendMessage, t],
+    );
+
     return {
         handlePlayerPlay,
         handlePlayerPause,
@@ -197,5 +209,6 @@ export const usePlayerAction = (): PlayerAction => {
         handleClearQueue,
         handleClearHistory,
         handleAddVideoAndMoveToTop,
+        handleImportPlaylist,
     };
 };
