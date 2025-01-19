@@ -7,13 +7,9 @@ import { ErrorCode } from '@/types/server-errors.type';
 interface YouTubeState {
     wsId: string | null;
     player: YT.Player | null;
-    isKaraoke: boolean;
-    searchQuery: string;
     volume: number;
     currentTab: string;
     room: Omit<Room, 'clients'> | null;
-    currentVideo: string | null;
-    searchResults: YouTubeVideo[];
     isLoading: boolean;
     error: string | null;
     layoutMode: 'both' | 'remote' | 'player';
@@ -23,14 +19,9 @@ interface YouTubeState {
 
     setWsId: (wsId: string | null) => void;
     setPlayer: (player: YT.Player) => void;
-    setIsKaraoke: (isKaraoke: boolean) => void;
-    setSearchQuery: (searchQuery: string) => void;
     setVolume: (volume: number) => void;
     setCurrentTab: (currentTab: string) => void;
     setRoom: (room: Omit<Room, 'clients'> | null) => void;
-    setCurrentVideo: (currentVideo: string | null) => void;
-    setSearchResults: (searchResults: YouTubeVideo[]) => void;
-    appendSearchResults: (searchResults: YouTubeVideo[]) => void;
     setIsLoading: (isLoading: boolean) => void;
     setError: (error: string | null) => void;
     setLayoutMode: (mode: 'both' | 'remote' | 'player') => void;
@@ -51,13 +42,9 @@ export const useYouTubeStore = create(
         (set) => ({
             wsId: null,
             player: null,
-            isKaraoke: false,
-            searchQuery: '',
             volume: 60,
             currentTab: 'search',
             room: null,
-            currentVideo: null,
-            searchResults: [],
             isLoading: false,
             error: null,
             layoutMode: 'both',
@@ -67,19 +54,9 @@ export const useYouTubeStore = create(
 
             setWsId: (wsId) => set({ wsId }),
             setPlayer: (player) => set({ player }),
-            setIsKaraoke: (isKaraoke) => set({ isKaraoke }),
-            setSearchQuery: (searchQuery) => set({ searchQuery }),
             setVolume: (volume) => set({ volume }),
             setCurrentTab: (currentTab) => set({ currentTab }),
             setRoom: (room) => set({ room }),
-            setCurrentVideo: (currentVideo) => set({ currentVideo }),
-            setSearchResults: (searchResults) => set({ searchResults }),
-            appendSearchResults: (searchResults) =>
-                set((state) => {
-                    const existingIds = state.searchResults.map((v) => v.id);
-                    const newVideos = searchResults.filter((v) => !existingIds.includes(v.id));
-                    return { searchResults: [...state.searchResults, ...newVideos] };
-                }),
             setIsLoading: (isLoading) => set({ isLoading }),
             setError: (error) => set({ error }),
             setLayoutMode: (layoutMode) => {

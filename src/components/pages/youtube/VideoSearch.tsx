@@ -1,19 +1,14 @@
 'use client';
 
-import React, { useCallback, useEffect, useState, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { Search, Loader2, Play, ListVideo, MoveUp } from 'lucide-react';
 import { useDebounce } from 'use-debounce';
 
-import {
-    checkEmbeddableStatus,
-    getYoutubeSuggestions,
-    searchYoutube,
-} from '@/services/youtube-api';
 import { AutoComplete } from '@/components/autocomplete';
 import { cn } from '@/lib/utils';
-import { useI18n, useScopedI18n } from '@/locales/client';
+import { useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
-import { useYouTubeStore } from '@/store/youtubeStore';
+import { useSearchStore } from '@/store/searchStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { VideoSkeleton } from '@/components/video-skeleton';
@@ -28,169 +23,65 @@ import {
 import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
 
-const BATCH_SIZE = 10;
-
 export function VideoSearch() {
-    const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
-    const [pendingResults, setPendingResults] = useState<YouTubeVideo[]>([]);
-    const [isProcessingBatch, setIsProcessingBatch] = useState(false);
-    const [nextToken, setNextToken] = useState<string | null>(null);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const processingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [suggestions, setSuggestions] = useState<string[]>([]);
-    const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
     const t = useScopedI18n('videoSearch');
-    const t_Global = useI18n();
 
     const {
-        isKaraoke,
         searchQuery,
-        setIsKaraoke,
-        setSearchQuery,
+        isKaraoke,
         isLoading,
+        isLoadingSuggestions,
         searchResults,
-        setSearchResults,
-        appendSearchResults,
-        setIsLoading,
-        setError,
-    } = useYouTubeStore();
+        suggestions,
+        selectedVideoId,
+        nextToken,
+        isProcessingBatch,
+        pendingResults,
+        setSearchQuery,
+        setIsKaraoke,
+        setSelectedVideoId,
+        performSearch,
+        loadMore,
+        processNextBatch,
+        fetchSuggestions,
+    } = useSearchStore();
+
     const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
     const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop } =
         usePlayerAction();
 
     // Process next batch of videos
-    const processNextBatch = useCallback(async () => {
-        if (isProcessingBatch || pendingResults.length === 0) return;
-
-        setIsProcessingBatch(true);
-        const batch = pendingResults.slice(0, BATCH_SIZE);
-        const videoIds = batch.map((video) => video.id);
-
-        try {
-            let processedBatch;
-            if (process.env.NEXT_PUBLIC_SKIP_EMBEDDABLE_CHECK === 'true') {
-                processedBatch = batch.map((video) => ({
-                    ...video,
-                    isEmbedChecked: true,
-                    canEmbed: true,
-                }));
-            } else {
-                const embedResults = await checkEmbeddableStatus(videoIds);
-                processedBatch = batch.map((video) => ({
-                    ...video,
-                    isEmbedChecked: true,
-                    canEmbed:
-                        embedResults.find((result) => result.videoId === video.id)?.canEmbed ||
-                        false,
-                }));
-            }
-
-            setPendingResults((prev) => prev.slice(BATCH_SIZE));
-            appendSearchResults(processedBatch.filter((video) => video.canEmbed));
-        } catch (error) {
-            console.error('Error processing batch:', error);
-        } finally {
-            setIsProcessingBatch(false);
-        }
-    }, [isProcessingBatch, pendingResults, appendSearchResults]);
-
-    // Schedule next batch processing
     useEffect(() => {
         if (pendingResults.length > 0 && !isProcessingBatch) {
-            processingTimeoutRef.current = setTimeout(processNextBatch, 100);
+            const timeoutId = setTimeout(processNextBatch, 100);
+            return () => clearTimeout(timeoutId);
         }
+    }, [pendingResults.length, isProcessingBatch, processNextBatch]);
 
-        return () => {
-            if (processingTimeoutRef.current) {
-                clearTimeout(processingTimeoutRef.current);
-            }
-        };
-    }, [pendingResults, isProcessingBatch, processNextBatch]);
+    // Fetch suggestions when search query changes
+    useEffect(() => {
+        if (debouncedSearchQuery) {
+            fetchSuggestions(debouncedSearchQuery);
+        }
+    }, [debouncedSearchQuery, fetchSuggestions]);
 
-    const performSearch = useCallback(
-        async (query: string, token?: string | null) => {
-            if (!query) {
-                setPendingResults([]);
-                setSearchResults([]);
-                setNextToken(null);
-                return;
-            }
+    // Perform search when karaoke mode changes
+    useEffect(() => {
+        performSearch(debouncedSearchQuery);
+    }, [isKaraoke, debouncedSearchQuery, performSearch]);
 
-            query = `${isKaraoke ? 'karaoke ' : ''}${query}`;
-
-            if (!token) {
-                setIsLoading(true);
-                setSearchResults([]);
-                setPendingResults([]);
-            } else {
-                setIsLoadingMore(true);
-            }
-            setError(null);
-
-            try {
-                const { items, continuation } = await searchYoutube({
-                    query,
-                    isKaraoke,
-                    continuation: token,
-                });
-                setPendingResults((prev) => [...prev, ...items]);
-                setNextToken(continuation);
-            } catch (err) {
-                setError(t_Global('youtubePage.failedToFetch'));
-                console.error('Search error:', err);
-            } finally {
-                setIsLoading(false);
-                setIsLoadingMore(false);
-            }
-        },
-        [isKaraoke, setSearchResults, setIsLoading, setError, t_Global],
-    );
-
-    const handleManualSearch = useCallback(() => {
+    const handleManualSearch = () => {
         if (searchQuery) {
             performSearch(searchQuery);
         }
-    }, [searchQuery, performSearch]);
-
-    useEffect(() => {
-        const fetchSuggestions = async () => {
-            if (debouncedSearchQuery) {
-                setIsLoadingSuggestions(true);
-                try {
-                    const fetchedSuggestions = await getYoutubeSuggestions(debouncedSearchQuery);
-                    setSuggestions(fetchedSuggestions);
-                } catch (error) {
-                    console.error('Error fetching suggestions:', error);
-                } finally {
-                    setIsLoadingSuggestions(false);
-                }
-            } else {
-                setSuggestions([]);
-            }
-        };
-
-        fetchSuggestions();
-    }, [debouncedSearchQuery]);
-
-    const loadMore = useCallback(() => {
-        if (nextToken && !isLoadingMore && !isProcessingBatch) {
-            performSearch(searchQuery, nextToken);
-        }
-    }, [nextToken, isLoadingMore, isProcessingBatch, performSearch, searchQuery]);
-
-    useEffect(() => {
-        // Trigger search is karaoke mode is toggled
-        // isKaraoke set by state, so just use it as dependency
-        performSearch(debouncedSearchQuery);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isKaraoke, performSearch]);
+    };
 
     function renderButtons(video: YouTubeVideo) {
         return (
             <div
                 className={cn(
                     'overflow-hidden transition-all duration-300 ease-in-out',
-                    selectedVideo === video.id ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0',
+                    selectedVideoId === video.id ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0',
                 )}
             >
                 <div className="flex items-center gap-2 flex-wrap">
@@ -233,7 +124,7 @@ export function VideoSearch() {
                             }}
                             searchValue={searchQuery}
                             onSearchValueChange={setSearchQuery}
-                            items={suggestions.map((suggestion) => ({
+                            items={suggestions.map((suggestion: string) => ({
                                 value: suggestion,
                                 label: suggestion,
                             }))}
@@ -291,9 +182,9 @@ export function VideoSearch() {
                         emptyMessage={searchQuery && !pendingResults.length ? t('noResults') : ''}
                         renderButtons={renderButtons}
                         onVideoClick={(video) =>
-                            setSelectedVideo(video.id === selectedVideo ? null : video.id)
+                            setSelectedVideoId(video.id === selectedVideoId ? null : video.id)
                         }
-                        selectedVideoId={selectedVideo}
+                        selectedVideoId={selectedVideoId}
                         onLoadMore={loadMore}
                         hasMore={!!nextToken && !isProcessingBatch}
                     />
