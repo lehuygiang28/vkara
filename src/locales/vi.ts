@@ -117,7 +117,7 @@ export default {
     'videoQueue.importPlaylistDescription': 'Nhập danh sách video từ YouTube bằng ID hoặc URL.',
     'videoQueue.importPlaylistPlaceholder': 'Playlist ID/URL',
 
-    'videoSearch.searchPlaceholder': 'Tìm kiếm video trên YouTube...',
+    'videoSearch.searchPlaceholder': 'Tìm kiếm video...',
     'videoSearch.karaokeMode': 'Karaoke',
     'videoSearch.allMode': 'Tất cả',
     'videoSearch.noResults': 'Không tìm thấy kết quả',
