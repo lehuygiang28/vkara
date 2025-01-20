@@ -50,3 +50,13 @@ export async function checkEmbeddableStatus(videoIds: string[]) {
     });
     return (await response.json()) as { videoId: string; canEmbed: boolean }[];
 }
+
+export async function getRelatedVideos(videoId: string) {
+    const url = new URL('/related', API_URL);
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ videoId }),
+    });
+    return (await response.json()) as YouTubeVideo[];
+}

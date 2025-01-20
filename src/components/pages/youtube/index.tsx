@@ -12,6 +12,7 @@ import {
     ListVideo,
     Maximize,
     Minimize,
+    Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCode } from 'react-qrcode-logo';
@@ -35,6 +36,7 @@ import { VideoHistory } from './VideoHistory';
 import { PlayerControls } from './PlayerControls';
 import { PlayerControlsTabs } from './PlayerControlsTabs';
 import { ScrollToTop } from '@/components/scroll-to-top';
+import { VideoRelated } from './VideoRelated';
 
 export default function YoutubePlayerPage() {
     const {
@@ -96,25 +98,34 @@ export default function YoutubePlayerPage() {
         <Card className="flex flex-col h-full rounded-none border-0">
             <Tabs value={currentTab} onValueChange={setCurrentTab} className="flex-1">
                 <TabsList className="flex flex-wrap h-auto w-full justify-start rounded-none border-b sticky top-0 z-10 bg-background">
-                    <TabsTrigger value="search" className="flex-grow basis-1/3 lg:basis-1/5">
+                    <TabsTrigger value="search" className="flex-grow basis-1/3">
                         <Search className="h-4 w-4 mr-2" />
                         <span>{t('search')}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="queue" className="flex-grow basis-1/3 lg:basis-1/5">
+
+                    <TabsTrigger value="queue" className="flex-grow basis-1/3">
                         <ListVideo className="h-4 w-4 mr-2" />
                         <span>
                             {t('list')} ({room?.videoQueue.length || 0})
                         </span>
                     </TabsTrigger>
-                    <TabsTrigger value="history" className="flex-grow basis-1/3 lg:basis-1/5">
+
+                    <TabsTrigger value="history" className="flex-grow basis-1/3">
                         <History className="h-4 w-4 mr-2" />
                         <span>{t('history')}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="controls" className="flex-grow basis-1/3 lg:basis-1/5">
+
+                    <TabsTrigger value="related" className="flex-grow basis-1/3">
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        <span>{t('related')}</span>
+                    </TabsTrigger>
+
+                    <TabsTrigger value="controls" className="flex-grow basis-1/3">
                         <SlidersVertical className="h-4 w-4 mr-2" />
                         <span>{t('controls')}</span>
                     </TabsTrigger>
-                    <TabsTrigger value="settings" className="flex-grow basis-1/3 lg:basis-1/5">
+
+                    <TabsTrigger value="settings" className="flex-grow basis-1/3">
                         <Settings className="h-4 w-4 mr-2" />
                         <span>{t('settings')}</span>
                     </TabsTrigger>
@@ -122,15 +133,23 @@ export default function YoutubePlayerPage() {
                 <TabsContent value="search" className="flex-1 overflow-auto">
                     <VideoSearch />
                 </TabsContent>
+
+                <TabsContent value="related" className="flex-1 overflow-auto">
+                    <VideoRelated />
+                </TabsContent>
+
                 <TabsContent value="history" className="flex-1 overflow-auto">
                     <VideoHistory />
                 </TabsContent>
+
                 <TabsContent value="queue" className="flex-1 overflow-auto">
                     <VideoQueue />
                 </TabsContent>
+
                 <TabsContent value="controls" className="flex-1 overflow-auto">
                     <PlayerControlsTabs />
                 </TabsContent>
+
                 <TabsContent value="settings" className="flex-1 overflow-auto">
                     <RoomSettings />
                 </TabsContent>

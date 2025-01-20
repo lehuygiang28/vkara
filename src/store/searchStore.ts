@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 import type { YouTubeVideo } from '@/types/youtube.type';
-import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
+import { getRelatedVideos, getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
 
 interface SearchState {
     searchQuery: string;
@@ -16,6 +16,10 @@ interface SearchState {
     nextToken: string | null;
     error: string | null;
 
+    relatedResults: YouTubeVideo[];
+    isRelatedLoading: boolean;
+    selectedRelatedVideoId: string | null;
+
     // Actions
     setSearchQuery: (query: string) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
@@ -23,6 +27,9 @@ interface SearchState {
     performSearch: (query: string, token?: string | null) => Promise<void>;
     loadMore: () => Promise<void>;
     fetchSuggestions: (query: string) => Promise<void>;
+
+    fetchRelatedResults: (videoId: string) => void;
+    setSelectedRelatedVideoId: (id: string | null) => void;
 }
 
 export const useSearchStore = create(
@@ -38,6 +45,10 @@ export const useSearchStore = create(
             selectedVideoId: null,
             nextToken: null,
             error: null,
+
+            relatedResults: [],
+            isRelatedLoading: false,
+            selectedRelatedVideoId: null,
 
             setSearchQuery: (query) => set({ searchQuery: query }),
             setIsKaraoke: (isKaraoke) => {
@@ -134,6 +145,24 @@ export const useSearchStore = create(
                     set({ isLoadingSuggestions: false });
                 }
             },
+
+            fetchRelatedResults: async (videoId: string) => {
+                set({ isRelatedLoading: true });
+                try {
+                    const oldResults = get().relatedResults;
+                    const relatedResults = (await getRelatedVideos(videoId)).filter(
+                        (video) => !oldResults.some((v) => v.id === video.id),
+                    );
+                    set({ relatedResults: relatedResults });
+                } catch (error) {
+                    console.error('Error fetching related results:', error);
+                    set({ relatedResults: [] });
+                } finally {
+                    set({ isRelatedLoading: false });
+                }
+            },
+
+            setSelectedRelatedVideoId: (id) => set({ selectedRelatedVideoId: id }),
         }),
         {
             name: 'search-store',

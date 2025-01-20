@@ -58,6 +58,7 @@ export default {
     'youtubePage.startingIn': 'Bắt đầu trong',
     'youtubePage.exitFullscreen': 'Thu nhỏ',
     'youtubePage.fullscreen': 'Phóng to',
+    'youtubePage.related': 'Đề xuất',
 
     'seekToInput.title': 'Nhảy đến thời gian cụ thể',
     'seekToInput.description': 'Nhập thời gian dưới dạng giây, MM:SS, hoặc HH:MM:SS',

@@ -57,6 +57,7 @@ export default {
     'youtubePage.startingIn': 'Starting in',
     'youtubePage.exitFullscreen': 'Exit Fullscreen',
     'youtubePage.fullscreen': 'Fullscreen',
+    'youtubePage.related': 'Related',
 
     'seekToInput.title': 'Seek to specific time',
     'seekToInput.description': 'Enter time in seconds, MM:SS, or HH:MM:SS format',
