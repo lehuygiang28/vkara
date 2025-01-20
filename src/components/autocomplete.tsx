@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 import { Command as CommandPrimitive } from 'cmdk';
-import { Check, Search, Loader2 } from 'lucide-react';
-import { useMemo, useState } from 'react';
+import { Check, Search, Loader2, X } from 'lucide-react';
+import { useCallback, useMemo, useState } from 'react';
 import {
     Command,
     CommandEmpty,
@@ -22,6 +22,7 @@ type Props<T extends string> = {
     onSearch: (value: string) => void;
     items: { value: T; label: string }[];
     isLoading?: boolean;
+    isLoadingSuggestions?: boolean;
     emptyMessage?: string;
     placeholder?: string;
     classNames?: string;
@@ -34,8 +35,9 @@ export function AutoComplete<T extends string>({
     searchValue,
     onSearchValueChange,
     onSearch,
-    items,
+    items = [],
     isLoading,
+    isLoadingSuggestions,
     emptyMessage = 'No items.',
     placeholder = 'Search...',
     classNames = '',
@@ -45,49 +47,36 @@ export function AutoComplete<T extends string>({
 
     const labels = useMemo(
         () =>
-            items.reduce((acc, item) => {
+            (items || []).reduce((acc, item) => {
                 acc[item.value] = item.label;
                 return acc;
             }, {} as Record<string, string>),
         [items],
     );
 
-    const reset = () => {
-        onSelectedValueChange('' as T);
-        // Remove this line to prevent clearing the search value
-        // onSearchValueChange('');
-    };
-
     const onInputBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         if (!e.relatedTarget?.hasAttribute('cmdk-list') && labels[selectedValue] !== searchValue) {
-            // Only reset the selected value, not the search value
             onSelectedValueChange('' as T);
         }
     };
 
     const onSelectItem = (inputValue: string) => {
-        if (inputValue === selectedValue) {
-            reset();
-        } else {
-            onSelectedValueChange(inputValue as T);
-            onSearchValueChange(labels[inputValue] ?? inputValue);
-        }
+        onSelectedValueChange(inputValue as T);
+        onSearchValueChange(labels[inputValue] ?? inputValue);
         setOpen(false);
         onSearch(inputValue);
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            onSearch(searchValue);
-            setOpen(false);
-        }
-    };
+    const clearInput = useCallback(() => {
+        onSearchValueChange('');
+        onSelectedValueChange('' as T);
+        setOpen(false);
+    }, [onSearchValueChange, onSelectedValueChange]);
 
     return (
         <div className={cn('flex items-center', classNames)}>
             <Popover open={open} onOpenChange={setOpen}>
-                <Command shouldFilter={false}>
+                <Command shouldFilter={false} className="w-full">
                     <div className="relative">
                         <PopoverAnchor asChild>
                             <CommandPrimitive.Input
@@ -97,29 +86,39 @@ export function AutoComplete<T extends string>({
                                 onMouseDown={() => setOpen((open) => !!searchValue || !open)}
                                 onFocus={() => setOpen(true)}
                                 onBlur={onInputBlur}
-                                onKeyDown={handleKeyDown}
                             >
-                                <Input
-                                    placeholder={placeholder}
-                                    className="pr-10" // Add padding for the icon
-                                />
+                                <Input placeholder={placeholder} className="pr-20" />
                             </CommandPrimitive.Input>
                         </PopoverAnchor>
-                        <Button
-                            className="absolute right-0 top-0 h-full px-3 flex items-center justify-center"
-                            onClick={() => onSearch(searchValue)}
-                            type="button"
-                            aria-label="Search"
-                            size="sm"
-                            variant="ghost"
-                            disabled={isLoading}
-                        >
-                            {isLoading ? (
-                                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                            ) : (
-                                <Search className="h-4 w-4 text-muted-foreground" />
+                        <div className="absolute right-0 top-0 h-full flex items-center">
+                            {searchValue && (
+                                <Button
+                                    className="px-2 h-full flex items-center justify-center"
+                                    onClick={clearInput}
+                                    type="button"
+                                    aria-label="Clear search"
+                                    size="sm"
+                                    variant="ghost"
+                                >
+                                    <X className="h-4 w-4 text-muted-foreground" />
+                                </Button>
                             )}
-                        </Button>
+                            <Button
+                                className="px-3 h-full flex items-center justify-center"
+                                onClick={() => onSearch(searchValue)}
+                                type="button"
+                                aria-label="Search"
+                                size="sm"
+                                variant="ghost"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                                ) : (
+                                    <Search className="h-4 w-4 text-muted-foreground" />
+                                )}
+                            </Button>
+                        </div>
                     </div>
                     {!open && <CommandList aria-hidden="true" className="hidden" />}
                     <PopoverContent
@@ -136,14 +135,14 @@ export function AutoComplete<T extends string>({
                         className="w-[--radix-popover-trigger-width] p-0"
                     >
                         <CommandList>
-                            {isLoading && (
+                            {isLoadingSuggestions && (
                                 <CommandPrimitive.Loading>
                                     <div className="p-1">
                                         <Skeleton className="h-6 w-full" />
                                     </div>
                                 </CommandPrimitive.Loading>
                             )}
-                            {items.length > 0 && !isLoading ? (
+                            {items.length > 0 && !isLoadingSuggestions ? (
                                 <CommandGroup>
                                     {items.map((option) => (
                                         <CommandItem
@@ -167,8 +166,8 @@ export function AutoComplete<T extends string>({
                                     ))}
                                 </CommandGroup>
                             ) : null}
-                            {!isLoading ? (
-                                <CommandEmpty>{emptyMessage ?? 'No items.'}</CommandEmpty>
+                            {!isLoadingSuggestions ? (
+                                <CommandEmpty>{emptyMessage}</CommandEmpty>
                             ) : null}
                         </CommandList>
                     </PopoverContent>

@@ -7,7 +7,7 @@ import { useDebounce } from 'use-debounce';
 import { AutoComplete } from '@/components/autocomplete';
 import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
-import { YouTubeVideo } from '@/types/youtube.type';
+import type { YouTubeVideo } from '@/types/youtube.type';
 import { useSearchStore } from '@/store/searchStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
@@ -45,7 +45,8 @@ export function VideoSearch() {
         fetchSuggestions,
     } = useSearchStore();
 
-    const [debouncedSearchQuery] = useDebounce(searchQuery, 500);
+    const [debouncedSearchForSuggestions] = useDebounce(searchQuery, 500); // 300ms for suggestions
+
     const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop } =
         usePlayerAction();
 
@@ -57,17 +58,12 @@ export function VideoSearch() {
         }
     }, [pendingResults.length, isProcessingBatch, processNextBatch]);
 
-    // Fetch suggestions when search query changes
+    // Fetch suggestions when search query changes (after 500ms)
     useEffect(() => {
-        if (debouncedSearchQuery) {
-            fetchSuggestions(debouncedSearchQuery);
+        if (debouncedSearchForSuggestions) {
+            fetchSuggestions(debouncedSearchForSuggestions);
         }
-    }, [debouncedSearchQuery, fetchSuggestions]);
-
-    // Perform search when karaoke mode changes
-    useEffect(() => {
-        performSearch(debouncedSearchQuery);
-    }, [isKaraoke, debouncedSearchQuery, performSearch]);
+    }, [debouncedSearchForSuggestions, fetchSuggestions]);
 
     const handleManualSearch = () => {
         if (searchQuery) {
@@ -117,17 +113,18 @@ export function VideoSearch() {
                     <div className="relative flex-grow">
                         <AutoComplete
                             selectedValue={searchQuery}
+                            searchValue={searchQuery}
                             onSelectedValueChange={(value) => {
                                 setSearchQuery(value);
                                 handleManualSearch();
                             }}
-                            searchValue={searchQuery}
                             onSearchValueChange={setSearchQuery}
                             items={suggestions.map((suggestion: string) => ({
                                 value: suggestion,
                                 label: suggestion,
                             }))}
-                            isLoading={isLoadingSuggestions}
+                            isLoading={isLoading}
+                            isLoadingSuggestions={isLoadingSuggestions}
                             placeholder={t('searchPlaceholder')}
                             classNames="flex-grow"
                             showCheck={false}
