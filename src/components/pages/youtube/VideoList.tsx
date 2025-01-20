@@ -35,9 +35,11 @@ export const VideoList = memo(function VideoList({
     isLoading = false,
 }: VideoListProps) {
     const t = useI18n();
-    const observerTarget = useRef(null);
+    const observerTarget = useRef<HTMLDivElement | null>(null);
 
     useEffect(() => {
+        const currentObserverTarget = observerTarget.current;
+
         const observer = new IntersectionObserver(
             (entries) => {
                 if (entries[0].isIntersecting && hasMore) {
@@ -47,13 +49,13 @@ export const VideoList = memo(function VideoList({
             { threshold: 0.5 },
         );
 
-        if (observerTarget.current) {
-            observer.observe(observerTarget.current);
+        if (currentObserverTarget) {
+            observer.observe(currentObserverTarget);
         }
 
         return () => {
-            if (observerTarget.current) {
-                observer.unobserve(observerTarget.current);
+            if (currentObserverTarget) {
+                observer.unobserve(currentObserverTarget);
             }
         };
     }, [onLoadMore, hasMore]);
