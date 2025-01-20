@@ -3,11 +3,12 @@
 import React, { Suspense, useCallback, useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { Eye, EyeOff, Copy } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
-import { useChangeLocale, useCurrentLocale, SUPPORTED_LOCALES } from '@/locales/client';
+import { useChangeLocale, useCurrentLocale, type SUPPORTED_LOCALES } from '@/locales/client';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +27,12 @@ import { generateShareableUrl } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
 import { TooltipButton } from '@/components/tooltip-button';
+import {
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
+} from '@/components/ui/input-otp';
 
 export function RoomSettings() {
     const {
@@ -46,6 +53,10 @@ export function RoomSettings() {
     const [roomPassword, setRoomPassword] = useState<string>('');
     const [joinRoomId, setJoinRoomId] = useState<string>('');
     const [joinRoomPassword, setJoinRoomPassword] = useState<string>('');
+    const [showJoinPassword, setShowJoinPassword] = useState(false);
+    const [showCreatePassword, setShowCreatePassword] = useState(false);
+    const [showCreateRoom, setShowCreateRoom] = useState(false);
+    const [showJoinRoom, setShowJoinRoom] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const changeLocale = useChangeLocale({ preserveSearchParams: true });
     const locale = useCurrentLocale();
@@ -60,8 +71,20 @@ export function RoomSettings() {
     }, [roomPassword, sendMessage]);
 
     const joinRoom = useCallback(() => {
-        sendMessage({ type: 'joinRoom', roomId: joinRoomId, password: joinRoomPassword });
-    }, [joinRoomId, joinRoomPassword, sendMessage]);
+        if (joinRoomId.length === 6) {
+            sendMessage({
+                type: 'joinRoom',
+                roomId: joinRoomId,
+                password: joinRoomPassword,
+            });
+        } else {
+            toast({
+                title: t_RoomSettings('invalidRoomId'),
+                description: t_RoomSettings('roomIdMustBe6Digits'),
+                variant: 'destructive',
+            });
+        }
+    }, [joinRoomId, joinRoomPassword, sendMessage, t_RoomSettings]);
 
     const leaveRoom = useCallback(() => {
         if (room?.id) {
@@ -246,56 +269,137 @@ export function RoomSettings() {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="create-room-password">
-                                            {t_RoomSettings('roomPassword.label')}
-                                        </Label>
-                                        <Input
-                                            id="create-room-password"
-                                            type="password"
-                                            value={roomPassword}
-                                            onChange={(e) => setRoomPassword(e.target.value)}
-                                            placeholder={t_RoomSettings('roomPassword.placeholder')}
-                                        />
+                                    <div className="flex space-x-4">
                                         <Button
-                                            onClick={createRoom}
-                                            disabled={!isConnected}
+                                            onClick={() => {
+                                                setShowCreateRoom(true);
+                                                setShowJoinRoom(false);
+                                            }}
                                             className="w-full"
                                         >
                                             {t_RoomSettings('createRoom')}
                                         </Button>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="join-room-id">
-                                            {t_RoomSettings('joinRoomId.label')}
-                                        </Label>
-                                        <Input
-                                            id="join-room-id"
-                                            value={joinRoomId}
-                                            onChange={(e) => setJoinRoomId(e.target.value)}
-                                            placeholder={t_RoomSettings('joinRoomId.placeholder')}
-                                            type="number"
-                                        />
-                                        <Label htmlFor="join-room-password">
-                                            {t_RoomSettings('joinRoomPassword.label')}
-                                        </Label>
-                                        <Input
-                                            id="join-room-password"
-                                            type="password"
-                                            value={joinRoomPassword}
-                                            onChange={(e) => setJoinRoomPassword(e.target.value)}
-                                            placeholder={t_RoomSettings(
-                                                'joinRoomPassword.placeholder',
-                                            )}
-                                        />
                                         <Button
-                                            onClick={joinRoom}
-                                            disabled={!isConnected}
+                                            onClick={() => {
+                                                setShowJoinRoom(true);
+                                                setShowCreateRoom(false);
+                                            }}
                                             className="w-full"
                                         >
                                             {t_RoomSettings('joinRoom')}
                                         </Button>
                                     </div>
+
+                                    {showCreateRoom && (
+                                        <Card>
+                                            <CardContent className="space-y-4 mt-4">
+                                                <div className="flex items-center space-x-2">
+                                                    <Switch
+                                                        id="use-create-password"
+                                                        checked={showCreatePassword}
+                                                        onCheckedChange={setShowCreatePassword}
+                                                    />
+                                                    <Label htmlFor="use-create-password">
+                                                        {t_RoomSettings('usePassword')}
+                                                    </Label>
+                                                </div>
+                                                {showCreatePassword && (
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="create-room-password">
+                                                            {t_RoomSettings('roomPassword.label')}
+                                                        </Label>
+                                                        <Input
+                                                            id="create-room-password"
+                                                            type="password"
+                                                            value={roomPassword}
+                                                            onChange={(e) =>
+                                                                setRoomPassword(e.target.value)
+                                                            }
+                                                            placeholder={t_RoomSettings(
+                                                                'roomPassword.placeholder',
+                                                            )}
+                                                        />
+                                                    </div>
+                                                )}
+                                                <Button
+                                                    onClick={createRoom}
+                                                    disabled={!isConnected}
+                                                    className="w-full"
+                                                >
+                                                    {t_RoomSettings('createRoom')}
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    )}
+
+                                    {showJoinRoom && (
+                                        <Card>
+                                            <CardContent className="space-y-4 mt-4">
+                                                <Label htmlFor="join-room-id">
+                                                    {t_RoomSettings('joinRoomId.label')}
+                                                </Label>
+                                                <div className="flex flex-col items-center space-y-4">
+                                                    <InputOTP
+                                                        maxLength={6}
+                                                        value={joinRoomId}
+                                                        onChange={setJoinRoomId}
+                                                    >
+                                                        <InputOTPGroup>
+                                                            <InputOTPSlot index={0} />
+                                                            <InputOTPSlot index={1} />
+                                                            <InputOTPSlot index={2} />
+                                                        </InputOTPGroup>
+                                                        <InputOTPSeparator />
+                                                        <InputOTPGroup>
+                                                            <InputOTPSlot index={3} />
+                                                            <InputOTPSlot index={4} />
+                                                            <InputOTPSlot index={5} />
+                                                        </InputOTPGroup>
+                                                    </InputOTP>
+                                                    <p className="text-sm text-muted-foreground">
+                                                        {t_RoomSettings('joinRoomId.placeholder')}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center space-x-2">
+                                                    <Switch
+                                                        id="use-join-password"
+                                                        checked={showJoinPassword}
+                                                        onCheckedChange={setShowJoinPassword}
+                                                    />
+                                                    <Label htmlFor="use-join-password">
+                                                        {t_RoomSettings('usePassword')}
+                                                    </Label>
+                                                </div>
+                                                {showJoinPassword && (
+                                                    <div className="space-y-2">
+                                                        <Label htmlFor="join-room-password">
+                                                            {t_RoomSettings(
+                                                                'joinRoomPassword.label',
+                                                            )}
+                                                        </Label>
+                                                        <Input
+                                                            id="join-room-password"
+                                                            type="password"
+                                                            value={joinRoomPassword}
+                                                            onChange={(e) =>
+                                                                setJoinRoomPassword(e.target.value)
+                                                            }
+                                                            placeholder={t_RoomSettings(
+                                                                'joinRoomPassword.placeholder',
+                                                            )}
+                                                        />
+                                                    </div>
+                                                )}
+                                                <Button
+                                                    onClick={joinRoom}
+                                                    disabled={!isConnected}
+                                                    className="w-full"
+                                                >
+                                                    {t_RoomSettings('joinRoom')}
+                                                </Button>
+                                            </CardContent>
+                                        </Card>
+                                    )}
                                 </div>
                             )}
                         </CardContent>

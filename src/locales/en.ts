@@ -93,6 +93,9 @@ export default {
     'roomSettings.showBottomControls': 'Show bottom controls',
     'roomSettings.opacityOfButtonsInPlayer': 'Opacity of buttons in player',
     'roomSettings.copyPasswordSuccess': 'Password copied to clipboard',
+    'roomSettings.invalidRoomId': 'Invalid room ID',
+    'roomSettings.roomIdMustBe6Digits': 'Room ID must be 6 digits',
+    'roomSettings.usePassword': 'Use Password',
 
     'connectionStatus.notConnected': 'Not Connected',
     'connectionStatus.connected': 'Connected',

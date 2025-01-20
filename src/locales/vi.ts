@@ -93,6 +93,9 @@ export default {
     'roomSettings.showBottomControls': 'Hiện nút điều khiển bên dưới',
     'roomSettings.opacityOfButtonsInPlayer': 'Độ mờ nút điều khiển trong video',
     'roomSettings.copyPasswordSuccess': 'Mật khẩu đã được sao chép',
+    'roomSettings.invalidRoomId': 'Mã phòng không hợp lệ',
+    'roomSettings.roomIdMustBe6Digits': 'Mã phòng phải có 6 chữ số',
+    'roomSettings.usePassword': 'Sử dụng mật khẩu',
 
     'connectionStatus.notConnected': 'Không kết nối',
     'connectionStatus.connected': 'Đã kết nối',
