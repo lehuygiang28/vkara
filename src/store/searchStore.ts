@@ -148,7 +148,7 @@ export const useSearchStore = create(
             },
 
             fetchRelatedResults: async (videoId: string) => {
-                set({ isRelatedLoading: true });
+                set({ isRelatedLoading: true, relatedResults: [] });
                 try {
                     const oldResults = get().relatedResults;
                     const relatedResults = (await getRelatedVideos(videoId)).items.filter(
