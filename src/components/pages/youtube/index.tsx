@@ -12,7 +12,6 @@ import {
     ListVideo,
     Maximize,
     Minimize,
-    Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { QRCode } from 'react-qrcode-logo';
@@ -28,6 +27,7 @@ import { CountdownTimer } from '@/components/countdown-timer';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ScrollToTop } from '@/components/scroll-to-top';
 
 import { RoomSettings } from './RoomSettings';
 import { VideoQueue } from './VideoQueue';
@@ -35,8 +35,6 @@ import { VideoSearch } from './VideoSearch';
 import { VideoHistory } from './VideoHistory';
 import { PlayerControls } from './PlayerControls';
 import { PlayerControlsTabs } from './PlayerControlsTabs';
-import { ScrollToTop } from '@/components/scroll-to-top';
-import { VideoRelated } from './VideoRelated';
 
 export default function YoutubePlayerPage() {
     const {
@@ -115,10 +113,10 @@ export default function YoutubePlayerPage() {
                         <span>{t('history')}</span>
                     </TabsTrigger>
 
-                    <TabsTrigger value="related" className="flex-grow basis-1/3">
+                    {/* <TabsTrigger value="related" className="flex-grow basis-1/3">
                         <Sparkles className="h-4 w-4 mr-2" />
                         <span>{t('related')}</span>
-                    </TabsTrigger>
+                    </TabsTrigger> */}
 
                     <TabsTrigger value="controls" className="flex-grow basis-1/3">
                         <SlidersVertical className="h-4 w-4 mr-2" />
@@ -134,9 +132,9 @@ export default function YoutubePlayerPage() {
                     <VideoSearch />
                 </TabsContent>
 
-                <TabsContent value="related" className="flex-1 overflow-auto">
+                {/* <TabsContent value="related" className="flex-1 overflow-auto">
                     <VideoRelated />
-                </TabsContent>
+                </TabsContent> */}
 
                 <TabsContent value="history" className="flex-1 overflow-auto">
                     <VideoHistory />
