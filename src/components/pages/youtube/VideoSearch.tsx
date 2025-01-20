@@ -34,29 +34,18 @@ export function VideoSearch() {
         suggestions,
         selectedVideoId,
         nextToken,
-        isProcessingBatch,
-        pendingResults,
         setSearchQuery,
         setIsKaraoke,
         setSelectedVideoId,
         performSearch,
         loadMore,
-        processNextBatch,
         fetchSuggestions,
     } = useSearchStore();
 
-    const [debouncedSearchForSuggestions] = useDebounce(searchQuery, 500); // 300ms for suggestions
+    const [debouncedSearchForSuggestions] = useDebounce(searchQuery, 500);
 
     const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop } =
         usePlayerAction();
-
-    // Process next batch of videos
-    useEffect(() => {
-        if (pendingResults.length > 0 && !isProcessingBatch) {
-            const timeoutId = setTimeout(processNextBatch, 100);
-            return () => clearTimeout(timeoutId);
-        }
-    }, [pendingResults.length, isProcessingBatch, processNextBatch]);
 
     // Fetch suggestions when search query changes (after 500ms)
     useEffect(() => {
@@ -162,14 +151,16 @@ export function VideoSearch() {
                     <VideoList
                         keyPrefix={'search-list'}
                         videos={searchResults}
-                        emptyMessage={searchQuery && !pendingResults.length ? t('noResults') : ''}
+                        emptyMessage={
+                            searchQuery && searchResults.length === 0 ? t('noResults') : ''
+                        }
                         renderButtons={renderButtons}
                         onVideoClick={(video) =>
                             setSelectedVideoId(video.id === selectedVideoId ? null : video.id)
                         }
                         selectedVideoId={selectedVideoId}
                         onLoadMore={loadMore}
-                        hasMore={!!nextToken && !isProcessingBatch}
+                        hasMore={!!nextToken}
                     />
                 </>
             )}
