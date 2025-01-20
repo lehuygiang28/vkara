@@ -2,8 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 import type { YouTubeVideo } from '@/types/youtube.type';
-import { getRelatedVideos } from '@/actions/youtube-actions';
-import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
+// import { getRelatedVideos } from '@/actions/youtube-actions';
+import { getYoutubeSuggestions, searchYoutube, getRelatedVideos } from '@/services/youtube-api';
 
 interface SearchState {
     searchQuery: string;
