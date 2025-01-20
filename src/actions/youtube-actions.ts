@@ -32,7 +32,8 @@ export async function getRelatedVideos(videoId: string): Promise<{ items: YouTub
         return {
             items: embeddableVideos.map(mapYoutubeiVideo),
         };
-    } catch {
+    } catch (error) {
+        console.error('Error fetching related videos', error);
         return {
             items: [],
         };
