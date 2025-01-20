@@ -1,14 +1,15 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import React, { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef, memo } from 'react';
 import { BadgeCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { cn, formatViewCount } from '@/lib/utils';
-import { YouTubeVideo } from '@/types/youtube.type';
+import type { YouTubeVideo } from '@/types/youtube.type';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useI18n } from '@/locales/client';
+import { VideoSkeleton } from '@/components/video-skeleton';
 
 interface VideoListProps {
     keyPrefix?: string;
@@ -19,6 +20,7 @@ interface VideoListProps {
     selectedVideoId?: string | null;
     onLoadMore?: () => void;
     hasMore?: boolean;
+    isLoading?: boolean;
 }
 
 export const VideoList = memo(function VideoList({
@@ -30,6 +32,7 @@ export const VideoList = memo(function VideoList({
     selectedVideoId,
     onLoadMore,
     hasMore = false,
+    isLoading = false,
 }: VideoListProps) {
     const t = useI18n();
     const observerTarget = useRef(null);
@@ -58,7 +61,7 @@ export const VideoList = memo(function VideoList({
     return (
         <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full" hideScrollbar>
-                <div className="space-y-3 pb-[20rem]">
+                <div className={cn('space-y-3', !isLoading && 'pb-[20rem]')}>
                     <AnimatePresence mode="popLayout" initial={false}>
                         {videos.length === 0 ? (
                             <motion.div
@@ -105,14 +108,17 @@ export const VideoList = memo(function VideoList({
                                             </div>
                                         )}
                                     </motion.div>
-                                    <motion.div layout className="flex flex-col min-w-0">
-                                        <div className="text-md font-medium leading-snug line-clamp-2">
+                                    <motion.div
+                                        layout
+                                        className="flex flex-col min-w-0 flex-1 overflow-hidden"
+                                    >
+                                        <div className="text-md font-medium leading-snug line-clamp-2 break-words">
                                             {video.title}
                                         </div>
                                         <div className="text-sm text-muted-foreground inline-flex items-center align-middle line-clamp-1">
-                                            {video.channel?.name}
+                                            <span className="truncate">{video.channel?.name}</span>
                                             {video.channel?.verified && (
-                                                <BadgeCheck className="ml-1 h-4 w-4" />
+                                                <BadgeCheck className="ml-1 h-4 w-4 flex-shrink-0" />
                                             )}
                                         </div>
                                         <div className="text-xs text-muted-foreground line-clamp-2">
@@ -141,6 +147,7 @@ export const VideoList = memo(function VideoList({
                                                 duration: 0.2,
                                                 ease: 'easeInOut',
                                             }}
+                                            className="overflow-hidden"
                                         >
                                             {renderButtons(video)}
                                         </motion.div>
@@ -149,6 +156,13 @@ export const VideoList = memo(function VideoList({
                             ))
                         )}
                     </AnimatePresence>
+                    {isLoading && (
+                        <div className="space-y-4 p-4">
+                            {[...Array(4)].map((_, i) => (
+                                <VideoSkeleton key={i} />
+                            ))}
+                        </div>
+                    )}
                     {hasMore && (
                         <div ref={observerTarget} className="flex w-full items-start gap-3" />
                     )}

@@ -29,6 +29,7 @@ export function VideoSearch() {
         searchQuery,
         isKaraoke,
         isLoading,
+        isLoadingMore,
         isLoadingSuggestions,
         searchResults,
         suggestions,
@@ -161,6 +162,7 @@ export function VideoSearch() {
                         selectedVideoId={selectedVideoId}
                         onLoadMore={loadMore}
                         hasMore={!!nextToken}
+                        isLoading={isLoading || isLoadingMore}
                     />
                 </>
             )}
