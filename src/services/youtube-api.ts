@@ -58,5 +58,6 @@ export async function getRelatedVideos(videoId: string) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ videoId }),
     });
-    return (await response.json()) as YouTubeVideo[];
+    const { items } = (await response.json()) as { items: YouTubeVideo[] };
+    return items;
 }
