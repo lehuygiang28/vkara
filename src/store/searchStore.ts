@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 import type { YouTubeVideo } from '@/types/youtube.type';
-import { getRelatedVideos, getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
+import { getRelatedVideos } from '@/actions/youtube-actions';
+import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
 
 interface SearchState {
     searchQuery: string;
@@ -150,7 +151,7 @@ export const useSearchStore = create(
                 set({ isRelatedLoading: true });
                 try {
                     const oldResults = get().relatedResults;
-                    const relatedResults = (await getRelatedVideos(videoId)).filter(
+                    const relatedResults = (await getRelatedVideos(videoId)).items.filter(
                         (video) => !oldResults.some((v) => v.id === video.id),
                     );
                     set({ relatedResults: relatedResults });
