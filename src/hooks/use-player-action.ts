@@ -49,6 +49,7 @@ export const usePlayerAction = (): PlayerAction => {
             toast({
                 title: t('toast.playNowHandler'),
                 description: video.title,
+                variant: 'info',
             });
         },
         [sendMessage, t, createRoomIfNeeded],
@@ -61,6 +62,7 @@ export const usePlayerAction = (): PlayerAction => {
             toast({
                 title: t('toast.addVideoHandler'),
                 description: video.title,
+                variant: 'success',
             });
         },
         [createRoomIfNeeded, sendMessage, t],
@@ -71,6 +73,7 @@ export const usePlayerAction = (): PlayerAction => {
         sendMessage({ type: 'nextVideo' });
         toast({
             title: t('toast.nextVideoHandler'),
+            variant: 'info',
         });
     }, [createRoomIfNeeded, sendMessage, t]);
 
@@ -83,6 +86,7 @@ export const usePlayerAction = (): PlayerAction => {
             toast({
                 title: t('toast.removeVideoHandler'),
                 description: video.title,
+                variant: 'success',
             });
         },
         [createRoomIfNeeded, sendMessage, t],
@@ -94,6 +98,7 @@ export const usePlayerAction = (): PlayerAction => {
             sendMessage({ type: 'setVolume', volume });
             toast({
                 title: t('toast.setVolumeHandler'),
+                variant: 'success',
             });
         },
         [createRoomIfNeeded, sendMessage, t],
@@ -104,6 +109,7 @@ export const usePlayerAction = (): PlayerAction => {
         sendMessage({ type: 'play' });
         toast({
             title: t('youtubePage.play'),
+            variant: 'success',
         });
     }, [createRoomIfNeeded, sendMessage, t]);
 
@@ -112,6 +118,7 @@ export const usePlayerAction = (): PlayerAction => {
         sendMessage({ type: 'pause' });
         toast({
             title: t('youtubePage.pause'),
+            variant: 'success',
         });
     }, [createRoomIfNeeded, sendMessage, t]);
 
@@ -120,6 +127,7 @@ export const usePlayerAction = (): PlayerAction => {
         sendMessage({ type: 'replay' });
         toast({
             title: t('youtubePage.replay'),
+            variant: 'info',
         });
     }, [createRoomIfNeeded, sendMessage, t]);
 
@@ -129,6 +137,7 @@ export const usePlayerAction = (): PlayerAction => {
             sendMessage({ type: 'seek', time: seconds });
             toast({
                 title: `${t('youtubePage.seekTo')} ${seconds}s`,
+                variant: 'info',
             });
         },
         [createRoomIfNeeded, sendMessage, t],
@@ -141,6 +150,7 @@ export const usePlayerAction = (): PlayerAction => {
             toast({
                 title: t('toast.moveVideoToTopHandler'),
                 description: video.title,
+                variant: 'success',
             });
         },
         [createRoomIfNeeded, sendMessage, t],
@@ -151,6 +161,7 @@ export const usePlayerAction = (): PlayerAction => {
         sendMessage({ type: 'shuffleQueue' });
         toast({
             title: t('toast.shuffleQueueHandler'),
+            variant: 'info',
         });
     }, [createRoomIfNeeded, sendMessage, t]);
 
@@ -159,6 +170,7 @@ export const usePlayerAction = (): PlayerAction => {
         sendMessage({ type: 'clearQueue' });
         toast({
             title: t('toast.clearQueueHandler'),
+            variant: 'success',
         });
     }, [createRoomIfNeeded, sendMessage, t]);
 
@@ -168,6 +180,7 @@ export const usePlayerAction = (): PlayerAction => {
 
         toast({
             title: t('toast.clearHistoryHandler'),
+            variant: 'success',
         });
     }, [createRoomIfNeeded, sendMessage, t]);
 
@@ -178,6 +191,7 @@ export const usePlayerAction = (): PlayerAction => {
             toast({
                 title: t('toast.addVideoAndMoveToTopHandler'),
                 description: video.title,
+                variant: 'success',
             });
         },
         [createRoomIfNeeded, sendMessage, t],
@@ -189,6 +203,7 @@ export const usePlayerAction = (): PlayerAction => {
             sendMessage({ type: 'importPlaylist', playlistUrlOrId });
             toast({
                 title: t('toast.importPlaylistHandler'),
+                variant: 'info',
             });
         },
         [createRoomIfNeeded, sendMessage, t],

@@ -157,6 +157,7 @@ export function RoomSettings() {
                                                             title: t_RoomSettings(
                                                                 'copyPasswordSuccess',
                                                             ),
+                                                            variant: 'success',
                                                         });
                                                     }}
                                                     className="ml-2"
@@ -214,6 +215,7 @@ export function RoomSettings() {
                                                     );
                                                     toast({
                                                         title: t_RoomSettings('copyUrlSuccess'),
+                                                        variant: 'success',
                                                     });
                                                 }}
                                                 className="ml-2"
