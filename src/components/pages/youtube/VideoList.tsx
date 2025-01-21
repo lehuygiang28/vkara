@@ -63,7 +63,7 @@ export const VideoList = memo(function VideoList({
     return (
         <div className="flex-1 overflow-hidden">
             <ScrollArea className="h-full" hideScrollbar>
-                <div className={cn('space-y-3', !isLoading && 'pb-[20rem]')}>
+                <div className={cn('space-y-3 px-1', !isLoading && 'pb-[20rem]')}>
                     <AnimatePresence mode="popLayout" initial={false}>
                         {videos.length === 0 ? (
                             <motion.div
@@ -112,7 +112,7 @@ export const VideoList = memo(function VideoList({
                                     </motion.div>
                                     <motion.div
                                         layout
-                                        className="flex flex-col min-w-0 flex-1 overflow-hidden"
+                                        className="flex-col w-0 flex-1 overflow-hidden"
                                     >
                                         <div className="text-md font-medium leading-snug line-clamp-2 break-words">
                                             {video.title}
