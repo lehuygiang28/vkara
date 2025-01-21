@@ -87,7 +87,18 @@ export function AutoComplete<T extends string>({
                                 onFocus={() => setOpen(true)}
                                 onBlur={onInputBlur}
                             >
-                                <Input placeholder={placeholder} className="pr-20" />
+                                <Input
+                                    className="pr-20"
+                                    placeholder={placeholder}
+                                    value={searchValue}
+                                    onChange={(e) => onSearchValueChange(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            setOpen(false);
+                                            onSearch(searchValue);
+                                        }
+                                    }}
+                                />
                             </CommandPrimitive.Input>
                         </PopoverAnchor>
                         <div className="absolute right-0 top-0 h-full flex items-center">
@@ -144,6 +155,7 @@ export function AutoComplete<T extends string>({
                             )}
                             {items.length > 0 && !isLoadingSuggestions ? (
                                 <CommandGroup>
+                                    <CommandItem value="-" className="hidden" />
                                     {items.map((option) => (
                                         <CommandItem
                                             key={option.value}
