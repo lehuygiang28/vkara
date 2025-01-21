@@ -95,6 +95,7 @@ export function AutoComplete<T extends string>({
                                     onKeyDown={(e) => {
                                         if (e.key === 'Enter') {
                                             setOpen(false);
+                                            e.currentTarget.blur();
                                             onSearch(searchValue);
                                         }
                                     }}
