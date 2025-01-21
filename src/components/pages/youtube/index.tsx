@@ -51,6 +51,7 @@ export default function YoutubePlayerPage() {
         nextVideo,
         setIsPlaying,
         handleServerMessage,
+        setLayoutMode,
     } = useYouTubeStore();
 
     const t = useScopedI18n('youtubePage');
@@ -92,6 +93,16 @@ export default function YoutubePlayerPage() {
 
     const handleOverlayClick = () => {
         setShowSidebar(false);
+    };
+
+    const handlerToggleFullScreen = () => {
+        toggleFullScreen();
+        setShowSidebar(false);
+        if (!isFullScreen) {
+            setLayoutMode('player');
+        } else {
+            setLayoutMode('both');
+        }
     };
 
     const renderSidebar = () => (
@@ -215,6 +226,7 @@ export default function YoutubePlayerPage() {
             {(layoutMode === 'player' || layoutMode === 'both') && (
                 <>
                     {room?.id && showQRInPlayer && (
+                        // QR in player
                         <div
                             className="absolute top-2 left-2 hidden lg:flex flex-col opacity-30 hover:opacity-80 z-10 cursor-auto"
                             onClick={(e) => {
@@ -237,62 +249,61 @@ export default function YoutubePlayerPage() {
                                     ecLevel="L"
                                 />
                             </div>
-                            <span className="text-sm text-center">
+                            <span className="text-md text-center font-semibold">
                                 {room.id?.slice(0, Math.round(room.id.length / 2)) +
                                     ' ' +
                                     room.id?.slice(-Math.round(room.id.length / 2))}
                             </span>
                         </div>
                     )}
-                </>
-            )}
 
-            {layoutMode === 'player' && (
-                <div
-                    className={cn(
-                        'absolute top-2 right-2 flex flex-col gap-2 z-10 hover:opacity-80',
-                        `opacity-${opacityOfButtonsInPlayer}`,
-                    )}
-                >
-                    <Button
-                        className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
-                        variant="ghost"
-                        onClick={() => {
-                            setShowSidebar(true);
-                            setCurrentTab('queue');
-                        }}
-                    >
-                        <ListVideo className="scale-150" />
-                        <span className="text-sm">
-                            {t('queue')} ({room?.videoQueue.length || 0})
-                        </span>
-                    </Button>
-                    <Button
-                        className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
-                        variant="ghost"
-                        onClick={() => {
-                            setShowSidebar(true);
-                            setCurrentTab('settings');
-                        }}
-                    >
-                        <Settings className="scale-150" />
-                        <span className="text-sm">{t('settings')}</span>
-                    </Button>
-                    <Button
-                        className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
-                        variant="ghost"
-                        onClick={toggleFullScreen}
-                    >
-                        {isFullScreen ? (
-                            <Minimize className="scale-150" />
-                        ) : (
-                            <Maximize className="scale-150" />
+                    {/* Buttons in player (settings/queue/fullscreen) */}
+                    <div
+                        className={cn(
+                            'absolute top-2 right-2 flex flex-col gap-2 z-10 hover:opacity-80',
+                            `opacity-${opacityOfButtonsInPlayer}`,
                         )}
-                        <span className="text-sm">
-                            {isFullScreen ? t('exitFullscreen') : t('fullscreen')}
-                        </span>
-                    </Button>
-                </div>
+                    >
+                        <Button
+                            className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
+                            variant="ghost"
+                            onClick={() => {
+                                setShowSidebar(true);
+                                setCurrentTab('queue');
+                            }}
+                        >
+                            <ListVideo className="scale-150" />
+                            <span className="text-sm">
+                                {t('queue')} ({room?.videoQueue.length || 0})
+                            </span>
+                        </Button>
+                        <Button
+                            className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
+                            variant="ghost"
+                            onClick={() => {
+                                setShowSidebar(true);
+                                setCurrentTab('settings');
+                            }}
+                        >
+                            <Settings className="scale-150" />
+                            <span className="text-sm">{t('settings')}</span>
+                        </Button>
+                        <Button
+                            className="z-10 text-center font-medium justify-center px-3 py-7 text-sm hover:text-white border hover:bg-gray-900 dark:hover:text-white dark:hover:bg-gray-600 dark:text-gray-400 dark:border-gray-700 rounded-lg flex flex-col items-center text-white border-transparent"
+                            variant="ghost"
+                            onClick={handlerToggleFullScreen}
+                        >
+                            {isFullScreen ? (
+                                <Minimize className="scale-150" />
+                            ) : (
+                                <Maximize className="scale-150" />
+                            )}
+                            <span className="text-sm">
+                                {isFullScreen ? t('exitFullscreen') : t('fullscreen')}
+                            </span>
+                        </Button>
+                    </div>
+                </>
             )}
         </div>
     );
