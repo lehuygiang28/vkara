@@ -76,13 +76,13 @@ export const useSearchStore = create(
                 const searchTerm = `${isKaraoke ? 'karaoke ' : ''}${query}`;
 
                 // Clear everything when starting a new search (no token)
+                set({ selectedVideoId: null });
                 if (!token) {
                     set({
                         isLoading: true,
                         searchResults: [],
                         nextToken: null,
                         error: null,
-                        selectedVideoId: null,
                     });
                 } else {
                     set({ isLoadingMore: true });
@@ -148,7 +148,7 @@ export const useSearchStore = create(
             },
 
             fetchRelatedResults: async (videoId: string) => {
-                set({ isRelatedLoading: true, relatedResults: [] });
+                set({ isRelatedLoading: true, relatedResults: [], selectedRelatedVideoId: null });
                 try {
                     const oldResults = get().relatedResults;
                     const relatedResults = (await getRelatedVideos(videoId)).items.filter(
