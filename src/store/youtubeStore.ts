@@ -204,6 +204,8 @@ export const useYouTubeStore = create(
                                 case ErrorCode.NOT_IN_ROOM:
                                     set({ room: null });
                                     break;
+                                default:
+                                    break;
                             }
                         }
                         break;

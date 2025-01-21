@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useLayoutEffect } from 'react';
+import React, { createContext, useContext, useEffect, useLayoutEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { noop } from 'framer-motion';
 
@@ -8,6 +8,7 @@ import { isValidRoomId, resolveUrl } from '@/lib/utils';
 import type { WebSocketState } from '@/types/websocket.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore, initializeWebSocket } from '@/store/websocketStore';
+import { ErrorCode } from '@/types/server-errors.type';
 
 const WebSocketContext = createContext<WebSocketState | undefined>(undefined);
 
@@ -53,10 +54,12 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             });
         } else if (room?.id) {
             webSocketStore.sendMessage({
-                type: 'joinRoom',
+                type: 'reJoinRoom',
                 roomId: room.id,
                 password: room?.password,
             });
+        } else {
+            webSocketStore.sendMessage({ type: 'createRoom' });
         }
 
         if (layout) {
@@ -68,6 +71,14 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [webSocketStore.connectionStatus]);
+
+    useEffect(() => {
+        const lastMsg = webSocketStore.lastMessage;
+        if (lastMsg?.type === 'errorWithCode' && lastMsg.code === ErrorCode.REJOIN_ROOM_NOT_FOUND) {
+            webSocketStore.sendMessage({ type: 'createRoom' });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [webSocketStore?.lastMessage?.type]);
 
     return <WebSocketContext.Provider value={webSocketStore}>{children}</WebSocketContext.Provider>;
 };
