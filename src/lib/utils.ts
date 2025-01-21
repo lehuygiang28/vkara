@@ -128,7 +128,13 @@ export function isValidRoomId(roomId?: string | null | undefined): boolean {
  * @param {string} url - The URL to resolve.
  * @returns {string} The resolved URL.
  */
-export function resolveUrl(url: string): string {
+export function resolveUrl(url: string, isWebsocket = false): string {
+    if (isWebsocket) {
+        const wsUrl = url.replace(/(https?:\/\/)/, (scheme) =>
+            scheme === 'https://' ? 'wss://' : 'ws://',
+        );
+        return wsUrl.replace(/\/$/, '');
+    }
     return url.replace(/\/$/, '');
 }
 
