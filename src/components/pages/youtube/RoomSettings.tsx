@@ -343,6 +343,7 @@ export function RoomSettings() {
                                                         maxLength={6}
                                                         value={joinRoomId}
                                                         onChange={setJoinRoomId}
+                                                        type="number"
                                                     >
                                                         <InputOTPGroup>
                                                             <InputOTPSlot index={0} />
@@ -504,7 +505,7 @@ export function RoomSettings() {
                             )}
 
                             {/* Setting opacity of buttons in player */}
-                            {layoutMode === 'player' && (
+                            {(layoutMode === 'player' || layoutMode === 'both') && (
                                 <div className="mt-4 space-y-2">
                                     <Label htmlFor="opacity-slider">
                                         {t_RoomSettings('opacityOfButtonsInPlayer')}
