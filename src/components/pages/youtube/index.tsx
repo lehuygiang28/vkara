@@ -55,6 +55,7 @@ export default function YoutubePlayerPage() {
     } = useYouTubeStore();
 
     const t = useScopedI18n('youtubePage');
+    const t_Toast = useScopedI18n('toast');
     const [showSidebar, setShowSidebar] = useState(false);
     const { isFullScreen, toggleFullScreen } = useFullscreen();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
@@ -63,8 +64,9 @@ export default function YoutubePlayerPage() {
 
     useEffect(() => {
         if (lastMessage) {
-            handleServerMessage(lastMessage);
+            handleServerMessage(lastMessage, t_Toast);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage, handleServerMessage]);
 
     const onPlayerReady = (event: YT.PlayerEvent) => {

@@ -3,6 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { Room, ServerMessage } from '@/types/websocket.type';
 import { ErrorCode } from '@/types/server-errors.type';
+import { toast } from '@/hooks/use-toast';
+import { useScopedI18n } from '@/locales/client';
 
 interface YouTubeState {
     wsId: string | null;
@@ -34,7 +36,7 @@ interface YouTubeState {
     playNow: (video: YouTubeVideo) => void;
     nextVideo: () => void;
     setIsPlaying: (isPlaying: boolean) => void;
-    handleServerMessage: (message: ServerMessage) => void;
+    handleServerMessage: (message: ServerMessage, t: ReturnType<typeof useScopedI18n>) => void;
 }
 
 export const useYouTubeStore = create(
@@ -141,7 +143,7 @@ export const useYouTubeStore = create(
                     room: state.room ? { ...state.room, isPlaying } : null,
                 })),
 
-            handleServerMessage: (message) => {
+            handleServerMessage: (message, t) => {
                 switch (message.type) {
                     case 'roomJoined':
                         set({ room: message.room, wsId: message.yourId });
@@ -151,9 +153,19 @@ export const useYouTubeStore = create(
                         break;
                     case 'roomClosed':
                         set({ room: null });
+                        toast({
+                            title: t('roomClosed'),
+                            description: t('roomClosedDescription'),
+                            variant: 'destructive',
+                        });
                         break;
                     case 'roomNotFound':
                         set({ room: null });
+                        toast({
+                            title: t('roomNotFound'),
+                            description: t('roomNotFoundDescription'),
+                            variant: 'destructive',
+                        });
                         break;
                     case 'currentTimeChanged':
                         {
@@ -203,6 +215,18 @@ export const useYouTubeStore = create(
                                 case ErrorCode.ROOM_NOT_FOUND:
                                 case ErrorCode.NOT_IN_ROOM:
                                     set({ room: null });
+                                    toast({
+                                        title: t('roomNotFound'),
+                                        description: t('roomNotFoundDescription'),
+                                        variant: 'destructive',
+                                    });
+                                    break;
+                                case ErrorCode.INCORRECT_PASSWORD:
+                                    toast({
+                                        title: t('incorrectPassword'),
+                                        description: t('incorrectPasswordDescription'),
+                                        variant: 'destructive',
+                                    });
                                     break;
                                 default:
                                     break;

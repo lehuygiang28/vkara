@@ -28,6 +28,12 @@ export default {
     'toast.clearHistoryHandler': 'Lịch sử video đã được xóa',
     'toast.addVideoAndMoveToTopHandler': 'Video đã được ưu tiên vào hàng chờ',
     'toast.importPlaylistHandler': 'Danh sách phát đã được nhập vào hàng chờ',
+    'toast.roomNotFound': 'Không tìm thấy phòng',
+    'toast.roomNotFoundDescription': 'Phòng bạn đang cố tham gia không tồn tại',
+    'toast.incorrectPassword': 'Mật khẩu không đúng',
+    'toast.incorrectPasswordDescription': 'Mật khẩu bạn nhập không chính xác',
+    'toast.roomClosed': 'Phòng đã bị đóng',
+    'toast.roomClosedDescription': 'Chủ phòng đã đóng phòng này',
 
     'youtubePage.play': 'Phát',
     'youtubePage.pause': 'Tạm dừng',

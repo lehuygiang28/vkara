@@ -28,6 +28,12 @@ export default {
     'toast.clearHistoryHandler': 'All videos removed from history',
     'toast.addVideoAndMoveToTopHandler': 'Video added to top of queue',
     'toast.importPlaylistHandler': 'Playlist imported to queue',
+    'toast.roomNotFound': 'Room not found',
+    'toast.roomNotFoundDescription': 'The room you are trying to join does not exist',
+    'toast.incorrectPassword': 'Incorrect password',
+    'toast.incorrectPasswordDescription': 'The password you entered is incorrect',
+    'toast.roomClosed': 'Room closed',
+    'toast.roomClosedDescription': 'Room has been closed by the host',
 
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
