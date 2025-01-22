@@ -145,4 +145,6 @@ export default {
     'qrScanner.stopScanning': 'Stop Scanning',
     'qrScanner.permissionDenied': 'Unable to access the camera. Please check your permissions.',
     'qrScanner.cameraError': 'Camera Error',
+    'qrScanner.genericError': 'An error occurred while accessing the camera. Please try again.',
+	'qrScanner.retry': 'Retry',
 } as const;

@@ -144,4 +144,6 @@ export default {
     'qrScanner.stopScanning': 'Dừng quét',
     'qrScanner.permissionDenied': 'Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.',
     'qrScanner.cameraError': 'Lỗi camera',
+    'qrScanner.genericError': 'Đã xảy ra lỗi khi quét mã QR. Vui lòng thử lại.',
+    'qrScanner.retry': 'Thử lại',
 } as const;
