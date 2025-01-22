@@ -49,7 +49,10 @@ export function VideoRelated() {
                         buttonText={t('playNow')}
                         tooltipContent={t('playNow')}
                         icon={<Play className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => handlePlayVideoNow(video)}
+                        onConfirm={() => {
+                            setSelectedRelatedVideoId(null);
+                            handlePlayVideoNow(video);
+                        }}
                         variant={'outline'}
                     />
 
@@ -57,14 +60,20 @@ export function VideoRelated() {
                         buttonText={t('addToQueue')}
                         tooltipContent={t('addToQueue')}
                         icon={<ListVideo className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => handleAddVideoToQueue(video)}
+                        onConfirm={() => {
+                            setSelectedRelatedVideoId(null);
+                            handleAddVideoToQueue(video);
+                        }}
                     />
 
                     <TooltipButton
                         buttonText={t('addVideoAndMoveToTop')}
                         tooltipContent={t('addVideoAndMoveToTop')}
                         icon={<MoveUp className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => handleAddVideoAndMoveToTop(video)}
+                        onConfirm={() => {
+                            setSelectedRelatedVideoId(null);
+                            handleAddVideoAndMoveToTop(video);
+                        }}
                     />
                 </div>
             </div>

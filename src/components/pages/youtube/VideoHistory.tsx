@@ -31,14 +31,20 @@ export function VideoHistory() {
                         tooltipContent={t('playNow')}
                         buttonText={t('playNow')}
                         icon={<Play className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => handlePlayVideoNow(video)}
+                        onConfirm={() => {
+                            setSelectedVideo(null);
+                            handlePlayVideoNow(video);
+                        }}
                     />
 
                     <TooltipButton
                         tooltipContent={t('addToQueue')}
                         buttonText={t('addToQueue')}
                         icon={<ListVideo className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => handleAddVideoToQueue(video)}
+                        onConfirm={() => {
+                            setSelectedVideo(null);
+                            handleAddVideoToQueue(video);
+                        }}
                     />
                 </div>
             </div>

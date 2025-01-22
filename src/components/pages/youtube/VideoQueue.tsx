@@ -44,14 +44,20 @@ export function VideoQueue() {
                         tooltipContent={t('moveToTop')}
                         buttonText={t('moveToTop')}
                         icon={<MoveUp className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => handleMoveVideoToTop(video)}
+                        onConfirm={() => {
+                            setSelectedVideo(null);
+                            handleMoveVideoToTop(video);
+                        }}
                     />
 
                     <TooltipButton
                         tooltipContent={t('remove')}
                         buttonText={t('remove')}
                         icon={<Trash2 className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => handleRemoveVideoFromQueue(video)}
+                        onConfirm={() => {
+                            setSelectedVideo(null);
+                            handleRemoveVideoFromQueue(video);
+                        }}
                         variant={'destructive'}
                     />
                 </div>
