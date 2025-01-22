@@ -2,6 +2,8 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
+import { QrCode } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -12,12 +14,14 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
 import { useScopedI18n } from '@/locales/client';
+import { cn } from '@/lib/utils';
 
 interface QRScannerProps {
     onScan: (data: string) => void;
+    buttonClassName?: string;
 }
 
-export function QRScanner({ onScan }: QRScannerProps) {
+export function QRScanner({ onScan, buttonClassName = '' }: QRScannerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const videoRef = useRef<HTMLVideoElement>(null);
@@ -101,7 +105,10 @@ export function QRScanner({ onScan }: QRScannerProps) {
             }}
         >
             <DialogTrigger asChild>
-                <Button>{t('buttonText')}</Button>
+                <Button className={cn(buttonClassName)}>
+                    <QrCode className="h-4 w-4 mr-2" />
+                    {t('buttonText')}
+                </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
