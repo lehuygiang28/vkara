@@ -34,6 +34,8 @@ export default {
     'toast.incorrectPasswordDescription': 'The password you entered is incorrect',
     'toast.roomClosed': 'Room closed',
     'toast.roomClosedDescription': 'Room has been closed by the host',
+    'toast.invalidQRCode': 'Invalid QR Code',
+    'toast.invalidQRCodeDescription': 'The QR code you scanned is invalid',
 
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
@@ -136,4 +138,11 @@ export default {
     'videoSearch.playThisNow': 'Play this now',
     'videoSearch.videoAdded': 'Video added to queue',
     'videoSearch.addVideoAndMoveToTop': 'Add to top',
+
+    'qrScanner.title': 'Scan QR Code',
+    'qrScanner.buttonText': 'Scan QR',
+    'qrScanner.description': 'Scan the QR code to join the room',
+    'qrScanner.stopScanning': 'Stop Scanning',
+    'qrScanner.permissionDenied': 'Unable to access the camera. Please check your permissions.',
+    'qrScanner.cameraError': 'Camera Error',
 } as const;

@@ -33,6 +33,7 @@ import {
     InputOTPSeparator,
     InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { QRScanner } from '@/components/qr-scanner';
 
 export function RoomSettings() {
     const {
@@ -70,21 +71,25 @@ export function RoomSettings() {
         sendMessage({ type: 'createRoom', password: roomPassword });
     }, [roomPassword, sendMessage]);
 
-    const joinRoom = useCallback(() => {
-        if (joinRoomId.length === 6) {
-            sendMessage({
-                type: 'joinRoom',
-                roomId: joinRoomId,
-                password: joinRoomPassword,
-            });
-        } else {
-            toast({
-                title: t_RoomSettings('invalidRoomId'),
-                description: t_RoomSettings('roomIdMustBe6Digits'),
-                variant: 'destructive',
-            });
-        }
-    }, [joinRoomId, joinRoomPassword, sendMessage, t_RoomSettings]);
+    const joinRoom = useCallback(
+        (data?: { roomId?: string; password?: string | null }) => {
+            const roomIdWillUse = data?.roomId || joinRoomId;
+            if (roomIdWillUse.length === 6) {
+                sendMessage({
+                    type: 'joinRoom',
+                    roomId: roomIdWillUse,
+                    password: data?.password || joinRoomPassword,
+                });
+            } else {
+                toast({
+                    title: t_RoomSettings('invalidRoomId'),
+                    description: t_RoomSettings('roomIdMustBe6Digits'),
+                    variant: 'destructive',
+                });
+            }
+        },
+        [joinRoomId, joinRoomPassword, sendMessage, t_RoomSettings],
+    );
 
     const leaveRoom = useCallback(() => {
         if (room?.id) {
@@ -99,6 +104,35 @@ export function RoomSettings() {
             setRoom(null);
         }
     }, [sendMessage, room?.id, setRoom]);
+
+    const handleQRScan = (data: string) => {
+        try {
+            const url = new URL(data);
+            const roomId = url.searchParams.get('roomId');
+            const password = url.searchParams.get('password');
+            const layoutMode = url.searchParams.get('layoutMode') as 'remote' | 'player' | 'both';
+
+            if (roomId) {
+                setJoinRoomId(roomId);
+                setJoinRoomPassword(password || '');
+                joinRoom({ roomId, password });
+                setLayoutMode(layoutMode || 'remote');
+            } else {
+                toast({
+                    title: t('toast.invalidQRCode'),
+                    description: t('toast.invalidQRCodeDescription'),
+                    variant: 'destructive',
+                });
+            }
+        } catch (error) {
+            console.error('Error parsing QR code:', error);
+            toast({
+                title: t('toast.invalidQRCode'),
+                description: t('toast.invalidQRCodeDescription'),
+                variant: 'destructive',
+            });
+        }
+    };
 
     return (
         <div className="flex flex-col h-screen">
@@ -292,6 +326,8 @@ export function RoomSettings() {
                                         </Button>
                                     </div>
 
+                                    <QRScanner onScan={handleQRScan} />
+
                                     {showCreateRoom && (
                                         <Card>
                                             <CardContent className="space-y-4 mt-4">
@@ -394,7 +430,7 @@ export function RoomSettings() {
                                                     </div>
                                                 )}
                                                 <Button
-                                                    onClick={joinRoom}
+                                                    onClick={() => joinRoom}
                                                     disabled={!isConnected}
                                                     className="w-full"
                                                 >

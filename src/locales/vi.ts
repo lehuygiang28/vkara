@@ -34,6 +34,8 @@ export default {
     'toast.incorrectPasswordDescription': 'Mật khẩu bạn nhập không chính xác',
     'toast.roomClosed': 'Phòng đã bị đóng',
     'toast.roomClosedDescription': 'Chủ phòng đã đóng phòng này',
+    'toast.invalidQRCode': 'Mã QR không hợp lệ',
+    'toast.invalidQRCodeDescription': 'Mã QR bạn quét không hợp lệ',
 
     'youtubePage.play': 'Phát',
     'youtubePage.pause': 'Tạm dừng',
@@ -135,4 +137,11 @@ export default {
     'videoSearch.playThisNow': 'Phát ngay',
     'videoSearch.videoAdded': 'Video đã được thêm vào hàng chờ',
     'videoSearch.addVideoAndMoveToTop': 'Ưu tiên',
+
+    'qrScanner.title': 'Quét mã QR',
+    'qrScanner.buttonText': 'Quét QR',
+    'qrScanner.description': 'Quét mã QR để tham gia phòng',
+    'qrScanner.stopScanning': 'Dừng quét',
+    'qrScanner.permissionDenied': 'Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.',
+    'qrScanner.cameraError': 'Lỗi camera',
 } as const;

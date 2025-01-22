@@ -151,6 +151,9 @@ export const useYouTubeStore = create(
                     case 'roomUpdate':
                         set({ room: message.room });
                         break;
+                    case 'leftRoom':
+                        set({ room: null });
+                        break;
                     case 'roomClosed':
                         set({ room: null });
                         toast({
