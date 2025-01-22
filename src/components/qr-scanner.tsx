@@ -105,7 +105,7 @@ export function QRScanner({ onScan, buttonClassName = '' }: QRScannerProps) {
             }}
         >
             <DialogTrigger asChild>
-                <Button className={cn(buttonClassName)}>
+                <Button className={cn(buttonClassName)} variant={'scan'}>
                     <QrCode className="h-4 w-4 mr-2" />
                     {t('buttonText')}
                 </Button>
