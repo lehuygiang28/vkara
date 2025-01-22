@@ -33,7 +33,7 @@ import {
     InputOTPSeparator,
     InputOTPSlot,
 } from '@/components/ui/input-otp';
-import { QRScanner } from '@/components/qr-scanner';
+// import { QRScanner } from '@/components/qr-scanner';
 
 export function RoomSettings() {
     const {
@@ -105,34 +105,34 @@ export function RoomSettings() {
         }
     }, [sendMessage, room?.id, setRoom]);
 
-    const handleQRScan = (data: string) => {
-        try {
-            const url = new URL(data);
-            const roomId = url.searchParams.get('roomId');
-            const password = url.searchParams.get('password');
-            const layoutMode = url.searchParams.get('layoutMode') as 'remote' | 'player' | 'both';
+    // const handleQRScan = (data: string) => {
+    //     try {
+    //         const url = new URL(data);
+    //         const roomId = url.searchParams.get('roomId');
+    //         const password = url.searchParams.get('password');
+    //         const layoutMode = url.searchParams.get('layoutMode') as 'remote' | 'player' | 'both';
 
-            if (roomId) {
-                setJoinRoomId(roomId);
-                setJoinRoomPassword(password || '');
-                joinRoom({ roomId, password });
-                setLayoutMode(layoutMode || 'remote');
-            } else {
-                toast({
-                    title: t('toast.invalidQRCode'),
-                    description: t('toast.invalidQRCodeDescription'),
-                    variant: 'destructive',
-                });
-            }
-        } catch (error) {
-            console.error('Error parsing QR code:', error);
-            toast({
-                title: t('toast.invalidQRCode'),
-                description: t('toast.invalidQRCodeDescription'),
-                variant: 'destructive',
-            });
-        }
-    };
+    //         if (roomId) {
+    //             setJoinRoomId(roomId);
+    //             setJoinRoomPassword(password || '');
+    //             joinRoom({ roomId, password });
+    //             setLayoutMode(layoutMode || 'remote');
+    //         } else {
+    //             toast({
+    //                 title: t('toast.invalidQRCode'),
+    //                 description: t('toast.invalidQRCodeDescription'),
+    //                 variant: 'destructive',
+    //             });
+    //         }
+    //     } catch (error) {
+    //         console.error('Error parsing QR code:', error);
+    //         toast({
+    //             title: t('toast.invalidQRCode'),
+    //             description: t('toast.invalidQRCodeDescription'),
+    //             variant: 'destructive',
+    //         });
+    //     }
+    // };
 
     const RoomInfo = () => (
         <div className="space-y-4">
@@ -290,7 +290,7 @@ export function RoomSettings() {
 
     const RoomActions = () => (
         <div className="space-y-4">
-            <QRScanner onScan={handleQRScan} buttonClassName="w-full" />
+            {/* <QRScanner onScan={handleQRScan} buttonClassName="w-full" /> */}
             <div className="flex flex-wrap space-x-4">
                 <Button
                     onClick={() => {
