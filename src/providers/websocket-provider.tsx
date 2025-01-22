@@ -23,7 +23,7 @@ export const useWebSocket = () => {
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const searchParams = useSearchParams();
     const webSocketStore = useWebSocketStore();
-    const { room, setLayoutMode } = useYouTubeStore();
+    const { room, layoutMode, setLayoutMode } = useYouTubeStore();
 
     useLayoutEffect(() => {
         const cleanup = initializeWebSocket({
@@ -42,7 +42,20 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     useLayoutEffect(() => {
         const roomId = searchParams.get('roomId');
         const password = searchParams.get('password');
-        const layout = searchParams.get('layoutMode');
+        let layoutFrommParam = searchParams.get('layoutMode');
+
+        if (layoutFrommParam) {
+            if (
+                layoutFrommParam !== 'both' &&
+                layoutFrommParam !== 'remote' &&
+                layoutFrommParam !== 'player'
+            ) {
+                setLayoutMode('both');
+                layoutFrommParam = 'both';
+            } else {
+                setLayoutMode(layoutFrommParam as 'both' | 'remote' | 'player');
+            }
+        }
 
         if (!(webSocketStore.connectionStatus === 'OPEN')) {
             noop(1);
@@ -59,14 +72,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 password: room?.password,
             });
         } else {
-            webSocketStore.sendMessage({ type: 'createRoom' });
-        }
-
-        if (layout) {
-            if (layout !== 'both' && layout !== 'remote' && layout !== 'player') {
-                setLayoutMode('both');
-            } else {
-                setLayoutMode(layout as 'both' | 'remote' | 'player');
+            if (layoutMode !== 'remote' && layoutFrommParam !== 'remote') {
+                webSocketStore.sendMessage({ type: 'createRoom' });
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
