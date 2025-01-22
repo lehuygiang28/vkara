@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useEffect, useRef, memo } from 'react';
+import { useEffect, useRef, memo, useState } from 'react';
 import { BadgeCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -10,6 +10,7 @@ import type { YouTubeVideo } from '@/types/youtube.type';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useI18n } from '@/locales/client';
 import { VideoSkeleton } from '@/components/video-skeleton';
+import { ScrollToTopListButton } from '@/components/scroll-to-top-list';
 
 interface VideoListProps {
     keyPrefix?: string;
@@ -36,6 +37,10 @@ export const VideoList = memo(function VideoList({
 }: VideoListProps) {
     const t = useI18n();
     const observerTarget = useRef<HTMLDivElement | null>(null);
+    const scrollAreaRef = useRef<HTMLDivElement>(null);
+    const [showScrollTop, setShowScrollTop] = useState(false);
+    const [isScrolling, setIsScrolling] = useState(false);
+    const scrollTimeout = useRef<NodeJS.Timeout>(null);
 
     useEffect(() => {
         const currentObserverTarget = observerTarget.current;
@@ -60,10 +65,78 @@ export const VideoList = memo(function VideoList({
         };
     }, [onLoadMore, hasMore]);
 
+    // Scroll to top of list button visibility
+    useEffect(() => {
+        const scrollArea = scrollAreaRef.current?.querySelector(
+            '[data-radix-scroll-area-viewport]',
+        );
+        if (!scrollArea) return;
+
+        const handleScroll = () => {
+            setIsScrolling(true);
+            setShowScrollTop(scrollArea.scrollTop > 200);
+
+            // Clear existing timeout
+            if (scrollTimeout.current) {
+                clearTimeout(scrollTimeout.current);
+            }
+
+            // Set new timeout
+            scrollTimeout.current = setTimeout(() => {
+                setIsScrolling(false);
+            }, 150);
+        };
+
+        scrollArea.addEventListener('scroll', handleScroll);
+        return () => {
+            scrollArea.removeEventListener('scroll', handleScroll);
+            if (scrollTimeout.current) {
+                clearTimeout(scrollTimeout.current);
+            }
+        };
+    }, []);
+
+    // Smooth scroll to top with animation
+    const scrollToTop = () => {
+        const scrollArea = scrollAreaRef.current?.querySelector(
+            '[data-radix-scroll-area-viewport]',
+        );
+        if (scrollArea) {
+            const start = scrollArea.scrollTop;
+            const change = -start;
+            const duration = 600;
+            let startTime: number;
+
+            function easeInOutCubic(t: number): number {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            function animate(currentTime: number) {
+                if (!startTime) startTime = currentTime;
+                const timeElapsed = currentTime - startTime;
+                const progress = Math.min(timeElapsed / duration, 1);
+                const easedProgress = easeInOutCubic(progress);
+
+                if (scrollArea) {
+                    scrollArea.scrollTop = start + change * easedProgress;
+                }
+                if (timeElapsed < duration) {
+                    requestAnimationFrame(animate);
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+    };
+
     return (
-        <div className="flex-1 overflow-hidden">
-            <ScrollArea className="h-full" hideScrollbar>
+        <div className="flex-1 overflow-hidden relative">
+            <ScrollArea ref={scrollAreaRef} className="h-full" hideScrollbar>
                 <div className={cn('space-y-3 px-1', !isLoading && 'pb-[20rem]')}>
+                    <ScrollToTopListButton
+                        show={showScrollTop && !isScrolling}
+                        onClick={scrollToTop}
+                    />
                     <AnimatePresence mode="popLayout" initial={false}>
                         {videos.length === 0 ? (
                             <motion.div
