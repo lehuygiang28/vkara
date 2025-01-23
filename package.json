@@ -44,7 +44,6 @@
         "tailwindcss-animate": "^1.0.7",
         "use-debounce": "^10.0.4",
         "uuid": "^11.0.5",
-        "youtube-search-api": "^1.2.2",
         "youtube-sr": "^4.3.11",
         "youtubei": "^1.6.7",
         "zustand": "^5.0.3"
