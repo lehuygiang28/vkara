@@ -52,7 +52,7 @@ export default {
     'youtubePage.searchPlaceholder': 'Tìm và chọn một video để phát',
     'youtubePage.failedToFetch': 'Không thể tải kết quả tìm kiếm. Vui lòng thử lại.',
     'youtubePage.playerPlaceholder':
-        'Chưa có video nào được phát. Tìm kiếm và chọn một video để bắt đầu.',
+        'Chưa có video nào được phát. {br}Tìm kiếm và chọn một video để bắt đầu.',
     'youtubePage.layout': 'Hiển thị',
     'youtubePage.selectLayoutMode': 'Chọn chế độ hiển thị',
     'youtubePage.layoutBoth': 'Cả video và điều khiển',

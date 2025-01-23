@@ -51,7 +51,7 @@ export default {
     'youtubePage.settings': 'Settings',
     'youtubePage.searchPlaceholder': 'Search and select a video to play',
     'youtubePage.failedToFetch': 'Failed to fetch search results. Please try again.',
-    'youtubePage.playerPlaceholder': 'No video is playing. Search and select a video to start.',
+    'youtubePage.playerPlaceholder': 'No video is playing. {br}Search and select a video to start.',
     'youtubePage.seekTo': 'Seek to',
     'youtubePage.controls': 'Controls',
     'youtubePage.queue': 'Queue',
@@ -146,5 +146,5 @@ export default {
     'qrScanner.permissionDenied': 'Unable to access the camera. Please check your permissions.',
     'qrScanner.cameraError': 'Camera Error',
     'qrScanner.genericError': 'An error occurred while accessing the camera. Please try again.',
-	'qrScanner.retry': 'Retry',
+    'qrScanner.retry': 'Retry',
 } as const;

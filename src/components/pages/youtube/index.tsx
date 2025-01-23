@@ -37,6 +37,7 @@ import { PlayerControls } from './PlayerControls';
 import { PlayerControlsTabs } from './PlayerControlsTabs';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { VideoRelated } from './VideoRelated';
+import { LampContainer } from '@/components/ui/lamp';
 
 export default function YoutubePlayerPage() {
     const {
@@ -66,7 +67,7 @@ export default function YoutubePlayerPage() {
         if (lastMessage) {
             handleServerMessage(lastMessage, t_Toast);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [lastMessage, handleServerMessage]);
 
     const onPlayerReady = (event: YT.PlayerEvent) => {
@@ -192,9 +193,20 @@ export default function YoutubePlayerPage() {
                 />
             ) : (
                 <div className="absolute inset-0 flex items-center justify-center bg-black">
-                    <div className="text-center mx-4 md:mx-0 md:px-4 py-4 border border-muted rounded-md shadow-sm">
-                        <p className="text-muted-foreground text-sm">{t('playerPlaceholder')}</p>
-                    </div>
+                    <LampContainer className="w-full h-full">
+                        <motion.h1
+                            initial={{ opacity: 0.5, y: 100 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{
+                                delay: 0.3,
+                                duration: 0.8,
+                                ease: 'easeInOut',
+                            }}
+                            className="bg-gradient-to-br from-slate-300 to-slate-500 py-4 bg-clip-text text-center text-xl font-medium tracking-tight text-transparent md:text-3xl"
+                        >
+                            {t('playerPlaceholder', { br: <br /> })}
+                        </motion.h1>
+                    </LampContainer>
                 </div>
             )}
 
