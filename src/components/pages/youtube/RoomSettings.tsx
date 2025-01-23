@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useCallback, useState } from 'react';
+import React, { Suspense, useCallback, useEffect } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { Eye, EyeOff, Copy, Plus, LogIn, Settings, Palette } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
@@ -9,6 +9,7 @@ import { useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore } from '@/store/websocketStore';
 import { useChangeLocale, useCurrentLocale, type SUPPORTED_LOCALES } from '@/locales/client';
+import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -51,14 +52,25 @@ export function RoomSettings() {
         setOpacityOfButtonsInPlayer,
     } = useYouTubeStore();
     const { sendMessage, connectionStatus } = useWebSocketStore();
-    const [roomPassword, setRoomPassword] = useState<string>('');
-    const [joinRoomId, setJoinRoomId] = useState<string>('');
-    const [joinRoomPassword, setJoinRoomPassword] = useState<string>('');
-    const [showJoinPassword, setShowJoinPassword] = useState(false);
-    const [showCreatePassword, setShowCreatePassword] = useState(false);
-    const [showCreateRoom, setShowCreateRoom] = useState(false);
-    const [showJoinRoom, setShowJoinRoom] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
+    const {
+        roomPassword,
+        joinRoomId,
+        joinRoomPassword,
+        showJoinPassword,
+        showCreatePassword,
+        showCreateRoom,
+        showJoinRoom,
+        showPassword,
+        setRoomPassword,
+        setJoinRoomId,
+        setJoinRoomPassword,
+        setShowJoinPassword,
+        setShowCreatePassword,
+        setShowCreateRoom,
+        setShowJoinRoom,
+        setShowPassword,
+        resetState,
+    } = useRoomSettingsStore();
     const changeLocale = useChangeLocale({ preserveSearchParams: true });
     const locale = useCurrentLocale();
 
@@ -69,7 +81,8 @@ export function RoomSettings() {
 
     const createRoom = useCallback(() => {
         sendMessage({ type: 'createRoom', password: roomPassword });
-    }, [roomPassword, sendMessage]);
+        resetState();
+    }, [roomPassword, sendMessage, resetState]);
 
     const joinRoom = useCallback(
         (data?: { roomId?: string; password?: string | null }) => {
@@ -80,6 +93,7 @@ export function RoomSettings() {
                     roomId: roomIdWillUse,
                     password: data?.password || joinRoomPassword,
                 });
+                resetState();
             } else {
                 toast({
                     title: t_RoomSettings('invalidRoomId'),
@@ -88,7 +102,7 @@ export function RoomSettings() {
                 });
             }
         },
-        [joinRoomId, joinRoomPassword, sendMessage, t_RoomSettings],
+        [joinRoomId, joinRoomPassword, sendMessage, t_RoomSettings, resetState],
     );
 
     const leaveRoom = useCallback(() => {
@@ -104,6 +118,12 @@ export function RoomSettings() {
             setRoom(null);
         }
     }, [sendMessage, room?.id, setRoom]);
+
+    useEffect(() => {
+        return () => {
+            resetState();
+        };
+    }, [resetState]);
 
     // const handleQRScan = (data: string) => {
     //     try {
@@ -359,6 +379,12 @@ export function RoomSettings() {
                                 value={joinRoomId}
                                 onChange={setJoinRoomId}
                                 type="number"
+                                autoFocus
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && joinRoomId.length === 6) {
+                                        joinRoom();
+                                    }
+                                }}
                             >
                                 <InputOTPGroup>
                                     <InputOTPSlot index={0} />
