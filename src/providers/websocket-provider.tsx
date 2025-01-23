@@ -27,7 +27,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     useLayoutEffect(() => {
         const cleanup = initializeWebSocket({
-            url: `${resolveUrl(process.env.NEXT_PUBLIC_API_URL || 'ws://localhost:8000', true)}/ws`,
+            url: `${resolveUrl(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000', true)}/ws`,
             reconnectAttempts: Infinity,
             initialRetryDelay: 1000,
             maxRetryDelay: 30000,
