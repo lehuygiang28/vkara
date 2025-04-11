@@ -1,8 +1,7 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useLayoutEffect } from 'react';
+import React, { createContext, useContext, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { noop } from 'framer-motion';
 
 import { isValidRoomId, resolveUrl } from '@/lib/utils';
 import type { WebSocketState } from '@/types/websocket.type';
@@ -12,7 +11,7 @@ import { ErrorCode } from '@/types/server-errors.type';
 
 const WebSocketContext = createContext<WebSocketState | undefined>(undefined);
 
-export const useWebSocket = () => {
+export const useWebSocket = (): WebSocketState => {
     const context = useContext(WebSocketContext);
     if (context === undefined) {
         throw new Error('useWebSocket must be used within a WebSocketProvider');
@@ -25,7 +24,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const webSocketStore = useWebSocketStore();
     const { room, layoutMode, setLayoutMode } = useYouTubeStore();
 
-    useLayoutEffect(() => {
+    // Refs to prevent duplicated actions
+    const wsInitialized = useRef(false);
+    const joinedRoomId = useRef<string | null>(null);
+    const attemptedJoin = useRef(false);
+
+    // Stable references to URL params to avoid dependency issues
+    const roomIdParam = searchParams.get('roomId');
+    const passwordParam = searchParams.get('password');
+    const layoutParam = searchParams.get('layoutMode');
+
+    // Initialize WebSocket connection once
+    useEffect(() => {
+        if (wsInitialized.current) return;
+
+        wsInitialized.current = true;
         const cleanup = initializeWebSocket({
             url: `${resolveUrl(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000', true)}/ws`,
             reconnectAttempts: Infinity,
@@ -34,58 +47,93 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             heartbeatInterval: 30000,
         });
 
-        return () => {
-            cleanup();
-        };
+        return cleanup;
     }, []);
 
-    useLayoutEffect(() => {
-        const roomId = searchParams.get('roomId');
-        const password = searchParams.get('password');
-        let layoutFrommParam = searchParams.get('layoutMode');
+    // Handle layout mode from URL params
+    useEffect(() => {
+        if (!layoutParam) return;
 
-        if (layoutFrommParam) {
-            if (
-                layoutFrommParam !== 'both' &&
-                layoutFrommParam !== 'remote' &&
-                layoutFrommParam !== 'player'
-            ) {
-                setLayoutMode('both');
-                layoutFrommParam = 'both';
-            } else {
-                setLayoutMode(layoutFrommParam as 'both' | 'remote' | 'player');
-            }
+        if (layoutParam !== 'both' && layoutParam !== 'remote' && layoutParam !== 'player') {
+            setLayoutMode('both');
+        } else {
+            setLayoutMode(layoutParam as 'both' | 'remote' | 'player');
+        }
+    }, [layoutParam, setLayoutMode]);
+
+    // Handle connection changes and room management
+    useEffect(() => {
+        // Only proceed when connection is open
+        if (webSocketStore.connectionStatus !== 'OPEN') {
+            return;
         }
 
-        if (!(webSocketStore.connectionStatus === 'OPEN')) {
-            noop(1);
-        } else if (roomId && isValidRoomId(roomId)) {
+        // Reset attempt flag when connection opens
+        if (webSocketStore.connectionStatus === 'OPEN') {
+            attemptedJoin.current = false;
+        }
+
+        // Don't attempt joining if we've already tried
+        if (attemptedJoin.current) {
+            return;
+        }
+
+        attemptedJoin.current = true;
+
+        // Join from URL params
+        if (roomIdParam && isValidRoomId(roomIdParam) && joinedRoomId.current !== roomIdParam) {
+            joinedRoomId.current = roomIdParam;
             webSocketStore.sendMessage({
                 type: 'joinRoom',
-                roomId: roomId,
-                password: password || undefined,
+                roomId: roomIdParam,
+                password: passwordParam || undefined,
             });
-        } else if (room?.id) {
+            return;
+        }
+
+        // Rejoin existing room
+        if (room?.id && !joinedRoomId.current) {
+            joinedRoomId.current = room.id;
             webSocketStore.sendMessage({
                 type: 'reJoinRoom',
                 roomId: room.id,
-                password: room?.password,
+                password: room.password,
             });
-        } else {
-            if (layoutMode !== 'remote' && layoutFrommParam !== 'remote') {
-                webSocketStore.sendMessage({ type: 'createRoom' });
-            }
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [webSocketStore.connectionStatus]);
 
+        // Create new room if needed
+        if (!joinedRoomId.current && layoutMode !== 'remote' && layoutParam !== 'remote') {
+            webSocketStore.sendMessage({ type: 'createRoom' });
+        }
+    }, [
+        webSocketStore.connectionStatus,
+        roomIdParam,
+        passwordParam,
+        room?.id,
+        room?.password,
+        layoutMode,
+        layoutParam,
+        webSocketStore,
+    ]);
+
+    // Reset room tracking when we leave a room
+    useEffect(() => {
+        if (!room?.id && joinedRoomId.current) {
+            joinedRoomId.current = null;
+            attemptedJoin.current = false;
+        }
+    }, [room?.id]);
+
+    // Handle error messages from server
     useEffect(() => {
         const lastMsg = webSocketStore.lastMessage;
         if (lastMsg?.type === 'errorWithCode' && lastMsg.code === ErrorCode.REJOIN_ROOM_NOT_FOUND) {
+            joinedRoomId.current = null;
+            attemptedJoin.current = false;
             webSocketStore.sendMessage({ type: 'createRoom' });
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [webSocketStore?.lastMessage?.type]);
+    }, [webSocketStore.lastMessage?.type, webSocketStore]);
 
     return <WebSocketContext.Provider value={webSocketStore}>{children}</WebSocketContext.Provider>;
 };
