@@ -6,9 +6,9 @@ import { Eye, EyeOff, Copy } from 'lucide-react';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { useWebSocketStore } from '@/store/websocketStore';
 import { useChangeLocale, useCurrentLocale, SUPPORTED_LOCALES } from '@/locales/client';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
+import { useWebSocket } from '@/providers/websocket-provider';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -49,7 +49,7 @@ export function RoomSettings() {
         setShowBottomControls,
         setOpacityOfButtonsInPlayer,
     } = useYouTubeStore();
-    const { sendMessage, connectionStatus } = useWebSocketStore();
+    const { ensureConnectedAndSend, connectionStatus } = useWebSocket();
     const {
         roomPassword,
         joinRoomId,
@@ -70,15 +70,15 @@ export function RoomSettings() {
     const t_RoomSettings = useScopedI18n('roomSettings');
 
     const createRoom = useCallback(() => {
-        sendMessage({ type: 'createRoom', password: roomPassword });
+        ensureConnectedAndSend({ type: 'createRoom', password: roomPassword });
         resetState();
-    }, [roomPassword, sendMessage, resetState]);
+    }, [roomPassword, ensureConnectedAndSend, resetState]);
 
     const joinRoom = useCallback(
         (data?: { roomId?: string; password?: string | null }) => {
             const roomIdWillUse = data?.roomId || joinRoomId;
             if (roomIdWillUse.length === 6) {
-                sendMessage({
+                ensureConnectedAndSend({
                     type: 'joinRoom',
                     roomId: roomIdWillUse,
                     password: data?.password || joinRoomPassword,
@@ -92,22 +92,22 @@ export function RoomSettings() {
                 });
             }
         },
-        [joinRoomId, joinRoomPassword, sendMessage, t_RoomSettings, resetState],
+        [joinRoomId, joinRoomPassword, ensureConnectedAndSend, t_RoomSettings, resetState],
     );
 
     const leaveRoom = useCallback(() => {
         if (room?.id) {
-            sendMessage({ type: 'leaveRoom' });
+            ensureConnectedAndSend({ type: 'leaveRoom' });
             setRoom(null);
         }
-    }, [sendMessage, room?.id, setRoom]);
+    }, [ensureConnectedAndSend, room?.id, setRoom]);
 
     const closeRoom = useCallback(() => {
         if (room?.id) {
-            sendMessage({ type: 'closeRoom' });
+            ensureConnectedAndSend({ type: 'closeRoom' });
             setRoom(null);
         }
-    }, [sendMessage, room?.id, setRoom]);
+    }, [ensureConnectedAndSend, room?.id, setRoom]);
 
     useEffect(() => {
         return () => {

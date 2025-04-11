@@ -31,6 +31,8 @@ class WebSocketManager {
     private heartbeatInterval: NodeJS.Timeout | null = null;
     private heartbeatTimeout: NodeJS.Timeout | null = null;
     private url: string;
+    private reconnecting: boolean = false;
+    private lastConnectionTime: number = 0;
 
     private constructor(config: WebSocketConfig) {
         this.url = config.url;
@@ -101,7 +103,6 @@ class WebSocketManager {
             this.socket.close();
             this.socket = null;
         }
-        this.messageQueue.clear();
     };
 
     private setStatus = (status: ConnectionStatus) => {
@@ -112,6 +113,8 @@ class WebSocketManager {
         this.reconnectAttempts = 0;
         this.retryDelay = this.initialRetryDelay;
         this.setStatus('OPEN');
+        this.reconnecting = false;
+        this.lastConnectionTime = Date.now();
 
         // Resend all pending messages
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -123,13 +126,32 @@ class WebSocketManager {
 
     private handleClose = () => {
         this.setStatus('CLOSED');
-        this.cleanup();
+        this.cleanupSocket();
         this.scheduleReconnect();
+    };
+
+    private cleanupSocket = () => {
+        if (this.heartbeatInterval) {
+            clearInterval(this.heartbeatInterval);
+            this.heartbeatInterval = null;
+        }
+        if (this.heartbeatTimeout) {
+            clearTimeout(this.heartbeatTimeout);
+            this.heartbeatTimeout = null;
+        }
+        if (this.socket) {
+            this.socket.onopen = null;
+            this.socket.onclose = null;
+            this.socket.onerror = null;
+            this.socket.onmessage = null;
+            this.socket.close();
+            this.socket = null;
+        }
     };
 
     private handleError = (error: Event) => {
         console.error('WebSocket error:', error);
-        this.cleanup();
+        this.cleanupSocket();
         this.scheduleReconnect();
     };
 
@@ -158,16 +180,27 @@ class WebSocketManager {
     };
 
     private scheduleReconnect = () => {
+        if (this.reconnecting) return;
+        this.reconnecting = true;
+
         if (this.reconnectAttempts >= this.maxReconnectAttempts) {
             console.error('Max reconnection attempts reached');
             return;
         }
 
+        // Use a shorter delay for recent connections (fast recovery for tab switches)
+        const timeSinceLastConnection = Date.now() - this.lastConnectionTime;
+        const isRecentDisconnect = timeSinceLastConnection < 10000; // 10 seconds
+
+        const reconnectDelay = isRecentDisconnect
+            ? Math.min(500, this.retryDelay) // Use very short delay for recent disconnects
+            : this.retryDelay;
+
         this.reconnectTimeout = setTimeout(() => {
             this.reconnectAttempts++;
             this.retryDelay = Math.min(this.retryDelay * 1.5, this.maxRetryDelay);
             this.connect();
-        }, this.retryDelay);
+        }, reconnectDelay);
     };
 
     private startHeartbeat = () => {
@@ -184,7 +217,7 @@ class WebSocketManager {
 
                 this.heartbeatTimeout = setTimeout(() => {
                     console.warn('Heartbeat timeout - reconnecting...');
-                    this.cleanup();
+                    this.cleanupSocket();
                     this.connect();
                 }, 5000);
             }
@@ -222,7 +255,10 @@ class WebSocketManager {
         if (this.socket?.readyState === WebSocket.OPEN) {
             this.sendMessageToServer(message);
         } else {
-            this.connect();
+            // Force immediate reconnect if not connected
+            if (this.socket?.readyState !== WebSocket.CONNECTING) {
+                this.connect();
+            }
         }
 
         return message.id;
@@ -238,8 +274,16 @@ class WebSocketManager {
 
     connect = () => {
         if (this.socket?.readyState === WebSocket.OPEN) return;
+        if (this.socket?.readyState === WebSocket.CONNECTING) return;
+
+        // Clear any existing reconnect timeouts before connecting
+        if (this.reconnectTimeout) {
+            clearTimeout(this.reconnectTimeout);
+            this.reconnectTimeout = null;
+        }
 
         try {
+            this.cleanupSocket();
             this.socket = new WebSocket(this.url);
             this.setStatus('CONNECTING');
 

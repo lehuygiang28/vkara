@@ -18,11 +18,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCode } from 'react-qrcode-logo';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { useWebSocketStore } from '@/store/websocketStore';
 import { useScopedI18n } from '@/locales/client';
 import { cn, generateShareableUrl } from '@/lib/utils';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useCountdownStore } from '@/store/countdownTimersStore';
+import { useWebSocket } from '@/providers/websocket-provider';
 
 import { CountdownTimer } from '@/components/countdown-timer';
 import { Button } from '@/components/ui/button';
@@ -60,7 +60,7 @@ export default function YoutubePlayerPage() {
     const { isFullScreen, toggleFullScreen } = useFullscreen();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
 
-    const { sendMessage, lastMessage } = useWebSocketStore();
+    const { ensureConnectedAndSend, lastMessage } = useWebSocket();
 
     useEffect(() => {
         if (lastMessage) {
@@ -87,7 +87,7 @@ export default function YoutubePlayerPage() {
 
     const handleVideoFinished = () => {
         if (room) {
-            sendMessage({ type: 'videoFinished' });
+            ensureConnectedAndSend({ type: 'videoFinished' });
         } else {
             nextVideo();
         }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { isValidRoomId, resolveUrl } from '@/lib/utils';
@@ -9,9 +9,13 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore, initializeWebSocket } from '@/store/websocketStore';
 import { ErrorCode } from '@/types/server-errors.type';
 
-const WebSocketContext = createContext<WebSocketState | undefined>(undefined);
+interface EnhancedWebSocketState extends WebSocketState {
+    ensureConnectedAndSend: WebSocketState['sendMessage'];
+}
 
-export const useWebSocket = (): WebSocketState => {
+const WebSocketContext = createContext<EnhancedWebSocketState | undefined>(undefined);
+
+export const useWebSocket = (): EnhancedWebSocketState => {
     const context = useContext(WebSocketContext);
     if (context === undefined) {
         throw new Error('useWebSocket must be used within a WebSocketProvider');
@@ -50,6 +54,51 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return cleanup;
     }, []);
 
+    // Trigger reconnect based on network connectivity
+    const triggerReconnect = useCallback(() => {
+        if (webSocketStore.connectionStatus !== 'OPEN') {
+            webSocketStore.connect();
+        }
+    }, [webSocketStore]);
+
+    // Handle visibility changes (tab switching, minimizing)
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                triggerReconnect();
+            }
+        };
+
+        const handleOnline = () => {
+            triggerReconnect();
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('online', handleOnline);
+
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('online', handleOnline);
+        };
+    }, [triggerReconnect]);
+
+    // Ensure connection before sending messages
+    const ensureConnectedAndSend: WebSocketState['sendMessage'] = useCallback(
+        (messageData) => {
+            // If already connected, send immediately
+            if (webSocketStore.connectionStatus === 'OPEN') {
+                return webSocketStore.sendMessage(messageData);
+            }
+
+            // Force a connection attempt
+            webSocketStore.connect();
+
+            // Still send the message - it will be queued and sent once connected
+            return webSocketStore.sendMessage(messageData);
+        },
+        [webSocketStore],
+    );
+
     // Handle layout mode from URL params
     useEffect(() => {
         if (!layoutParam) return;
@@ -83,7 +132,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // Join from URL params
         if (roomIdParam && isValidRoomId(roomIdParam) && joinedRoomId.current !== roomIdParam) {
             joinedRoomId.current = roomIdParam;
-            webSocketStore.sendMessage({
+            ensureConnectedAndSend({
                 type: 'joinRoom',
                 roomId: roomIdParam,
                 password: passwordParam || undefined,
@@ -94,7 +143,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         // Rejoin existing room
         if (room?.id && !joinedRoomId.current) {
             joinedRoomId.current = room.id;
-            webSocketStore.sendMessage({
+            ensureConnectedAndSend({
                 type: 'reJoinRoom',
                 roomId: room.id,
                 password: room.password,
@@ -104,7 +153,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
         // Create new room if needed
         if (!joinedRoomId.current && layoutMode !== 'remote' && layoutParam !== 'remote') {
-            webSocketStore.sendMessage({ type: 'createRoom' });
+            ensureConnectedAndSend({ type: 'createRoom' });
         }
     }, [
         webSocketStore.connectionStatus,
@@ -114,7 +163,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         room?.password,
         layoutMode,
         layoutParam,
-        webSocketStore,
+        ensureConnectedAndSend,
     ]);
 
     // Reset room tracking when we leave a room
@@ -131,9 +180,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (lastMsg?.type === 'errorWithCode' && lastMsg.code === ErrorCode.REJOIN_ROOM_NOT_FOUND) {
             joinedRoomId.current = null;
             attemptedJoin.current = false;
-            webSocketStore.sendMessage({ type: 'createRoom' });
+            ensureConnectedAndSend({ type: 'createRoom' });
         }
-    }, [webSocketStore.lastMessage?.type, webSocketStore]);
+    }, [webSocketStore.lastMessage?.type, ensureConnectedAndSend]);
 
-    return <WebSocketContext.Provider value={webSocketStore}>{children}</WebSocketContext.Provider>;
+    const enhancedWebSocketStore: EnhancedWebSocketState = {
+        ...webSocketStore,
+        ensureConnectedAndSend,
+    };
+
+    return (
+        <WebSocketContext.Provider value={enhancedWebSocketStore}>
+            {children}
+        </WebSocketContext.Provider>
+    );
 };
