@@ -4,6 +4,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import type { YouTubeVideo } from '@/types/youtube.type';
 // import { getRelatedVideos } from '@/actions/youtube-actions';
 import { getYoutubeSuggestions, searchYoutube, getRelatedVideos } from '@/services/youtube-api';
+import { useYouTubeStore } from '@/store/youtubeStore';
 
 interface SearchState {
     searchQuery: string;
@@ -19,7 +20,9 @@ interface SearchState {
 
     relatedResults: YouTubeVideo[];
     isRelatedLoading: boolean;
+    isRelatedLoadingMore: boolean;
     selectedRelatedVideoId: string | null;
+    relatedNextToken: string | null;
 
     // Actions
     setSearchQuery: (query: string) => void;
@@ -29,7 +32,8 @@ interface SearchState {
     loadMore: () => Promise<void>;
     fetchSuggestions: (query: string) => Promise<void>;
 
-    fetchRelatedResults: (videoId: string) => void;
+    fetchRelatedResults: (videoId: string, token?: string | null) => Promise<void>;
+    loadMoreRelated: () => Promise<void>;
     setSelectedRelatedVideoId: (id: string | null) => void;
 }
 
@@ -49,7 +53,9 @@ export const useSearchStore = create(
 
             relatedResults: [],
             isRelatedLoading: false,
+            isRelatedLoadingMore: false,
             selectedRelatedVideoId: null,
+            relatedNextToken: null,
 
             setSearchQuery: (query) => set({ searchQuery: query }),
             setIsKaraoke: (isKaraoke) => {
@@ -147,19 +153,54 @@ export const useSearchStore = create(
                 }
             },
 
-            fetchRelatedResults: async (videoId: string) => {
-                set({ isRelatedLoading: true, relatedResults: [], selectedRelatedVideoId: null });
+            fetchRelatedResults: async (videoId: string, token?: string | null) => {
+                if (!token) {
+                    set({
+                        isRelatedLoading: true,
+                        relatedResults: [],
+                        selectedRelatedVideoId: null,
+                        relatedNextToken: null,
+                    });
+                } else {
+                    set({ isRelatedLoadingMore: true });
+                }
+
                 try {
-                    const oldResults = get().relatedResults;
-                    const relatedResults = (await getRelatedVideos(videoId)).items.filter(
-                        (video) => !oldResults.some((v) => v.id === video.id),
-                    );
-                    set({ relatedResults: relatedResults });
+                    const { items, continuation } = await getRelatedVideos(videoId, token);
+
+                    set((state) => {
+                        if (!token) {
+                            return {
+                                relatedResults: items,
+                                relatedNextToken: continuation,
+                            };
+                        }
+
+                        const existingIds = state.relatedResults.map((video) => video.id);
+                        const newItems = items.filter((video) => !existingIds.includes(video.id));
+
+                        return {
+                            relatedResults: [...state.relatedResults, ...newItems],
+                            relatedNextToken: continuation,
+                        };
+                    });
                 } catch (error) {
                     console.error('Error fetching related results:', error);
-                    set({ relatedResults: [] });
                 } finally {
-                    set({ isRelatedLoading: false });
+                    set({
+                        isRelatedLoading: false,
+                        isRelatedLoadingMore: false,
+                    });
+                }
+            },
+
+            loadMoreRelated: async () => {
+                const { relatedNextToken, isRelatedLoadingMore } = get();
+                const youtubeStore = useYouTubeStore.getState();
+                const currentVideoId = youtubeStore.room?.playingNow?.id;
+
+                if (currentVideoId && relatedNextToken && !isRelatedLoadingMore) {
+                    await get().fetchRelatedResults(currentVideoId, relatedNextToken);
                 }
             },
 

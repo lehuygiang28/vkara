@@ -51,13 +51,25 @@ export async function checkEmbeddableStatus(videoIds: string[]) {
     return (await response.json()) as { videoId: string; canEmbed: boolean }[];
 }
 
-export async function getRelatedVideos(videoId: string): Promise<{ items: YouTubeVideo[] }> {
+export async function getRelatedVideos(
+    videoId: string,
+    continuation?: string | null,
+): Promise<{ items: YouTubeVideo[]; continuation: string | null }> {
     const url = new URL('/related', API_URL);
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoId }),
+        body: JSON.stringify({
+            videoId,
+            ...(continuation ? { continuation } : {}),
+        }),
     });
-    const { items } = (await response.json()) as { items: YouTubeVideo[] };
-    return { items };
+    const data = (await response.json()) as {
+        items: YouTubeVideo[];
+        continuation: string | null;
+    };
+    return {
+        items: data.items,
+        continuation: data.continuation,
+    };
 }

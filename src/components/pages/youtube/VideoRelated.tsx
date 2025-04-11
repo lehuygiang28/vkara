@@ -20,10 +20,13 @@ export function VideoRelated() {
     const { room } = useYouTubeStore();
     const {
         isRelatedLoading,
+        isRelatedLoadingMore,
         relatedResults,
+        relatedNextToken,
         selectedRelatedVideoId,
         setSelectedRelatedVideoId,
         fetchRelatedResults,
+        loadMoreRelated,
     } = useSearchStore();
     const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop } =
         usePlayerAction();
@@ -80,6 +83,12 @@ export function VideoRelated() {
         );
     }
 
+    const handleLoadMore = () => {
+        if (relatedNextToken && !isRelatedLoadingMore) {
+            loadMoreRelated();
+        }
+    };
+
     return (
         <div className="flex flex-col h-screen">
             {isRelatedLoading && (relatedResults?.length || 0) <= 0 ? (
@@ -101,6 +110,9 @@ export function VideoRelated() {
                             )
                         }
                         selectedVideoId={selectedRelatedVideoId}
+                        onLoadMore={handleLoadMore}
+                        hasMore={!!relatedNextToken}
+                        isLoading={isRelatedLoadingMore}
                     />
                 </>
             )}
