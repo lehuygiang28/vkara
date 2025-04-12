@@ -109,8 +109,8 @@ export const useSearchStore = create(
                             };
                         }
 
-                        const existingIds = state.searchResults.map((video) => video.id);
-                        const newItems = items.filter((video) => !existingIds.includes(video.id));
+                        const existingIds = new Set(state.searchResults.map((video) => video.id));
+                        const newItems = items.filter((video) => !existingIds.has(video.id));
 
                         return {
                             searchResults: [...state.searchResults, ...newItems],
@@ -176,8 +176,8 @@ export const useSearchStore = create(
                             };
                         }
 
-                        const existingIds = state.relatedResults.map((video) => video.id);
-                        const newItems = items.filter((video) => !existingIds.includes(video.id));
+                        const existingIds = new Set(state.relatedResults.map((video) => video.id));
+                        const newItems = items.filter((video) => !existingIds.has(video.id));
 
                         return {
                             relatedResults: [...state.relatedResults, ...newItems],
