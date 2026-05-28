@@ -1,50 +1,46 @@
 'use client';
 
-import { useToast } from '@/hooks/use-toast';
-import {
-    Toast,
-    ToastClose,
-    ToastDescription,
-    ToastProvider,
-    ToastTitle,
-    ToastViewport,
-} from '@/components/ui/toast';
+import { useTheme } from 'next-themes';
+import { Toaster as Sonner, type ToasterProps } from 'sonner';
 
-function shouldDismissToastOnPointer(target: EventTarget | null) {
-    if (!(target instanceof HTMLElement)) return true;
-    return !target.closest('button, a, [role="button"], [data-radix-toast-action]');
-}
+import { cn } from '@/lib/utils';
 
-export function Toaster() {
-    const { toasts, dismiss } = useToast();
+const toastOffset = {
+    top: 'var(--vkara-toast-top)',
+    left: 'max(var(--safe-left), 0.75rem)',
+    right: 'max(var(--safe-right), 0.75rem)',
+} as const;
+
+export function Toaster({ ...props }: ToasterProps) {
+    const { resolvedTheme } = useTheme();
 
     return (
-        <ToastProvider swipeDirection="up">
-            {toasts.map(({ id, title, description, action, duration, onClick, ...props }) => (
-                <Toast
-                    key={id}
-                    duration={duration}
-                    {...props}
-                    onClick={(event) => {
-                        onClick?.(event);
-                        if (event.defaultPrevented) return;
-                        if (!shouldDismissToastOnPointer(event.target)) return;
-                        dismiss(id);
-                    }}
-                >
-                    <div className="min-w-0">
-                        {title ? <ToastTitle>{title}</ToastTitle> : null}
-                        {description ? (
-                            <ToastDescription className={title ? 'mt-0.5' : undefined}>
-                                {description}
-                            </ToastDescription>
-                        ) : null}
-                    </div>
-                    {action}
-                    <ToastClose />
-                </Toast>
-            ))}
-            <ToastViewport />
-        </ToastProvider>
+        <Sonner
+            theme={(resolvedTheme ?? 'system') as ToasterProps['theme']}
+            position="top-center"
+            visibleToasts={1}
+            closeButton
+            offset={toastOffset}
+            mobileOffset={toastOffset}
+            className="toaster group"
+            toastOptions={{
+                classNames: {
+                    toast: cn(
+                        'group toast w-full max-w-[22rem] rounded-xl border border-border/80',
+                        'bg-background/95 text-foreground shadow-lg backdrop-blur-md',
+                        'supports-[backdrop-filter]:bg-background/80',
+                    ),
+                    title: 'text-sm font-medium leading-snug',
+                    description: 'text-xs leading-relaxed text-muted-foreground',
+                    closeButton:
+                        'border-border/80 bg-background/90 text-muted-foreground hover:bg-accent/60 hover:text-foreground',
+                    success: '[&_[data-title]]:text-foreground',
+                    error: '[&_[data-title]]:text-foreground',
+                    info: '[&_[data-title]]:text-foreground',
+                    warning: '[&_[data-title]]:text-foreground',
+                },
+            }}
+            {...props}
+        />
     );
 }
