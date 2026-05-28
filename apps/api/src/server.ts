@@ -1,13 +1,11 @@
 import { Elysia, t } from 'elysia';
 import type { ElysiaWS } from 'elysia/ws';
-import * as mongoose from 'mongoose';
 import youtubeSr from 'youtube-sr';
 import cors from '@elysiajs/cors';
 import swagger from '@elysiajs/swagger';
 import serverTiming from '@elysiajs/server-timing';
 import { rateLimit } from 'elysia-rate-limit';
 
-import { syncFromMongoDB, syncToMongoDB } from '@/mongodb-sync';
 import {
     cleanUpRoomField,
     cleanUpVideoField,
@@ -18,7 +16,6 @@ import {
 import { wsLogger, roomLogger, createContextLogger } from '@/utils/logger';
 import { ErrorCode, RoomError } from '@vkara/shared-types';
 import { scheduleCleanupJobs } from '@/queues/cleanup';
-import { scheduleSyncRedisToDb } from '@/queues/sync';
 import { wsClientMessageSchema } from '@/schemas/client-message';
 import type { ClientInfo, ClientMessage, Room, ServerMessage, YouTubeVideo } from '@vkara/shared-types';
 
@@ -27,35 +24,6 @@ import { checkEmbeddable, searchYoutubeiElysia } from './youtubei';
 
 const serverLogger = createContextLogger('Server');
 const IS_ENCRYPTED_PASSWORD = process.env.IS_ENCRYPTED_PASSWORD === 'true';
-
-if (process.env.MONGODB_URI) {
-    mongoose
-        .connect(process.env.MONGODB_URI, {
-            serverSelectionTimeoutMS: 5000,
-            socketTimeoutMS: 45000,
-        })
-        .then(() => {
-            serverLogger.info('MongoDB connected');
-            scheduleSyncRedisToDb().catch((error) => {
-                serverLogger.error('Failed to schedule Redis to DB sync', { error });
-            });
-        })
-        .catch((error) => {
-            serverLogger.error('MongoDB connection error', { error });
-            // Retry connection after delay
-            setTimeout(() => {
-                serverLogger.info('Retrying MongoDB connection...');
-                mongoose
-                    .connect(process.env.MONGODB_URI!)
-                    .then(() => {
-                        serverLogger.info('MongoDB connected after retry');
-                    })
-                    .catch((retryError) => {
-                        serverLogger.error('MongoDB retry connection error', { error: retryError });
-                    });
-            }, 5000);
-        });
-}
 
 export const wsConnections = new Map<string, ElysiaWS>();
 
@@ -784,10 +752,6 @@ export const wsServer = new Elysia({
 })
     .on('start', async () => {
         serverLogger.info('Server started');
-        // Sync data from MongoDB to Redis on startup
-        await syncFromMongoDB(redis).catch((error) => {
-            serverLogger.error('Failed to sync from MongoDB', { error });
-        });
         scheduleCleanupJobs().catch((error) => {
             serverLogger.error('Failed to schedule cleanup jobs', { error });
         });
@@ -795,9 +759,7 @@ export const wsServer = new Elysia({
     .on('stop', async () => {
         serverLogger.info('Server stop initiated');
         try {
-            await syncToMongoDB(redis);
             await redis.quit();
-            await mongoose.disconnect();
             await wsServer.stop();
             serverLogger.info('Server stopped successfully');
         } catch (error) {
@@ -859,14 +821,8 @@ export const wsServer = new Elysia({
 // Setup graceful shutdown
 process.on('beforeExit', async () => {
     serverLogger.info('Server stopping due to beforeExit event');
-    await syncToMongoDB(redis).catch((error) => {
-        serverLogger.error('Failed to sync to MongoDB during shutdown', { error });
-    });
     await redis.quit().catch((error) => {
         serverLogger.error('Error closing Redis connection', { error });
-    });
-    await mongoose.disconnect().catch((error) => {
-        serverLogger.error('Error disconnecting from MongoDB', { error });
     });
     await wsServer.stop().catch((error) => {
         serverLogger.error('Error stopping WebSocket server', { error });
@@ -884,9 +840,7 @@ process.on('beforeExit', async () => {
         }, 5000);
 
         try {
-            await syncToMongoDB(redis);
             await redis.quit();
-            await mongoose.disconnect();
             await wsServer.stop();
             serverLogger.info('Clean shutdown completed');
             process.exit(0);

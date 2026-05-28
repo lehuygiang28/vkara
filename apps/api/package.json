@@ -16,7 +16,6 @@
         "elysia-rate-limit": "^4.6.2",
         "ioredis": "^5.4.2",
         "locate-chrome": "^0.1.1",
-        "mongoose": "^8.9.5",
         "winston": "^3.17.0",
         "youtube-sr": "^4.3.12",
         "youtubei": "^1.8.9"

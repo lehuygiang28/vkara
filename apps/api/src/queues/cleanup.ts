@@ -4,7 +4,6 @@ import type { Room } from '@vkara/shared-types';
 
 import { closeRoom } from '@/server';
 import { createContextLogger } from '@/utils/logger';
-import { validateDataIntegrity } from '@/mongodb-sync';
 
 const INACTIVE_TIMEOUT = parseInt(process.env.INACTIVE_TIMEOUT || '300') * 1000; // default 5 minutes
 const ORPHANED_CLIENT_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
@@ -40,13 +39,7 @@ export const cleanupQueue = new Queue('room-cleanup', {
 // Create a worker to process cleanup jobs
 const worker = new Worker(
     'room-cleanup',
-    async (job) => {
-        if (job.name === 'validate-integrity') {
-            return await validateDataIntegrity(connection);
-        } else {
-            return await cleanupInactiveRooms();
-        }
-    },
+    async () => await cleanupInactiveRooms(),
     {
         connection: connectionOptions,
         concurrency: 1,
@@ -201,19 +194,7 @@ export async function scheduleCleanupJobs() {
                 },
             },
         );
-
-        // Data integrity validation job (once per day at 3:00 AM)
-        await cleanupQueue.add(
-            'validate-integrity',
-            {},
-            {
-                repeat: {
-                    pattern: '0 3 * * *', // At 3:00 AM every day
-                },
-            },
-        );
-
-        logger.info('Scheduled recurring cleanup and integrity validation jobs');
+        logger.info('Scheduled recurring cleanup jobs');
     } catch (error) {
         logger.error('Failed to schedule cleanup jobs', { error });
         throw error;
