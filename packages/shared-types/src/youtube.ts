@@ -29,6 +29,10 @@ export type YouTubeVideo = Omit<
     name: string;
     verified: boolean;
   };
+  channels: Array<{
+    name: string;
+    verified: boolean;
+  }>;
   thumbnail: {
     url: string;
   };
