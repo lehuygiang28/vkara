@@ -36,10 +36,6 @@ export const mapYoutubeiVideo = (
         url: '',
         uploadedAt: video.uploadDate || '',
         views: video.viewCount || 0,
-        channel: {
-            name: channels[0].name,
-            verified: channels[0].verified,
-        },
         channels,
     };
 };

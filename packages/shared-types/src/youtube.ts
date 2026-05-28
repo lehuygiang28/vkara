@@ -9,6 +9,11 @@ export interface SearchResults {
   };
 }
 
+export type YouTubeChannel = {
+  name: string;
+  verified: boolean;
+};
+
 export type YouTubeVideo = Omit<
   ReturnType<Video["toJSON"]>,
   | "shorts_url"
@@ -25,16 +30,25 @@ export type YouTubeVideo = Omit<
   | "thumbnail"
   | "type"
 > & {
-  channel: {
-    name: string;
-    verified: boolean;
-  };
-  channels: Array<{
-    name: string;
-    verified: boolean;
-  }>;
+  channels: YouTubeChannel[];
   thumbnail: {
     url: string;
   };
   type: SearchType;
 };
+
+/** Legacy payloads may still include `channel`; normalize to `channels` for UI. */
+export function normalizeVideoChannels(
+  video: {
+    channels?: YouTubeChannel[];
+    channel?: { name: string; verified?: boolean };
+  },
+): YouTubeChannel[] {
+  if (video.channels && video.channels.length > 0) {
+    return video.channels;
+  }
+  if (video.channel?.name) {
+    return [{ name: video.channel.name, verified: video.channel.verified ?? false }];
+  }
+  return [{ name: "—", verified: false }];
+}

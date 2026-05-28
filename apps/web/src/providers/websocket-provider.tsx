@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { isValidRoomId, resolveUrl } from '@/lib/utils';
+import { isValidRoomId, resolveUrl } from '@vkara/shared-utils';
 import type { WebSocketState } from '@/types/websocket.type';
 import { getEffectiveLayoutMode } from '@/lib/layout-mode';
 import { useViewportWidth } from '@/hooks/use-viewport-layout';

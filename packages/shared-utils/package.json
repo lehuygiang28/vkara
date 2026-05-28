@@ -1,0 +1,12 @@
+{
+    "name": "@vkara/shared-utils",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "exports": {
+        ".": "./src/index.ts",
+        "./format": "./src/format.ts",
+        "./room": "./src/room.ts",
+        "./url": "./src/url.ts"
+    }
+}

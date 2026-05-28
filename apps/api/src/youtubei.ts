@@ -19,7 +19,8 @@ import {
 import { mapYoutubeiVideo } from './modules/youtube/video-mapper';
 import { checkEmbeddable } from './modules/youtube/embeddable';
 import { getRelatedVerifiedMap, getSearchVerifiedMap } from './modules/youtube/verified-badges';
-import { getCachedChannel, setCachedChannel } from './modules/youtube/channel-cache';
+import { setCachedChannel } from './modules/youtube/channel-cache';
+import { enrichChannelsVerified } from './modules/youtube/channel-verified';
 
 const logger = createContextLogger('Search-Youtubei');
 const youtubeiLogger = createContextLogger('Queue/Youtubei');
@@ -68,34 +69,11 @@ const isVerifiedChannel = (channel: unknown): boolean => {
 const resolveVideoChannels = async (
     video: VideoCompact,
     redisClient: Redis,
+    youtubeiClient: Client,
 ): Promise<ResolvedChannel[]> => {
-    if (video.channel?.name) {
-        const channelId = video.channel.id;
-        if (channelId) {
-            const cachedChannel = await getCachedChannel(redisClient, channelId);
-            if (cachedChannel) {
-                return [
-                    {
-                        id: cachedChannel.id,
-                        name: cachedChannel.name,
-                        verified: cachedChannel.verified,
-                    },
-                ];
-            }
-        }
-
-        return [
-            {
-                id: channelId,
-                name: video.channel.name,
-                verified: isVerifiedChannel(video.channel),
-            },
-        ];
-    }
-
     try {
         const fullVideo = await video.getVideo();
-        const channels = fullVideo.channels
+        const collaboratorChannels = fullVideo.channels
             ?.filter((channel): channel is NonNullable<typeof channel> => Boolean(channel?.name))
             .map((channel) => ({
                 id: channel.id,
@@ -103,50 +81,26 @@ const resolveVideoChannels = async (
                 verified: isVerifiedChannel(channel),
             }));
 
-        if (channels && channels.length > 0) {
-            const channelsWithCache = await Promise.all(
-                channels.map(async (channel) => {
-                    if (!channel.id) {
-                        return channel;
-                    }
-                    const cachedChannel = await getCachedChannel(redisClient, channel.id);
-                    return cachedChannel
-                        ? {
-                              ...channel,
-                              verified: channel.verified || cachedChannel.verified,
-                          }
-                        : channel;
-                }),
-            );
-
-            await Promise.all(
-                channelsWithCache
-                    .filter((channel) => Boolean(channel.id))
-                    .map((channel) =>
-                        setCachedChannel(redisClient, {
-                            id: channel.id!,
-                            name: channel.name,
-                            verified: channel.verified,
-                        }),
-                    ),
-            );
-            return channelsWithCache;
+        if (collaboratorChannels && collaboratorChannels.length > 0) {
+            return enrichChannelsVerified(redisClient, youtubeiClient, collaboratorChannels);
         }
 
-        if (fullVideo.channel?.name) {
-            const fallbackChannel = {
-                id: fullVideo.channel.id,
-                name: fullVideo.channel.name,
-                verified: isVerifiedChannel(fullVideo.channel),
-            };
-            if (fallbackChannel.id) {
-                await setCachedChannel(redisClient, {
-                    id: fallbackChannel.id,
-                    name: fallbackChannel.name,
-                    verified: fallbackChannel.verified,
-                });
-            }
-            return [fallbackChannel];
+        const primaryChannel = fullVideo.channel?.name
+            ? {
+                  id: fullVideo.channel.id,
+                  name: fullVideo.channel.name,
+                  verified: isVerifiedChannel(fullVideo.channel),
+              }
+            : video.channel?.name
+              ? {
+                    id: video.channel.id,
+                    name: video.channel.name,
+                    verified: isVerifiedChannel(video.channel),
+                }
+              : null;
+
+        if (primaryChannel) {
+            return enrichChannelsVerified(redisClient, youtubeiClient, [primaryChannel]);
         }
 
         return [];
@@ -155,6 +109,16 @@ const resolveVideoChannels = async (
             videoId: video.id,
             error,
         });
+
+        if (video.channel?.name) {
+            const fallback = {
+                id: video.channel.id,
+                name: video.channel.name,
+                verified: isVerifiedChannel(video.channel),
+            };
+            return enrichChannelsVerified(redisClient, youtubeiClient, [fallback]);
+        }
+
         return [];
     }
 };
@@ -295,22 +259,31 @@ export const searchYoutubeiElysia = new Elysia({})
 
             const embeddableVideos = await Promise.all(
                 newItems.map(async (item) => {
-                    const channels = await resolveVideoChannels(item, redisClient);
+                    const channels = await resolveVideoChannels(
+                        item,
+                        redisClient,
+                        youtubeiClient,
+                    );
                     const isVerified = verifiedByVideoId.get(item.id);
                     const resolvedChannels =
                         typeof isVerified === 'boolean'
                             ? channels.map((channel, index) =>
-                                  index === 0 ? { ...channel, verified: isVerified } : channel,
+                                  index === 0
+                                      ? { ...channel, verified: channel.verified || isVerified }
+                                      : channel,
                               )
                             : channels;
-                    const firstChannel = resolvedChannels[0];
-                    if (firstChannel?.id) {
-                        await setCachedChannel(redisClient, {
-                            id: firstChannel.id,
-                            name: firstChannel.name,
-                            verified: firstChannel.verified,
-                        });
-                    }
+                    await Promise.all(
+                        resolvedChannels
+                            .filter((channel) => Boolean(channel.id))
+                            .map((channel) =>
+                                setCachedChannel(redisClient, {
+                                    id: channel.id!,
+                                    name: channel.name,
+                                    verified: channel.verified,
+                                }),
+                            ),
+                    );
                     const video = mapYoutubeiVideo(item, {
                         channels: resolvedChannels.map(({ name, verified }) => ({ name, verified })),
                     });
@@ -477,22 +450,31 @@ export const searchYoutubeiElysia = new Elysia({})
 
                 const embeddableVideos = await Promise.all(
                     newItems.map(async (item) => {
-                        const channels = await resolveVideoChannels(item, redisClient);
+                        const channels = await resolveVideoChannels(
+                        item,
+                        redisClient,
+                        youtubeiClient,
+                    );
                         const isVerified = relatedVerifiedByVideoId.get(item.id);
                         const resolvedChannels =
                             typeof isVerified === 'boolean'
                                 ? channels.map((channel, index) =>
-                                      index === 0 ? { ...channel, verified: isVerified } : channel,
+                                      index === 0
+                                          ? { ...channel, verified: channel.verified || isVerified }
+                                          : channel,
                                   )
                                 : channels;
-                        const firstChannel = resolvedChannels[0];
-                        if (firstChannel?.id) {
-                            await setCachedChannel(redisClient, {
-                                id: firstChannel.id,
-                                name: firstChannel.name,
-                                verified: firstChannel.verified,
-                            });
-                        }
+                        await Promise.all(
+                            resolvedChannels
+                                .filter((channel) => Boolean(channel.id))
+                                .map((channel) =>
+                                    setCachedChannel(redisClient, {
+                                        id: channel.id!,
+                                        name: channel.name,
+                                        verified: channel.verified,
+                                    }),
+                                ),
+                        );
                         const video = mapYoutubeiVideo(item, {
                             channels: resolvedChannels.map(({ name, verified }) => ({
                                 name,

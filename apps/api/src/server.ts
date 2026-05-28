@@ -6,6 +6,7 @@ import swagger from '@elysiajs/swagger';
 import serverTiming from '@elysiajs/server-timing';
 import { rateLimit } from 'elysia-rate-limit';
 
+import { isValidRoomId } from '@vkara/shared-utils';
 import {
     cleanUpRoomField,
     cleanUpVideoField,
@@ -69,8 +70,8 @@ function handleError(ws: ElysiaWS, error: Error | RoomError): void {
 
 // Room utilities
 async function validateRoom(roomId: string, isRejoin = false): Promise<Room> {
-    if (!roomId || typeof roomId !== 'string') {
-        throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Room ID must be a valid string');
+    if (!isValidRoomId(roomId)) {
+        throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Room ID must be a valid 6-digit code');
     }
 
     const roomData = await redis.get(`room:${roomId}`);

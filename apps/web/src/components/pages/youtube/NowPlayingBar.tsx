@@ -8,6 +8,8 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { cn } from '@/lib/utils';
 
+import { VideoChannels } from '@/components/video-channels';
+import { ThinkingIndicator } from '@/components/ui/thinking-indicator';
 import { Button } from '@/components/ui/button';
 
 interface NowPlayingBarProps {
@@ -23,6 +25,12 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
     const playing = room?.playingNow;
     const isPlaying = room?.isPlaying;
 
+    const nowPlayingStatusMessages = [
+        t('nowPlaying'),
+        t('nowPlayingStatus2'),
+        t('nowPlayingStatus3'),
+    ];
+
     if (!playing) {
         return null;
     }
@@ -30,29 +38,48 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
     return (
         <div
             className={cn(
-                'flex items-center gap-3 border-t bg-background/95 px-safe-offset py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+                'flex items-center gap-3 border-t bg-background/95 px-safe-offset py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80',
                 className,
             )}
         >
             <button
                 type="button"
                 onClick={onOpenQueue}
-                className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                className="flex min-w-0 flex-1 flex-col gap-1 text-left"
             >
-                <img
-                    src={playing.thumbnail.url}
-                    alt=""
-                    className="h-12 w-[4.25rem] shrink-0 rounded-md object-cover"
+                <ThinkingIndicator
+                    messages={nowPlayingStatusMessages}
+                    active={isPlaying}
+                    ariaLabel={t('nowPlayingStatusLabel')}
+                    className="gap-1.5 px-0 py-0"
                 />
-                <div className="min-w-0 flex-1">
-                    <p className="text-xs font-medium text-muted-foreground">{t('nowPlaying')}</p>
-                    <p className="line-clamp-1 text-sm font-semibold">{playing.title}</p>
-                    <p className="line-clamp-1 text-xs text-muted-foreground">
-                        {playing.channel?.name || '—'}
-                    </p>
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className="relative shrink-0">
+                        <img
+                            src={playing.thumbnail.url}
+                            alt={playing.title}
+                            className={cn(
+                                'h-12 w-[4.25rem] rounded-md object-cover transition-shadow duration-300',
+                                isPlaying &&
+                                    'ring-2 ring-primary/50 ring-offset-2 ring-offset-background',
+                            )}
+                        />
+                        {isPlaying ? (
+                            <span
+                                className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary"
+                                aria-hidden
+                            />
+                        ) : null}
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                        <p className="line-clamp-2 break-words text-sm font-semibold leading-snug">
+                            {playing.title}
+                        </p>
+                        <VideoChannels video={playing} tone="emphasis" maxLines={2} />
+                    </div>
                 </div>
             </button>
-            <div className="flex shrink-0 items-center gap-1">
+            <div className="flex shrink-0 items-center gap-1 self-center">
                 <Button
                     type="button"
                     variant="ghost"

@@ -1,4 +1,4 @@
-import { resolveUrl } from '@/lib/utils';
+import { resolveUrl } from '@vkara/shared-utils';
 
 const API_URL = resolveUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
 

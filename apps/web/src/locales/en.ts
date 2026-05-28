@@ -56,7 +56,10 @@ export default {
     'youtubePage.seekTo': 'Seek to',
     'youtubePage.controls': 'Controls',
     'youtubePage.queue': 'Queue',
-    'youtubePage.nowPlaying': 'Now Playing',
+    'youtubePage.nowPlaying': 'Now playing',
+    'youtubePage.nowPlayingStatus2': 'Sing along',
+    'youtubePage.nowPlayingStatus3': 'Enjoy the beat',
+    'youtubePage.nowPlayingStatusLabel': 'Playback status',
     'youtubePage.layout': 'Layout',
     'youtubePage.selectLayoutMode': 'Select layout mode',
     'youtubePage.layoutBoth': 'Both Player and Remote',
@@ -165,6 +168,8 @@ export default {
     'qrScanner.cameraError': 'Camera Error',
     'qrScanner.genericError': 'An error occurred while accessing the camera. Please try again.',
     'qrScanner.retry': 'Retry',
+
+    'videoChannels.and': 'and',
 
     'joinLobby.title': 'Join a room',
     'joinLobby.subtitle': 'Enter the 6-digit code from the TV or scan the QR code.',

@@ -169,3 +169,47 @@ body {
         overscroll-behavior: none;
     }
 }
+
+/*---break--- */
+
+/* Fluid Functionalism — ThinkingIndicator shimmer (global keyframes for Tailwind v3) */
+@keyframes shimmer {
+    0% {
+        background-position: 0% 0;
+    }
+    100% {
+        background-position: 100% 0;
+    }
+}
+
+.shimmer-text {
+    color: transparent;
+    background: linear-gradient(
+        90deg,
+        #a3a3a3 0%,
+        #a3a3a3 35%,
+        #525252 50%,
+        #a3a3a3 65%,
+        #a3a3a3 100%
+    );
+    background-size: 300% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: shimmer 1.5s ease-in-out infinite;
+}
+
+.dark .shimmer-text {
+    color: transparent;
+    background: linear-gradient(
+        90deg,
+        #737373 0%,
+        #737373 35%,
+        #e5e5e5 50%,
+        #737373 65%,
+        #737373 100%
+    );
+    background-size: 300% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: shimmer 1.5s ease-in-out infinite;
+}

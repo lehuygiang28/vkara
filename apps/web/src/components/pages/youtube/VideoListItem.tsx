@@ -2,12 +2,13 @@
 'use client';
 
 import { memo } from 'react';
-import { BadgeCheck } from 'lucide-react';
-
-import { cn, formatViewCount } from '@/lib/utils';
+import { VideoChannels } from '@/components/video-channels';
+import { formatViewCount } from '@vkara/shared-utils';
+import { cn } from '@/lib/utils';
 import type { YouTubeVideo } from '@/types/youtube.type';
 
-export const VIDEO_LIST_ROW_HEIGHT = 88;
+/** Fits title (2 lines) + channels (2 lines) + views within virtualized rows. */
+export const VIDEO_LIST_ROW_HEIGHT = 100;
 
 interface VideoListItemProps {
     video: YouTubeVideo;
@@ -34,7 +35,7 @@ export const VideoListItem = memo(function VideoListItem({
                 }
             }}
             className={cn(
-                'relative flex h-[88px] w-full cursor-pointer items-start gap-3 rounded-lg p-2 text-left text-sm',
+                'relative flex h-[100px] w-full cursor-pointer items-start gap-3 rounded-lg p-2 text-left text-sm',
                 'hover:bg-accent/50 active:bg-accent/60',
                 isActive && 'bg-accent/40 ring-1 ring-inset ring-primary/40',
             )}
@@ -53,16 +54,11 @@ export const VideoListItem = memo(function VideoListItem({
                     </div>
                 )}
             </div>
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden">
                 <div className="line-clamp-2 break-words text-sm font-medium leading-snug">
                     {video.title}
                 </div>
-                <div className="inline-flex max-w-full items-center text-sm text-muted-foreground">
-                    <span className="truncate">{video.channel?.name}</span>
-                    {video.channel?.verified && (
-                        <BadgeCheck className="ml-1 h-4 w-4 shrink-0" />
-                    )}
-                </div>
+                <VideoChannels video={video} tone="muted" maxLines={2} />
                 <div className="line-clamp-1 text-xs text-muted-foreground">
                     {video.views > 0 && (
                         <>

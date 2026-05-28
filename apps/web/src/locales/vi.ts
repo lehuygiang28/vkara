@@ -63,6 +63,9 @@ export default {
     'youtubePage.controls': 'Điều khiển',
     'youtubePage.queue': 'Danh sách',
     'youtubePage.nowPlaying': 'Đang phát',
+    'youtubePage.nowPlayingStatus2': 'Hát mạnh lên',
+    'youtubePage.nowPlayingStatus3': 'Nhạc đang căng',
+    'youtubePage.nowPlayingStatusLabel': 'Trạng thái phát nhạc',
     'youtubePage.nextUp': 'Tiếp theo',
     'youtubePage.startingIn': 'Bắt đầu trong',
     'youtubePage.exitFullscreen': 'Thu nhỏ',
@@ -164,6 +167,8 @@ export default {
     'qrScanner.cameraError': 'Lỗi camera',
     'qrScanner.genericError': 'Đã xảy ra lỗi khi quét mã QR. Vui lòng thử lại.',
     'qrScanner.retry': 'Thử lại',
+
+    'videoChannels.and': 'và',
 
     'joinLobby.title': 'Tham gia phòng',
     'joinLobby.subtitle': 'Nhập mã 6 số trên TV hoặc quét mã QR.',

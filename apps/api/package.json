@@ -11,6 +11,7 @@
         "@elysiajs/swagger": "^1.3.1",
         "@vkara/shared-infra": "workspace:*",
         "@vkara/shared-types": "workspace:*",
+        "@vkara/shared-utils": "workspace:*",
         "bullmq": "^5.34.8",
         "chalk": "^5.4.1",
         "elysia": "^1.4.28",

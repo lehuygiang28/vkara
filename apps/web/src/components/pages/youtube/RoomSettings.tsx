@@ -24,7 +24,8 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { generateShareableUrl, resolveRoomPasswordForShare } from '@/lib/utils';
+import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
+import { generateShareableUrl } from '@/lib/room-share';
 import { toast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
 import { TooltipButton } from '@/components/tooltip-button';

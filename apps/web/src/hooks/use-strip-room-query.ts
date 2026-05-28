@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 
-import { isValidRoomId } from '@/lib/utils';
+import { isValidRoomId } from '@vkara/shared-utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 const ROOM_QUERY_KEYS = ['roomId', 'password', 'layoutMode'] as const;

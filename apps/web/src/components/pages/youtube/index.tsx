@@ -9,7 +9,9 @@ import { QRCode } from 'react-qrcode-logo';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useScopedI18n } from '@/locales/client';
-import { cn, generateShareableUrl, resolveRoomPasswordForShare } from '@/lib/utils';
+import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
+import { generateShareableUrl } from '@/lib/room-share';
+import { cn } from '@/lib/utils';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
@@ -18,6 +20,7 @@ import { useWebSocket } from '@/providers/websocket-provider';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 
 import { CountdownTimer } from '@/components/countdown-timer';
+import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { PlayerControls } from './PlayerControls';
@@ -162,9 +165,11 @@ export default function YoutubePlayerPage() {
                         />
                         <div className="space-y-2">
                             <p className="line-clamp-2 font-medium">{room.videoQueue[0].title}</p>
-                            <p className="text-sm text-muted-foreground">
-                                {room.videoQueue[0].channel.name}
-                            </p>
+                            <VideoChannels
+                                video={room.videoQueue[0]}
+                                tone="inverse"
+                                className="justify-center text-center"
+                            />
                             <p className="text-sm text-muted-foreground">
                                 {t('startingIn')}:{' '}
                                 <CountdownTimer

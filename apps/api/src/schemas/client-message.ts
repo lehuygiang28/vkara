@@ -15,10 +15,13 @@ const youTubeVideoSchema = t.Object({
     uploadedAt: t.String(),
     url: t.String(),
     views: t.Number(),
-    channel: t.Object({
-        name: t.String(),
-        verified: t.Boolean(),
-    }),
+    channels: t.Array(
+        t.Object({
+            name: t.String(),
+            verified: t.Boolean(),
+        }),
+        { minItems: 1 },
+    ),
     thumbnail: t.Object({
         url: t.String(),
     }),
