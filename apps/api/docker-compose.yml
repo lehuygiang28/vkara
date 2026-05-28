@@ -1,0 +1,33 @@
+services:
+    vkara_api:
+        container_name: vkara-api
+        hostname: vkara-api
+        build:
+            context: ./
+            dockerfile: ./Dockerfile
+        image: lehuygiang28/vkara-api:${COMPOSE_TAG:-latest}
+        env_file:
+            - ./.env
+        ports:
+            - 8000:${PORT:-8000}
+        networks:
+            - vkara_net
+        restart: unless-stopped
+
+    redis_bundle:
+        container_name: redis-bundle
+        hostname: redis-bundle
+        build:
+            context: ./
+            dockerfile: ./containers/redis-bundle/Dockerfile
+        image: lehuygiang28/vkara-api-redis:${COMPOSE_TAG:-latest}
+        env_file:
+            - ./containers/redis-bundle/.env
+        ports:
+            - 8000:${PORT:-8000}
+        networks:
+            - vkara_net
+        restart: unless-stopped
+
+networks:
+    vkara_net:

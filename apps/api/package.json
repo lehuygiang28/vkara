@@ -1,0 +1,30 @@
+{
+    "name": "vkara-api",
+    "version": "0.0.1",
+    "scripts": {
+        "dev": "bun run --watch ./src/index.ts",
+        "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile server ./src/index.ts"
+    },
+    "dependencies": {
+        "@elysiajs/cors": "^1.2.0",
+        "@elysiajs/server-timing": "^1.2.0",
+        "@elysiajs/swagger": "^1.2.0",
+        "bullmq": "^5.34.8",
+        "chalk": "^5.4.1",
+        "elysia": "^1.2.10",
+        "elysia-rate-limit": "^4.1.0",
+        "ioredis": "^5.4.2",
+        "locate-chrome": "^0.1.1",
+        "mongoose": "^8.9.5",
+        "winston": "^3.17.0",
+        "youtube-search-api": "^1.2.2",
+        "youtubei": "^1.6.7"
+    },
+    "devDependencies": {
+        "@types/locate-chrome": "^0.1.2",
+        "bun-types": "^1.1.43",
+        "typescript": "^5.7.3",
+        "youtube-sr": "^4.3.11"
+    },
+    "module": "src/index.js"
+}

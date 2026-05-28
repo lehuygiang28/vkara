@@ -1,0 +1,96 @@
+name: Build and push Docker image
+
+on:
+    push:
+        branches:
+            - main
+
+env:
+    DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+    DOCKERHUB_PASSWORD: ${{ secrets.DOCKERHUB_TOKEN }}
+
+jobs:
+    check-skip:
+        runs-on: ubuntu-latest
+        outputs:
+            commit_message: ${{ steps.get_commit_message.outputs.commit_message }}
+            skip_docker: ${{ steps.check_skip_docker.outputs.skip_docker }}
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+
+            - name: Get commit message
+              id: get_commit_message
+              run: |
+                  commit_message=$(git log -1 --pretty=%B)
+                  commit_message="${commit_message//'%'/'%25'}"
+                  commit_message="${commit_message//$'\n'/' '}"
+                  commit_message="${commit_message//$'\r'/' '}"
+                  echo "commit_message=$commit_message" >> $GITHUB_OUTPUT
+
+            - name: Check if commit message contains [skip docker]
+              id: check_skip_docker
+              run: |
+                  if [[ "${{ steps.get_commit_message.outputs.commit_message }}" =~ "[skip docker]" ]]; then
+                    echo "skip_docker=true" >> $GITHUB_OUTPUT
+                    echo "Skip Docker build and push found in commit message."
+                  else
+                    echo "skip_docker=false" >> $GITHUB_OUTPUT
+                  fi
+
+    build:
+        needs: [check-skip]
+        if: ${{ needs.check-skip.outputs.skip_docker != 'true' }}
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                  username: ${{ env.DOCKERHUB_USERNAME }}
+                  password: ${{ env.DOCKERHUB_PASSWORD }}
+
+            - name: Install dotenvx
+              run: curl -sfS https://dotenvx.sh/install.sh | sh
+
+            - name: Set short SHA
+              id: set_short_sha
+              run: echo "SHORT_SHA=$(echo ${{ github.sha }} | cut -c 1-7)" >> $GITHUB_OUTPUT
+
+            - name: Create .env file
+              run: |
+                  touch ./containers/redis-bundle/.env
+                  touch .env
+                  cat .env
+
+            - name: Set COMPOSE_TAG as short commit SHA
+              id: set_compose_tag
+              run: dotenvx set --plain COMPOSE_TAG ${{ steps.set_short_sha.outputs.SHORT_SHA }}
+
+            - name: Build and push images with short commit SHA tag
+              id: build_push_images
+              run: docker compose -f docker-compose.yml build && docker compose -f docker-compose.yml push
+
+            # - name: Build and push bundle images
+            #   id: build_push_bundle
+            #   if: ${{ success() && steps.build_push_images.outcome == 'success' }}
+            #   run: docker compose -f docker-compose.bundle.yml build && docker compose -f docker-compose.bundle.yml push
+
+            - name: Set COMPOSE_TAG as latest
+              if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
+              run: dotenvx set --plain COMPOSE_TAG latest
+
+            - name: Build and push images with latest tag
+              if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
+              run: docker compose -f docker-compose.yml build && docker compose -f docker-compose.yml push
+
+            # - name: Build and push bundle images with latest tag
+            #   if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
+            #   run: docker compose -f docker-compose.bundle.yml build && docker compose -f docker-compose.bundle.yml push
+
+            - name: Remove .env file
+              run: rm .env
