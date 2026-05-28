@@ -5,8 +5,7 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "predev": "bun run generate:pwa-icons",
-        "build": "bun run generate:pwa-icons && bun run --bun next build",
+        "build": "bun run --bun next build",
         "start": "next start",
         "lint": "next lint",
         "generate:pwa-icons": "bun scripts/generate-pwa-icons.mjs"
