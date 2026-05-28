@@ -292,7 +292,7 @@ export default function YoutubePlayerPage() {
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
                                 transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-                                className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-background shadow-xl"
+                                className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-background pt-safe pr-safe shadow-xl"
                             >
                                 <RemoteShell />
                             </motion.div>

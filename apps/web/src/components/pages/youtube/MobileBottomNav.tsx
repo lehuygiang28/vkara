@@ -6,7 +6,6 @@ import {
     MoreHorizontal,
     Search,
     Settings,
-    Sparkles,
     SlidersVertical,
 } from 'lucide-react';
 
@@ -43,7 +42,7 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
     return (
         <nav
             className={cn(
-                'flex items-stretch justify-around border-t bg-background px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1',
+                'flex items-stretch justify-around border-t bg-background px-safe pb-safe-offset pt-1',
                 className,
             )}
             aria-label={t('mainNavigation')}
@@ -81,10 +80,6 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
                     <DropdownMenuItem onClick={() => setCurrentTab('history')}>
                         <Clock3 className="mr-2 h-4 w-4" />
                         {t('history')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setCurrentTab('related')}>
-                        <Sparkles className="mr-2 h-4 w-4" />
-                        {t('related')}
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setCurrentTab('controls')}>
                         <SlidersVertical className="mr-2 h-4 w-4" />

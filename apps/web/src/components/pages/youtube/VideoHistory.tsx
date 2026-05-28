@@ -8,6 +8,7 @@ import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
+import { cn } from '@/lib/utils';
 import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
@@ -50,9 +51,11 @@ export function VideoHistory() {
         );
     }
 
+    const hasHistory = (room?.historyQueue?.length || 0) > 0;
+
     return (
-        <div className="flex h-full min-h-0 flex-col">
-            {(room?.historyQueue?.length || 0) > 0 ? (
+        <div className={cn('flex h-full min-h-0 flex-col', !hasHistory && 'pt-safe-offset')}>
+            {hasHistory ? (
                 <VideoListToolbar>
                     <TooltipButton
                         tooltipContent={t('clearHistory')}

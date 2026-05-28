@@ -15,6 +15,11 @@
         var(--vkara-mobile-nav-height) + var(--vkara-now-playing-height) + var(--safe-bottom) +
             var(--vkara-toast-gap)
     );
+    /** Scroll padding above bottom nav + now playing bar on remote layout */
+    --vkara-remote-scroll-bottom: calc(
+        var(--vkara-mobile-nav-height) + var(--vkara-now-playing-height) +
+            max(var(--safe-bottom), 0px) + 0.75rem
+    );
 }
 
 @layer utilities {
@@ -31,6 +36,12 @@
     }
     .pb-safe {
         padding-bottom: var(--safe-bottom);
+    }
+    .pb-safe-offset {
+        padding-bottom: max(calc(var(--safe-bottom) + 0.25rem), 0.25rem);
+    }
+    .pb-remote-scroll {
+        padding-bottom: var(--vkara-remote-scroll-bottom);
     }
     .pl-safe {
         padding-left: var(--safe-left);

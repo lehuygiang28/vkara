@@ -8,7 +8,7 @@ export function SearchBrowseHint() {
     const t = useScopedI18n('videoSearch');
 
     return (
-        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-32 pt-8 text-center">
+        <div className="flex flex-1 flex-col items-center justify-center px-safe-offset pb-remote-scroll pt-4 text-center">
             <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted/60">
                 <Search className="h-7 w-7 text-muted-foreground" aria-hidden />
             </div>

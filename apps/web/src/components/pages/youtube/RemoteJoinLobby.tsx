@@ -30,7 +30,7 @@ export function RemoteJoinLobby() {
     const isConnected = connectionStatus === 'OPEN';
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-4 py-8">
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-safe-offset pb-safe-offset pt-safe-offset">
             <div className="w-full max-w-sm space-y-6">
                 <div className="space-y-2 text-center">
                     <h2 className="text-xl font-semibold tracking-tight">{t('title')}</h2>

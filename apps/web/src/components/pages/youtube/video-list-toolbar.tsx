@@ -16,7 +16,7 @@ export function VideoListToolbar({ children, trailing, className }: VideoListToo
     return (
         <div
             className={cn(
-                'shrink-0 border-b bg-background/95 px-safe-offset py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+                'shrink-0 border-b bg-background/95 px-safe-offset pb-2.5 pt-safe-offset backdrop-blur supports-[backdrop-filter]:bg-background/80',
                 className,
             )}
         >

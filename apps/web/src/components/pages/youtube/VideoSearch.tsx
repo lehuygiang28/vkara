@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/select';
 import { VideoList } from './VideoList';
 import { SearchBrowseHint } from './SearchBrowseHint';
+import { RelatedVideoList, useHasRelatedFeed } from './RelatedVideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 
 const VideoActionButtons = memo(function VideoActionButtons({
@@ -142,8 +143,9 @@ export function VideoSearch() {
         [selectedVideoId, setSelectedVideoId],
     );
 
-    const showBrowseHint =
+    const showBrowseIdle =
         !searchQuery && !isLoading && searchResults.length === 0 && !isLoadingMore;
+    const hasRelatedFeed = useHasRelatedFeed();
 
     return (
         <div className="flex h-full min-h-0 flex-col">
@@ -182,8 +184,10 @@ export function VideoSearch() {
                 </div>
             </div>
             {isLoading && searchResults.length === 0 ? (
-                <VideoSkeletonList count={6} className="pb-28 pt-2" />
-            ) : showBrowseHint ? (
+                <VideoSkeletonList count={6} className="pb-remote-scroll pt-2" />
+            ) : showBrowseIdle && hasRelatedFeed ? (
+                <RelatedVideoList keyPrefix="search-idle-related" />
+            ) : showBrowseIdle ? (
                 <SearchBrowseHint />
             ) : (
                 <VideoList

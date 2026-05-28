@@ -251,7 +251,9 @@ export const useSearchStore = create(
             loadMoreRelated: async () => {
                 const { relatedNextToken, isRelatedLoadingMore } = get();
                 const youtubeStore = useYouTubeStore.getState();
-                const currentVideoId = youtubeStore.room?.playingNow?.id;
+                const currentVideoId =
+                    youtubeStore.room?.playingNow?.id ??
+                    youtubeStore.room?.historyQueue[0]?.id;
 
                 if (currentVideoId && relatedNextToken && !isRelatedLoadingMore) {
                     await get().fetchRelatedResults(currentVideoId, relatedNextToken);

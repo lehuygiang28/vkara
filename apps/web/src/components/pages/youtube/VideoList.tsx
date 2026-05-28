@@ -129,7 +129,7 @@ export const VideoList = memo(function VideoList({
                 className="h-full overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]"
             >
                 {videos.length === 0 ? (
-                    <div className="flex items-center justify-center px-4 py-12 text-sm text-muted-foreground">
+                    <div className="flex min-h-[40%] items-center justify-center px-safe-offset py-12 pb-remote-scroll text-center text-sm text-muted-foreground">
                         {emptyMessage}
                     </div>
                 ) : (
@@ -179,7 +179,7 @@ export const VideoList = memo(function VideoList({
                     <div ref={observerTarget} className="h-8 w-full shrink-0" aria-hidden />
                 )}
 
-                <div className={cn(!isLoading && videos.length > 0 && 'h-24 pb-safe')} />
+                <div className={cn(!isLoading && videos.length > 0 && 'shrink-0 pb-remote-scroll')} />
             </div>
 
             <ScrollToTopListButton show={showScrollTop} onClick={scrollToTop} />
