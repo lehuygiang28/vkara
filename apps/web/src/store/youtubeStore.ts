@@ -192,7 +192,12 @@ export const useYouTubeStore = create(
                         {
                             set((state) => {
                                 state?.player?.seekTo(message.currentTime, true);
-                                return state;
+                                return {
+                                    ...state,
+                                    room: state.room
+                                        ? { ...state.room, currentTime: message.currentTime }
+                                        : null,
+                                };
                             });
                         }
                         break;

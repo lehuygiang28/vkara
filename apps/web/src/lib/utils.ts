@@ -77,6 +77,16 @@ export function formatViewCount(viewCount: number): string {
  * Uses the current path (locale) so Safari/Chrome open the right page:
  * `<origin>/vi?roomId=123456&password=…`
  */
+/** Plain-text password for invite links (from server room state or create form). */
+export function resolveRoomPasswordForShare(
+    roomPassword?: string,
+    fallbackPassword?: string,
+): string {
+    const fromRoom = roomPassword?.trim();
+    if (fromRoom) return fromRoom;
+    return fallbackPassword?.trim() ?? '';
+}
+
 export function generateShareableUrl({
     roomId,
     password,
@@ -89,8 +99,9 @@ export function generateShareableUrl({
             ? `${window.location.origin}${window.location.pathname}`
             : '';
     const params = new URLSearchParams({ roomId });
-    if (password) {
-        params.set('password', password);
+    const normalizedPassword = password.trim();
+    if (normalizedPassword) {
+        params.set('password', normalizedPassword);
     }
     return `${baseUrl}?${params.toString()}`;
 }

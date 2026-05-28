@@ -1,4 +1,5 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { shouldBroadcastPlaybackTime, type PlaybackTimeSyncState } from '@vkara/shared-types';
 import { toast } from '@/hooks/use-toast';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -30,6 +31,11 @@ export const usePlayerAction = (): PlayerAction => {
     const { ensureConnectedAndSend } = useWebSocket();
     const { room } = useYouTubeStore();
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
+    const lastSeekSentRef = useRef<PlaybackTimeSyncState | undefined>(undefined);
+
+    useEffect(() => {
+        lastSeekSentRef.current = undefined;
+    }, [room?.playingNow?.id]);
 
     const createRoomIfNeeded = useCallback(async (): Promise<boolean> => {
         if (room?.id) return true;
@@ -147,6 +153,19 @@ export const usePlayerAction = (): PlayerAction => {
     const handleSeekToSeconds = useCallback(
         async (seconds: number) => {
             if (!(await createRoomIfNeeded())) return;
+
+            const previousSeconds = useYouTubeStore.getState().room?.currentTime ?? seconds;
+            if (
+                !shouldBroadcastPlaybackTime(
+                    lastSeekSentRef.current,
+                    seconds,
+                    previousSeconds,
+                )
+            ) {
+                return;
+            }
+
+            lastSeekSentRef.current = { at: Date.now(), seconds };
             ensureConnectedAndSend({ type: 'seek', time: seconds });
             toast({
                 title: `${t('youtubePage.seekTo')} ${seconds}s`,

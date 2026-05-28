@@ -1,5 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
+
+import { isValidRoomId } from '@/lib/utils';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useScopedI18n } from '@/locales/client';
 import { useJoinRoom } from '@/hooks/use-join-room';
@@ -17,6 +21,7 @@ import {
 
 export function RemoteJoinLobby() {
     const t = useScopedI18n('joinLobby');
+    const searchParams = useSearchParams();
     const { connectionStatus } = useWebSocket();
     const {
         joinRoom,
@@ -28,6 +33,17 @@ export function RemoteJoinLobby() {
     } = useJoinRoom();
 
     const isConnected = connectionStatus === 'OPEN';
+
+    useEffect(() => {
+        const roomIdParam = searchParams.get('roomId');
+        const passwordParam = searchParams.get('password');
+        if (roomIdParam && isValidRoomId(roomIdParam)) {
+            setJoinRoomId(roomIdParam);
+        }
+        if (passwordParam) {
+            setJoinRoomPassword(passwordParam);
+        }
+    }, [searchParams, setJoinRoomId, setJoinRoomPassword]);
 
     return (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-safe-offset pb-safe-offset pt-safe-offset">

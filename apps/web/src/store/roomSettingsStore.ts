@@ -17,6 +17,7 @@ interface RoomSettingsState {
     setShowCreateRoom: (show: boolean) => void;
     setShowJoinRoom: (show: boolean) => void;
     setShowPassword: (show: boolean) => void;
+    resetJoinFormState: () => void;
     resetState: () => void;
 }
 
@@ -37,6 +38,15 @@ export const useRoomSettingsStore = create<RoomSettingsState>((set) => ({
     setShowCreateRoom: (show) => set({ showCreateRoom: show }),
     setShowJoinRoom: (show) => set({ showJoinRoom: show }),
     setShowPassword: (show) => set({ showPassword: show }),
+    resetJoinFormState: () =>
+        set({
+            joinRoomId: '',
+            joinRoomPassword: '',
+            showJoinPassword: false,
+            showCreatePassword: false,
+            showCreateRoom: false,
+            showJoinRoom: false,
+        }),
     resetState: () =>
         set({
             roomPassword: '',

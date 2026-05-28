@@ -9,12 +9,13 @@ import { QRCode } from 'react-qrcode-logo';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useScopedI18n } from '@/locales/client';
-import { cn, generateShareableUrl } from '@/lib/utils';
+import { cn, generateShareableUrl, resolveRoomPasswordForShare } from '@/lib/utils';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
+import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 
 import { CountdownTimer } from '@/components/countdown-timer';
 import { Button } from '@/components/ui/button';
@@ -49,6 +50,9 @@ export default function YoutubePlayerPage() {
 
     const { ensureConnectedAndSend, lastMessage } = useWebSocket();
 
+    // No-op unless ENABLE_PERIODIC_PLAYBACK_SYNC — avoids polling getCurrentTime every second.
+    usePlaybackPositionSync();
+
     useEffect(() => {
         if (lastMessage) {
             handleServerMessage(lastMessage, t_Toast);
@@ -71,13 +75,24 @@ export default function YoutubePlayerPage() {
     };
 
     const onPlayerStateChange = (event: YT.PlayerEvent) => {
-        setIsPlaying(event.target.getPlayerState() === YT.PlayerState.PLAYING);
+        const playerState = event.target.getPlayerState();
+        const playing = playerState === YT.PlayerState.PLAYING;
 
-        if (event.target.getPlayerState() === YT.PlayerState.PLAYING) {
+        // TV: native YouTube controls must sync to server so remotes stay in sync.
+        if (effectiveLayoutMode !== 'remote' && room?.id) {
+            const serverPlaying = useYouTubeStore.getState().room?.isPlaying;
+            if (serverPlaying !== undefined && serverPlaying !== playing) {
+                ensureConnectedAndSend({ type: playing ? 'play' : 'pause' });
+            }
+        }
+
+        setIsPlaying(playing);
+
+        if (playing) {
             cancelCountdown();
         }
 
-        if (event.target.getPlayerState() === YT.PlayerState.ENDED) {
+        if (playerState === YT.PlayerState.ENDED) {
             setShouldShowTimer(true);
         }
     };
@@ -176,7 +191,7 @@ export default function YoutubePlayerPage() {
                         <QRCode
                             value={generateShareableUrl({
                                 roomId: room.id,
-                                password: room?.password || '',
+                                password: resolveRoomPasswordForShare(room.password),
                             })}
                             size={72}
                             qrStyle="dots"

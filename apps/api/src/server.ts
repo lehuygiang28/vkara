@@ -14,7 +14,12 @@ import {
     shuffleArray,
 } from '@/utils/common';
 import { wsLogger, roomLogger, createContextLogger } from '@/utils/logger';
-import { ErrorCode, RoomError } from '@vkara/shared-types';
+import {
+    ErrorCode,
+    RoomError,
+    shouldBroadcastPlaybackTime,
+    type PlaybackTimeSyncState,
+} from '@vkara/shared-types';
 import { scheduleCleanupJobs } from '@/queues/cleanup';
 import { wsClientMessageSchema } from '@/schemas/client-message';
 import type { ClientInfo, ClientMessage, Room, ServerMessage, YouTubeVideo } from '@vkara/shared-types';
@@ -23,9 +28,19 @@ import { redis } from './redis';
 import { checkEmbeddable, searchYoutubeiElysia } from './youtubei';
 
 const serverLogger = createContextLogger('Server');
-const IS_ENCRYPTED_PASSWORD = process.env.IS_ENCRYPTED_PASSWORD === 'true';
 
 export const wsConnections = new Map<string, ElysiaWS>();
+
+function normalizeRoomPassword(password?: string): string | undefined {
+    const trimmed = password?.trim();
+    return trimmed ? trimmed : undefined;
+}
+
+/** Serialize WS messages per client to avoid lost updates from concurrent read-modify-write. */
+const wsMessageChains = new Map<string, Promise<void>>();
+
+/** Last playback position broadcast per room (throttles currentTime WS spam). */
+const lastPlaybackBroadcastByRoom = new Map<string, PlaybackTimeSyncState>();
 
 // Core utilities
 export function sendToClient(ws: ElysiaWS, message: ServerMessage): void {
@@ -107,14 +122,7 @@ async function createRoom(ws: ElysiaWS, password?: string) {
 
     const room: Room = {
         id: roomId,
-        password: !IS_ENCRYPTED_PASSWORD
-            ? password
-            : !isNullish(password)
-            ? await Bun.password.hash(password, {
-                  algorithm: 'bcrypt',
-                  cost: 4,
-              })
-            : undefined,
+        password: normalizeRoomPassword(password),
         clients: [ws.id],
         videoQueue: [],
         historyQueue: [],
@@ -134,12 +142,10 @@ async function createRoom(ws: ElysiaWS, password?: string) {
 async function joinRoom(ws: ElysiaWS, roomId: string, password?: string, isRejoin = false) {
     const room = await validateRoom(roomId, isRejoin);
 
-    if (!isNullish(password) && !isNullish(room?.password)) {
-        const isPasswordValid = IS_ENCRYPTED_PASSWORD
-            ? await Bun.password.verify(password, room.password)
-            : password === room.password;
-
-        if (!isPasswordValid) {
+    const expectedPassword = normalizeRoomPassword(room.password);
+    if (expectedPassword) {
+        const providedPassword = normalizeRoomPassword(password) ?? '';
+        if (providedPassword !== expectedPassword) {
             throw new RoomError(ErrorCode.INCORRECT_PASSWORD);
         }
     }
@@ -203,6 +209,7 @@ async function handleCloseRoom(ws: ElysiaWS) {
 
 export async function closeRoom(roomId: string, reason = 'Room closed by creator') {
     const room = await validateRoom(roomId);
+    lastPlaybackBroadcastByRoom.delete(roomId);
 
     for (const clientId of room.clients) {
         const ws = wsConnections.get(clientId);
@@ -288,6 +295,7 @@ async function playVideoNow(ws: ElysiaWS, video: YouTubeVideo) {
     room.isPlaying = true;
     room.currentTime = 0;
     room.lastActivity = Date.now();
+    lastPlaybackBroadcastByRoom.delete(roomId);
 
     await Promise.all([
         redis.set(`room:${roomId}`, JSON.stringify(room)),
@@ -323,6 +331,7 @@ async function nextVideo(ws: ElysiaWS) {
     }
 
     room.lastActivity = Date.now();
+    lastPlaybackBroadcastByRoom.delete(roomId);
 
     await Promise.all([
         redis.set(`room:${roomId}`, JSON.stringify(room)),
@@ -350,9 +359,11 @@ async function play(ws: ElysiaWS) {
 
     room.isPlaying = true;
     room.lastActivity = Date.now();
+    const publicRoom = cleanUpRoomField(room);
 
     await Promise.all([
         redis.set(`room:${roomId}`, JSON.stringify(room)),
+        broadcastToRoom(roomId, { type: 'roomUpdate', room: publicRoom }),
         broadcastToRoom(roomId, { type: 'play' }),
     ]);
 }
@@ -363,9 +374,11 @@ async function pause(ws: ElysiaWS) {
 
     room.isPlaying = false;
     room.lastActivity = Date.now();
+    const publicRoom = cleanUpRoomField(room);
 
     await Promise.all([
         redis.set(`room:${roomId}`, JSON.stringify(room)),
+        broadcastToRoom(roomId, { type: 'roomUpdate', room: publicRoom }),
         broadcastToRoom(roomId, { type: 'pause' }),
     ]);
 }
@@ -374,13 +387,19 @@ async function seek(ws: ElysiaWS, time: number) {
     const roomId = await validateClientInRoom(ws);
     const room = await validateRoom(roomId);
 
+    const previousTime = room.currentTime;
     room.currentTime = time;
     room.lastActivity = Date.now();
 
-    await Promise.all([
-        redis.set(`room:${roomId}`, JSON.stringify(room)),
-        broadcastToRoom(roomId, { type: 'currentTimeChanged', currentTime: time }),
-    ]);
+    await redis.set(`room:${roomId}`, JSON.stringify(room));
+
+    const lastBroadcast = lastPlaybackBroadcastByRoom.get(roomId);
+    if (!shouldBroadcastPlaybackTime(lastBroadcast, time, previousTime)) {
+        return;
+    }
+
+    lastPlaybackBroadcastByRoom.set(roomId, { at: Date.now(), seconds: time });
+    await broadcastToRoom(roomId, { type: 'currentTimeChanged', currentTime: time });
 }
 
 async function replay(ws: ElysiaWS) {
@@ -394,9 +413,12 @@ async function replay(ws: ElysiaWS) {
     room.currentTime = 0;
     room.isPlaying = true;
     room.lastActivity = Date.now();
+    lastPlaybackBroadcastByRoom.delete(roomId);
+    const publicRoom = cleanUpRoomField(room);
 
     await Promise.all([
         redis.set(`room:${roomId}`, JSON.stringify(room)),
+        broadcastToRoom(roomId, { type: 'roomUpdate', room: publicRoom }),
         broadcastToRoom(roomId, { type: 'replay' }),
     ]);
 }
@@ -564,7 +586,7 @@ async function updateRoomActivity(roomId: string) {
     await redis.set(`room:${roomId}`, JSON.stringify(room));
 }
 
-// Optimize room update with memoization and batch updates
+// Short-lived cache for updateRoom / setVolume only (invalidated on direct redis writes).
 const roomCache = new Map<string, { room: Room; timestamp: number }>();
 const CACHE_TTL = 2000; // 2 seconds cache TTL
 
@@ -596,6 +618,22 @@ async function updateRoom(roomId: string, updater: (room: Room) => void): Promis
     roomCache.set(roomId, { room, timestamp: Date.now() });
 
     return room;
+}
+
+function enqueueWsMessage(ws: ElysiaWS, message: ClientMessage): Promise<void> {
+    const prev = wsMessageChains.get(ws.id) ?? Promise.resolve();
+    const next = prev
+        .then(() => handleMessage(ws, message))
+        .catch((error) => {
+            handleError(ws, error instanceof Error ? error : new Error('Unknown error'));
+        });
+    wsMessageChains.set(ws.id, next);
+    void next.finally(() => {
+        if (wsMessageChains.get(ws.id) === next) {
+            wsMessageChains.delete(ws.id);
+        }
+    });
+    return next;
 }
 
 // Add type guard for client messages
@@ -783,6 +821,7 @@ export const wsServer = new Elysia({
         },
         close: async (ws) => {
             wsLogger.info(`Client disconnected`, { clientId: ws.id });
+            wsMessageChains.delete(ws.id);
             try {
                 await leaveCurrentRoom(ws);
                 wsConnections.delete(ws.id);
@@ -801,7 +840,7 @@ export const wsServer = new Elysia({
                 });
                 return;
             }
-            return handleMessage(ws, message);
+            return enqueueWsMessage(ws, message);
         },
     })
     .use(cors())

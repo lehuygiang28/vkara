@@ -24,7 +24,7 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { generateShareableUrl } from '@/lib/utils';
+import { generateShareableUrl, resolveRoomPasswordForShare } from '@/lib/utils';
 import { toast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
 import { TooltipButton } from '@/components/tooltip-button';
@@ -53,8 +53,14 @@ export function RoomSettings() {
         setOpacityOfButtonsInPlayer,
     } = useYouTubeStore();
     const { ensureConnectedAndSend, connectionStatus } = useWebSocket();
-    const { roomPassword, showPassword, setRoomPassword, setShowPassword, resetState } =
-        useRoomSettingsStore();
+    const {
+        roomPassword,
+        showPassword,
+        setRoomPassword,
+        setShowPassword,
+        resetJoinFormState,
+        resetState,
+    } = useRoomSettingsStore();
     const { joinRoom, joinFromScan, joinRoomId, setJoinRoomId, joinRoomPassword, setJoinRoomPassword } =
         useJoinRoom();
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
@@ -64,10 +70,24 @@ export function RoomSettings() {
     const t = useI18n();
     const t_RoomSettings = useScopedI18n('roomSettings');
 
+    const sharePassword = room
+        ? resolveRoomPasswordForShare(room.password, roomPassword)
+        : roomPassword;
+
     const createRoom = useCallback(() => {
-        ensureConnectedAndSend({ type: 'createRoom', password: roomPassword });
-        resetState();
-    }, [roomPassword, ensureConnectedAndSend, resetState]);
+        const password = roomPassword.trim();
+        ensureConnectedAndSend({
+            type: 'createRoom',
+            password: password || undefined,
+        });
+        resetJoinFormState();
+    }, [roomPassword, ensureConnectedAndSend, resetJoinFormState]);
+
+    useEffect(() => {
+        if (room?.password) {
+            setRoomPassword(room.password);
+        }
+    }, [room?.id, room?.password, setRoomPassword]);
 
     const leaveRoom = useCallback(() => {
         if (room?.id) {
@@ -164,7 +184,7 @@ export function RoomSettings() {
                                                 id="shareable-qr-code"
                                                 value={generateShareableUrl({
                                                     roomId: room.id,
-                                                    password: room?.password || '',
+                                                    password: sharePassword,
                                                 })}
                                                 size={200}
                                                 qrStyle="dots"
@@ -183,7 +203,7 @@ export function RoomSettings() {
                                                 id="shareable-url"
                                                 value={generateShareableUrl({
                                                     roomId: room.id,
-                                                    password: roomPassword,
+                                                    password: sharePassword,
                                                 })}
                                                 readOnly
                                             />
@@ -195,7 +215,7 @@ export function RoomSettings() {
                                                     navigator.clipboard.writeText(
                                                         generateShareableUrl({
                                                             roomId: room.id,
-                                                            password: roomPassword,
+                                                            password: sharePassword,
                                                         }),
                                                     );
                                                     toast({

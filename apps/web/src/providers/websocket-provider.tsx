@@ -95,7 +95,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             ensureConnectedAndSend({
                 type: 'joinRoom',
                 roomId: roomIdParam,
-                password: passwordParam || undefined,
+                password: passwordParam?.trim() || undefined,
             });
             return;
         }

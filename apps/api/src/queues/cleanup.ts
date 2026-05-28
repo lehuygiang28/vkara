@@ -4,6 +4,7 @@ import type { Room } from '@vkara/shared-types';
 
 import { closeRoom, wsConnections } from '@/server';
 import { createContextLogger } from '@/utils/logger';
+import { scanRedisKeys } from '@/utils/room-store';
 
 const ONE_HOUR_IN_SECONDS = 60 * 60;
 const EMPTY_ROOM_TIMEOUT =
@@ -66,7 +67,7 @@ function getConnectedClientIds(room: Room): string[] {
  * Rooms with at least one active WebSocket connection are never released by this job.
  */
 async function cleanupInactiveRooms() {
-    const keys = await connection.keys('room:*');
+    const keys = await scanRedisKeys('room:*');
     const now = Date.now();
 
     logger.info(`Starting cleanup check for ${keys.length} rooms`);
@@ -105,7 +106,9 @@ async function cleanupInactiveRooms() {
             }
 
             if (!room.emptySince) {
-                room.emptySince = now;
+                // Legacy rooms with no clients: use lastActivity so we do not reset the 1h grace period.
+                room.emptySince =
+                    room.clients.length === 0 && room.lastActivity ? room.lastActivity : now;
                 roomChanged = true;
             }
 
@@ -146,7 +149,7 @@ async function cleanupInactiveRooms() {
 }
 
 async function cleanupOrphanedClients() {
-    const clientKeys = await connection.keys('client:*');
+    const clientKeys = await scanRedisKeys('client:*');
     let orphanedClientsCount = 0;
     const now = Date.now();
 

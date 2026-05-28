@@ -16,7 +16,7 @@ export function useJoinRoom() {
         joinRoomPassword,
         setJoinRoomId,
         setJoinRoomPassword,
-        resetState,
+        resetJoinFormState,
     } = useRoomSettingsStore();
 
     const joinRoom = useCallback(
@@ -28,7 +28,7 @@ export function useJoinRoom() {
                     roomId: roomIdWillUse,
                     password: data?.password || joinRoomPassword || undefined,
                 });
-                resetState();
+                resetJoinFormState();
             } else {
                 toast({
                     title: t('invalidRoomId'),
@@ -37,7 +37,7 @@ export function useJoinRoom() {
                 });
             }
         },
-        [joinRoomId, joinRoomPassword, ensureConnectedAndSend, t, resetState],
+        [joinRoomId, joinRoomPassword, ensureConnectedAndSend, t, resetJoinFormState],
     );
 
     const joinFromScan = useCallback(
