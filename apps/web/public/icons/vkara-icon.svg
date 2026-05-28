@@ -1,0 +1,145 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" shape-rendering="geometricPrecision">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="52%" stop-color="#020617"/>
+      <stop offset="100%" stop-color="#00030a"/>
+    </linearGradient>
+
+    <radialGradient id="ambient" cx="50%" cy="45%" r="60%">
+      <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.18"/>
+      <stop offset="58%" stop-color="#2563eb" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#020617" stop-opacity="0"/>
+    </radialGradient>
+
+    <linearGradient id="panelStroke" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#67e8f9"/>
+      <stop offset="55%" stop-color="#38bdf8"/>
+      <stop offset="100%" stop-color="#2563eb"/>
+    </linearGradient>
+
+    <linearGradient id="screenFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a1728"/>
+      <stop offset="100%" stop-color="#020617"/>
+    </linearGradient>
+
+    <linearGradient id="phoneFill" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1424"/>
+      <stop offset="100%" stop-color="#030814"/>
+    </linearGradient>
+
+    <filter id="softShadow" x="-30%" y="-30%" width="170%" height="180%">
+      <feDropShadow dx="0" dy="10.138" stdDeviation="11.059" flood-color="#000814" flood-opacity="0.5"/>
+    </filter>
+
+    <filter id="blueGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="0" stdDeviation="7.373" flood-color="#38bdf8" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" rx="113" fill="url(#bg)"/>
+  <circle cx="256" cy="256" r="225.28" fill="url(#ambient)"/>
+
+  <!-- TV -->
+  <g filter="url(#softShadow)">
+    <rect
+      x="113.152"
+      y="117.76"
+      width="285.696"
+      height="193.536"
+      rx="29.952"
+      fill="#050c18"
+      stroke="url(#panelStroke)"
+      stroke-width="6.912"
+    />
+    <rect
+      x="124.672"
+      y="129.28"
+      width="262.656"
+      height="170.496"
+      rx="18.432"
+      fill="url(#screenFill)"
+    />
+
+    <rect
+      x="235.264"
+      y="313.6"
+      width="41.472"
+      height="13.824"
+      rx="4.608"
+      fill="#38bdf8"
+      opacity="0.16"
+    />
+    <rect
+      x="212.224"
+      y="327.424"
+      width="87.552"
+      height="9.216"
+      rx="4.608"
+      fill="#38bdf8"
+      opacity="0.18"
+    />
+  </g>
+
+  <!-- V on screen -->
+  <g filter="url(#blueGlow)">
+    <path
+      d="M 189.184 159.232 L 256 269.824 L 322.816 159.232"
+      fill="none"
+      stroke="url(#panelStroke)"
+      stroke-width="23.04"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      opacity="0.95"
+    />
+    <path
+      d="M 205.312 170.752 L 256 253.696 L 306.688 170.752"
+      fill="none"
+      stroke="#e6f4ff"
+      stroke-width="3.686"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      opacity="0.2"
+    />
+  </g>
+
+  <!-- Phone -->
+  <g transform="rotate(-10 136.192 378.112)" filter="url(#softShadow)">
+    <rect
+      x="80.896"
+      y="283.648"
+      width="110.592"
+      height="156.672"
+      rx="20.736"
+      fill="url(#phoneFill)"
+      stroke="url(#panelStroke)"
+      stroke-width="6.912"
+    />
+    
+      <rect x="109.926" y="310.374" width="57.6" height="5.069" rx="2.765" fill="#e6f4ff" opacity="0.12"/>
+      <rect x="108.544" y="335.258" width="55.296" height="5.53" rx="2.765" fill="#38bdf8" opacity="0.34"/>
+      <rect x="108.544" y="349.082" width="41.472" height="5.53" rx="2.765" fill="#e6f4ff" opacity="0.15"/>
+      <rect x="108.544" y="362.906" width="62.208" height="5.53" rx="2.765" fill="#fb7185" opacity="0.95"/>
+
+      <circle cx="138.496" cy="396.544" r="22.118" fill="#e11d48" fill-opacity="0.14" stroke="#fb7185" stroke-width="3.686"/>
+      <path d="M 132.506 385.485 L 132.506 407.603 L 151.859 396.544 Z" fill="#fb7185"/>
+
+      <rect x="103.014" y="420.966" width="59.904" height="5.53" rx="2.765" fill="#fb7185" opacity="0.9"/>
+      <circle cx="143.104" cy="423.731" r="7.834" fill="#fb7185"/>
+    
+  </g>
+
+  <!-- subtle outer rim -->
+  <rect
+    x="12.8"
+    y="12.8"
+    width="486.4"
+    height="486.4"
+    rx="103.96000000000001"
+    fill="none"
+    stroke="#e6f4ff"
+    stroke-opacity="0.07"
+    stroke-width="5.12"
+  />
+</svg>
