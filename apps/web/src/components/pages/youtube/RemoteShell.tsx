@@ -9,10 +9,12 @@ import { PlayerControlsTabs } from './PlayerControlsTabs';
 import { RoomSettings } from './RoomSettings';
 import { NowPlayingBar } from './NowPlayingBar';
 import { MobileBottomNav } from './MobileBottomNav';
+import { useToastBottomInset } from '@/hooks/use-toast-bottom-inset';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 export function RemoteShell() {
-    const { currentTab, setCurrentTab } = useYouTubeStore();
+    const { currentTab, room, setCurrentTab } = useYouTubeStore();
+    useToastBottomInset(Boolean(room?.playingNow));
 
     return (
         <TooltipProvider delayDuration={400}>

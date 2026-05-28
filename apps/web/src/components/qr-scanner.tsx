@@ -82,14 +82,14 @@ export function QRScanner({ onScan, buttonClassName = '' }: QRScannerProps) {
                 toast({
                     title: t('cameraError'),
                     description: t('permissionDenied'),
-                    variant: 'destructive',
+                    variant: 'error',
                 });
             } else {
                 setError(t('genericError'));
                 toast({
                     title: t('cameraError'),
                     description: t('genericError'),
-                    variant: 'destructive',
+                    variant: 'error',
                 });
             }
         }

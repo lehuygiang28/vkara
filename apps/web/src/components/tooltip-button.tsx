@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button, ButtonProps } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { useI18n } from '@/locales/client';
 
 export interface TooltipButtonProps extends ButtonProps {
     tooltipContent: React.ReactNode;
     buttonText: string;
     icon?: React.ReactNode;
+    /** Square icon-only control (label kept for accessibility via aria-label). */
+    iconOnly?: boolean;
     confirmMode?: boolean;
     confirmContent?: React.ReactNode;
     onConfirm: () => void;
@@ -33,9 +36,12 @@ export function TooltipButton({
     tooltipContent,
     buttonText,
     icon,
+    iconOnly = false,
     confirmMode = false,
     confirmContent,
     onConfirm,
+    className,
+    variant = 'secondary',
     ...buttonProps
 }: TooltipButtonProps) {
     const t = useI18n();
@@ -55,19 +61,35 @@ export function TooltipButton({
 
     const button = (
         <Button
-            variant="secondary"
-            size="sm"
-            className="h-7 px-2.5 transition-all hover:scale-105"
+            variant={variant}
+            size={iconOnly ? 'icon' : 'sm'}
+            aria-label={buttonText}
+            className={cn(
+                'h-9 min-h-9 shrink-0 rounded-lg border text-xs font-medium shadow-none transition-colors active:scale-[0.98]',
+                iconOnly ? 'w-9 gap-0 px-0' : 'gap-1 px-2.5',
+                variant === 'destructive' &&
+                    'border-destructive/70 bg-destructive/25 text-destructive hover:bg-destructive/35',
+                variant === 'secondary' &&
+                    'border-border/60 bg-secondary/60 hover:bg-secondary/90',
+                variant === 'outline' &&
+                    'border-border/70 bg-background/80 hover:bg-accent/50',
+                className,
+            )}
             onClick={handleClick}
             {...buttonProps}
         >
-            {icon && <span>{icon}</span>}
-            <span>{buttonText}</span>
+            {icon ? <span className="shrink-0 [&_svg]:h-4 [&_svg]:w-4">{icon}</span> : null}
+            {iconOnly ? (
+                <span className="sr-only">{buttonText}</span>
+            ) : (
+                <span className="min-w-0 truncate leading-tight">{buttonText}</span>
+            )}
         </Button>
     );
 
     return (
-        <Tooltip>
+        <div className={cn(iconOnly ? 'shrink-0' : 'min-w-0')}>
+            <Tooltip>
             <TooltipTrigger asChild>
                 {confirmMode ? (
                     <Popover open={open} onOpenChange={setOpen}>
@@ -98,5 +120,6 @@ export function TooltipButton({
                 <p>{tooltipContent}</p>
             </TooltipContent>
         </Tooltip>
+        </div>
     );
 }

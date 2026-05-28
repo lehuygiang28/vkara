@@ -1,21 +1,36 @@
 'use client';
 
-// Inspired by react-hot-toast library
 import * as React from 'react';
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
 
-const TOAST_LIMIT = 1;
-const TOAST_REMOVE_DELAY = 1000000;
+const TOAST_LIMIT = 2;
+const TOAST_REMOVE_DELAY = 400;
+
+type ToastVariant = NonNullable<ToastProps['variant']>;
+
+function defaultDuration(variant?: ToastVariant | null) {
+    switch (variant) {
+        case 'destructive':
+        case 'error':
+            return 7000;
+        case 'warning':
+            return 6000;
+        case 'success':
+            return 2800;
+        default:
+            return 3500;
+    }
+}
 
 type ToasterToast = ToastProps & {
     id: string;
     title?: React.ReactNode;
     description?: React.ReactNode;
     action?: ToastActionElement;
+    duration?: number;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const actionTypes = {
     ADD_TOAST: 'ADD_TOAST',
     UPDATE_TOAST: 'UPDATE_TOAST',
@@ -65,7 +80,7 @@ const addToRemoveQueue = (toastId: string) => {
         toastTimeouts.delete(toastId);
         dispatch({
             type: 'REMOVE_TOAST',
-            toastId: toastId,
+            toastId,
         });
     }, TOAST_REMOVE_DELAY);
 
@@ -91,13 +106,11 @@ export const reducer = (state: State, action: Action): State => {
         case 'DISMISS_TOAST': {
             const { toastId } = action;
 
-            // ! Side effects ! - This could be extracted into a dismissToast() action,
-            // but I'll keep it here for simplicity
             if (toastId) {
                 addToRemoveQueue(toastId);
             } else {
-                state.toasts.forEach((toast) => {
-                    addToRemoveQueue(toast.id);
+                state.toasts.forEach((item) => {
+                    addToRemoveQueue(item.id);
                 });
             }
 
@@ -140,13 +153,14 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, 'id'>;
 
-function toast({ ...props }: Toast) {
+function toast({ duration, ...props }: Toast) {
     const id = genId();
+    const resolvedDuration = duration ?? defaultDuration(props.variant);
 
-    const update = (props: ToasterToast) =>
+    const update = (next: ToasterToast) =>
         dispatch({
             type: 'UPDATE_TOAST',
-            toast: { ...props, id },
+            toast: { ...next, id },
         });
     const dismiss = () => dispatch({ type: 'DISMISS_TOAST', toastId: id });
 
@@ -155,6 +169,7 @@ function toast({ ...props }: Toast) {
         toast: {
             ...props,
             id,
+            duration: resolvedDuration,
             open: true,
             onOpenChange: (open) => {
                 if (!open) dismiss();
@@ -163,7 +178,7 @@ function toast({ ...props }: Toast) {
     });
 
     return {
-        id: id,
+        id,
         dismiss,
         update,
     };

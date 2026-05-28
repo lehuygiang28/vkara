@@ -119,7 +119,9 @@ export default {
 
     'videoHistory.noHistory': 'Không có lịch sử xem',
     'videoHistory.playNow': 'Phát ngay',
+    'videoHistory.playNowShort': 'Phát',
     'videoHistory.addToQueue': 'Thêm vào hàng chờ',
+    'videoHistory.addToQueueShort': 'Thêm hàng chờ',
     'videoHistory.clearHistory': 'Xóa lịch sử',
     'videoHistory.clearHistoryConfirm': 'Xác nhận xóa lịch sử?',
 
@@ -142,7 +144,9 @@ export default {
     'videoSearch.allMode': 'Tất cả',
     'videoSearch.noResults': 'Không tìm thấy kết quả',
     'videoSearch.playNow': 'Phát ngay',
+    'videoSearch.playNowShort': 'Phát',
     'videoSearch.addToQueue': 'Thêm vào hàng chờ',
+    'videoSearch.addToQueueShort': 'Thêm hàng chờ',
     'videoSearch.loading': 'Đang tải video...',
     'videoSearch.views': 'lượt xem',
     'videoSearch.playThisNow': 'Phát ngay',

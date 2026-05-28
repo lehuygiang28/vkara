@@ -9,8 +9,8 @@ import { useSearchStore } from '@/store/searchStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { VideoSkeletonList } from '@/components/video-skeleton';
-import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
+import { VideoListActionBar } from './video-list-action-bar';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 export function VideoRelated() {
@@ -38,38 +38,43 @@ export function VideoRelated() {
 
     function renderButtons(video: YouTubeVideo) {
         return (
-            <div className="flex flex-wrap items-center gap-2">
-                    <TooltipButton
-                        buttonText={t('playNow')}
-                        tooltipContent={t('playNow')}
-                        icon={<Play className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
+            <VideoListActionBar
+                actions={[
+                    {
+                        id: 'play',
+                        label: t('playNow'),
+                        buttonText: t('playNowShort'),
+                        icon: <Play />,
+                        tone: 'success',
+                        onClick: () => {
                             setSelectedRelatedVideoId(null);
                             handlePlayVideoNow(video);
-                        }}
-                        variant={'outline'}
-                    />
-
-                    <TooltipButton
-                        buttonText={t('addToQueue')}
-                        tooltipContent={t('addToQueue')}
-                        icon={<ListVideo className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
+                        },
+                    },
+                    {
+                        id: 'queue',
+                        label: t('addToQueue'),
+                        buttonText: t('addToQueueShort'),
+                        icon: <ListVideo />,
+                        tone: 'default',
+                        onClick: () => {
                             setSelectedRelatedVideoId(null);
                             handleAddVideoToQueue(video);
-                        }}
-                    />
-
-                    <TooltipButton
-                        buttonText={t('addVideoAndMoveToTop')}
-                        tooltipContent={t('addVideoAndMoveToTop')}
-                        icon={<MoveUp className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
+                        },
+                    },
+                    {
+                        id: 'priority',
+                        label: t('addVideoAndMoveToTop'),
+                        buttonText: t('addVideoAndMoveToTop'),
+                        icon: <MoveUp />,
+                        tone: 'success',
+                        onClick: () => {
                             setSelectedRelatedVideoId(null);
                             handleAddVideoAndMoveToTop(video);
-                        }}
-                    />
-            </div>
+                        },
+                    },
+                ]}
+            />
         );
     }
 

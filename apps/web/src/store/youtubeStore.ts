@@ -177,7 +177,7 @@ export const useYouTubeStore = create(
                         toast({
                             title: t('roomClosed'),
                             description: t('roomClosedDescription'),
-                            variant: 'destructive',
+                            variant: 'error',
                         });
                         break;
                     case 'roomNotFound':
@@ -185,7 +185,7 @@ export const useYouTubeStore = create(
                         toast({
                             title: t('roomNotFound'),
                             description: t('roomNotFoundDescription'),
-                            variant: 'destructive',
+                            variant: 'error',
                         });
                         break;
                     case 'currentTimeChanged':
@@ -239,14 +239,14 @@ export const useYouTubeStore = create(
                                     toast({
                                         title: t('roomNotFound'),
                                         description: t('roomNotFoundDescription'),
-                                        variant: 'destructive',
+                                        variant: 'error',
                                     });
                                     break;
                                 case ErrorCode.INCORRECT_PASSWORD:
                                     toast({
                                         title: t('incorrectPassword'),
                                         description: t('incorrectPasswordDescription'),
-                                        variant: 'destructive',
+                                        variant: 'error',
                                     });
                                     break;
                                 default:

@@ -119,7 +119,9 @@ export default {
 
     'videoHistory.noHistory': 'No watch history',
     'videoHistory.playNow': 'Play Now',
+    'videoHistory.playNowShort': 'Play',
     'videoHistory.addToQueue': 'Add to Queue',
+    'videoHistory.addToQueueShort': 'Add queue',
     'videoHistory.clearHistory': 'Clear All History',
     'videoHistory.clearHistoryConfirm': 'Are you sure you want to clear the history?',
 
@@ -143,7 +145,9 @@ export default {
     'videoSearch.allMode': 'All',
     'videoSearch.noResults': 'No results found',
     'videoSearch.playNow': 'Play Now',
+    'videoSearch.playNowShort': 'Play',
     'videoSearch.addToQueue': 'Add to Queue',
+    'videoSearch.addToQueueShort': 'Add queue',
     'videoSearch.loading': 'Loading videos...',
     'videoSearch.views': 'views',
     'videoSearch.playThisNow': 'Play this now',

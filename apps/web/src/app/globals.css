@@ -7,6 +7,14 @@
     --safe-right: env(safe-area-inset-right, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
+    /** Mobile remote chrome — updated by RemoteShell when NowPlayingBar is visible */
+    --vkara-mobile-nav-height: 3.75rem;
+    --vkara-now-playing-height: 0rem;
+    --vkara-toast-gap: 0.5rem;
+    --vkara-toast-bottom: calc(
+        var(--vkara-mobile-nav-height) + var(--vkara-now-playing-height) + var(--safe-bottom) +
+            var(--vkara-toast-gap)
+    );
 }
 
 @layer utilities {

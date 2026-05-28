@@ -10,6 +10,8 @@ import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
+import { VideoListActionBar } from './video-list-action-bar';
+import { VideoListToolbar } from './video-list-toolbar';
 import { Input } from '@/components/ui/input';
 
 export function VideoQueue() {
@@ -32,87 +34,61 @@ export function VideoQueue() {
 
     function renderButtons(video: YouTubeVideo) {
         return (
-            <div className="flex flex-wrap items-center gap-2">
-                    <TooltipButton
-                        tooltipContent={t('moveToTop')}
-                        buttonText={t('moveToTop')}
-                        icon={<MoveUp className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
+            <VideoListActionBar
+                actions={[
+                    {
+                        id: 'priority',
+                        label: t('moveToTop'),
+                        buttonText: t('moveToTop'),
+                        icon: <MoveUp />,
+                        tone: 'success',
+                        onClick: () => {
                             setSelectedVideo(null);
                             handleMoveVideoToTop(video);
-                        }}
-                    />
-
-                    <TooltipButton
-                        tooltipContent={t('remove')}
-                        buttonText={t('remove')}
-                        icon={<Trash2 className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
+                        },
+                    },
+                    {
+                        id: 'remove',
+                        label: t('remove'),
+                        buttonText: t('remove'),
+                        icon: <Trash2 />,
+                        tone: 'destructive',
+                        onClick: () => {
                             setSelectedVideo(null);
                             handleRemoveVideoFromQueue(video);
-                        }}
-                        variant={'destructive'}
-                    />
-            </div>
+                        },
+                    },
+                ]}
+            />
         );
     }
 
     return (
         <div className="flex h-full min-h-0 flex-col">
-            <div className="flex items-center justify-center p-2 bg-background shadow-sm">
-                <div className="flex items-center space-x-2">
-                    {(room?.videoQueue?.length || 0) > 0 && (
-                        <>
-                            <>
-                                {(room?.videoQueue?.length || 0) > 2 && (
-                                    <TooltipButton
-                                        tooltipContent={t('shuffle')}
-                                        buttonText={t('shuffle')}
-                                        icon={<Shuffle className="h-4 w-4 mr-2" />}
-                                        onConfirm={handleShuffleQueue}
-                                    />
-                                )}
-                            </>
-
-                            <TooltipButton
-                                tooltipContent={t('clearQueue')}
-                                buttonText={t('clearQueue')}
-                                icon={<Trash2 className="h-4 w-4 mr-2" />}
-                                onConfirm={handleClearQueue}
-                                confirmMode
-                                confirmContent={t('clearQueueConfirm')}
-                                variant={'destructive'}
-                            />
-                        </>
-                    )}
-
+            <VideoListToolbar
+                trailing={
                     <TooltipButton
                         tooltipContent={t('importPlaylist')}
                         buttonText={t('importPlaylist')}
-                        icon={<ListMusic className="h-3.5 w-3.5 mr-1" />}
+                        icon={<ListMusic />}
+                        iconOnly
                         onConfirm={handlerConfirmImportPlaylist}
                         confirmMode
                         confirmContent={
                             <>
                                 <div className="space-y-2">
-                                    <h4 className="font-medium leading-none">
-                                        {t('importPlaylist')}
-                                    </h4>
+                                    <h4 className="font-medium leading-none">{t('importPlaylist')}</h4>
                                     <p className="text-sm text-muted-foreground">
                                         {t('importPlaylistDescription')}
                                     </p>
                                 </div>
                                 <div className="flex">
                                     <Input
-                                        id="time"
+                                        id="playlist-import"
                                         value={importPlaylistValue}
-                                        onChange={(e) => {
-                                            setImportPlaylistValue(e.target.value);
-                                        }}
+                                        onChange={(e) => setImportPlaylistValue(e.target.value)}
                                         onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                                handlerConfirmImportPlaylist();
-                                            }
+                                            if (e.key === 'Enter') handlerConfirmImportPlaylist();
                                         }}
                                         className="col-span-2 h-8"
                                         placeholder={t('importPlaylistPlaceholder')}
@@ -120,9 +96,30 @@ export function VideoQueue() {
                                 </div>
                             </>
                         }
+                        variant="outline"
                     />
-                </div>
-            </div>
+                }
+            >
+                {(room?.videoQueue?.length || 0) > 2 ? (
+                    <TooltipButton
+                        tooltipContent={t('shuffle')}
+                        buttonText={t('shuffle')}
+                        icon={<Shuffle />}
+                        onConfirm={handleShuffleQueue}
+                    />
+                ) : null}
+                {(room?.videoQueue?.length || 0) > 0 ? (
+                    <TooltipButton
+                        tooltipContent={t('clearQueue')}
+                        buttonText={t('clearQueue')}
+                        icon={<Trash2 />}
+                        onConfirm={handleClearQueue}
+                        confirmMode
+                        confirmContent={t('clearQueueConfirm')}
+                        variant="destructive"
+                    />
+                ) : null}
+            </VideoListToolbar>
             <div className="min-h-0 flex-1">
                 <VideoList
                     keyPrefix={'queue-list'}

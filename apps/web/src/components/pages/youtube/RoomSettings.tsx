@@ -85,7 +85,7 @@ export function RoomSettings() {
                 toast({
                     title: t_RoomSettings('invalidRoomId'),
                     description: t_RoomSettings('roomIdMustBe6Digits'),
-                    variant: 'destructive',
+                    variant: 'error',
                 });
             }
         },

@@ -10,6 +10,8 @@ import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
+import { VideoListActionBar } from './video-list-action-bar';
+import { VideoListToolbar } from './video-list-toolbar';
 
 export function VideoHistory() {
     const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
@@ -19,47 +21,50 @@ export function VideoHistory() {
 
     function renderButtons(video: YouTubeVideo) {
         return (
-            <div className="flex flex-wrap items-center gap-2">
-                    <TooltipButton
-                        tooltipContent={t('playNow')}
-                        buttonText={t('playNow')}
-                        icon={<Play className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
+            <VideoListActionBar
+                actions={[
+                    {
+                        id: 'play',
+                        label: t('playNow'),
+                        buttonText: t('playNowShort'),
+                        icon: <Play />,
+                        tone: 'success',
+                        onClick: () => {
                             setSelectedVideo(null);
                             handlePlayVideoNow(video);
-                        }}
-                    />
-
-                    <TooltipButton
-                        tooltipContent={t('addToQueue')}
-                        buttonText={t('addToQueue')}
-                        icon={<ListVideo className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
+                        },
+                    },
+                    {
+                        id: 'queue',
+                        label: t('addToQueue'),
+                        buttonText: t('addToQueueShort'),
+                        icon: <ListVideo />,
+                        tone: 'default',
+                        onClick: () => {
                             setSelectedVideo(null);
                             handleAddVideoToQueue(video);
-                        }}
-                    />
-            </div>
+                        },
+                    },
+                ]}
+            />
         );
     }
 
     return (
         <div className="flex h-full min-h-0 flex-col">
-            {(room?.historyQueue?.length || 0) > 0 && (
-                <div className="flex items-center justify-center p-2 bg-background shadow-sm">
-                    <div className="flex items-center space-x-2">
-                        <TooltipButton
-                            tooltipContent={t('clearHistory')}
-                            buttonText={t('clearHistory')}
-                            icon={<X className="h-3.5 w-3.5 mr-1" />}
-                            onConfirm={handleClearHistory}
-                            variant={'destructive'}
-                            confirmMode
-                            confirmContent={t('clearHistoryConfirm')}
-                        />
-                    </div>
-                </div>
-            )}
+            {(room?.historyQueue?.length || 0) > 0 ? (
+                <VideoListToolbar>
+                    <TooltipButton
+                        tooltipContent={t('clearHistory')}
+                        buttonText={t('clearHistory')}
+                        icon={<X />}
+                        onConfirm={handleClearHistory}
+                        confirmMode
+                        confirmContent={t('clearHistoryConfirm')}
+                        variant="destructive"
+                    />
+                </VideoListToolbar>
+            ) : null}
             <VideoList
                 keyPrefix={'history-list'}
                 videos={room?.historyQueue || []}

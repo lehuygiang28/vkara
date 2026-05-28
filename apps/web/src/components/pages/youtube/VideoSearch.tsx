@@ -2,11 +2,11 @@
 
 import { memo, useCallback } from 'react';
 import { ListPlus, Play } from 'lucide-react';
+import type { YouTubeVideo } from '@/types/youtube.type';
 import { useShallow } from 'zustand/react/shallow';
 
 import { VideoSearchInput } from '@/components/search/video-search-input';
 import { useScopedI18n } from '@/locales/client';
-import type { YouTubeVideo } from '@/types/youtube.type';
 import { useSearchStore } from '@/store/searchStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
@@ -18,9 +18,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
 import { SearchBrowseHint } from './SearchBrowseHint';
+import { VideoListActionBar } from './video-list-action-bar';
 
 const VideoActionButtons = memo(function VideoActionButtons({
     video,
@@ -34,23 +34,26 @@ const VideoActionButtons = memo(function VideoActionButtons({
     const t = useScopedI18n('videoSearch');
 
     return (
-        <div className="flex items-center gap-2">
-            <TooltipButton
-                buttonText={t('playNow')}
-                tooltipContent={t('playNow')}
-                icon={<Play className="mr-1 h-3.5 w-3.5" />}
-                onConfirm={() => onPlay(video)}
-                className="flex-1"
-            />
-            <TooltipButton
-                buttonText={t('addToQueue')}
-                tooltipContent={t('addToQueue')}
-                icon={<ListPlus className="mr-1 h-3.5 w-3.5" />}
-                onConfirm={() => onQueue(video)}
-                variant="outline"
-                className="flex-1"
-            />
-        </div>
+        <VideoListActionBar
+            actions={[
+                {
+                    id: 'play',
+                    label: t('playNow'),
+                    buttonText: t('playNowShort'),
+                    icon: <Play />,
+                    tone: 'success',
+                    onClick: () => onPlay(video),
+                },
+                {
+                    id: 'queue',
+                    label: t('addToQueue'),
+                    buttonText: t('addToQueueShort'),
+                    icon: <ListPlus />,
+                    tone: 'default',
+                    onClick: () => onQueue(video),
+                },
+            ]}
+        />
     );
 });
 

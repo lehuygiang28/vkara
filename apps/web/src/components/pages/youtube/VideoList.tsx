@@ -134,7 +134,7 @@ export const VideoList = memo(function VideoList({
                     </div>
                 ) : (
                     <div
-                        className="relative w-full px-2 pb-2 pt-3"
+                        className="relative w-full px-safe-offset pb-2 pt-3"
                         style={{ height: `${virtualizer.getTotalSize()}px` }}
                     >
                         {virtualItems.map((virtualRow) => {
@@ -168,7 +168,7 @@ export const VideoList = memo(function VideoList({
                 )}
 
                 {isLoading && (
-                    <div className="space-y-1 px-2 pb-4">
+                    <div className="space-y-1 px-safe-offset pb-4">
                         {[0, 1, 2].map((i) => (
                             <VideoSkeleton key={`loading-more-${i}`} />
                         ))}
