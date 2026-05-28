@@ -2,12 +2,15 @@ services:
     vkara_api:
         container_name: vkara-api
         hostname: vkara-api
+        profiles:
+            - api
         build:
-            context: ./
-            dockerfile: ./Dockerfile
+            context: ../../
+            dockerfile: ./apps/api/Dockerfile
         image: lehuygiang28/vkara-api:${COMPOSE_TAG:-latest}
         env_file:
-            - ./.env
+            - path: ./.env
+              required: false
         ports:
             - 8000:${PORT:-8000}
         networks:
@@ -17,14 +20,38 @@ services:
     redis_bundle:
         container_name: redis-bundle
         hostname: redis-bundle
+        profiles:
+            - bundle
         build:
-            context: ./
-            dockerfile: ./containers/redis-bundle/Dockerfile
+            context: ../../
+            dockerfile: ./apps/api/containers/redis-bundle/Dockerfile
         image: lehuygiang28/vkara-api-redis:${COMPOSE_TAG:-latest}
         env_file:
-            - ./containers/redis-bundle/.env
+            - path: ./containers/redis-bundle/.env
+              required: false
+            - path: ./containers/redis-bundle/.env.example
+              required: false
         ports:
-            - 8000:${PORT:-8000}
+            - ${BUNDLE_PORT:-8001}:${PORT:-8000}
+            - ${REDIS_PORT:-6379}:6379
+        networks:
+            - vkara_net
+        restart: unless-stopped
+
+    vkara_web:
+        container_name: vkara-web
+        hostname: vkara-web
+        profiles:
+            - web
+        build:
+            context: ../../
+            dockerfile: ./apps/web/Dockerfile
+        image: lehuygiang28/vkara-web:${COMPOSE_TAG:-latest}
+        env_file:
+            - path: ../web/.env.local
+              required: false
+        ports:
+            - ${WEB_PORT:-3000}:3000
         networks:
             - vkara_net
         restart: unless-stopped

@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
     transpilePackages: ['@vkara/shared-types'],
+    output: 'standalone',
     async rewrites() {
         return [
             // Fallback for deployments where middleware isn't applied to `/`.
