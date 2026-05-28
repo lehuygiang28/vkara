@@ -1,7 +1,5 @@
-import { resolveUrl } from '@/lib/utils';
 import { YouTubeVideo } from '@/types/youtube.type';
-
-const API_URL = resolveUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
+import { apiPost } from './client/api-client';
 
 export async function searchYoutube({
     query,
@@ -12,19 +10,14 @@ export async function searchYoutube({
     isKaraoke: boolean;
     continuation?: string | null;
 }) {
-    const url = new URL('/search', API_URL);
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            query: `${isKaraoke ? 'karaoke ' : ''}${query}`,
-            ...(continuation ? { continuation } : {}),
-        }),
-    });
-    const data = (await response.json()) as {
+    const data = await apiPost<{
         items: YouTubeVideo[];
         continuation: string | null;
-    };
+    }>('/search', {
+            query: `${isKaraoke ? 'karaoke ' : ''}${query}`,
+            ...(continuation ? { continuation } : {}),
+    });
+
     return {
         items: data.items,
         continuation: data.continuation,
@@ -32,42 +25,25 @@ export async function searchYoutube({
 }
 
 export async function getYoutubeSuggestions(query: string) {
-    const url = new URL('/suggestions', API_URL);
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query }),
-    });
-    return (await response.json()) as string[];
+    return apiPost<string[]>('/suggestions', { query });
 }
 
 export async function checkEmbeddableStatus(videoIds: string[]) {
-    const url = new URL('/check-embeddable', API_URL);
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ videoIds }),
-    });
-    return (await response.json()) as { videoId: string; canEmbed: boolean }[];
+    return apiPost<{ videoId: string; canEmbed: boolean }[]>('/check-embeddable', { videoIds });
 }
 
 export async function getRelatedVideos(
     videoId: string,
     continuation?: string | null,
 ): Promise<{ items: YouTubeVideo[]; continuation: string | null }> {
-    const url = new URL('/related', API_URL);
-    const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            videoId,
-            ...(continuation ? { continuation } : {}),
-        }),
-    });
-    const data = (await response.json()) as {
+    const data = await apiPost<{
         items: YouTubeVideo[];
         continuation: string | null;
-    };
+    }>('/related', {
+            videoId,
+            ...(continuation ? { continuation } : {}),
+    });
+
     return {
         items: data.items,
         continuation: data.continuation,

@@ -1,12 +1,23 @@
 import { Elysia, t } from 'elysia';
-import { Redis } from 'ioredis';
+import Redis from 'ioredis';
 import { Queue, Worker } from 'bullmq';
 import { Client, type VideoCompact, type SearchResult, type VideoRelated } from 'youtubei';
 import youtube from 'youtube-sr';
+import { createRedisOptions } from '@vkara/shared-infra';
 
 import { createContextLogger } from '@/utils/logger';
 import type { YouTubeVideo } from '@vkara/shared-types';
-import { cleanUpVideoField, formatSeconds } from './utils/common';
+import { cleanUpVideoField } from './utils/common';
+import {
+    cleanupOldInstances,
+    getRedisKey,
+    REDIS_KEY_PREFIXES,
+    relatedInstances,
+    searchInstances,
+    storeContinuation,
+} from './modules/youtube/cache';
+import { mapYoutubeiVideo } from './modules/youtube/video-mapper';
+import { checkEmbeddable } from './modules/youtube/embeddable';
 
 const logger = createContextLogger('Search-Youtubei');
 const youtubeiLogger = createContextLogger('Queue/Youtubei');
@@ -19,125 +30,12 @@ const youtubei = new Client({
     },
 });
 
-// Redis connection
-const redisConnectionOptions = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null,
-};
+const redisConnectionOptions = createRedisOptions(process.env);
 const redis = new Redis(redisConnectionOptions);
-
-// Define key prefixes to distinguish between different types of cached data
-const REDIS_KEY_PREFIXES = {
-    SEARCH: 'search-instance:',
-    RELATED: 'related-instance:',
-};
-
-// Cleanup time in milliseconds (5 minutes)
-const CLEANUP_TIMEOUT = 5 * 60 * 1000;
-
-// Maximum number of instances to cache per type
-const MAX_INSTANCES_PER_TYPE = 1000;
 
 // Create the cleanup queue
 const cleanupQueue = new Queue('search-instance-cleanup', { connection: redisConnectionOptions });
 
-interface SearchInstanceWithTimestamp {
-    instance: SearchResult<'video'>;
-    timestamp: number;
-}
-
-// Store SearchResult instances in memory
-const searchInstances = new Map<string, SearchInstanceWithTimestamp>();
-const relatedInstances = new Map<string, SearchInstanceWithTimestamp>();
-
-// Helper function to get full Redis key from a continuation token and prefix
-const getRedisKey = (prefix: string, continuation: string): string => `${prefix}${continuation}`;
-
-// Helper function to store continuation token with automatic expiration
-const storeContinuation = async (
-    prefix: string,
-    continuation: string,
-    instancesMap: Map<string, SearchInstanceWithTimestamp> | undefined,
-    instance: SearchResult<'video'> | VideoRelated,
-    redisClient: Redis,
-): Promise<void> => {
-    // Elysia store may not preserve Map instances reliably across contexts.
-    // Fall back to module-level caches based on key prefix.
-    const safeInstancesMap =
-        instancesMap ||
-        (prefix === REDIS_KEY_PREFIXES.SEARCH ? searchInstances : relatedInstances);
-
-    // Store in memory
-    safeInstancesMap.set(continuation, {
-        instance: instance as SearchResult<'video'>,
-        timestamp: Date.now(),
-    });
-
-    // Store in Redis with automatic expiration
-    await redisClient.set(
-        getRedisKey(prefix, continuation),
-        Date.now().toString(),
-        'EX',
-        Math.floor(CLEANUP_TIMEOUT / 1000), // Convert ms to seconds for Redis TTL
-    );
-
-    // Check if we need to clean up oldest entries when reaching the limit
-    if (safeInstancesMap.size > MAX_INSTANCES_PER_TYPE) {
-        // Sort by timestamp and remove oldest entries
-        const entries = Array.from(safeInstancesMap.entries());
-        entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
-
-        // Remove 10% of the oldest entries
-        const entriesToRemove = Math.ceil(MAX_INSTANCES_PER_TYPE * 0.1);
-        const keysToRemove = entries.slice(0, entriesToRemove).map((entry) => entry[0]);
-
-        for (const key of keysToRemove) {
-            safeInstancesMap.delete(key);
-            await redisClient.del(getRedisKey(prefix, key));
-        }
-
-        const logPrefix = prefix === REDIS_KEY_PREFIXES.SEARCH ? 'Search' : 'Related';
-        youtubeiLogger.info(
-            `${logPrefix} cache limit reached. Removed ${keysToRemove.length} oldest entries.`,
-        );
-    }
-};
-
-// Cleanup function to remove old instances - now only for backup since we use Redis TTL
-const cleanupOldInstances = async () => {
-    const now = Date.now();
-    let cleanedSearch = 0;
-    let cleanedRelated = 0;
-
-    // Clean up search instances
-    for (const [key, value] of searchInstances.entries()) {
-        if (now - value.timestamp > CLEANUP_TIMEOUT) {
-            searchInstances.delete(key);
-            cleanedSearch++;
-        }
-    }
-
-    // Clean up related instances
-    for (const [key, value] of relatedInstances.entries()) {
-        if (now - value.timestamp > CLEANUP_TIMEOUT) {
-            relatedInstances.delete(key);
-            cleanedRelated++;
-        }
-    }
-
-    if (cleanedSearch > 0 || cleanedRelated > 0) {
-        youtubeiLogger.info(
-            `Memory cleanup: ${cleanedSearch} search instances, ${cleanedRelated} related instances`,
-        );
-    }
-
-    // Log current cache size
-    youtubeiLogger.debug(
-        `Current cache size: ${searchInstances.size} search, ${relatedInstances.size} related`,
-    );
-};
 
 // Create a worker to process cleanup jobs
 const worker = new Worker(
@@ -472,45 +370,5 @@ export const searchYoutubeiElysia = new Elysia({})
         },
     );
 
-const mapYoutubeiVideo = (video: VideoCompact): YouTubeVideo => ({
-    id: video.id,
-    duration: video.duration || 0,
-    duration_formatted: formatSeconds(video.duration),
-    thumbnail: {
-        url: video.thumbnails[0].url,
-    },
-    title: video.title,
-    type: 'video',
-    url: '',
-    uploadedAt: video.uploadDate || '',
-    views: video.viewCount || 0,
-    channel: {
-        name: video.channel?.name || 'N/A',
-        verified: false,
-    },
-});
-
-export const checkEmbeddable = async (videoId: string): Promise<boolean> => {
-    const baseUrls = [`https://www.youtube-nocookie.com/embed/`, `https://www.youtube.com/embed/`];
-    const errString = `Playback on other websites has been disabled by the video own`;
-    const stringAbility = `previewPlayabilityStatus`;
-
-    const url = `${baseUrls[Math.floor(Math.random() * baseUrls.length)]}${videoId}`;
-    const raw = await fetch(url, {
-        method: 'GET',
-        headers: {
-            'User-Agent': 'Mozilla/5.0',
-            'accept-language': 'en-US,en;q=0.9',
-            accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        },
-    });
-
-    if (!raw.ok) {
-        return false;
-    }
-
-    const text = await raw.text();
-    return !text.includes(errString) && text.includes(stringAbility);
-};
-
+export { checkEmbeddable } from './modules/youtube/embeddable';
 export type SearchYoutubeiApp = typeof searchYoutubeiElysia;
