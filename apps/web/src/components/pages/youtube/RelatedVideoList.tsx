@@ -92,7 +92,7 @@ export function RelatedVideoList({ keyPrefix = 'related-list' }: RelatedVideoLis
                         label: t('addVideoAndMoveToTop'),
                         buttonText: t('addVideoAndMoveToTop'),
                         icon: <MoveUp />,
-                        tone: 'success',
+                        tone: 'priority',
                         onClick: () => {
                             closeMenu();
                             handleAddVideoAndMoveToTop(video);

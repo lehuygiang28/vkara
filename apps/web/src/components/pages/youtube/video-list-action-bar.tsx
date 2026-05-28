@@ -18,7 +18,7 @@ export type VideoListAction = {
     buttonText?: string;
     icon: ReactNode;
     onClick: () => void;
-    tone?: 'default' | 'outline' | 'success' | 'destructive';
+    tone?: 'default' | 'outline' | 'success' | 'priority' | 'destructive';
     confirmMode?: boolean;
     confirmContent?: ReactNode;
 };
@@ -34,7 +34,9 @@ const toneClasses = {
     outline:
         'border-border/70 bg-background/80 text-foreground hover:bg-accent/50 active:bg-accent/70',
     success:
-        'border-green-500/50 bg-green-500/15 text-green-400 hover:bg-green-500/25 active:bg-green-500/30 dark:text-green-300',
+        'border-emerald-500/55 bg-emerald-500/15 text-emerald-700 hover:bg-emerald-500/25 active:bg-emerald-500/35 dark:text-emerald-300',
+    priority:
+        'border-amber-500/55 bg-amber-500/15 text-amber-800 hover:bg-amber-500/25 active:bg-amber-500/35 dark:text-amber-200',
     destructive:
         'border-destructive/70 bg-destructive/25 text-destructive hover:bg-destructive/35 active:bg-destructive/40',
 } as const;

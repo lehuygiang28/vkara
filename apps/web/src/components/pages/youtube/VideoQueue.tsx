@@ -40,7 +40,7 @@ export function VideoQueue() {
                         label: t('moveToTop'),
                         buttonText: t('moveToTop'),
                         icon: <MoveUp />,
-                        tone: 'success',
+                        tone: 'priority',
                         onClick: () => {
                             closeMenu();
                             handleMoveVideoToTop(video);
