@@ -7,11 +7,13 @@ COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/shared-types/package.json ./packages/shared-types/package.json
 COPY packages/shared-infra/package.json ./packages/shared-infra/package.json
+COPY packages/shared-utils/package.json ./packages/shared-utils/package.json
 
 RUN bun install --frozen-lockfile
 
 COPY apps/web ./apps/web
 COPY packages/shared-types ./packages/shared-types
+COPY packages/shared-utils ./packages/shared-utils
 
 ENV NODE_ENV=production
 
