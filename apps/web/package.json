@@ -5,9 +5,11 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
-        "build": "bun run --bun next build",
+        "predev": "bun run generate:pwa-icons",
+        "build": "bun run generate:pwa-icons && bun run --bun next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "generate:pwa-icons": "bun scripts/generate-pwa-icons.mjs"
     },
     "dependencies": {
         "@next/third-parties": "15.5.18",
@@ -23,6 +25,7 @@
         "@radix-ui/react-tabs": "^1.1.2",
         "@radix-ui/react-toast": "^1.2.4",
         "@radix-ui/react-tooltip": "^1.1.6",
+        "@tanstack/react-virtual": "^3.13.26",
         "@vercel/analytics": "^1.4.1",
         "@vkara/shared-types": "workspace:*",
         "class-variance-authority": "^0.7.1",
@@ -58,6 +61,7 @@
         "eslint-config-next": "15.5.18",
         "eslint-plugin-react-hooks": "^5.2.0",
         "postcss": "^8",
+        "sharp": "^0.34.5",
         "tailwindcss": "^3.4.1"
     }
 }

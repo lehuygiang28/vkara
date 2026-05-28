@@ -7,12 +7,13 @@ export default {
     confirm: 'Confirm',
     cancel: 'Cancel',
 
+    'connection.connecting': 'Reconnecting...',
+    'connection.offline': 'Connection lost. Trying to reconnect...',
+
     'appearance.title': 'Appearance',
-    'appearance.theme': 'Theme',
-    'appearance.toggleTheme': 'Toggle theme',
     'appearance.dark': 'Dark',
     'appearance.light': 'Light',
-    'appearance.switchToggleStyle': 'Switch toggle style',
+    'appearance.system': 'System',
     'appearance.language': 'Language',
     'appearance.languageEnglish': '🇺🇸 English',
     'appearance.languageVietnamese': '🇻🇳 Tiếng Việt',
@@ -66,6 +67,13 @@ export default {
     'youtubePage.exitFullscreen': 'Exit Fullscreen',
     'youtubePage.fullscreen': 'Fullscreen',
     'youtubePage.related': 'Related',
+    'youtubePage.more': 'More',
+    'youtubePage.mainNavigation': 'Main navigation',
+    'youtubePage.volume': 'Volume',
+    'youtubePage.tvWaiting': 'Scan the QR on the TV screen, or use your phone to pick songs.',
+    'youtubePage.layoutAuto': 'Automatic (by screen size)',
+    'youtubePage.layoutAutoHint':
+        'Large screens show video (TV). Phones are remotes for search and playback control.',
 
     'seekToInput.title': 'Seek to specific time',
     'seekToInput.description': 'Enter time in seconds, MM:SS, or HH:MM:SS format',
@@ -128,6 +136,9 @@ export default {
     'videoQueue.importPlaylistPlaceholder': 'Playlist ID/URL',
 
     'videoSearch.searchPlaceholder': 'Search YouTube videos...',
+    'videoSearch.loadingSuggestions': 'Loading suggestions…',
+    'videoSearch.browseTitle': 'Find a karaoke song',
+    'videoSearch.browseHint': 'Type a song or artist name, then tap search or press Enter.',
     'videoSearch.karaokeMode': 'Karaoke',
     'videoSearch.allMode': 'All',
     'videoSearch.noResults': 'No results found',

@@ -1,18 +1,28 @@
 'use client';
 
-import { Play, Pause, SkipForward, Volume2, VolumeX, RotateCcw, Plus, Minus } from 'lucide-react';
+import {
+    Pause,
+    Play,
+    RotateCcw,
+    SkipForward,
+    Volume2,
+    VolumeX,
+} from 'lucide-react';
 import { useScopedI18n } from '@/locales/client';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
 import { SeekToInput } from '@/components/seek-to-input';
+import { cn } from '@/lib/utils';
 
 interface PlayerControlsProps {
-    type?: 'playback' | 'volume' | 'all';
+    variant?: 'bar' | 'panel';
+    className?: string;
 }
 
-export function PlayerControls({ type = 'all' }: PlayerControlsProps) {
+export function PlayerControls({ variant = 'bar', className }: PlayerControlsProps) {
     const t = useScopedI18n('youtubePage');
     const { volume, room } = useYouTubeStore();
     const {
@@ -24,81 +34,154 @@ export function PlayerControls({ type = 'all' }: PlayerControlsProps) {
         handleSetVideoVolume,
     } = usePlayerAction();
 
-    const renderPlaybackControls = () => (
-        <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePlayerPlay}
-                disabled={!room?.playingNow}
-            >
-                <Play className="h-4 w-4 mr-2" />
-                {t('play')}
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePlayerPause}
-                disabled={!room?.playingNow}
-            >
-                <Pause className="h-4 w-4 mr-2" />
-                {t('pause')}
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={handlePlayNextVideo}
-                disabled={!room?.videoQueue.length}
-            >
-                <SkipForward className="h-4 w-4 mr-2" />
-                {t('next')}
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={handleReplayVideo}
-                disabled={!room?.playingNow}
-            >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                {t('replay')}
-            </Button>
-            <SeekToInput onSeek={handleSeekToSeconds} disabled={!room?.playingNow} />
-        </div>
-    );
+    const disabled = !room?.playingNow;
+    const isMuted = volume === 0;
 
-    const renderVolumeControls = () => (
-        <div className="flex flex-wrap items-center justify-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => handleSetVideoVolume(0)}>
-                <VolumeX className="h-4 w-4 mr-2" />
-                {t('mute')}
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => handleSetVideoVolume(100)}>
-                <Volume2 className="h-4 w-4 mr-2" />
-                {t('unmute')}
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleSetVideoVolume(Math.min(volume + 10, 100))}
-            >
-                <Plus className="h-4 w-4 mr-2" />
-                {t('volumeUp')}
-            </Button>
-            <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleSetVideoVolume(Math.max(volume - 10, 0))}
-            >
-                <Minus className="h-4 w-4 mr-2" />
-                {t('volumeDown')}
-            </Button>
-        </div>
-    );
+    const toggleMute = () => {
+        handleSetVideoVolume(isMuted ? 60 : 0);
+    };
+
+    if (variant === 'panel') {
+        return (
+            <div className={cn('flex flex-col gap-6 p-4', className)}>
+                <div className="flex items-center justify-center gap-3">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 rounded-full"
+                        onClick={handleReplayVideo}
+                        disabled={disabled}
+                        aria-label={t('replay')}
+                    >
+                        <RotateCcw className="h-5 w-5" />
+                    </Button>
+                    <Button
+                        type="button"
+                        size="icon"
+                        className="h-16 w-16 rounded-full"
+                        onClick={room?.isPlaying ? handlePlayerPause : handlePlayerPlay}
+                        disabled={disabled}
+                        aria-label={room?.isPlaying ? t('pause') : t('play')}
+                    >
+                        {room?.isPlaying ? (
+                            <Pause className="h-8 w-8" fill="currentColor" />
+                        ) : (
+                            <Play className="h-8 w-8" fill="currentColor" />
+                        )}
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="h-12 w-12 rounded-full"
+                        onClick={handlePlayNextVideo}
+                        disabled={!room?.videoQueue.length}
+                        aria-label={t('next')}
+                    >
+                        <SkipForward className="h-5 w-5" />
+                    </Button>
+                </div>
+                <div className="flex items-center gap-3">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={toggleMute}
+                        aria-label={isMuted ? t('unmute') : t('mute')}
+                    >
+                        {isMuted ? (
+                            <VolumeX className="h-5 w-5" />
+                        ) : (
+                            <Volume2 className="h-5 w-5" />
+                        )}
+                    </Button>
+                    <Slider
+                        value={[volume]}
+                        max={100}
+                        step={5}
+                        onValueChange={(value) => handleSetVideoVolume(value[0] ?? 0)}
+                        className="flex-1"
+                        aria-label={t('volume')}
+                    />
+                </div>
+                <SeekToInput onSeek={handleSeekToSeconds} disabled={disabled} />
+            </div>
+        );
+    }
 
     return (
-        <div className="flex flex-wrap items-center justify-center md:justify-between gap-2 md:gap-4">
-            {(type === 'all' || type === 'playback') && renderPlaybackControls()}
-            {(type === 'all' || type === 'volume') && renderVolumeControls()}
+        <div
+            className={cn(
+                'flex flex-wrap items-center justify-center gap-3 md:justify-between',
+                className,
+            )}
+        >
+            <div className="flex items-center gap-2">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full"
+                    onClick={handleReplayVideo}
+                    disabled={disabled}
+                    aria-label={t('replay')}
+                >
+                    <RotateCcw className="h-5 w-5" />
+                </Button>
+                <Button
+                    type="button"
+                    size="icon"
+                    className="h-12 w-12 rounded-full"
+                    onClick={room?.isPlaying ? handlePlayerPause : handlePlayerPlay}
+                    disabled={disabled}
+                    aria-label={room?.isPlaying ? t('pause') : t('play')}
+                >
+                    {room?.isPlaying ? (
+                        <Pause className="h-6 w-6" fill="currentColor" />
+                    ) : (
+                        <Play className="h-6 w-6" fill="currentColor" />
+                    )}
+                </Button>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-10 w-10 rounded-full"
+                    onClick={handlePlayNextVideo}
+                    disabled={!room?.videoQueue.length}
+                    aria-label={t('next')}
+                >
+                    <SkipForward className="h-5 w-5" />
+                </Button>
+            </div>
+            <div className="flex min-w-[10rem] max-w-xs flex-1 items-center gap-2">
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="shrink-0"
+                    onClick={toggleMute}
+                    aria-label={isMuted ? t('unmute') : t('mute')}
+                >
+                    {isMuted ? (
+                        <VolumeX className="h-5 w-5" />
+                    ) : (
+                        <Volume2 className="h-5 w-5" />
+                    )}
+                </Button>
+                <Slider
+                    value={[volume]}
+                    max={100}
+                    step={5}
+                    onValueChange={(value) => handleSetVideoVolume(value[0] ?? 0)}
+                    className="flex-1"
+                    aria-label={t('volume')}
+                />
+            </div>
+            <div className="hidden lg:block">
+                <SeekToInput onSeek={handleSeekToSeconds} disabled={disabled} />
+            </div>
         </div>
     );
 }

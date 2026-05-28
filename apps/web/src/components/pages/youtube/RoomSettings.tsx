@@ -1,19 +1,17 @@
 'use client';
 
-import React, { Suspense, useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { Eye, EyeOff, Copy } from 'lucide-react';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { useChangeLocale, useCurrentLocale, SUPPORTED_LOCALES } from '@/locales/client';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     Select,
@@ -39,11 +37,13 @@ export function RoomSettings() {
         wsId,
         room,
         layoutMode,
+        layoutModeSource,
         showQRInPlayer,
         showBottomControls,
         opacityOfButtonsInPlayer,
         setRoom,
         setLayoutMode,
+        enableAutoLayoutMode,
         setCurrentTab,
         setShowQRInPlayer,
         setShowBottomControls,
@@ -61,9 +61,6 @@ export function RoomSettings() {
         setShowPassword,
         resetState,
     } = useRoomSettingsStore();
-    const changeLocale = useChangeLocale({ preserveSearchParams: true });
-    const locale = useCurrentLocale();
-
     const isConnected = connectionStatus === 'OPEN';
 
     const t = useI18n();
@@ -116,9 +113,9 @@ export function RoomSettings() {
     }, [resetState]);
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex h-full min-h-0 flex-col">
             <ScrollArea className="h-full" hideScrollbar>
-                <div className="space-y-3 pb-[20rem]">
+                <div className="space-y-3 pb-32">
                     <Card>
                         <CardHeader>
                             <CardTitle>{t_RoomSettings('title')}</CardTitle>
@@ -361,36 +358,49 @@ export function RoomSettings() {
                         </CardHeader>
                         <CardContent>
                             {/* Setting layout mode */}
-                            <div className="mt-0">
+                            <div className="mt-0 space-y-2">
                                 <Label htmlFor="selectLayoutMode">
                                     {t('youtubePage.selectLayoutMode')}
                                 </Label>
+                                <p className="text-xs text-muted-foreground">
+                                    {t('youtubePage.layoutAutoHint')}
+                                </p>
                                 <Select
-                                    value={layoutMode}
+                                    value={
+                                        layoutModeSource === 'auto' ? 'auto' : layoutMode
+                                    }
                                     onValueChange={(value) => {
+                                        if (value === 'auto') {
+                                            enableAutoLayoutMode();
+                                            setCurrentTab('search');
+                                            return;
+                                        }
                                         const val = value as 'both' | 'remote' | 'player';
-                                        setLayoutMode(val);
+                                        setLayoutMode(val, 'user');
                                         if (val === 'remote') {
-                                            setCurrentTab('controls');
+                                            setCurrentTab('search');
                                         } else if (val === 'player') {
                                             setCurrentTab('queue');
                                         }
                                     }}
                                 >
-                                    <SelectTrigger className="w-full mt-2">
+                                    <SelectTrigger id="selectLayoutMode" className="mt-1 w-full">
                                         <SelectValue
                                             placeholder={t('youtubePage.selectLayoutMode')}
                                         />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="both">
-                                            {t('youtubePage.layoutBoth')}
+                                        <SelectItem value="auto">
+                                            {t('youtubePage.layoutAuto')}
                                         </SelectItem>
                                         <SelectItem value="remote">
                                             {t('youtubePage.layoutRemote')}
                                         </SelectItem>
                                         <SelectItem value="player">
                                             {t('youtubePage.layoutPlayer')}
+                                        </SelectItem>
+                                        <SelectItem value="both">
+                                            {t('youtubePage.layoutBoth')}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
@@ -475,45 +485,6 @@ export function RoomSettings() {
                                     </div>
                                 </div>
                             )}
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{t('appearance.title')}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="theme-toggle">{t('appearance.theme')}</Label>
-                                <ThemeToggle />
-                            </div>
-                            <Suspense>
-                                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-4">
-                                    <Label
-                                        htmlFor="language-chooser"
-                                        className="text-sm font-medium flex items-center"
-                                    >
-                                        {t('appearance.language')}
-                                    </Label>
-                                    <Select
-                                        value={locale}
-                                        onValueChange={(value: SUPPORTED_LOCALES) => {
-                                            changeLocale(value);
-                                        }}
-                                    >
-                                        <SelectTrigger className="flex items-center justify-between w-full sm:w-auto border rounded-md px-3 py-2 min-w-[12rem]">
-                                            <SelectValue placeholder={t('appearance.language')} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="en">
-                                                <span>{t('appearance.languageEnglish')}</span>
-                                            </SelectItem>
-                                            <SelectItem value="vi">
-                                                <span>{t('appearance.languageVietnamese')}</span>
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </Suspense>
                         </CardContent>
                     </Card>
                 </div>

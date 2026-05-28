@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useEffect } from 'react';
-import { Play, ListVideo, MoveUp } from 'lucide-react';
-import { useDebounce } from 'use-debounce';
+import { memo, useCallback } from 'react';
+import { ListPlus, Play } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 
-import { AutoComplete } from '@/components/autocomplete';
-import { cn } from '@/lib/utils';
+import { VideoSearchInput } from '@/components/search/video-search-input';
 import { useScopedI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@/types/youtube.type';
 import { useSearchStore } from '@/store/searchStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
-import { VideoSkeleton } from '@/components/video-skeleton';
+import { VideoSkeletonList } from '@/components/video-skeleton';
 import {
     Select,
     SelectContent,
@@ -21,6 +20,39 @@ import {
 } from '@/components/ui/select';
 import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList } from './VideoList';
+import { SearchBrowseHint } from './SearchBrowseHint';
+
+const VideoActionButtons = memo(function VideoActionButtons({
+    video,
+    onPlay,
+    onQueue,
+}: {
+    video: YouTubeVideo;
+    onPlay: (video: YouTubeVideo) => void;
+    onQueue: (video: YouTubeVideo) => void;
+}) {
+    const t = useScopedI18n('videoSearch');
+
+    return (
+        <div className="flex items-center gap-2">
+            <TooltipButton
+                buttonText={t('playNow')}
+                tooltipContent={t('playNow')}
+                icon={<Play className="mr-1 h-3.5 w-3.5" />}
+                onConfirm={() => onPlay(video)}
+                className="flex-1"
+            />
+            <TooltipButton
+                buttonText={t('addToQueue')}
+                tooltipContent={t('addToQueue')}
+                icon={<ListPlus className="mr-1 h-3.5 w-3.5" />}
+                onConfirm={() => onQueue(video)}
+                variant="outline"
+                className="flex-1"
+            />
+        </div>
+    );
+});
 
 export function VideoSearch() {
     const t = useScopedI18n('videoSearch');
@@ -35,108 +67,104 @@ export function VideoSearch() {
         suggestions,
         selectedVideoId,
         nextToken,
-        setSearchQuery,
         setIsKaraoke,
         setSelectedVideoId,
         performSearch,
         loadMore,
         fetchSuggestions,
-    } = useSearchStore();
+        clearSuggestions,
+    } = useSearchStore(
+        useShallow((state) => ({
+            searchQuery: state.searchQuery,
+            isKaraoke: state.isKaraoke,
+            isLoading: state.isLoading,
+            isLoadingMore: state.isLoadingMore,
+            isLoadingSuggestions: state.isLoadingSuggestions,
+            searchResults: state.searchResults,
+            suggestions: state.suggestions,
+            selectedVideoId: state.selectedVideoId,
+            nextToken: state.nextToken,
+            setIsKaraoke: state.setIsKaraoke,
+            setSelectedVideoId: state.setSelectedVideoId,
+            performSearch: state.performSearch,
+            loadMore: state.loadMore,
+            fetchSuggestions: state.fetchSuggestions,
+            clearSuggestions: state.clearSuggestions,
+        })),
+    );
 
-    const [debouncedSearchForSuggestions] = useDebounce(searchQuery, 500);
+    const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
 
-    const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop } =
-        usePlayerAction();
+    const handleSearch = useCallback(
+        (query: string) => {
+            void performSearch(query);
+        },
+        [performSearch],
+    );
 
-    // Fetch suggestions when search query changes (after 500ms)
-    useEffect(() => {
-        if (debouncedSearchForSuggestions) {
-            fetchSuggestions(debouncedSearchForSuggestions);
-        }
-    }, [debouncedSearchForSuggestions, fetchSuggestions]);
+    const handleDebouncedQuery = useCallback(
+        (query: string) => {
+            void fetchSuggestions(query);
+        },
+        [fetchSuggestions],
+    );
 
-    const handleManualSearch = () => {
-        if (searchQuery) {
-            performSearch(searchQuery);
-        }
-    };
+    const handlePlay = useCallback(
+        (video: YouTubeVideo) => {
+            setSelectedVideoId(null);
+            handlePlayVideoNow(video);
+        },
+        [handlePlayVideoNow, setSelectedVideoId],
+    );
 
-    function renderButtons(video: YouTubeVideo) {
-        return (
-            <div
-                className={cn(
-                    'overflow-hidden transition-all duration-300 ease-in-out',
-                    selectedVideoId === video.id ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0',
-                )}
-            >
-                <div className="flex items-center gap-2 flex-wrap">
-                    <TooltipButton
-                        buttonText={t('playNow')}
-                        tooltipContent={t('playNow')}
-                        icon={<Play className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
-                            setSelectedVideoId(null);
-                            handlePlayVideoNow(video);
-                        }}
-                        variant={'outline'}
-                    />
+    const handleQueue = useCallback(
+        (video: YouTubeVideo) => {
+            setSelectedVideoId(null);
+            handleAddVideoToQueue(video);
+        },
+        [handleAddVideoToQueue, setSelectedVideoId],
+    );
 
-                    <TooltipButton
-                        buttonText={t('addToQueue')}
-                        tooltipContent={t('addToQueue')}
-                        icon={<ListVideo className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
-                            setSelectedVideoId(null);
-                            handleAddVideoToQueue(video);
-                        }}
-                    />
+    const renderButtons = useCallback(
+        (video: YouTubeVideo) => (
+            <VideoActionButtons video={video} onPlay={handlePlay} onQueue={handleQueue} />
+        ),
+        [handlePlay, handleQueue],
+    );
 
-                    <TooltipButton
-                        buttonText={t('addVideoAndMoveToTop')}
-                        tooltipContent={t('addVideoAndMoveToTop')}
-                        icon={<MoveUp className="h-3.5 w-3.5 mr-1" />}
-                        onConfirm={() => {
-                            setSelectedVideoId(null);
-                            handleAddVideoAndMoveToTop(video);
-                        }}
-                    />
-                </div>
-            </div>
-        );
-    }
+    const handleVideoClick = useCallback(
+        (video: YouTubeVideo) => {
+            setSelectedVideoId(video.id === selectedVideoId ? null : video.id);
+        },
+        [selectedVideoId, setSelectedVideoId],
+    );
+
+    const showBrowseHint =
+        !searchQuery && !isLoading && searchResults.length === 0 && !isLoadingMore;
 
     return (
-        <div className="flex flex-col h-screen">
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-3 pb-3 pt-1 border-b">
-                <div className="flex flex-row items-center gap-2">
-                    <div className="relative flex-grow">
-                        <AutoComplete
-                            selectedValue={searchQuery}
-                            searchValue={searchQuery}
-                            onSelectedValueChange={(value) => {
-                                setSearchQuery(value);
-                                handleManualSearch();
-                            }}
-                            onSearchValueChange={setSearchQuery}
-                            items={suggestions.map((suggestion: string) => ({
-                                value: suggestion,
-                                label: suggestion,
-                            }))}
-                            isLoading={isLoading}
-                            isLoadingSuggestions={isLoadingSuggestions}
-                            placeholder={t('searchPlaceholder')}
-                            classNames="flex-grow"
-                            showCheck={false}
-                            onSearch={handleManualSearch}
-                        />
-                    </div>
+        <div className="flex h-full min-h-0 flex-col">
+            <div className="sticky top-0 z-10 border-b bg-background/95 px-safe-offset pb-5 pt-safe-offset backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                <div className="flex items-center gap-2">
+                    <VideoSearchInput
+                        className="min-w-0 flex-1"
+                        committedQuery={searchQuery}
+                        suggestions={suggestions}
+                        isSearching={isLoading}
+                        isLoadingSuggestions={isLoadingSuggestions}
+                        placeholder={t('searchPlaceholder')}
+                        loadingSuggestionsLabel={t('loadingSuggestions')}
+                        onDebouncedQuery={handleDebouncedQuery}
+                        onClearSuggestions={clearSuggestions}
+                        onSearch={handleSearch}
+                    />
                     <Select
                         value={isKaraoke ? 'karaoke' : 'all'}
                         onValueChange={(value) => {
                             setIsKaraoke(value === 'karaoke');
                         }}
                     >
-                        <SelectTrigger className="w-[6rem]">
+                        <SelectTrigger className="h-11 min-h-11 w-[5.75rem] shrink-0 border-border/80 bg-muted/30 px-2.5 py-0 text-base leading-none shadow-none data-[placeholder]:text-muted-foreground">
                             <SelectValue placeholder="Select mode" />
                         </SelectTrigger>
                         <SelectContent>
@@ -150,30 +178,26 @@ export function VideoSearch() {
                     </Select>
                 </div>
             </div>
-            {isLoading && (searchResults?.length || 0) <= 0 ? (
-                <div className="space-y-4 p-4">
-                    {[...Array(4)].map((_, i) => (
-                        <VideoSkeleton key={i} />
-                    ))}
-                </div>
+            {isLoading && searchResults.length === 0 ? (
+                <VideoSkeletonList count={6} className="pb-28 pt-2" />
+            ) : showBrowseHint ? (
+                <SearchBrowseHint />
             ) : (
-                <>
-                    <VideoList
-                        keyPrefix={'search-list'}
-                        videos={searchResults}
-                        emptyMessage={
-                            searchQuery && searchResults.length === 0 ? t('noResults') : ''
-                        }
-                        renderButtons={renderButtons}
-                        onVideoClick={(video) =>
-                            setSelectedVideoId(video.id === selectedVideoId ? null : video.id)
-                        }
-                        selectedVideoId={selectedVideoId}
-                        onLoadMore={loadMore}
-                        hasMore={!!nextToken}
-                        isLoading={isLoading || isLoadingMore}
-                    />
-                </>
+                <VideoList
+                    keyPrefix="search-list"
+                    videos={searchResults}
+                    emptyMessage={
+                        searchQuery && searchResults.length === 0 && !isLoading
+                            ? t('noResults')
+                            : ''
+                    }
+                    renderButtons={renderButtons}
+                    onVideoClick={handleVideoClick}
+                    selectedVideoId={selectedVideoId}
+                    onLoadMore={loadMore}
+                    hasMore={Boolean(nextToken)}
+                    isLoading={isLoading || isLoadingMore}
+                />
             )}
         </div>
     );

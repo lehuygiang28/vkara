@@ -28,5 +28,7 @@ export function middleware(request: NextRequest) {
  * specific routes, such as API routes, static files, and built-in Next.js files.
  */
 export const config = {
-    matcher: ['/((?!api|static|.*\\..*|_next|favicon.ico|robots.txt).*)'],
+    matcher: [
+        '/((?!api|static|.*\\..*|_next|favicon.ico|robots.txt|manifest.webmanifest|sw.js|icons).*)',
+    ],
 };

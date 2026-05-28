@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button, ButtonProps } from '@/components/ui/button';
 import { useI18n } from '@/locales/client';
@@ -67,38 +67,36 @@ export function TooltipButton({
     );
 
     return (
-        <TooltipProvider>
-            <Tooltip>
-                <TooltipTrigger asChild>
-                    {confirmMode ? (
-                        <Popover open={open} onOpenChange={setOpen}>
-                            <PopoverTrigger asChild>{button}</PopoverTrigger>
-                            <PopoverContent className="w-auto max-w-96 p-0">
-                                <div className="grid gap-4 p-4">
-                                    <div className="space-y-2">{confirmContent}</div>
-                                    <div className="flex justify-end space-x-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setOpen(false)}
-                                        >
-                                            {t('cancel')}
-                                        </Button>
-                                        <Button size="sm" onClick={handleConfirm}>
-                                            {t('confirm')}
-                                        </Button>
-                                    </div>
+        <Tooltip>
+            <TooltipTrigger asChild>
+                {confirmMode ? (
+                    <Popover open={open} onOpenChange={setOpen}>
+                        <PopoverTrigger asChild>{button}</PopoverTrigger>
+                        <PopoverContent className="w-auto max-w-96 p-0">
+                            <div className="grid gap-4 p-4">
+                                <div className="space-y-2">{confirmContent}</div>
+                                <div className="flex justify-end space-x-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => setOpen(false)}
+                                    >
+                                        {t('cancel')}
+                                    </Button>
+                                    <Button size="sm" onClick={handleConfirm}>
+                                        {t('confirm')}
+                                    </Button>
                                 </div>
-                            </PopoverContent>
-                        </Popover>
-                    ) : (
-                        button
-                    )}
-                </TooltipTrigger>
-                <TooltipContent>
-                    <p>{tooltipContent}</p>
-                </TooltipContent>
-            </Tooltip>
-        </TooltipProvider>
+                            </div>
+                        </PopoverContent>
+                    </Popover>
+                ) : (
+                    button
+                )}
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>{tooltipContent}</p>
+            </TooltipContent>
+        </Tooltip>
     );
 }

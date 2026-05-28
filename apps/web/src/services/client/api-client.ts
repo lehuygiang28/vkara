@@ -7,12 +7,14 @@ type JsonRecord = Record<string, unknown>;
 export async function apiPost<TResponse, TBody extends JsonRecord = JsonRecord>(
     path: string,
     body: TBody,
+    signal?: AbortSignal,
 ): Promise<TResponse> {
     const url = new URL(path, API_URL);
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        signal,
     });
 
     if (!response.ok) {

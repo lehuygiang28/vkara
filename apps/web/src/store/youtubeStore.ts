@@ -6,6 +6,9 @@ import { ErrorCode } from '@/types/server-errors.type';
 import { toast } from '@/hooks/use-toast';
 import { useScopedI18n } from '@/locales/client';
 
+export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
+export type LayoutModeSource = 'auto' | 'url' | 'user';
+
 interface YouTubeState {
     wsId: string | null;
     player: YT.Player | null;
@@ -14,7 +17,8 @@ interface YouTubeState {
     room: Omit<Room, 'clients'> | null;
     isLoading: boolean;
     error: string | null;
-    layoutMode: 'both' | 'remote' | 'player';
+    layoutMode: YouTubeStoreLayoutMode;
+    layoutModeSource: LayoutModeSource;
     showQRInPlayer: boolean;
     showBottomControls: boolean;
     opacityOfButtonsInPlayer: number;
@@ -26,7 +30,9 @@ interface YouTubeState {
     setRoom: (room: Omit<Room, 'clients'> | null) => void;
     setIsLoading: (isLoading: boolean) => void;
     setError: (error: string | null) => void;
-    setLayoutMode: (mode: 'both' | 'remote' | 'player') => void;
+    setLayoutMode: (mode: YouTubeStoreLayoutMode, source?: LayoutModeSource) => void;
+    enableAutoLayoutMode: () => void;
+    applyAutoLayoutMode: (suggested: YouTubeStoreLayoutMode) => void;
     setShowQRInPlayer: (show: boolean) => void;
     setShowBottomControls: (show: boolean) => void;
     setOpacityOfButtonsInPlayer: (opacity: number) => void;
@@ -49,7 +55,8 @@ export const useYouTubeStore = create(
             room: null,
             isLoading: false,
             error: null,
-            layoutMode: 'both',
+            layoutMode: 'remote',
+            layoutModeSource: 'auto',
             showQRInPlayer: true,
             showBottomControls: true,
             opacityOfButtonsInPlayer: 50,
@@ -61,12 +68,23 @@ export const useYouTubeStore = create(
             setRoom: (room) => set({ room }),
             setIsLoading: (isLoading) => set({ isLoading }),
             setError: (error) => set({ error }),
-            setLayoutMode: (layoutMode) => {
+            setLayoutMode: (layoutMode, source = 'user') => {
                 if (layoutMode === 'remote') {
-                    return set({ layoutMode: 'remote', player: null });
+                    return set({ layoutMode: 'remote', layoutModeSource: source, player: null });
                 }
-                return set({ layoutMode });
+                return set({ layoutMode, layoutModeSource: source });
             },
+            enableAutoLayoutMode: () => set({ layoutModeSource: 'auto' }),
+            applyAutoLayoutMode: (suggested) =>
+                set((state) => {
+                    if (state.layoutModeSource !== 'auto') {
+                        return state;
+                    }
+                    if (suggested === 'remote') {
+                        return { layoutMode: 'remote', player: null };
+                    }
+                    return { layoutMode: suggested };
+                }),
             setShowQRInPlayer: (show) => set({ showQRInPlayer: show }),
             setShowBottomControls: (show) => set({ showBottomControls: show }),
             setOpacityOfButtonsInPlayer: (opacity) => {
@@ -246,8 +264,24 @@ export const useYouTubeStore = create(
             storage: createJSONStorage(() => localStorage),
             partialize: (state) => {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { player, ...rest } = state;
-                return { ...rest, player: null };
+                const { player, layoutMode, ...rest } = state;
+                // Auto mode is re-derived from viewport on load; persisting layoutMode causes remote→TV flicker.
+                if (state.layoutModeSource === 'auto') {
+                    return { ...rest, player: null, layoutMode: state.layoutMode };
+                }
+                return { ...rest, player: null, layoutMode };
+            },
+            merge: (persistedState, currentState) => {
+                const persisted = persistedState as YouTubeState;
+                if (persisted.layoutModeSource === 'auto') {
+                    return {
+                        ...currentState,
+                        ...persisted,
+                        player: null,
+                        layoutMode: currentState.layoutMode,
+                    };
+                }
+                return { ...currentState, ...persisted, player: null };
             },
         },
     ),

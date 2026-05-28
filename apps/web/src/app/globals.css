@@ -2,6 +2,46 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-right: env(safe-area-inset-right, 0px);
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-left: env(safe-area-inset-left, 0px);
+}
+
+@layer utilities {
+    .pt-safe {
+        padding-top: var(--safe-top);
+    }
+    /** Safe area + minimum spacing so controls are not flush to the screen edge */
+    .pt-safe-offset {
+        padding-top: max(calc(var(--safe-top) + 1rem), 1rem);
+    }
+    .px-safe-offset {
+        padding-left: max(var(--safe-left), 1rem);
+        padding-right: max(var(--safe-right), 1rem);
+    }
+    .pb-safe {
+        padding-bottom: var(--safe-bottom);
+    }
+    .pl-safe {
+        padding-left: var(--safe-left);
+    }
+    .pr-safe {
+        padding-right: var(--safe-right);
+    }
+    .px-safe {
+        padding-left: var(--safe-left);
+        padding-right: var(--safe-right);
+    }
+    .min-h-dvh-screen {
+        min-height: 100dvh;
+    }
+    .h-dvh-screen {
+        height: 100dvh;
+    }
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
 
@@ -80,7 +120,13 @@ body {
     * {
         @apply border-border;
     }
+    html {
+        height: 100%;
+    }
     body {
-        @apply bg-background text-foreground;
+        @apply bg-background text-foreground min-h-dvh-screen;
+        padding-left: var(--safe-left);
+        padding-right: var(--safe-right);
+        overscroll-behavior: none;
     }
 }

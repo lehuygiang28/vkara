@@ -5,18 +5,24 @@ export async function searchYoutube({
     query,
     isKaraoke,
     continuation,
+    signal,
 }: {
     query: string;
     isKaraoke: boolean;
     continuation?: string | null;
+    signal?: AbortSignal;
 }) {
     const data = await apiPost<{
         items: YouTubeVideo[];
         continuation: string | null;
-    }>('/search', {
+    }>(
+        '/search',
+        {
             query: `${isKaraoke ? 'karaoke ' : ''}${query}`,
             ...(continuation ? { continuation } : {}),
-    });
+        },
+        signal,
+    );
 
     return {
         items: data.items,
@@ -24,8 +30,8 @@ export async function searchYoutube({
     };
 }
 
-export async function getYoutubeSuggestions(query: string) {
-    return apiPost<string[]>('/suggestions', { query });
+export async function getYoutubeSuggestions(query: string, signal?: AbortSignal) {
+    return apiPost<string[]>('/suggestions', { query }, signal);
 }
 
 export async function checkEmbeddableStatus(videoIds: string[]) {
@@ -40,8 +46,8 @@ export async function getRelatedVideos(
         items: YouTubeVideo[];
         continuation: string | null;
     }>('/related', {
-            videoId,
-            ...(continuation ? { continuation } : {}),
+        videoId,
+        ...(continuation ? { continuation } : {}),
     });
 
     return {

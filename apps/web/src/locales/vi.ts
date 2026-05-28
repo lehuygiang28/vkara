@@ -7,12 +7,13 @@ export default {
     confirm: 'Xác nhận',
     cancel: 'Hủy',
 
+    'connection.connecting': 'Đang kết nối lại...',
+    'connection.offline': 'Mất kết nối. Đang thử kết nối lại...',
+
     'appearance.title': 'Giao diện',
-    'appearance.theme': 'Chủ đề',
-    'appearance.toggleTheme': 'Chuyển đổi chủ đề',
     'appearance.dark': 'Tối',
     'appearance.light': 'Sáng',
-    'appearance.switchToggleStyle': 'Chuyển đổi chủ đề',
+    'appearance.system': 'Theo hệ thống',
     'appearance.language': 'Ngôn ngữ',
     'appearance.languageEnglish': '🇺🇸 English',
     'appearance.languageVietnamese': '🇻🇳 Tiếng Việt',
@@ -67,6 +68,13 @@ export default {
     'youtubePage.exitFullscreen': 'Thu nhỏ',
     'youtubePage.fullscreen': 'Phóng to',
     'youtubePage.related': 'Đề xuất',
+    'youtubePage.more': 'Thêm',
+    'youtubePage.mainNavigation': 'Điều hướng chính',
+    'youtubePage.volume': 'Âm lượng',
+    'youtubePage.tvWaiting': 'Quét mã QR trên TV hoặc dùng điện thoại để chọn bài hát.',
+    'youtubePage.layoutAuto': 'Tự động (theo màn hình)',
+    'youtubePage.layoutAutoHint':
+        'Màn hình lớn hiển thị video (TV). Điện thoại dùng để tìm bài và điều khiển.',
 
     'seekToInput.title': 'Nhảy đến thời gian cụ thể',
     'seekToInput.description': 'Nhập thời gian dưới dạng giây, MM:SS, hoặc HH:MM:SS',
@@ -127,6 +135,9 @@ export default {
     'videoQueue.importPlaylistPlaceholder': 'Playlist ID/URL',
 
     'videoSearch.searchPlaceholder': 'Tìm kiếm video...',
+    'videoSearch.loadingSuggestions': 'Đang gợi ý…',
+    'videoSearch.browseTitle': 'Tìm bài hát karaoke',
+    'videoSearch.browseHint': 'Nhập tên bài hoặc ca sĩ, rồi bấm tìm hoặc Enter.',
     'videoSearch.karaokeMode': 'Karaoke',
     'videoSearch.allMode': 'Tất cả',
     'videoSearch.noResults': 'Không tìm thấy kết quả',

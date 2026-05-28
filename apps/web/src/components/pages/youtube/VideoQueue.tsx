@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Trash2, MoveUp, Shuffle, ListMusic } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -33,13 +32,7 @@ export function VideoQueue() {
 
     function renderButtons(video: YouTubeVideo) {
         return (
-            <div
-                className={cn(
-                    'overflow-hidden transition-all duration-300 ease-in-out',
-                    selectedVideo === video.id ? 'max-h-20 mt-2 opacity-100' : 'max-h-0 opacity-0',
-                )}
-            >
-                <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
                     <TooltipButton
                         tooltipContent={t('moveToTop')}
                         buttonText={t('moveToTop')}
@@ -60,13 +53,12 @@ export function VideoQueue() {
                         }}
                         variant={'destructive'}
                     />
-                </div>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex h-full min-h-0 flex-col">
             <div className="flex items-center justify-center p-2 bg-background shadow-sm">
                 <div className="flex items-center space-x-2">
                     {(room?.videoQueue?.length || 0) > 0 && (
@@ -131,14 +123,16 @@ export function VideoQueue() {
                     />
                 </div>
             </div>
-            <VideoList
-                keyPrefix={'queue-list'}
-                videos={room?.videoQueue || []}
-                emptyMessage={t('noVideos')}
-                renderButtons={renderButtons}
-                onVideoClick={(video) => setSelectedVideo(video.id)}
-                selectedVideoId={selectedVideo}
-            />
+            <div className="min-h-0 flex-1">
+                <VideoList
+                    keyPrefix={'queue-list'}
+                    videos={room?.videoQueue || []}
+                    emptyMessage={t('noVideos')}
+                    renderButtons={renderButtons}
+                    onVideoClick={(video) => setSelectedVideo(video.id)}
+                    selectedVideoId={selectedVideo}
+                />
+            </div>
         </div>
     );
 }

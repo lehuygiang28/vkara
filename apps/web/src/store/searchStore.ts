@@ -2,9 +2,10 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 import type { YouTubeVideo } from '@/types/youtube.type';
-// import { getRelatedVideos } from '@/actions/youtube-actions';
 import { getYoutubeSuggestions, searchYoutube, getRelatedVideos } from '@/services/youtube-api';
 import { useYouTubeStore } from '@/store/youtubeStore';
+
+const MIN_SUGGESTION_QUERY_LENGTH = 2;
 
 interface SearchState {
     searchQuery: string;
@@ -24,18 +25,24 @@ interface SearchState {
     selectedRelatedVideoId: string | null;
     relatedNextToken: string | null;
 
-    // Actions
     setSearchQuery: (query: string) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
     setSelectedVideoId: (id: string | null) => void;
     performSearch: (query: string, token?: string | null) => Promise<void>;
     loadMore: () => Promise<void>;
     fetchSuggestions: (query: string) => Promise<void>;
+    clearSuggestions: () => void;
 
     fetchRelatedResults: (videoId: string, token?: string | null) => Promise<void>;
     loadMoreRelated: () => Promise<void>;
     setSelectedRelatedVideoId: (id: string | null) => void;
 }
+
+let suggestionsAbort: AbortController | null = null;
+let suggestionsGeneration = 0;
+
+let searchAbort: AbortController | null = null;
+let searchGeneration = 0;
 
 export const useSearchStore = create(
     persist<SearchState>(
@@ -58,57 +65,92 @@ export const useSearchStore = create(
             relatedNextToken: null,
 
             setSearchQuery: (query) => set({ searchQuery: query }),
+
             setIsKaraoke: (isKaraoke) => {
                 set({ isKaraoke });
                 const { searchQuery, performSearch } = get();
-                if (searchQuery) {
-                    performSearch(searchQuery);
+                if (searchQuery.trim()) {
+                    void performSearch(searchQuery.trim());
                 }
             },
+
             setSelectedVideoId: (id) => set({ selectedVideoId: id }),
 
+            clearSuggestions: () => {
+                suggestionsAbort?.abort();
+                suggestionsGeneration += 1;
+                set({ suggestions: [], isLoadingSuggestions: false });
+            },
+
             performSearch: async (query, token) => {
+                const trimmed = query.trim();
                 const { isKaraoke } = get();
 
-                if (!query) {
+                if (!trimmed) {
+                    searchAbort?.abort();
+                    searchGeneration += 1;
                     set({
+                        searchQuery: '',
                         searchResults: [],
                         nextToken: null,
                         error: null,
+                        isLoading: false,
+                        isLoadingMore: false,
                     });
                     return;
                 }
 
-                const searchTerm = `${isKaraoke ? 'karaoke ' : ''}${query}`;
+                set({ searchQuery: trimmed, selectedVideoId: null });
 
-                // Clear everything when starting a new search (no token)
-                set({ selectedVideoId: null });
                 if (!token) {
+                    searchAbort?.abort();
+                    const controller = new AbortController();
+                    searchAbort = controller;
+                    const generation = ++searchGeneration;
+
                     set({
                         isLoading: true,
                         searchResults: [],
                         nextToken: null,
                         error: null,
                     });
-                } else {
-                    set({ isLoadingMore: true });
+
+                    try {
+                        const { items, continuation } = await searchYoutube({
+                            query: trimmed,
+                            isKaraoke,
+                            signal: controller.signal,
+                        });
+
+                        if (generation !== searchGeneration) return;
+
+                        set({
+                            searchResults: items,
+                            nextToken: continuation,
+                        });
+                    } catch (err) {
+                        if (err instanceof Error && err.name === 'AbortError') return;
+                        if (generation !== searchGeneration) return;
+                        set({ error: 'Failed to fetch results' });
+                        console.error('Search error:', err);
+                    } finally {
+                        if (generation === searchGeneration) {
+                            set({ isLoading: false });
+                        }
+                    }
+                    return;
                 }
+
+                set({ isLoadingMore: true });
 
                 try {
                     const { items, continuation } = await searchYoutube({
-                        query: searchTerm,
+                        query: trimmed,
                         isKaraoke,
                         continuation: token,
                     });
 
                     set((state) => {
-                        if (!token) {
-                            return {
-                                searchResults: items,
-                                nextToken: continuation,
-                            };
-                        }
-
                         const existingIds = new Set(state.searchResults.map((video) => video.id));
                         const newItems = items.filter((video) => !existingIds.has(video.id));
 
@@ -118,38 +160,50 @@ export const useSearchStore = create(
                         };
                     });
                 } catch (err) {
-                    set({ error: 'Failed to fetch results' });
                     console.error('Search error:', err);
                 } finally {
-                    set({
-                        isLoading: false,
-                        isLoadingMore: false,
-                    });
+                    set({ isLoadingMore: false });
                 }
             },
 
             loadMore: async () => {
                 const { nextToken, isLoadingMore, searchQuery } = get();
-                if (nextToken && !isLoadingMore) {
+                if (nextToken && !isLoadingMore && searchQuery.trim()) {
                     await get().performSearch(searchQuery, nextToken);
                 }
             },
 
             fetchSuggestions: async (query) => {
-                if (!query) {
-                    set({ suggestions: [] });
+                const trimmed = query.trim();
+
+                suggestionsAbort?.abort();
+                const generation = ++suggestionsGeneration;
+
+                if (trimmed.length < MIN_SUGGESTION_QUERY_LENGTH) {
+                    set({ suggestions: [], isLoadingSuggestions: false });
                     return;
                 }
 
+                const controller = new AbortController();
+                suggestionsAbort = controller;
+
                 set({ isLoadingSuggestions: true });
+
                 try {
-                    const fetchedSuggestions = await getYoutubeSuggestions(query);
+                    const fetchedSuggestions = await getYoutubeSuggestions(trimmed, controller.signal);
+
+                    if (generation !== suggestionsGeneration) return;
+
                     set({ suggestions: fetchedSuggestions });
                 } catch (error) {
+                    if (error instanceof Error && error.name === 'AbortError') return;
+                    if (generation !== suggestionsGeneration) return;
                     console.error('Error fetching suggestions:', error);
                     set({ suggestions: [] });
                 } finally {
-                    set({ isLoadingSuggestions: false });
+                    if (generation === suggestionsGeneration) {
+                        set({ isLoadingSuggestions: false });
+                    }
                 }
             },
 
@@ -209,6 +263,8 @@ export const useSearchStore = create(
         {
             name: 'search-store',
             storage: createJSONStorage(() => localStorage),
+            /** Persist only preferences — never draft query/results (causes input lag). */
+            partialize: (state) => ({ isKaraoke: state.isKaraoke }) as SearchState,
         },
     ),
 );

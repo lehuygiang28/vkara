@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import { Play, ListVideo, X } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -20,13 +19,7 @@ export function VideoHistory() {
 
     function renderButtons(video: YouTubeVideo) {
         return (
-            <div
-                className={cn(
-                    'overflow-hidden transition-all duration-300 ease-in-out',
-                    selectedVideo === video.id ? 'max-h-20 mt-2 opacity-100' : 'max-h-0 opacity-0',
-                )}
-            >
-                <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex flex-wrap items-center gap-2">
                     <TooltipButton
                         tooltipContent={t('playNow')}
                         buttonText={t('playNow')}
@@ -46,13 +39,12 @@ export function VideoHistory() {
                             handleAddVideoToQueue(video);
                         }}
                     />
-                </div>
             </div>
         );
     }
 
     return (
-        <div className="flex flex-col h-screen">
+        <div className="flex h-full min-h-0 flex-col">
             {(room?.historyQueue?.length || 0) > 0 && (
                 <div className="flex items-center justify-center p-2 bg-background shadow-sm">
                     <div className="flex items-center space-x-2">
