@@ -254,7 +254,6 @@ export const useYouTubeStore = create(
                         {
                             switch (message.code) {
                                 case ErrorCode.ROOM_NOT_FOUND:
-                                case ErrorCode.NOT_IN_ROOM:
                                     set({ room: null });
                                     toast({
                                         title: t('roomNotFound'),
@@ -262,10 +261,31 @@ export const useYouTubeStore = create(
                                         variant: 'error',
                                     });
                                     break;
+                                case ErrorCode.NOT_IN_ROOM:
+                                    toast({
+                                        title: t('sessionNotReady'),
+                                        description: t('sessionNotReadyDescription'),
+                                        variant: 'error',
+                                    });
+                                    break;
                                 case ErrorCode.INCORRECT_PASSWORD:
                                     toast({
                                         title: t('incorrectPassword'),
                                         description: t('incorrectPasswordDescription'),
+                                        variant: 'error',
+                                    });
+                                    break;
+                                case ErrorCode.ALREADY_IN_QUEUE:
+                                    toast({
+                                        title: t('alreadyInQueue'),
+                                        description: t('alreadyInQueueDescription'),
+                                        variant: 'warning',
+                                    });
+                                    break;
+                                case ErrorCode.VIDEO_NOT_EMBEDDABLE:
+                                    toast({
+                                        title: t('videoNotEmbeddable'),
+                                        description: t('videoNotEmbeddableDescription'),
                                         variant: 'error',
                                     });
                                     break;

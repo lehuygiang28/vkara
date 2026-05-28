@@ -19,6 +19,7 @@ export interface WebSocketState {
     lastMessage: ServerMessage | null;
     connectionStatus: ConnectionStatus;
     connectionEpoch: number;
+    roomSessionEpoch: number;
     connect: () => void;
     disconnect: () => void;
     forceReconnect: () => void;

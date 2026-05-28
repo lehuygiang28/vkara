@@ -1,15 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Languages, Monitor, Moon, Sun } from 'lucide-react';
+import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
-import {
-    useChangeLocale,
-    useCurrentLocale,
-    useScopedI18n,
-    type SUPPORTED_LOCALES,
-} from '@/locales/client';
+import { useScopedI18n } from '@/locales/client';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import {
     DropdownMenuLabel,
     DropdownMenuRadioGroup,
@@ -20,8 +16,6 @@ import {
 export function AppearanceMenuSection() {
     const t = useScopedI18n('appearance');
     const { theme, setTheme } = useTheme();
-    const locale = useCurrentLocale();
-    const changeLocale = useChangeLocale({ preserveSearchParams: true });
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -56,22 +50,7 @@ export function AppearanceMenuSection() {
                     {t('system')}
                 </DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
-            <DropdownMenuLabel className="pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                {t('language')}
-            </DropdownMenuLabel>
-            <DropdownMenuRadioGroup
-                value={locale}
-                onValueChange={(value) => changeLocale(value as SUPPORTED_LOCALES)}
-            >
-                <DropdownMenuRadioItem value="vi" className="gap-2">
-                    <Languages className="h-4 w-4" />
-                    {t('languageVietnamese')}
-                </DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="en" className="gap-2">
-                    <Languages className="h-4 w-4" />
-                    {t('languageEnglish')}
-                </DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
+            <LanguageSwitcher variant="menu" />
             <DropdownMenuSeparator />
         </>
     );

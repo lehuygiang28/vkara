@@ -8,6 +8,7 @@ import { useWebSocket } from '@/providers/websocket-provider';
 import { useScopedI18n } from '@/locales/client';
 import { useJoinRoom } from '@/hooks/use-join-room';
 
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { QRScanner } from '@/components/qr-scanner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,7 +47,11 @@ export function RemoteJoinLobby() {
     }, [searchParams, setJoinRoomId, setJoinRoomPassword]);
 
     return (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-y-auto px-safe-offset pb-safe-offset pt-safe-offset">
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-safe-offset pb-safe-offset pt-safe-offset">
+            <div className="flex shrink-0 justify-end pb-2">
+                <LanguageSwitcher />
+            </div>
+            <div className="flex flex-1 flex-col items-center justify-center">
             <div className="w-full max-w-sm space-y-6">
                 <div className="space-y-2 text-center">
                     <h2 className="text-xl font-semibold tracking-tight">{t('title')}</h2>
@@ -110,6 +115,7 @@ export function RemoteJoinLobby() {
                 <div className="flex flex-col items-center gap-2">
                     <QRScanner onScan={joinFromScan} buttonClassName="w-full" />
                 </div>
+            </div>
             </div>
         </div>
     );

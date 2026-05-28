@@ -35,6 +35,12 @@ export default {
     'toast.incorrectPasswordDescription': 'Mật khẩu bạn nhập không chính xác',
     'toast.roomClosed': 'Phòng đã bị đóng',
     'toast.roomClosedDescription': 'Chủ phòng đã đóng phòng này',
+    'toast.alreadyInQueue': 'Đã có trong hàng chờ',
+    'toast.alreadyInQueueDescription': 'Video này đã có trong hàng chờ',
+    'toast.videoNotEmbeddable': 'Không thể phát video này',
+    'toast.videoNotEmbeddableDescription': 'Video này không cho phép nhúng trên trang khác',
+    'toast.sessionNotReady': 'Đang kết nối phòng',
+    'toast.sessionNotReadyDescription': 'Vui lòng đợi một chút rồi thử lại',
     'toast.invalidQRCode': 'Mã QR không hợp lệ',
     'toast.invalidQRCodeDescription': 'Mã QR bạn quét không hợp lệ',
 

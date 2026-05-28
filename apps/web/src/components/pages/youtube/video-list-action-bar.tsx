@@ -65,7 +65,7 @@ function ActionChip({
             className={cn(
                 'flex h-9 min-h-9 w-full min-w-0 items-center justify-center gap-1 rounded-lg border px-1.5',
                 'text-[11px] font-medium leading-none transition-colors sm:text-xs',
-                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+                'touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
                 toneClasses[tone],
             )}
         >
@@ -111,16 +111,7 @@ function ActionChip({
         );
     }
 
-    return (
-        <div className="min-w-0 w-full">
-            <Tooltip>
-                <TooltipTrigger asChild className="flex w-full min-w-0">
-                    {chipButton}
-                </TooltipTrigger>
-                <TooltipContent side="top">{label}</TooltipContent>
-            </Tooltip>
-        </div>
-    );
+    return <div className="min-w-0 w-full">{chipButton}</div>;
 }
 
 /** Compact action chips in the metadata column — not full-screen bars. */

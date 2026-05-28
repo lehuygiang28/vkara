@@ -377,6 +377,7 @@ export const useWebSocketStore = create<WebSocketState>(() => ({
     lastMessage: null,
     connectionStatus: 'CLOSED',
     connectionEpoch: 0,
+    roomSessionEpoch: 0,
     connect: () => {
         console.error('WebSocket not initialized');
     },

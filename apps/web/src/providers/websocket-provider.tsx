@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import { isValidRoomId, resolveUrl } from '@vkara/shared-utils';
 import type { WebSocketState } from '@/types/websocket.type';
 import { getEffectiveLayoutMode } from '@/lib/layout-mode';
+import { useIsRoomSessionReady } from '@/hooks/use-room-session-ready';
 import { useViewportWidth } from '@/hooks/use-viewport-layout';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore, initializeWebSocket } from '@/store/websocketStore';
@@ -13,6 +14,7 @@ import { ErrorCode } from '@/types/server-errors.type';
 
 interface EnhancedWebSocketState extends WebSocketState {
     ensureConnectedAndSend: WebSocketState['sendMessage'];
+    isRoomSessionReady: boolean;
 }
 
 const WebSocketContext = createContext<EnhancedWebSocketState | undefined>(undefined);
@@ -29,6 +31,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const searchParams = useSearchParams();
     const connectionStatus = useWebSocketStore((s) => s.connectionStatus);
     const connectionEpoch = useWebSocketStore((s) => s.connectionEpoch);
+    const roomSessionEpoch = useWebSocketStore((s) => s.roomSessionEpoch);
     const lastMessage = useWebSocketStore((s) => s.lastMessage);
     const sendMessage = useWebSocketStore((s) => s.sendMessage);
     const connect = useWebSocketStore((s) => s.connect);
@@ -54,6 +57,24 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     });
 
     const isTvLayout = effectiveLayoutMode !== 'remote';
+
+    const isRoomSessionReady = useIsRoomSessionReady();
+
+    useEffect(() => {
+        if (
+            lastMessage?.type === 'roomJoined' ||
+            lastMessage?.type === 'roomCreated'
+        ) {
+            useWebSocketStore.setState({ roomSessionEpoch: connectionEpoch });
+        }
+    }, [lastMessage, connectionEpoch]);
+
+    useEffect(() => {
+        if (connectionStatus !== 'OPEN') return;
+        if (!room?.id && isTvLayout) {
+            useWebSocketStore.setState({ roomSessionEpoch: connectionEpoch });
+        }
+    }, [connectionStatus, connectionEpoch, room?.id, isTvLayout]);
 
     useEffect(() => {
         lastSyncedEpoch.current = -1;
@@ -177,6 +198,20 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     useEffect(() => {
         if (
             lastMessage?.type === 'errorWithCode' &&
+            lastMessage.code === ErrorCode.NOT_IN_ROOM &&
+            room?.id
+        ) {
+            lastSyncedEpoch.current = -1;
+            ensureConnectedAndSend({
+                type: 'reJoinRoom',
+                roomId: room.id,
+                password: room.password,
+            });
+            return;
+        }
+
+        if (
+            lastMessage?.type === 'errorWithCode' &&
             lastMessage.code === ErrorCode.REJOIN_ROOM_NOT_FOUND
         ) {
             lastSyncedEpoch.current = -1;
@@ -185,19 +220,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 ensureConnectedAndSend({ type: 'createRoom' });
             }
         }
-    }, [lastMessage, ensureConnectedAndSend, isTvLayout, setRoom]);
+    }, [lastMessage, ensureConnectedAndSend, isTvLayout, setRoom, room?.id, room?.password]);
 
     const enhancedWebSocketStore: EnhancedWebSocketState = {
         sendMessage,
         lastMessage,
         connectionStatus,
         connectionEpoch,
+        roomSessionEpoch,
         connect,
         disconnect,
         forceReconnect,
         isMessagePending,
         getPendingMessages,
         ensureConnectedAndSend,
+        isRoomSessionReady,
     };
 
     return (

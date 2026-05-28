@@ -1,4 +1,13 @@
+const CACHE_TTL_MS = 60 * 60 * 1000;
+
+const embeddableCache = new Map<string, { value: boolean; expiresAt: number }>();
+
 export const checkEmbeddable = async (videoId: string): Promise<boolean> => {
+    const cached = embeddableCache.get(videoId);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.value;
+    }
+
     const baseUrls = [`https://www.youtube-nocookie.com/embed/`, `https://www.youtube.com/embed/`];
     const errString = `Playback on other websites has been disabled by the video own`;
     const stringAbility = `previewPlayabilityStatus`;
@@ -15,9 +24,12 @@ export const checkEmbeddable = async (videoId: string): Promise<boolean> => {
     });
 
     if (!raw.ok) {
+        embeddableCache.set(videoId, { value: false, expiresAt: Date.now() + CACHE_TTL_MS });
         return false;
     }
 
     const text = await raw.text();
-    return !text.includes(errString) && text.includes(stringAbility);
+    const isEmbeddable = !text.includes(errString) && text.includes(stringAbility);
+    embeddableCache.set(videoId, { value: isEmbeddable, expiresAt: Date.now() + CACHE_TTL_MS });
+    return isEmbeddable;
 };

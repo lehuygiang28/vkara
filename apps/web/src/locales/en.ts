@@ -35,6 +35,12 @@ export default {
     'toast.incorrectPasswordDescription': 'The password you entered is incorrect',
     'toast.roomClosed': 'Room closed',
     'toast.roomClosedDescription': 'Room has been closed by the host',
+    'toast.alreadyInQueue': 'Already in queue',
+    'toast.alreadyInQueueDescription': 'This video is already in the queue',
+    'toast.videoNotEmbeddable': 'Cannot play this video',
+    'toast.videoNotEmbeddableDescription': 'This video cannot be embedded on other sites',
+    'toast.sessionNotReady': 'Connecting to room',
+    'toast.sessionNotReadyDescription': 'Please wait a moment and try again',
     'toast.invalidQRCode': 'Invalid QR Code',
     'toast.invalidQRCodeDescription': 'The QR code you scanned is invalid',
 
