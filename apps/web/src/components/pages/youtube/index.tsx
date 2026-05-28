@@ -168,11 +168,12 @@ export default function YoutubePlayerPage() {
             <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-2.5 pt-safe pl-safe">
                 {room?.id && showQRInPlayer && isTvViewport && (
                     <div
-                        className="hidden cursor-pointer flex-col opacity-40 transition-opacity hover:opacity-90 lg:flex"
+                        className="player-qr-zone hidden flex-col rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 lg:flex"
                         onClick={() => openRemotePanel('settings')}
                         onKeyDown={(e) => e.key === 'Enter' && openRemotePanel('settings')}
                         role="button"
                         tabIndex={0}
+                        aria-label={t('settings')}
                     >
                         <QRCode
                             value={generateShareableUrl({
