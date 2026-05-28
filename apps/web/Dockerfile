@@ -3,10 +3,12 @@ FROM oven/bun:1.3.13 AS build
 WORKDIR /repo
 
 COPY bun.lock package.json ./
+COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/shared-types/package.json ./packages/shared-types/package.json
+COPY packages/shared-infra/package.json ./packages/shared-infra/package.json
 
-RUN bun install --frozen-lockfile || (rm -rf /root/.bun/install/cache && bun install --frozen-lockfile)
+RUN bun install --frozen-lockfile
 
 COPY apps/web ./apps/web
 COPY packages/shared-types ./packages/shared-types
