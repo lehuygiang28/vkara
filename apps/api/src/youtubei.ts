@@ -59,12 +59,18 @@ const getRedisKey = (prefix: string, continuation: string): string => `${prefix}
 const storeContinuation = async (
     prefix: string,
     continuation: string,
-    instancesMap: Map<string, SearchInstanceWithTimestamp>,
+    instancesMap: Map<string, SearchInstanceWithTimestamp> | undefined,
     instance: SearchResult<'video'> | VideoRelated,
     redisClient: Redis,
 ): Promise<void> => {
+    // Elysia store may not preserve Map instances reliably across contexts.
+    // Fall back to module-level caches based on key prefix.
+    const safeInstancesMap =
+        instancesMap ||
+        (prefix === REDIS_KEY_PREFIXES.SEARCH ? searchInstances : relatedInstances);
+
     // Store in memory
-    instancesMap.set(continuation, {
+    safeInstancesMap.set(continuation, {
         instance: instance as SearchResult<'video'>,
         timestamp: Date.now(),
     });
@@ -78,9 +84,9 @@ const storeContinuation = async (
     );
 
     // Check if we need to clean up oldest entries when reaching the limit
-    if (instancesMap.size > MAX_INSTANCES_PER_TYPE) {
+    if (safeInstancesMap.size > MAX_INSTANCES_PER_TYPE) {
         // Sort by timestamp and remove oldest entries
-        const entries = Array.from(instancesMap.entries());
+        const entries = Array.from(safeInstancesMap.entries());
         entries.sort((a, b) => a[1].timestamp - b[1].timestamp);
 
         // Remove 10% of the oldest entries
@@ -88,7 +94,7 @@ const storeContinuation = async (
         const keysToRemove = entries.slice(0, entriesToRemove).map((entry) => entry[0]);
 
         for (const key of keysToRemove) {
-            instancesMap.delete(key);
+            safeInstancesMap.delete(key);
             await redisClient.del(getRedisKey(prefix, key));
         }
 
@@ -183,7 +189,7 @@ export const searchYoutubeiElysia = new Elysia({})
         '/search',
         async ({
             body: { query, continuation },
-            store: { youtubeiClient, redisClient, searchInstances, redisKeyPrefixes },
+            store: { youtubeiClient, redisClient, searchInstances: stateSearchInstances, redisKeyPrefixes },
         }): Promise<{
             items: YouTubeVideo[];
             continuation?: string | null;
@@ -192,14 +198,15 @@ export const searchYoutubeiElysia = new Elysia({})
             let newItems: VideoCompact[] = [];
             const processedVideoIds = new Set<string>();
             const prefix = redisKeyPrefixes.SEARCH;
+            const activeSearchInstances = stateSearchInstances || searchInstances;
 
             if (
                 continuation &&
-                (searchInstances.has(continuation) ||
+                (activeSearchInstances.has(continuation) ||
                     (await redisClient.exists(getRedisKey(prefix, continuation))))
             ) {
                 logger.info(`Continuing search: "${query}"`);
-                if (!searchInstances.has(continuation)) {
+                if (!activeSearchInstances.has(continuation)) {
                     const timestamp = parseInt(
                         (await redisClient.get(getRedisKey(prefix, continuation))) || '0',
                     );
@@ -209,13 +216,13 @@ export const searchYoutubeiElysia = new Elysia({})
                             sortBy: 'relevance',
                         });
                         results.continuation = continuation;
-                        searchInstances.set(continuation, {
+                        activeSearchInstances.set(continuation, {
                             instance: results,
                             timestamp: timestamp,
                         });
                     }
                 } else {
-                    const stored = searchInstances.get(continuation)!;
+                    const stored = activeSearchInstances.get(continuation)!;
                     results = stored.instance;
                 }
 
@@ -229,11 +236,11 @@ export const searchYoutubeiElysia = new Elysia({})
                     newItems.forEach((item) => processedVideoIds.add(item.id));
 
                     if (results.continuation) {
-                        searchInstances.delete(continuation);
+                        activeSearchInstances.delete(continuation);
                         await storeContinuation(
                             prefix,
                             results.continuation,
-                            searchInstances,
+                            activeSearchInstances,
                             results,
                             redisClient,
                         );
@@ -258,7 +265,7 @@ export const searchYoutubeiElysia = new Elysia({})
                 await storeContinuation(
                     prefix,
                     results.continuation,
-                    searchInstances,
+                    activeSearchInstances,
                     results,
                     redisClient,
                 );
@@ -275,7 +282,7 @@ export const searchYoutubeiElysia = new Elysia({})
             );
 
             // Log current cache size
-            logger.debug(`Current search instances cache size: ${searchInstances.size}`);
+            logger.debug(`Current search instances cache size: ${activeSearchInstances.size}`);
 
             return {
                 items: embeddableVideos,
@@ -329,7 +336,7 @@ export const searchYoutubeiElysia = new Elysia({})
         '/related',
         async ({
             body: { videoId, continuation },
-            store: { youtubeiClient, redisClient, relatedInstances, redisKeyPrefixes },
+            store: { youtubeiClient, redisClient, relatedInstances: stateRelatedInstances, redisKeyPrefixes },
         }): Promise<{
             items: YouTubeVideo[];
             continuation?: string | null;
@@ -339,14 +346,15 @@ export const searchYoutubeiElysia = new Elysia({})
                 let newItems: VideoCompact[] = [];
                 const processedVideoIds = new Set<string>();
                 const prefix = redisKeyPrefixes.RELATED;
+                const activeRelatedInstances = stateRelatedInstances || relatedInstances;
 
                 if (
                     continuation &&
-                    (relatedInstances.has(continuation) ||
+                    (activeRelatedInstances.has(continuation) ||
                         (await redisClient.exists(getRedisKey(prefix, continuation))))
                 ) {
                     logger.info(`Continuing related videos for: "${videoId}"`);
-                    if (!relatedInstances.has(continuation)) {
+                    if (!activeRelatedInstances.has(continuation)) {
                         const timestamp = parseInt(
                             (await redisClient.get(getRedisKey(prefix, continuation))) || '0',
                         );
@@ -355,14 +363,14 @@ export const searchYoutubeiElysia = new Elysia({})
                             if (video && video.related) {
                                 results = video.related;
                                 results.continuation = video?.related?.continuation || continuation;
-                                relatedInstances.set(continuation, {
+                                activeRelatedInstances.set(continuation, {
                                     instance: results as unknown as SearchResult<'video'>,
                                     timestamp: timestamp,
                                 });
                             }
                         }
                     } else {
-                        const stored = relatedInstances.get(continuation)!;
+                        const stored = activeRelatedInstances.get(continuation)!;
                         results = stored.instance as unknown as VideoRelated;
                     }
 
@@ -378,11 +386,11 @@ export const searchYoutubeiElysia = new Elysia({})
                         newItems.forEach((item) => processedVideoIds.add(item.id));
 
                         if (results.continuation) {
-                            relatedInstances.delete(continuation);
+                            activeRelatedInstances.delete(continuation);
                             await storeContinuation(
                                 prefix,
                                 results.continuation,
-                                relatedInstances,
+                                activeRelatedInstances,
                                 results,
                                 redisClient,
                             );
@@ -410,7 +418,7 @@ export const searchYoutubeiElysia = new Elysia({})
                     await storeContinuation(
                         prefix,
                         results.continuation,
-                        relatedInstances,
+                        activeRelatedInstances,
                         results,
                         redisClient,
                     );
@@ -427,7 +435,7 @@ export const searchYoutubeiElysia = new Elysia({})
                 );
 
                 // Log current cache size
-                logger.debug(`Current related instances cache size: ${relatedInstances.size}`);
+                logger.debug(`Current related instances cache size: ${activeRelatedInstances.size}`);
 
                 return {
                     items: embeddableVideos,
