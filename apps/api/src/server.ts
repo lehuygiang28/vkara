@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia';
-import { ElysiaWS } from 'elysia/dist/ws';
+import type { ElysiaWS } from 'elysia/ws';
 import * as mongoose from 'mongoose';
 import youtubeSr from 'youtube-sr';
 import cors from '@elysiajs/cors';
@@ -19,6 +19,7 @@ import { wsLogger, roomLogger, createContextLogger } from '@/utils/logger';
 import { ErrorCode, RoomError } from '@vkara/shared-types';
 import { scheduleCleanupJobs } from '@/queues/cleanup';
 import { scheduleSyncRedisToDb } from '@/queues/sync';
+import { wsClientMessageSchema } from '@/schemas/client-message';
 import type { ClientInfo, ClientMessage, Room, ServerMessage, YouTubeVideo } from '@vkara/shared-types';
 
 import { redis } from './redis';
@@ -628,20 +629,14 @@ function isValidClientMessage(message: unknown): message is ClientMessage {
 
     const msg = message as Record<string, unknown>;
     if (!msg.type || typeof msg.type !== 'string') return false;
+    if (!msg.id || typeof msg.id !== 'string') return false;
+    if (typeof msg.timestamp !== 'number') return false;
 
     return true;
 }
 
 // Handler for incoming messages from clients
-async function handleMessage(ws: ElysiaWS, message: unknown): Promise<void> {
-    if (!isValidClientMessage(message)) {
-        sendToClient(ws, {
-            type: 'error',
-            message: 'Invalid message format',
-        });
-        return;
-    }
-
+async function handleMessage(ws: ElysiaWS, message: ClientMessage): Promise<void> {
     try {
         if (message?.requiresAck && message.id) {
             sendToClient(ws, { type: 'ack', messageId: message.id });
@@ -811,12 +806,7 @@ export const wsServer = new Elysia({
     })
     .state('wsConnections', wsConnections)
     .ws('/ws', {
-        schema: {
-            body: t.Object({
-                type: t.String(),
-                payload: t.Any(),
-            }),
-        },
+        body: wsClientMessageSchema,
         open: async (ws) => {
             wsLogger.info(`Client connected`, { clientId: ws.id });
             wsConnections.set(ws.id, ws);
@@ -834,7 +824,16 @@ export const wsServer = new Elysia({
                 });
             }
         },
-        message: (ws, message: ClientMessage) => handleMessage(ws, message),
+        message: (ws, message) => {
+            if (!isValidClientMessage(message)) {
+                sendToClient(ws, {
+                    type: 'error',
+                    message: 'Invalid message format',
+                });
+                return;
+            }
+            return handleMessage(ws, message);
+        },
     })
     .use(cors())
     .use(swagger())
