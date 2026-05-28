@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import { Languages } from 'lucide-react';
 
 import {
-    useChangeLocale,
     useCurrentLocale,
     useScopedI18n,
     type SUPPORTED_LOCALES,
 } from '@/locales/client';
+import { useChangeLocaleCookie } from '@/hooks/use-change-locale-cookie';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -27,7 +27,7 @@ type LanguageSwitcherProps = {
 export function LanguageSwitcher({ variant = 'compact', className }: LanguageSwitcherProps) {
     const t = useScopedI18n('appearance');
     const locale = useCurrentLocale();
-    const changeLocale = useChangeLocale({ preserveSearchParams: true });
+    const changeLocale = useChangeLocaleCookie({ preserveSearchParams: true });
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {

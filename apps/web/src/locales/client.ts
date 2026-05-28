@@ -10,7 +10,6 @@ export const { useI18n, useScopedI18n, I18nProviderClient, useChangeLocale, useC
             en: () => import('./en'),
         },
         {
-            basePath: '/',
             fallbackLocale: vi,
             segmentName: 'locale',
         },
