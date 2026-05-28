@@ -24,9 +24,10 @@ const toneClassName: Record<VideoChannelsTone, string> = {
     inverse: 'text-sm leading-4 font-semibold text-white',
 };
 
+/** leading-4 line boxes + gap-y-0.5 between wrapped flex rows */
 const maxLinesClassName: Record<2 | 3, string> = {
-    2: 'max-h-8',
-    3: 'max-h-12',
+    2: 'max-h-[2.125rem]',
+    3: 'max-h-[3.25rem]',
 };
 
 const badgeClassName: Record<VideoChannelsTone, string> = {
