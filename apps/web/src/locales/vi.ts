@@ -120,8 +120,8 @@ export default {
     'videoHistory.noHistory': 'Không có lịch sử xem',
     'videoHistory.playNow': 'Phát ngay',
     'videoHistory.playNowShort': 'Phát',
-    'videoHistory.addToQueue': 'Thêm vào hàng chờ',
-    'videoHistory.addToQueueShort': 'Thêm hàng chờ',
+    'videoHistory.addToQueue': 'Thêm hàng chờ',
+    'videoHistory.addToQueueShort': 'Thêm',
     'videoHistory.clearHistory': 'Xóa lịch sử',
     'videoHistory.clearHistoryConfirm': 'Xác nhận xóa lịch sử?',
 
@@ -145,13 +145,15 @@ export default {
     'videoSearch.noResults': 'Không tìm thấy kết quả',
     'videoSearch.playNow': 'Phát ngay',
     'videoSearch.playNowShort': 'Phát',
-    'videoSearch.addToQueue': 'Thêm vào hàng chờ',
-    'videoSearch.addToQueueShort': 'Thêm hàng chờ',
+    'videoSearch.addToQueue': 'Thêm hàng chờ',
+    'videoSearch.addToQueueShort': 'Thêm',
     'videoSearch.loading': 'Đang tải video...',
     'videoSearch.views': 'lượt xem',
     'videoSearch.playThisNow': 'Phát ngay',
     'videoSearch.videoAdded': 'Video đã được thêm vào hàng chờ',
     'videoSearch.addVideoAndMoveToTop': 'Ưu tiên',
+    'videoSearch.videoActions': 'Thao tác video',
+    'videoSearch.closeActions': 'Đóng',
 
     'qrScanner.title': 'Quét mã QR',
     'qrScanner.buttonText': 'Quét QR',
@@ -171,6 +173,5 @@ export default {
     'joinLobby.joinButton': 'Tham gia phòng',
     'joinLobby.or': 'hoặc',
     'joinLobby.joinRequiredTitle': 'Hãy tham gia phòng trước',
-    'joinLobby.joinRequiredDescription':
-        'Nhập mã phòng hoặc quét QR trước khi thêm bài hát.',
+    'joinLobby.joinRequiredDescription': 'Nhập mã phòng hoặc quét QR trước khi thêm bài hát.',
 } as const;

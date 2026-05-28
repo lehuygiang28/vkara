@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Trash2, MoveUp, Shuffle, ListMusic } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
@@ -9,13 +9,12 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { TooltipButton } from '@/components/tooltip-button';
-import { VideoList } from './VideoList';
+import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 import { VideoListToolbar } from './video-list-toolbar';
 import { Input } from '@/components/ui/input';
 
 export function VideoQueue() {
-    const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
     const { room } = useYouTubeStore();
     const {
         handleRemoveVideoFromQueue,
@@ -32,8 +31,8 @@ export function VideoQueue() {
         setImportPlaylistValue('');
     };
 
-    function renderButtons(video: YouTubeVideo) {
-        return (
+    const renderActions = useCallback(
+        (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers) => (
             <VideoListActionBar
                 actions={[
                     {
@@ -43,7 +42,7 @@ export function VideoQueue() {
                         icon: <MoveUp />,
                         tone: 'success',
                         onClick: () => {
-                            setSelectedVideo(null);
+                            closeMenu();
                             handleMoveVideoToTop(video);
                         },
                     },
@@ -54,14 +53,15 @@ export function VideoQueue() {
                         icon: <Trash2 />,
                         tone: 'destructive',
                         onClick: () => {
-                            setSelectedVideo(null);
+                            closeMenu();
                             handleRemoveVideoFromQueue(video);
                         },
                     },
                 ]}
             />
-        );
-    }
+        ),
+        [t, handleMoveVideoToTop, handleRemoveVideoFromQueue],
+    );
 
     return (
         <div className="flex h-full min-h-0 flex-col">
@@ -120,16 +120,12 @@ export function VideoQueue() {
                     />
                 ) : null}
             </VideoListToolbar>
-            <div className="min-h-0 flex-1">
-                <VideoList
-                    keyPrefix={'queue-list'}
-                    videos={room?.videoQueue || []}
-                    emptyMessage={t('noVideos')}
-                    renderButtons={renderButtons}
-                    onVideoClick={(video) => setSelectedVideo(video.id)}
-                    selectedVideoId={selectedVideo}
-                />
-            </div>
+            <VideoList
+                keyPrefix="queue-list"
+                videos={room?.videoQueue || []}
+                emptyMessage={t('noVideos')}
+                renderActions={renderActions}
+            />
         </div>
     );
 }

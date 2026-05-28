@@ -27,10 +27,12 @@ const VideoActionButtons = memo(function VideoActionButtons({
     video,
     onPlay,
     onQueue,
+    closeMenu,
 }: {
     video: YouTubeVideo;
     onPlay: (video: YouTubeVideo) => void;
     onQueue: (video: YouTubeVideo) => void;
+    closeMenu: () => void;
 }) {
     const t = useScopedI18n('videoSearch');
 
@@ -43,7 +45,10 @@ const VideoActionButtons = memo(function VideoActionButtons({
                     buttonText: t('playNowShort'),
                     icon: <Play />,
                     tone: 'success',
-                    onClick: () => onPlay(video),
+                    onClick: () => {
+                        closeMenu();
+                        onPlay(video);
+                    },
                 },
                 {
                     id: 'queue',
@@ -51,7 +56,10 @@ const VideoActionButtons = memo(function VideoActionButtons({
                     buttonText: t('addToQueueShort'),
                     icon: <ListPlus />,
                     tone: 'default',
-                    onClick: () => onQueue(video),
+                    onClick: () => {
+                        closeMenu();
+                        onQueue(video);
+                    },
                 },
             ]}
         />
@@ -69,10 +77,8 @@ export function VideoSearch() {
         isLoadingSuggestions,
         searchResults,
         suggestions,
-        selectedVideoId,
         nextToken,
         setIsKaraoke,
-        setSelectedVideoId,
         performSearch,
         loadMore,
         fetchSuggestions,
@@ -86,10 +92,8 @@ export function VideoSearch() {
             isLoadingSuggestions: state.isLoadingSuggestions,
             searchResults: state.searchResults,
             suggestions: state.suggestions,
-            selectedVideoId: state.selectedVideoId,
             nextToken: state.nextToken,
             setIsKaraoke: state.setIsKaraoke,
-            setSelectedVideoId: state.setSelectedVideoId,
             performSearch: state.performSearch,
             loadMore: state.loadMore,
             fetchSuggestions: state.fetchSuggestions,
@@ -115,32 +119,28 @@ export function VideoSearch() {
 
     const handlePlay = useCallback(
         (video: YouTubeVideo) => {
-            setSelectedVideoId(null);
             handlePlayVideoNow(video);
         },
-        [handlePlayVideoNow, setSelectedVideoId],
+        [handlePlayVideoNow],
     );
 
     const handleQueue = useCallback(
         (video: YouTubeVideo) => {
-            setSelectedVideoId(null);
             handleAddVideoToQueue(video);
         },
-        [handleAddVideoToQueue, setSelectedVideoId],
+        [handleAddVideoToQueue],
     );
 
-    const renderButtons = useCallback(
-        (video: YouTubeVideo) => (
-            <VideoActionButtons video={video} onPlay={handlePlay} onQueue={handleQueue} />
+    const renderActions = useCallback(
+        (video: YouTubeVideo, { closeMenu }: { closeMenu: () => void }) => (
+            <VideoActionButtons
+                video={video}
+                closeMenu={closeMenu}
+                onPlay={handlePlay}
+                onQueue={handleQueue}
+            />
         ),
         [handlePlay, handleQueue],
-    );
-
-    const handleVideoClick = useCallback(
-        (video: YouTubeVideo) => {
-            setSelectedVideoId(video.id === selectedVideoId ? null : video.id);
-        },
-        [selectedVideoId, setSelectedVideoId],
     );
 
     const showBrowseIdle =
@@ -198,9 +198,7 @@ export function VideoSearch() {
                             ? t('noResults')
                             : ''
                     }
-                    renderButtons={renderButtons}
-                    onVideoClick={handleVideoClick}
-                    selectedVideoId={selectedVideoId}
+                    renderActions={renderActions}
                     onLoadMore={loadMore}
                     hasMore={Boolean(nextToken)}
                     isLoading={isLoading || isLoadingMore}

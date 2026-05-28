@@ -15,19 +15,16 @@ interface SearchState {
     isLoadingSuggestions: boolean;
     searchResults: YouTubeVideo[];
     suggestions: string[];
-    selectedVideoId: string | null;
     nextToken: string | null;
     error: string | null;
 
     relatedResults: YouTubeVideo[];
     isRelatedLoading: boolean;
     isRelatedLoadingMore: boolean;
-    selectedRelatedVideoId: string | null;
     relatedNextToken: string | null;
 
     setSearchQuery: (query: string) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
-    setSelectedVideoId: (id: string | null) => void;
     performSearch: (query: string, token?: string | null) => Promise<void>;
     loadMore: () => Promise<void>;
     fetchSuggestions: (query: string) => Promise<void>;
@@ -35,7 +32,6 @@ interface SearchState {
 
     fetchRelatedResults: (videoId: string, token?: string | null) => Promise<void>;
     loadMoreRelated: () => Promise<void>;
-    setSelectedRelatedVideoId: (id: string | null) => void;
 }
 
 let suggestionsAbort: AbortController | null = null;
@@ -54,14 +50,12 @@ export const useSearchStore = create(
             isLoadingSuggestions: false,
             searchResults: [],
             suggestions: [],
-            selectedVideoId: null,
             nextToken: null,
             error: null,
 
             relatedResults: [],
             isRelatedLoading: false,
             isRelatedLoadingMore: false,
-            selectedRelatedVideoId: null,
             relatedNextToken: null,
 
             setSearchQuery: (query) => set({ searchQuery: query }),
@@ -73,8 +67,6 @@ export const useSearchStore = create(
                     void performSearch(searchQuery.trim());
                 }
             },
-
-            setSelectedVideoId: (id) => set({ selectedVideoId: id }),
 
             clearSuggestions: () => {
                 suggestionsAbort?.abort();
@@ -100,7 +92,7 @@ export const useSearchStore = create(
                     return;
                 }
 
-                set({ searchQuery: trimmed, selectedVideoId: null });
+                set({ searchQuery: trimmed });
 
                 if (!token) {
                     searchAbort?.abort();
@@ -212,7 +204,6 @@ export const useSearchStore = create(
                     set({
                         isRelatedLoading: true,
                         relatedResults: [],
-                        selectedRelatedVideoId: null,
                         relatedNextToken: null,
                     });
                 } else {
@@ -260,7 +251,6 @@ export const useSearchStore = create(
                 }
             },
 
-            setSelectedRelatedVideoId: (id) => set({ selectedRelatedVideoId: id }),
         }),
         {
             name: 'search-store',

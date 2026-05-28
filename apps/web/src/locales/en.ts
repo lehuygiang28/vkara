@@ -153,6 +153,8 @@ export default {
     'videoSearch.playThisNow': 'Play this now',
     'videoSearch.videoAdded': 'Video added to queue',
     'videoSearch.addVideoAndMoveToTop': 'Add to top',
+    'videoSearch.videoActions': 'Video actions',
+    'videoSearch.closeActions': 'Close',
 
     'qrScanner.title': 'Scan QR Code',
     'qrScanner.buttonText': 'Scan QR',

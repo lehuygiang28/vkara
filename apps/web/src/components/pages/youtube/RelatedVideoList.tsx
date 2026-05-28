@@ -11,7 +11,7 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { VideoSkeletonList } from '@/components/video-skeleton';
-import { VideoList } from './VideoList';
+import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 
 type RelatedVideoListProps = {
@@ -33,8 +33,6 @@ export function RelatedVideoList({ keyPrefix = 'related-list' }: RelatedVideoLis
         isRelatedLoadingMore,
         relatedResults,
         relatedNextToken,
-        selectedRelatedVideoId,
-        setSelectedRelatedVideoId,
         fetchRelatedResults,
         loadMoreRelated,
     } = useSearchStore(
@@ -43,8 +41,6 @@ export function RelatedVideoList({ keyPrefix = 'related-list' }: RelatedVideoLis
             isRelatedLoadingMore: state.isRelatedLoadingMore,
             relatedResults: state.relatedResults,
             relatedNextToken: state.relatedNextToken,
-            selectedRelatedVideoId: state.selectedRelatedVideoId,
-            setSelectedRelatedVideoId: state.setSelectedRelatedVideoId,
             fetchRelatedResults: state.fetchRelatedResults,
             loadMoreRelated: state.loadMoreRelated,
         })),
@@ -65,8 +61,8 @@ export function RelatedVideoList({ keyPrefix = 'related-list' }: RelatedVideoLis
         }
     }, [relatedNextToken, isRelatedLoadingMore, sourceVideoId, loadMoreRelated]);
 
-    const renderButtons = useCallback(
-        (video: YouTubeVideo) => (
+    const renderActions = useCallback(
+        (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers) => (
             <VideoListActionBar
                 actions={[
                     {
@@ -76,7 +72,7 @@ export function RelatedVideoList({ keyPrefix = 'related-list' }: RelatedVideoLis
                         icon: <Play />,
                         tone: 'success',
                         onClick: () => {
-                            setSelectedRelatedVideoId(null);
+                            closeMenu();
                             handlePlayVideoNow(video);
                         },
                     },
@@ -87,7 +83,7 @@ export function RelatedVideoList({ keyPrefix = 'related-list' }: RelatedVideoLis
                         icon: <ListVideo />,
                         tone: 'default',
                         onClick: () => {
-                            setSelectedRelatedVideoId(null);
+                            closeMenu();
                             handleAddVideoToQueue(video);
                         },
                     },
@@ -98,20 +94,14 @@ export function RelatedVideoList({ keyPrefix = 'related-list' }: RelatedVideoLis
                         icon: <MoveUp />,
                         tone: 'success',
                         onClick: () => {
-                            setSelectedRelatedVideoId(null);
+                            closeMenu();
                             handleAddVideoAndMoveToTop(video);
                         },
                     },
                 ]}
             />
         ),
-        [
-            t,
-            setSelectedRelatedVideoId,
-            handlePlayVideoNow,
-            handleAddVideoToQueue,
-            handleAddVideoAndMoveToTop,
-        ],
+        [t, handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop],
     );
 
     if (!sourceVideoId) {
@@ -127,11 +117,7 @@ export function RelatedVideoList({ keyPrefix = 'related-list' }: RelatedVideoLis
             keyPrefix={keyPrefix}
             videos={relatedResults}
             emptyMessage={relatedResults.length === 0 ? t('noResults') : ''}
-            renderButtons={renderButtons}
-            onVideoClick={(video) =>
-                setSelectedRelatedVideoId(video.id === selectedRelatedVideoId ? null : video.id)
-            }
-            selectedVideoId={selectedRelatedVideoId}
+            renderActions={renderActions}
             onLoadMore={handleLoadMore}
             hasMore={Boolean(relatedNextToken)}
             isLoading={isRelatedLoadingMore}

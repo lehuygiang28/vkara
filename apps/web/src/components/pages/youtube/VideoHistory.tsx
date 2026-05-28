@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useCallback } from 'react';
 import { Play, ListVideo, X } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
@@ -10,18 +10,17 @@ import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { cn } from '@/lib/utils';
 import { TooltipButton } from '@/components/tooltip-button';
-import { VideoList } from './VideoList';
+import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 import { VideoListToolbar } from './video-list-toolbar';
 
 export function VideoHistory() {
-    const [selectedVideo, setSelectedVideo] = useState<string | null>(null);
     const { handlePlayVideoNow, handleAddVideoToQueue, handleClearHistory } = usePlayerAction();
     const { room } = useYouTubeStore();
     const t = useScopedI18n('videoHistory');
 
-    function renderButtons(video: YouTubeVideo) {
-        return (
+    const renderActions = useCallback(
+        (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers) => (
             <VideoListActionBar
                 actions={[
                     {
@@ -31,7 +30,7 @@ export function VideoHistory() {
                         icon: <Play />,
                         tone: 'success',
                         onClick: () => {
-                            setSelectedVideo(null);
+                            closeMenu();
                             handlePlayVideoNow(video);
                         },
                     },
@@ -42,14 +41,15 @@ export function VideoHistory() {
                         icon: <ListVideo />,
                         tone: 'default',
                         onClick: () => {
-                            setSelectedVideo(null);
+                            closeMenu();
                             handleAddVideoToQueue(video);
                         },
                     },
                 ]}
             />
-        );
-    }
+        ),
+        [t, handlePlayVideoNow, handleAddVideoToQueue],
+    );
 
     const hasHistory = (room?.historyQueue?.length || 0) > 0;
 
@@ -69,12 +69,10 @@ export function VideoHistory() {
                 </VideoListToolbar>
             ) : null}
             <VideoList
-                keyPrefix={'history-list'}
+                keyPrefix="history-list"
                 videos={room?.historyQueue || []}
                 emptyMessage={t('noHistory')}
-                renderButtons={renderButtons}
-                onVideoClick={(video) => setSelectedVideo(video.id)}
-                selectedVideoId={selectedVideo}
+                renderActions={renderActions}
             />
         </div>
     );
