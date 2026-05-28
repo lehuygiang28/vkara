@@ -5,7 +5,6 @@
     "": {
       "name": "vkara-monorepo",
       "devDependencies": {
-        "next": "15.1.4",
         "prettier": "^3.6.2",
         "turbo": "latest",
         "typescript": "5.7.3",

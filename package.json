@@ -1,27 +1,25 @@
 {
-  "name": "vkara-monorepo",
-  "private": true,
-  "packageManager": "bun@1.3.13",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
-  "scripts": {
-    "dev:web": "turbo run dev --filter='@vkara/web'",
-    "dev:api": "turbo run dev --filter='@vkara/api'",
-    "build:web": "turbo run build --filter='@vkara/web'",
-    "build:api": "turbo run build --filter='@vkara/api'",
-    "vercel:build": "bun run build:web",
-    "lint:web": "turbo run lint --filter='@vkara/web'",
-    "build": "turbo run build",
-    "dev": "turbo run dev --filter='@vkara/web' --filter='@vkara/api'",
-    "format": "prettier --write .",
-    "format:check": "prettier --check ."
-  },
-  "devDependencies": {
-    "next": "15.1.4",
-    "prettier": "^3.6.2",
-    "turbo": "latest",
-    "typescript": "5.7.3"
-  }
+    "name": "vkara-monorepo",
+    "private": true,
+    "packageManager": "bun@1.3.13",
+    "workspaces": [
+        "apps/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "dev:web": "turbo run dev --filter='@vkara/web'",
+        "dev:api": "turbo run dev --filter='@vkara/api'",
+        "build:web": "turbo run build --filter='@vkara/web'",
+        "build:api": "turbo run build --filter='@vkara/api'",
+        "lint:web": "turbo run lint --filter='@vkara/web'",
+        "build": "turbo run build",
+        "dev": "turbo run dev --filter='@vkara/web' --filter='@vkara/api'",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "devDependencies": {
+        "prettier": "^3.6.2",
+        "turbo": "latest",
+        "typescript": "5.7.3"
+    }
 }
