@@ -210,7 +210,16 @@ export const useYouTubeStore = create(
                         {
                             set((state) => {
                                 state?.player?.seekTo(0, true);
-                                return state;
+                                return {
+                                    ...state,
+                                    room: state.room
+                                        ? {
+                                              ...state.room,
+                                              isPlaying: true,
+                                              currentTime: 0,
+                                          }
+                                        : null,
+                                };
                             });
                         }
                         break;
@@ -218,7 +227,10 @@ export const useYouTubeStore = create(
                         {
                             set((state) => {
                                 state?.player?.playVideo();
-                                return state;
+                                return {
+                                    ...state,
+                                    room: state.room ? { ...state.room, isPlaying: true } : null,
+                                };
                             });
                         }
                         break;
@@ -226,7 +238,10 @@ export const useYouTubeStore = create(
                         {
                             set((state) => {
                                 state?.player?.pauseVideo();
-                                return state;
+                                return {
+                                    ...state,
+                                    room: state.room ? { ...state.room, isPlaying: false } : null,
+                                };
                             });
                         }
                         break;
