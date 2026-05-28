@@ -9,29 +9,44 @@ import { PlayerControlsTabs } from './PlayerControlsTabs';
 import { RoomSettings } from './RoomSettings';
 import { NowPlayingBar } from './NowPlayingBar';
 import { MobileBottomNav } from './MobileBottomNav';
+import { RemoteJoinLobby } from './RemoteJoinLobby';
 import { useToastBottomInset } from '@/hooks/use-toast-bottom-inset';
+import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 export function RemoteShell() {
     const { currentTab, room, setCurrentTab } = useYouTubeStore();
+    const { effectiveLayoutMode } = useEffectiveLayoutMode();
     useToastBottomInset(Boolean(room?.playingNow));
+
+    const showJoinLobby = effectiveLayoutMode === 'remote' && !room;
+
+    if (showJoinLobby) {
+        return (
+            <TooltipProvider delayDuration={400}>
+                <div className="flex h-full min-h-0 flex-col">
+                    <RemoteJoinLobby />
+                </div>
+            </TooltipProvider>
+        );
+    }
 
     return (
         <TooltipProvider delayDuration={400}>
-        <div className="flex h-full min-h-0 flex-col">
-            <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
-                {currentTab === 'search' && <VideoSearch />}
-                {currentTab === 'queue' && <VideoQueue />}
-                {currentTab === 'history' && <VideoHistory />}
-                {currentTab === 'related' && <VideoRelated />}
-                {currentTab === 'controls' && <PlayerControlsTabs />}
-                {currentTab === 'settings' && <RoomSettings />}
+            <div className="flex h-full min-h-0 flex-col">
+                <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+                    {currentTab === 'search' && <VideoSearch />}
+                    {currentTab === 'queue' && <VideoQueue />}
+                    {currentTab === 'history' && <VideoHistory />}
+                    {currentTab === 'related' && <VideoRelated />}
+                    {currentTab === 'controls' && <PlayerControlsTabs />}
+                    {currentTab === 'settings' && <RoomSettings />}
+                </div>
+                <div className="mt-auto shrink-0">
+                    <NowPlayingBar onOpenQueue={() => setCurrentTab('queue')} />
+                    <MobileBottomNav />
+                </div>
             </div>
-            <div className="mt-auto shrink-0">
-                <NowPlayingBar onOpenQueue={() => setCurrentTab('queue')} />
-                <MobileBottomNav />
-            </div>
-        </div>
         </TooltipProvider>
     );
 }

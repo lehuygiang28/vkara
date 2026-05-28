@@ -1,9 +1,10 @@
 import { useCallback } from 'react';
 import { toast } from '@/hooks/use-toast';
-import { useI18n } from '@/locales/client';
+import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocket } from '@/providers/websocket-provider';
+import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 
 export type PlayerAction = {
     handlePlayerPlay: () => void;
@@ -25,26 +26,38 @@ export type PlayerAction = {
 
 export const usePlayerAction = (): PlayerAction => {
     const t = useI18n();
+    const tJoinLobby = useScopedI18n('joinLobby');
     const { ensureConnectedAndSend } = useWebSocket();
     const { room } = useYouTubeStore();
+    const { effectiveLayoutMode } = useEffectiveLayoutMode();
 
-    const createRoomIfNeeded = useCallback(async () => {
-        if (!room?.id) {
-            await new Promise<void>((resolve) => {
-                ensureConnectedAndSend({ type: 'createRoom' });
-                const unsubscribe = useYouTubeStore.subscribe((state) => {
-                    if (state.room?.id) {
-                        unsubscribe();
-                        resolve();
-                    }
-                });
+    const createRoomIfNeeded = useCallback(async (): Promise<boolean> => {
+        if (room?.id) return true;
+
+        if (effectiveLayoutMode === 'remote') {
+            toast({
+                title: tJoinLobby('joinRequiredTitle'),
+                description: tJoinLobby('joinRequiredDescription'),
+                variant: 'error',
             });
+            return false;
         }
-    }, [room?.id, ensureConnectedAndSend]);
+
+        await new Promise<void>((resolve) => {
+            ensureConnectedAndSend({ type: 'createRoom' });
+            const unsubscribe = useYouTubeStore.subscribe((state) => {
+                if (state.room?.id) {
+                    unsubscribe();
+                    resolve();
+                }
+            });
+        });
+        return true;
+    }, [room?.id, effectiveLayoutMode, ensureConnectedAndSend, tJoinLobby]);
 
     const handlePlayVideoNow = useCallback(
         async (video: YouTubeVideo) => {
-            await createRoomIfNeeded();
+            if (!(await createRoomIfNeeded())) return;
             ensureConnectedAndSend({ type: 'playNow', video });
             toast({
                 title: t('toast.playNowHandler'),
@@ -57,7 +70,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleAddVideoToQueue = useCallback(
         async (video: YouTubeVideo) => {
-            await createRoomIfNeeded();
+            if (!(await createRoomIfNeeded())) return;
             ensureConnectedAndSend({ type: 'addVideo', video });
             toast({
                 title: t('toast.addVideoHandler'),
@@ -69,7 +82,7 @@ export const usePlayerAction = (): PlayerAction => {
     );
 
     const handlePlayNextVideo = useCallback(async () => {
-        await createRoomIfNeeded();
+        if (!(await createRoomIfNeeded())) return;
         ensureConnectedAndSend({ type: 'nextVideo' });
         toast({
             title: t('toast.nextVideoHandler'),
@@ -79,7 +92,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleRemoveVideoFromQueue = useCallback(
         async (video: YouTubeVideo) => {
-            await createRoomIfNeeded();
+            if (!(await createRoomIfNeeded())) return;
 
             ensureConnectedAndSend({ type: 'removeVideoFromQueue', videoId: video.id });
 
@@ -94,7 +107,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleSetVideoVolume = useCallback(
         async (volume: number) => {
-            await createRoomIfNeeded();
+            if (!(await createRoomIfNeeded())) return;
             ensureConnectedAndSend({ type: 'setVolume', volume });
             toast({
                 title: t('toast.setVolumeHandler'),
@@ -105,7 +118,7 @@ export const usePlayerAction = (): PlayerAction => {
     );
 
     const handlePlayerPlay = useCallback(async () => {
-        await createRoomIfNeeded();
+        if (!(await createRoomIfNeeded())) return;
         ensureConnectedAndSend({ type: 'play' });
         toast({
             title: t('youtubePage.play'),
@@ -114,7 +127,7 @@ export const usePlayerAction = (): PlayerAction => {
     }, [createRoomIfNeeded, ensureConnectedAndSend, t]);
 
     const handlePlayerPause = useCallback(async () => {
-        await createRoomIfNeeded();
+        if (!(await createRoomIfNeeded())) return;
         ensureConnectedAndSend({ type: 'pause' });
         toast({
             title: t('youtubePage.pause'),
@@ -123,7 +136,7 @@ export const usePlayerAction = (): PlayerAction => {
     }, [createRoomIfNeeded, ensureConnectedAndSend, t]);
 
     const handleReplayVideo = useCallback(async () => {
-        await createRoomIfNeeded();
+        if (!(await createRoomIfNeeded())) return;
         ensureConnectedAndSend({ type: 'replay' });
         toast({
             title: t('youtubePage.replay'),
@@ -133,7 +146,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleSeekToSeconds = useCallback(
         async (seconds: number) => {
-            await createRoomIfNeeded();
+            if (!(await createRoomIfNeeded())) return;
             ensureConnectedAndSend({ type: 'seek', time: seconds });
             toast({
                 title: `${t('youtubePage.seekTo')} ${seconds}s`,
@@ -145,7 +158,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleMoveVideoToTop = useCallback(
         async (video: YouTubeVideo) => {
-            await createRoomIfNeeded();
+            if (!(await createRoomIfNeeded())) return;
             ensureConnectedAndSend({ type: 'moveToTop', videoId: video.id });
             toast({
                 title: t('toast.moveVideoToTopHandler'),
@@ -157,7 +170,7 @@ export const usePlayerAction = (): PlayerAction => {
     );
 
     const handleShuffleQueue = useCallback(async () => {
-        await createRoomIfNeeded();
+        if (!(await createRoomIfNeeded())) return;
         ensureConnectedAndSend({ type: 'shuffleQueue' });
         toast({
             title: t('toast.shuffleQueueHandler'),
@@ -166,7 +179,7 @@ export const usePlayerAction = (): PlayerAction => {
     }, [createRoomIfNeeded, ensureConnectedAndSend, t]);
 
     const handleClearQueue = useCallback(async () => {
-        await createRoomIfNeeded();
+        if (!(await createRoomIfNeeded())) return;
         ensureConnectedAndSend({ type: 'clearQueue' });
         toast({
             title: t('toast.clearQueueHandler'),
@@ -175,7 +188,7 @@ export const usePlayerAction = (): PlayerAction => {
     }, [createRoomIfNeeded, ensureConnectedAndSend, t]);
 
     const handleClearHistory = useCallback(async () => {
-        await createRoomIfNeeded();
+        if (!(await createRoomIfNeeded())) return;
         ensureConnectedAndSend({ type: 'clearHistory' });
 
         toast({
@@ -186,7 +199,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleAddVideoAndMoveToTop = useCallback(
         async (video: YouTubeVideo) => {
-            await createRoomIfNeeded();
+            if (!(await createRoomIfNeeded())) return;
             ensureConnectedAndSend({ type: 'addVideoAndMoveToTop', video });
             toast({
                 title: t('toast.addVideoAndMoveToTopHandler'),
@@ -199,7 +212,7 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleImportPlaylist = useCallback(
         async (playlistUrlOrId: string) => {
-            await createRoomIfNeeded();
+            if (!(await createRoomIfNeeded())) return;
             ensureConnectedAndSend({ type: 'importPlaylist', playlistUrlOrId });
             toast({
                 title: t('toast.importPlaylistHandler'),

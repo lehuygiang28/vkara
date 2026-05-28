@@ -156,9 +156,21 @@ export default {
     'qrScanner.title': 'Quét mã QR',
     'qrScanner.buttonText': 'Quét QR',
     'qrScanner.description': 'Quét mã QR để tham gia phòng',
+    'qrScanner.scanTip': 'Cho mã QR trên TV vào khung hình và giữ yên vài giây.',
     'qrScanner.stopScanning': 'Dừng quét',
     'qrScanner.permissionDenied': 'Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập.',
     'qrScanner.cameraError': 'Lỗi camera',
     'qrScanner.genericError': 'Đã xảy ra lỗi khi quét mã QR. Vui lòng thử lại.',
     'qrScanner.retry': 'Thử lại',
+
+    'joinLobby.title': 'Tham gia phòng',
+    'joinLobby.subtitle': 'Nhập mã 6 số trên TV hoặc quét mã QR.',
+    'joinLobby.roomIdLabel': 'Mã phòng',
+    'joinLobby.passwordLabel': 'Mật khẩu phòng (tùy chọn)',
+    'joinLobby.passwordPlaceholder': 'Nhập mật khẩu phòng',
+    'joinLobby.joinButton': 'Tham gia phòng',
+    'joinLobby.or': 'hoặc',
+    'joinLobby.joinRequiredTitle': 'Hãy tham gia phòng trước',
+    'joinLobby.joinRequiredDescription':
+        'Nhập mã phòng hoặc quét QR trước khi thêm bài hát.',
 } as const;

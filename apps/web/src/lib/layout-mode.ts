@@ -10,27 +10,15 @@ export function getSuggestedLayoutMode(width: number): YouTubeStoreLayoutMode {
     return 'remote';
 }
 
-function isExplicitLayoutParam(
-    layoutParam: string | null,
-): layoutParam is YouTubeStoreLayoutMode {
-    return layoutParam === 'both' || layoutParam === 'remote' || layoutParam === 'player';
-}
-
 export function getEffectiveLayoutMode({
     storedLayoutMode,
     layoutModeSource,
-    layoutParam,
     viewportWidth,
 }: {
     storedLayoutMode: YouTubeStoreLayoutMode;
     layoutModeSource: LayoutModeSource;
-    layoutParam: string | null;
     viewportWidth: number;
 }): YouTubeStoreLayoutMode {
-    if (isExplicitLayoutParam(layoutParam)) {
-        return layoutParam;
-    }
-
     if (layoutModeSource === 'user') {
         return storedLayoutMode;
     }

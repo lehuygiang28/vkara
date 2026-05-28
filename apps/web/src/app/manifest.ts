@@ -15,6 +15,10 @@ export default function manifest(): MetadataRoute.Manifest {
         scope: '/',
         display: 'standalone',
         display_override: ['standalone', 'minimal-ui', 'browser'],
+        // Android Chrome: invite links opened outside the browser may open in this PWA.
+        launch_handler: {
+            client_mode: 'navigate-existing',
+        },
         orientation: 'any',
         background_color: '#0a0a0f',
         theme_color: '#0a0a0f',

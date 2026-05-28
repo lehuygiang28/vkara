@@ -37,8 +37,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const isMessagePending = useWebSocketStore((s) => s.isMessagePending);
     const getPendingMessages = useWebSocketStore((s) => s.getPendingMessages);
 
-    const { room, layoutMode, layoutModeSource, setLayoutMode, applyAutoLayoutMode } =
-        useYouTubeStore();
+    const { room, layoutMode, layoutModeSource, setRoom } = useYouTubeStore();
     const viewportWidth = useViewportWidth();
 
     const wsInitialized = useRef(false);
@@ -46,14 +45,19 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const roomIdParam = searchParams.get('roomId');
     const passwordParam = searchParams.get('password');
-    const layoutParam = searchParams.get('layoutMode');
+    const hasInviteInUrl = Boolean(roomIdParam && isValidRoomId(roomIdParam));
 
     const effectiveLayoutMode = getEffectiveLayoutMode({
         storedLayoutMode: layoutMode,
         layoutModeSource,
-        layoutParam,
         viewportWidth,
     });
+
+    const isTvLayout = effectiveLayoutMode !== 'remote';
+
+    useEffect(() => {
+        lastSyncedEpoch.current = -1;
+    }, [effectiveLayoutMode, hasInviteInUrl]);
 
     useEffect(() => {
         if (wsInitialized.current) return;
@@ -87,7 +91,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         if (lastSyncedEpoch.current === connectionEpoch) return;
         lastSyncedEpoch.current = connectionEpoch;
 
-        if (roomIdParam && isValidRoomId(roomIdParam)) {
+        if (hasInviteInUrl && roomIdParam) {
             ensureConnectedAndSend({
                 type: 'joinRoom',
                 roomId: roomIdParam,
@@ -105,18 +109,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             return;
         }
 
-        if (effectiveLayoutMode !== 'remote' && layoutParam !== 'remote') {
+        if (isTvLayout) {
             ensureConnectedAndSend({ type: 'createRoom' });
         }
     }, [
         connectionStatus,
         connectionEpoch,
+        hasInviteInUrl,
         roomIdParam,
         passwordParam,
         room?.id,
         room?.password,
-        effectiveLayoutMode,
-        layoutParam,
+        isTvLayout,
         ensureConnectedAndSend,
     ]);
 
@@ -161,16 +165,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, [wakeConnection]);
 
     useEffect(() => {
-        if (!layoutParam) return;
-
-        if (layoutParam !== 'both' && layoutParam !== 'remote' && layoutParam !== 'player') {
-            applyAutoLayoutMode('remote');
-        } else {
-            setLayoutMode(layoutParam as 'both' | 'remote' | 'player', 'url');
-        }
-    }, [layoutParam, setLayoutMode, applyAutoLayoutMode]);
-
-    useEffect(() => {
         syncRoomSession();
     }, [syncRoomSession]);
 
@@ -181,11 +175,17 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, [room?.id]);
 
     useEffect(() => {
-        if (lastMessage?.type === 'errorWithCode' && lastMessage.code === ErrorCode.REJOIN_ROOM_NOT_FOUND) {
+        if (
+            lastMessage?.type === 'errorWithCode' &&
+            lastMessage.code === ErrorCode.REJOIN_ROOM_NOT_FOUND
+        ) {
             lastSyncedEpoch.current = -1;
-            ensureConnectedAndSend({ type: 'createRoom' });
+            setRoom(null);
+            if (isTvLayout) {
+                ensureConnectedAndSend({ type: 'createRoom' });
+            }
         }
-    }, [lastMessage, ensureConnectedAndSend]);
+    }, [lastMessage, ensureConnectedAndSend, isTvLayout, setRoom]);
 
     const enhancedWebSocketStore: EnhancedWebSocketState = {
         sendMessage,

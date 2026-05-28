@@ -39,9 +39,9 @@ export function useViewportWidth() {
 }
 
 /**
- * Resolves TV vs remote layout from viewport + user/url overrides, and syncs Zustand before paint.
+ * Resolves TV vs remote layout from viewport + user overrides, and syncs Zustand before paint.
  */
-export function useEffectiveLayoutMode(layoutParam: string | null) {
+export function useEffectiveLayoutMode() {
     const viewportWidth = useViewportWidth();
     const storedLayoutMode = useYouTubeStore((s) => s.layoutMode);
     const layoutModeSource = useYouTubeStore((s) => s.layoutModeSource);
@@ -54,10 +54,9 @@ export function useEffectiveLayoutMode(layoutParam: string | null) {
             getEffectiveLayoutMode({
                 storedLayoutMode,
                 layoutModeSource,
-                layoutParam,
                 viewportWidth,
             }),
-        [storedLayoutMode, layoutModeSource, layoutParam, viewportWidth],
+        [storedLayoutMode, layoutModeSource, viewportWidth],
     );
 
     const suggestedLayoutMode = useMemo(
@@ -88,7 +87,6 @@ export function useEffectiveLayoutMode(layoutParam: string | null) {
         isTvViewport: effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both',
         isRemoteViewport: effectiveLayoutMode === 'remote',
         tvBreakpointPx: TV_MIN_WIDTH_PX,
-        needsLayoutBootstrap:
-            !isViewportReady && layoutModeSource === 'auto' && !layoutParam,
+        needsLayoutBootstrap: !isViewportReady && layoutModeSource === 'auto',
     };
 }

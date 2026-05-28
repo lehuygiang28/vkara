@@ -157,9 +157,21 @@ export default {
     'qrScanner.title': 'Scan QR Code',
     'qrScanner.buttonText': 'Scan QR',
     'qrScanner.description': 'Scan the QR code to join the room',
+    'qrScanner.scanTip': 'Fill the frame with the QR on the TV. Hold steady for a moment.',
     'qrScanner.stopScanning': 'Stop Scanning',
     'qrScanner.permissionDenied': 'Unable to access the camera. Please check your permissions.',
     'qrScanner.cameraError': 'Camera Error',
     'qrScanner.genericError': 'An error occurred while accessing the camera. Please try again.',
     'qrScanner.retry': 'Retry',
+
+    'joinLobby.title': 'Join a room',
+    'joinLobby.subtitle': 'Enter the 6-digit code from the TV or scan the QR code.',
+    'joinLobby.roomIdLabel': 'Room code',
+    'joinLobby.passwordLabel': 'Room password (optional)',
+    'joinLobby.passwordPlaceholder': 'Enter room password',
+    'joinLobby.joinButton': 'Join room',
+    'joinLobby.or': 'or',
+    'joinLobby.joinRequiredTitle': 'Join a room first',
+    'joinLobby.joinRequiredDescription':
+        'Enter a room code or scan the QR code before adding songs.',
 } as const;

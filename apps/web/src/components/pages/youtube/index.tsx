@@ -2,7 +2,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
 import YouTube from 'react-youtube';
 import { ListVideo, Maximize, Minimize, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -13,6 +12,7 @@ import { useScopedI18n } from '@/locales/client';
 import { cn, generateShareableUrl } from '@/lib/utils';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
+import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 
@@ -37,17 +37,15 @@ export default function YoutubePlayerPage() {
         setCurrentTab,
     } = useYouTubeStore();
 
-    const searchParams = useSearchParams();
-    const layoutParam = searchParams.get('layoutMode');
-
     const t = useScopedI18n('youtubePage');
     const t_Toast = useScopedI18n('toast');
     const [showRemotePanel, setShowRemotePanel] = useState(false);
     const { isFullScreen, toggleFullScreen } = useFullscreen();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
-    const { effectiveLayoutMode, isTvViewport, needsLayoutBootstrap } =
-        useEffectiveLayoutMode(layoutParam);
+    const { effectiveLayoutMode, isTvViewport, needsLayoutBootstrap } = useEffectiveLayoutMode();
     const prevLayoutMode = useRef(effectiveLayoutMode);
+
+    useStripRoomQueryFromUrl();
 
     const { ensureConnectedAndSend, lastMessage } = useWebSocket();
 
@@ -179,7 +177,6 @@ export default function YoutubePlayerPage() {
                             value={generateShareableUrl({
                                 roomId: room.id,
                                 password: room?.password || '',
-                                layoutMode: 'remote',
                             })}
                             size={72}
                             qrStyle="dots"

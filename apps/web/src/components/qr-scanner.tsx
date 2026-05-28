@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import type QrScannerType from 'qr-scanner';
 import { QrCode, RefreshCw } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -15,68 +15,72 @@ import {
 import { toast } from '@/hooks/use-toast';
 import { useScopedI18n } from '@/locales/client';
 import { cn } from '@/lib/utils';
+import { createQrScanner } from '@/lib/qr-scanner-setup';
 
 interface QRScannerProps {
     onScan: (data: string) => void;
     buttonClassName?: string;
 }
 
+function waitForNextPaint(): Promise<void> {
+    return new Promise((resolve) => {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => resolve());
+        });
+    });
+}
+
 export function QRScanner({ onScan, buttonClassName = '' }: QRScannerProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const scannerRef = useRef<QrScannerType | null>(null);
     const videoRef = useRef<HTMLVideoElement>(null);
-    const scannerRef = useRef<Html5Qrcode | null>(null);
+    const hasScannedRef = useRef(false);
+    const onScanRef = useRef(onScan);
     const t = useScopedI18n('qrScanner');
 
     useEffect(() => {
-        return () => {
-            stopScanner();
-        };
+        onScanRef.current = onScan;
+    }, [onScan]);
+
+    const stopScanner = useCallback(() => {
+        const scanner = scannerRef.current;
+        scannerRef.current = null;
+        if (scanner) {
+            scanner.destroy();
+        }
+        setIsScanning(false);
     }, []);
 
-    const startScanner = async () => {
+    const startScanner = useCallback(async () => {
         setError(null);
+        hasScannedRef.current = false;
+
+        await waitForNextPaint();
+
+        const video = videoRef.current;
+        if (!video) {
+            setError(t('genericError'));
+            return;
+        }
+
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: 'environment' },
+            stopScanner();
+
+            const scanner = createQrScanner(video, (data) => {
+                if (hasScannedRef.current) return;
+                hasScannedRef.current = true;
+                onScanRef.current(data);
+                setIsOpen(false);
             });
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                try {
-                    await videoRef.current.play();
-                } catch (playError) {
-                    if (playError instanceof DOMException && playError.name === 'AbortError') {
-                        console.warn(
-                            'Video play was aborted. This is expected if the dialog was closed quickly.',
-                        );
-                        return; // Exit the function early
-                    }
-                    console.warn(playError);
-                }
-            }
 
-            const scanner = new Html5Qrcode('qr-reader');
             scannerRef.current = scanner;
-
-            await scanner.start(
-                { facingMode: 'environment' },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                },
-                (decodedText) => {
-                    onScan(decodedText);
-                    handleClose();
-                },
-                (errorMessage) => {
-                    console.log(errorMessage);
-                },
-            );
-
+            await scanner.start();
             setIsScanning(true);
         } catch (err) {
             console.error(err);
+            stopScanner();
             if (err instanceof DOMException && err.name === 'NotAllowedError') {
                 setError(t('permissionDenied'));
                 toast({
@@ -93,42 +97,36 @@ export function QRScanner({ onScan, buttonClassName = '' }: QRScannerProps) {
                 });
             }
         }
-    };
+    }, [stopScanner, t]);
 
-    const stopScanner = () => {
-        if (scannerRef.current) {
-            scannerRef.current.stop().catch(console.error);
+    useEffect(() => {
+        if (!isOpen) {
+            stopScanner();
+            setError(null);
+            return;
         }
-        if (videoRef.current && videoRef.current.srcObject) {
-            const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-            tracks.forEach((track) => track.stop());
-        }
-        setIsScanning(false);
-        setError(null);
-    };
 
-    const handleClose = () => {
-        stopScanner();
-        setIsOpen(false);
+        void startScanner();
+
+        return () => {
+            stopScanner();
+        };
+    }, [isOpen, startScanner, stopScanner]);
+
+    const handleOpenChange = (open: boolean) => {
+        setIsOpen(open);
+        if (!open) {
+            setError(null);
+        }
     };
 
     const handleRetry = () => {
         stopScanner();
-        startScanner();
+        void startScanner();
     };
 
     return (
-        <Dialog
-            open={isOpen}
-            onOpenChange={(open) => {
-                if (open) {
-                    setIsOpen(true);
-                    startScanner();
-                } else {
-                    handleClose();
-                }
-            }}
-        >
+        <Dialog open={isOpen} onOpenChange={handleOpenChange}>
             <DialogTrigger asChild>
                 <Button className={cn(buttonClassName)} variant={'scan'}>
                     <QrCode className="h-4 w-4 mr-2" />
@@ -139,30 +137,31 @@ export function QRScanner({ onScan, buttonClassName = '' }: QRScannerProps) {
                 <DialogHeader>
                     <DialogTitle>{t('title')}</DialogTitle>
                 </DialogHeader>
+                <p className="text-center text-sm text-muted-foreground">{t('scanTip')}</p>
                 <div className="flex flex-col items-center justify-center space-y-4">
-                    <div id="qr-reader" className="w-full max-w-sm relative">
-                        {error ? (
-                            <div className="absolute inset-0 flex items-center justify-center bg-gray-100 text-center p-4">
-                                <p>{error}</p>
-                            </div>
-                        ) : (
-                            <video
-                                ref={videoRef}
-                                className="absolute inset-0 w-full h-full object-cover"
-                            />
-                        )}
+                    <div className="relative w-full overflow-hidden rounded-lg bg-black">
+                        <video
+                            ref={videoRef}
+                            className="w-full min-h-[min(70vw,320px)] object-cover"
+                            playsInline
+                            muted
+                            autoPlay
+                        />
                     </div>
-                    {isScanning && !error && (
-                        <Button onClick={handleClose} variant="secondary">
+                    {error ? (
+                        <p className="text-center text-sm text-muted-foreground">{error}</p>
+                    ) : null}
+                    {isScanning && !error ? (
+                        <Button onClick={() => setIsOpen(false)} variant="secondary">
                             {t('stopScanning')}
                         </Button>
-                    )}
-                    {error && (
+                    ) : null}
+                    {error ? (
                         <Button onClick={handleRetry} variant="secondary">
                             <RefreshCw className="h-4 w-4 mr-2" />
                             {t('retry')}
                         </Button>
-                    )}
+                    ) : null}
                 </div>
             </DialogContent>
         </Dialog>

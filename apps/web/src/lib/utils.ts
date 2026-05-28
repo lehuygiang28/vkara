@@ -73,33 +73,25 @@ export function formatViewCount(viewCount: number): string {
 }
 
 /**
- * Generate a shareable URL that includes the given room ID, password, and optional
- * layout mode. The returned URL is of the form:
- *
- * <baseUrl>?roomId=<roomId>&password=<password>[&layoutMode=<layoutMode>]
- *
- * @param {Object} options - An object containing the parameters to include in the shareable URL.
- * @param {string} options.roomId - The room ID to include in the shareable URL.
- * @param {string} options.password - The password to include in the shareable URL.
- * @param {string} [options.layoutMode] - The optional layout mode to include in the shareable URL.
- * @returns {string} A shareable URL that includes the given parameters.
+ * Shareable invite URL for QR codes and system camera apps.
+ * Uses the current path (locale) so Safari/Chrome open the right page:
+ * `<origin>/vi?roomId=123456&password=…`
  */
 export function generateShareableUrl({
     roomId,
     password,
-    layoutMode,
 }: {
     roomId: string;
     password: string;
-    layoutMode?: string;
 }): string {
-    const baseUrl = window?.location.origin ?? '';
-    const params = new URLSearchParams({
-        roomId,
-        ...(password && { password }),
-        ...(layoutMode && { layoutMode }),
-    });
-
+    const baseUrl =
+        typeof window !== 'undefined'
+            ? `${window.location.origin}${window.location.pathname}`
+            : '';
+    const params = new URLSearchParams({ roomId });
+    if (password) {
+        params.set('password', password);
+    }
     return `${baseUrl}?${params.toString()}`;
 }
 

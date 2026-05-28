@@ -8,6 +8,9 @@ import { useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { useWebSocket } from '@/providers/websocket-provider';
+import { useJoinRoom } from '@/hooks/use-join-room';
+import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
+import { QRScanner } from '@/components/qr-scanner';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -50,18 +53,13 @@ export function RoomSettings() {
         setOpacityOfButtonsInPlayer,
     } = useYouTubeStore();
     const { ensureConnectedAndSend, connectionStatus } = useWebSocket();
-    const {
-        roomPassword,
-        joinRoomId,
-        joinRoomPassword,
-        showPassword,
-        setRoomPassword,
-        setJoinRoomId,
-        setJoinRoomPassword,
-        setShowPassword,
-        resetState,
-    } = useRoomSettingsStore();
+    const { roomPassword, showPassword, setRoomPassword, setShowPassword, resetState } =
+        useRoomSettingsStore();
+    const { joinRoom, joinFromScan, joinRoomId, setJoinRoomId, joinRoomPassword, setJoinRoomPassword } =
+        useJoinRoom();
+    const { effectiveLayoutMode } = useEffectiveLayoutMode();
     const isConnected = connectionStatus === 'OPEN';
+    const isRemoteLayout = effectiveLayoutMode === 'remote';
 
     const t = useI18n();
     const t_RoomSettings = useScopedI18n('roomSettings');
@@ -70,27 +68,6 @@ export function RoomSettings() {
         ensureConnectedAndSend({ type: 'createRoom', password: roomPassword });
         resetState();
     }, [roomPassword, ensureConnectedAndSend, resetState]);
-
-    const joinRoom = useCallback(
-        (data?: { roomId?: string; password?: string | null }) => {
-            const roomIdWillUse = data?.roomId || joinRoomId;
-            if (roomIdWillUse.length === 6) {
-                ensureConnectedAndSend({
-                    type: 'joinRoom',
-                    roomId: roomIdWillUse,
-                    password: data?.password || joinRoomPassword,
-                });
-                resetState();
-            } else {
-                toast({
-                    title: t_RoomSettings('invalidRoomId'),
-                    description: t_RoomSettings('roomIdMustBe6Digits'),
-                    variant: 'error',
-                });
-            }
-        },
-        [joinRoomId, joinRoomPassword, ensureConnectedAndSend, t_RoomSettings, resetState],
-    );
 
     const leaveRoom = useCallback(() => {
         if (room?.id) {
@@ -188,7 +165,6 @@ export function RoomSettings() {
                                                 value={generateShareableUrl({
                                                     roomId: room.id,
                                                     password: room?.password || '',
-                                                    layoutMode: 'remote',
                                                 })}
                                                 size={200}
                                                 qrStyle="dots"
@@ -208,7 +184,6 @@ export function RoomSettings() {
                                                 value={generateShareableUrl({
                                                     roomId: room.id,
                                                     password: roomPassword,
-                                                    layoutMode: 'remote',
                                                 })}
                                                 readOnly
                                             />
@@ -221,7 +196,6 @@ export function RoomSettings() {
                                                         generateShareableUrl({
                                                             roomId: room.id,
                                                             password: roomPassword,
-                                                            layoutMode: 'remote',
                                                         }),
                                                     );
                                                     toast({
@@ -281,25 +255,29 @@ export function RoomSettings() {
                                 </div>
                             ) : (
                                 <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="create-room-password">
-                                            {t_RoomSettings('roomPassword.label')}
-                                        </Label>
-                                        <Input
-                                            id="create-room-password"
-                                            type="password"
-                                            value={roomPassword}
-                                            onChange={(e) => setRoomPassword(e.target.value)}
-                                            placeholder={t_RoomSettings('roomPassword.placeholder')}
-                                        />
-                                        <Button
-                                            onClick={createRoom}
-                                            disabled={!isConnected}
-                                            className="w-full"
-                                        >
-                                            {t_RoomSettings('createRoom')}
-                                        </Button>
-                                    </div>
+                                    {!isRemoteLayout && (
+                                        <div className="space-y-2">
+                                            <Label htmlFor="create-room-password">
+                                                {t_RoomSettings('roomPassword.label')}
+                                            </Label>
+                                            <Input
+                                                id="create-room-password"
+                                                type="password"
+                                                value={roomPassword}
+                                                onChange={(e) => setRoomPassword(e.target.value)}
+                                                placeholder={t_RoomSettings(
+                                                    'roomPassword.placeholder',
+                                                )}
+                                            />
+                                            <Button
+                                                onClick={createRoom}
+                                                disabled={!isConnected}
+                                                className="w-full"
+                                            >
+                                                {t_RoomSettings('createRoom')}
+                                            </Button>
+                                        </div>
+                                    )}
                                     <div className="space-y-2">
                                         <Label htmlFor="join-room-id">
                                             {t_RoomSettings('joinRoomId.label')}
@@ -347,6 +325,10 @@ export function RoomSettings() {
                                         >
                                             {t_RoomSettings('joinRoom')}
                                         </Button>
+                                        <QRScanner
+                                            onScan={joinFromScan}
+                                            buttonClassName="w-full"
+                                        />
                                     </div>
                                 </div>
                             )}
