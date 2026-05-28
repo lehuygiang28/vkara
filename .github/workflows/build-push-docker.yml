@@ -42,6 +42,9 @@ jobs:
         needs: [check-skip]
         if: ${{ needs.check-skip.outputs.skip_docker != 'true' }}
         runs-on: ubuntu-latest
+        defaults:
+            run:
+                working-directory: apps/api
         steps:
             - name: Checkout code
               uses: actions/checkout@v4
@@ -75,11 +78,6 @@ jobs:
               id: build_push_images
               run: docker compose -f docker-compose.yml build && docker compose -f docker-compose.yml push
 
-            # - name: Build and push bundle images
-            #   id: build_push_bundle
-            #   if: ${{ success() && steps.build_push_images.outcome == 'success' }}
-            #   run: docker compose -f docker-compose.bundle.yml build && docker compose -f docker-compose.bundle.yml push
-
             - name: Set COMPOSE_TAG as latest
               if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
               run: dotenvx set --plain COMPOSE_TAG latest
@@ -87,10 +85,6 @@ jobs:
             - name: Build and push images with latest tag
               if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
               run: docker compose -f docker-compose.yml build && docker compose -f docker-compose.yml push
-
-            # - name: Build and push bundle images with latest tag
-            #   if: contains(needs.check-skip.outputs.commit_message, '[docker-latest]')
-            #   run: docker compose -f docker-compose.bundle.yml build && docker compose -f docker-compose.bundle.yml push
 
             - name: Remove .env file
               run: rm .env

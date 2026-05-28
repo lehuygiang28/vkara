@@ -1,5 +1,17 @@
-# Add files here to ignore them from prettier formatting
-/dist
-/coverage
-/.nx/cache
-/.nx/workspace-data
+# Build outputs
+**/dist
+**/build
+**/coverage
+**/.next
+**/.turbo
+
+# Package manager and caches
+**/node_modules
+
+# Misc artifacts
+**/*.trace
+**/*.zip
+**/*.tar.gz
+**/*.tgz
+**/*.log
+**/*.bun

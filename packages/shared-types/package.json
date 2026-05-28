@@ -1,0 +1,16 @@
+{
+  "name": "@vkara/shared-types",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./errors": "./src/errors.ts",
+    "./youtube": "./src/youtube.ts",
+    "./websocket": "./src/websocket.ts"
+  },
+  "dependencies": {
+    "youtube-sr": "^4.3.11",
+    "youtubei": "^1.6.7"
+  }
+}

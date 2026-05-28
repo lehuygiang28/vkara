@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import type { ClientInfo } from '@/types';
+import type { ClientInfo } from '@vkara/shared-types';
 
 const clientSchema = new mongoose.Schema<ClientInfo>(
     {

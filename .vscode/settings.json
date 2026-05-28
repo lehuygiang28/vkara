@@ -1,5 +1,20 @@
 {
     "biome.enabled": false,
-    "cSpell.words": ["msfullscreenchange", "qrcode", "screenfull", "shadcn", "vkara", "Youtubei"],
-    "typescript.tsdk": "node_modules\\typescript\\lib"
+    "cSpell.words": [
+        "DOCKERHUB",
+        "Elysia",
+        "hdel",
+        "hgetall",
+        "hset",
+        "msfullscreenchange",
+        "playnext",
+        "qrcode",
+        "screenfull",
+        "shadcn",
+        "supervisord",
+        "vkara",
+        "Youtubei"
+    ],
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true
 }

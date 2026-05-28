@@ -1,5 +1,5 @@
 import { Video } from 'youtube-sr';
-import { Room, YouTubeVideo } from '@/types';
+import type { Room, YouTubeVideo } from '@vkara/shared-types';
 
 /**
  * Generates a random number with a specified number of digits.

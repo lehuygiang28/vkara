@@ -16,10 +16,10 @@ import {
     shuffleArray,
 } from '@/utils/common';
 import { wsLogger, roomLogger, createContextLogger } from '@/utils/logger';
-import { ErrorCode, RoomError } from '@/errors';
+import { ErrorCode, RoomError } from '@vkara/shared-types';
 import { scheduleCleanupJobs } from '@/queues/cleanup';
 import { scheduleSyncRedisToDb } from '@/queues/sync';
-import type { ClientMessage, ServerMessage, Room, ClientInfo, YouTubeVideo } from '@/types';
+import type { ClientInfo, ClientMessage, Room, ServerMessage, YouTubeVideo } from '@vkara/shared-types';
 
 import { redis } from './redis';
 import { checkEmbeddable, searchYoutubeiElysia } from './youtubei';

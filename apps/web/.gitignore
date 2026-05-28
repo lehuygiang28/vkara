@@ -3,7 +3,12 @@
 # dependencies
 /node_modules
 /.pnp
-.pnp.js
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
 # testing
 /coverage
@@ -14,8 +19,6 @@
 
 # production
 /build
-/dist
-/server
 
 # misc
 .DS_Store
@@ -25,25 +28,15 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
-# local env files
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# env files (can opt-in for committing if needed)
+.env*
+!.env.example
 
 # vercel
 .vercel
 
-**/*.trace
-**/*.zip
-**/*.tar.gz
-**/*.tgz
-**/*.log
-package-lock.json
-**/*.bun
-
-.env
-*.exe
-
-tmp
+# typescript
+*.tsbuildinfo
+next-env.d.ts

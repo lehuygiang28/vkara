@@ -1,8 +1,8 @@
 import { Redis } from 'ioredis';
 import { Queue, Worker } from 'bullmq';
+import type { Room } from '@vkara/shared-types';
 
 import { closeRoom } from '@/server';
-import type { Room } from '@/types';
 import { createContextLogger } from '@/utils/logger';
 import { validateDataIntegrity } from '@/mongodb-sync';
 
@@ -15,16 +15,17 @@ const VIDEO_DURATION_MULTIPLIER = parseFloat(process.env.VIDEO_DURATION_MULTIPLI
 
 const logger = createContextLogger('Queue/Cleanup');
 
-const connection = new Redis({
+const connectionOptions = {
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
     password: process.env.REDIS_PASSWORD,
     maxRetriesPerRequest: null,
-});
+};
+const connection = new Redis(connectionOptions);
 
 // Create the cleanup queue
 export const cleanupQueue = new Queue('room-cleanup', {
-    connection,
+    connection: connectionOptions,
     defaultJobOptions: {
         removeOnComplete: true,
         removeOnFail: true,
@@ -47,7 +48,7 @@ const worker = new Worker(
         }
     },
     {
-        connection: connection,
+        connection: connectionOptions,
         concurrency: 1,
     },
 );

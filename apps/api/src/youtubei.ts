@@ -5,7 +5,7 @@ import { Client, type VideoCompact, type SearchResult, type VideoRelated } from 
 import youtube from 'youtube-sr';
 
 import { createContextLogger } from '@/utils/logger';
-import type { YouTubeVideo } from './types';
+import type { YouTubeVideo } from '@vkara/shared-types';
 import { cleanUpVideoField, formatSeconds } from './utils/common';
 
 const logger = createContextLogger('Search-Youtubei');
@@ -20,12 +20,13 @@ const youtubei = new Client({
 });
 
 // Redis connection
-const redis = new Redis({
+const redisConnectionOptions = {
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
     password: process.env.REDIS_PASSWORD,
     maxRetriesPerRequest: null,
-});
+};
+const redis = new Redis(redisConnectionOptions);
 
 // Define key prefixes to distinguish between different types of cached data
 const REDIS_KEY_PREFIXES = {
@@ -40,7 +41,7 @@ const CLEANUP_TIMEOUT = 5 * 60 * 1000;
 const MAX_INSTANCES_PER_TYPE = 1000;
 
 // Create the cleanup queue
-const cleanupQueue = new Queue('search-instance-cleanup', { connection: redis });
+const cleanupQueue = new Queue('search-instance-cleanup', { connection: redisConnectionOptions });
 
 interface SearchInstanceWithTimestamp {
     instance: SearchResult<'video'>;
@@ -138,7 +139,7 @@ const worker = new Worker(
     async () => {
         await cleanupOldInstances();
     },
-    { connection: redis },
+    { connection: redisConnectionOptions },
 );
 
 // Handle worker events

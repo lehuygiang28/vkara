@@ -7,16 +7,17 @@ import { syncToMongoDB, syncFromMongoDB } from '@/mongodb-sync';
 const logger = createContextLogger('Queue/Sync');
 
 // Create a new Redis connection for BullMQ
-const connection = new Redis({
+const connectionOptions = {
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
     password: process.env.REDIS_PASSWORD,
     maxRetriesPerRequest: null,
-});
+};
+const connection = new Redis(connectionOptions);
 
 // Create the sync queues
 export const syncRedisToDbQueue = new Queue('sync-redis-to-db', {
-    connection,
+    connection: connectionOptions,
     defaultJobOptions: {
         removeOnComplete: true,
         removeOnFail: true,
@@ -29,7 +30,7 @@ export const syncRedisToDbQueue = new Queue('sync-redis-to-db', {
 });
 
 export const syncDbToRedisQueue = new Queue('sync-db-to-redis', {
-    connection,
+    connection: connectionOptions,
     defaultJobOptions: {
         removeOnComplete: true,
         removeOnFail: true,
@@ -50,7 +51,7 @@ const redisToDbWorker = new Worker(
         return { success };
     },
     {
-        connection,
+        connection: connectionOptions,
         concurrency: 1,
     },
 );
@@ -63,7 +64,7 @@ const dbToRedisWorker = new Worker(
         return { success };
     },
     {
-        connection,
+        connection: connectionOptions,
         concurrency: 1,
     },
 );

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import type { Room, YouTubeVideo } from '@/types';
+import type { Room, YouTubeVideo } from '@vkara/shared-types';
 
 /**
  * These schemas currently not strict and may be not fully correct.

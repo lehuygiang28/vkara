@@ -1,7 +1,7 @@
 import { Redis } from 'ioredis';
 import mongoose from 'mongoose';
 
-import type { Room, ClientInfo } from '@/types';
+import type { ClientInfo, Room } from '@vkara/shared-types';
 import { createContextLogger } from '@/utils/logger';
 
 import { RoomModel } from './room.schema';
