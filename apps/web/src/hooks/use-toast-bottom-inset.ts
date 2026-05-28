@@ -5,8 +5,8 @@ import { useEffect } from 'react';
 const NOW_PLAYING_HEIGHT = '4.25rem';
 
 /**
- * Lifts fixed toasts above MobileBottomNav + optional NowPlayingBar on remote layout.
- * Resets when the shell unmounts (e.g. TV player-only view).
+ * Sets --vkara-now-playing-height for bottom chrome (action popover, scroll padding).
+ * Toasts render at the top; this hook does not position toasts.
  */
 export function useToastBottomInset(hasNowPlayingBar: boolean) {
     useEffect(() => {

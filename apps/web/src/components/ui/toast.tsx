@@ -17,9 +17,9 @@ const ToastViewport = React.forwardRef<
         ref={ref}
         className={cn(
             'pointer-events-none fixed z-[100] flex w-full flex-col gap-2 px-3',
-            'bottom-[var(--vkara-toast-bottom)] max-h-[min(40dvh,11rem)] items-center',
-            'sm:bottom-auto sm:right-3 sm:top-3 sm:max-h-screen sm:max-w-[min(100vw-1.5rem,22rem)] sm:items-stretch sm:px-0',
-            'md:right-4 md:top-4',
+            'top-[var(--vkara-toast-top)] max-h-[min(40dvh,11rem)] items-center',
+            'sm:left-auto sm:right-3 sm:max-h-screen sm:max-w-[min(100vw-1.5rem,22rem)] sm:items-stretch sm:px-0',
+            'md:right-4',
             className,
         )}
         {...props}
@@ -36,8 +36,8 @@ const toastVariants = cva(
         'data-[swipe=move]:translate-x-[var(--radix-toast-swipe-move-x)] data-[swipe=move]:transition-none',
         'data-[state=open]:animate-in data-[state=closed]:animate-out data-[swipe=end]:animate-out',
         'data-[state=closed]:fade-out-80',
-        'data-[state=open]:slide-in-from-bottom-4 data-[state=closed]:slide-out-to-bottom-2',
-        'sm:data-[state=open]:slide-in-from-top-2 sm:data-[state=closed]:slide-out-to-right-full',
+        'data-[state=open]:slide-in-from-top-4 data-[state=closed]:slide-out-to-top-2',
+        'sm:data-[state=closed]:slide-out-to-right-full',
     ].join(' '),
     {
         variants: {

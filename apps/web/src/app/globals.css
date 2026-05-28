@@ -11,6 +11,8 @@
     --vkara-mobile-nav-height: 3.75rem;
     --vkara-now-playing-height: 0rem;
     --vkara-toast-gap: 0.5rem;
+    --vkara-toast-top: max(calc(var(--safe-top) + 0.75rem), 0.75rem);
+    /** Bottom inset for action sheets (above nav + now playing), not toast viewport */
     --vkara-toast-bottom: calc(
         var(--vkara-mobile-nav-height) + var(--vkara-now-playing-height) + var(--safe-bottom) +
             var(--vkara-toast-gap)

@@ -4,7 +4,7 @@ import * as React from 'react';
 
 import type { ToastActionElement, ToastProps } from '@/components/ui/toast';
 
-const TOAST_LIMIT = 2;
+const TOAST_LIMIT = 1;
 const TOAST_REMOVE_DELAY = 400;
 
 type ToastVariant = NonNullable<ToastProps['variant']>;
@@ -89,11 +89,18 @@ const addToRemoveQueue = (toastId: string) => {
 
 export const reducer = (state: State, action: Action): State => {
     switch (action.type) {
-        case 'ADD_TOAST':
+        case 'ADD_TOAST': {
+            state.toasts.forEach((item) => {
+                if (toastTimeouts.has(item.id)) {
+                    clearTimeout(toastTimeouts.get(item.id));
+                    toastTimeouts.delete(item.id);
+                }
+            });
             return {
                 ...state,
-                toasts: [action.toast, ...state.toasts].slice(0, TOAST_LIMIT),
+                toasts: [action.toast].slice(0, TOAST_LIMIT),
             };
+        }
 
         case 'UPDATE_TOAST':
             return {
