@@ -16,6 +16,8 @@ export interface Room {
   volume: number;
   playingNow: YouTubeVideo | null;
   lastActivity: number;
+  /** Set when the last client leaves; used to release empty rooms after a grace period. */
+  emptySince?: number;
   creatorId: string;
   isPlaying: boolean;
   currentTime: number;

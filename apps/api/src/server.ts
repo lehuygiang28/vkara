@@ -155,6 +155,10 @@ async function joinRoomInternal(ws: ElysiaWS, roomId: string) {
 
     if (!room.clients.includes(ws.id)) {
         room.clients.push(ws.id);
+        delete room.emptySince;
+        await redis.set(`room:${roomId}`, JSON.stringify(room));
+    } else if (room.emptySince) {
+        delete room.emptySince;
         await redis.set(`room:${roomId}`, JSON.stringify(room));
     }
 
@@ -177,6 +181,9 @@ async function leaveCurrentRoom(ws: ElysiaWS) {
         ws.unsubscribe(clientInfo.roomId);
         const room = await validateRoom(clientInfo.roomId);
         room.clients = room.clients.filter((id) => id !== ws.id);
+        if (room.clients.length === 0) {
+            room.emptySince = Date.now();
+        }
         await redis.set(`room:${clientInfo.roomId}`, JSON.stringify(room));
         await redis.hdel(`client:${ws.id}`, 'roomId');
         await updateRoomActivity(clientInfo.roomId);

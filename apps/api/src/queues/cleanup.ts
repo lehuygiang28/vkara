@@ -2,15 +2,13 @@ import { Redis } from 'ioredis';
 import { Queue, Worker } from 'bullmq';
 import type { Room } from '@vkara/shared-types';
 
-import { closeRoom } from '@/server';
+import { closeRoom, wsConnections } from '@/server';
 import { createContextLogger } from '@/utils/logger';
 
-const INACTIVE_TIMEOUT = parseInt(process.env.INACTIVE_TIMEOUT || '300') * 1000; // default 5 minutes
+const ONE_HOUR_IN_SECONDS = 60 * 60;
+const EMPTY_ROOM_TIMEOUT =
+    parseInt(process.env.EMPTY_ROOM_TIMEOUT || String(ONE_HOUR_IN_SECONDS), 10) * 1000; // default 1 hour
 const ORPHANED_CLIENT_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
-
-// Video playback timeout settings
-const MIN_VIDEO_TIMEOUT_HOURS = parseFloat(process.env.MIN_VIDEO_TIMEOUT_HOURS || '2'); // default 2 hour minimum
-const VIDEO_DURATION_MULTIPLIER = parseFloat(process.env.VIDEO_DURATION_MULTIPLIER || '5'); // default 5x video duration
 
 const logger = createContextLogger('Queue/Cleanup');
 
@@ -59,18 +57,13 @@ worker.on('failed', (job, error) => {
     });
 });
 
+function getConnectedClientIds(room: Room): string[] {
+    return (room.clients || []).filter((clientId) => wsConnections.has(clientId));
+}
+
 /**
- * Cleans up inactive rooms based on timeout settings.
- *
- * For rooms with no active video playback, the standard INACTIVE_TIMEOUT is used.
- * For rooms with an active video playing, an extended timeout is used which is the maximum of:
- *   - MIN_VIDEO_TIMEOUT_HOURS (defaults to 1 hour)
- *   - VIDEO_DURATION_MULTIPLIER * video duration (defaults to 3x video duration)
- *
- * This prevents rooms from being closed while a video is still playing,
- * which is especially important for longer videos.
- *
- * @returns {Promise<{cleanedRoomsCount: number}>} The number of rooms that were cleaned up
+ * Releases rooms that have had no connected clients for EMPTY_ROOM_TIMEOUT (default 1 hour).
+ * Rooms with at least one active WebSocket connection are never released by this job.
  */
 async function cleanupInactiveRooms() {
     const keys = await connection.keys('room:*');
@@ -88,61 +81,70 @@ async function cleanupInactiveRooms() {
 
         try {
             const room: Room = JSON.parse(roomData);
+            const connectedClientIds = getConnectedClientIds(room);
+            let roomChanged = false;
 
-            // Determine timeout based on playback status
-            let timeoutMs = INACTIVE_TIMEOUT;
-
-            // If there's a video playing, use extended timeout
-            if (room.playingNow && room.isPlaying) {
-                const videoDurationMs = (room.playingNow.duration || 0) * 1000;
-                const minTimeoutMs = MIN_VIDEO_TIMEOUT_HOURS * 60 * 60 * 1000; // Convert hours to ms
-                // Use the maximum of MIN_VIDEO_TIMEOUT_HOURS or VIDEO_DURATION_MULTIPLIER times the video duration
-                timeoutMs = Math.max(minTimeoutMs, videoDurationMs * VIDEO_DURATION_MULTIPLIER);
-                logger.debug(`Room ${room.id} has a playing video, using extended timeout`, {
-                    roomId: room.id,
-                    videoDuration: room.playingNow.duration,
-                    extendedTimeoutMs: timeoutMs,
-                    extendedTimeoutMinutes: Math.round(timeoutMs / (60 * 1000)),
-                    extendedTimeoutHours: (timeoutMs / (60 * 60 * 1000)).toFixed(2),
-                    minTimeoutHours: MIN_VIDEO_TIMEOUT_HOURS,
-                    durationMultiplier: VIDEO_DURATION_MULTIPLIER,
-                });
+            if (connectedClientIds.length > 0) {
+                if (connectedClientIds.length !== room.clients.length) {
+                    room.clients = connectedClientIds;
+                    roomChanged = true;
+                }
+                if (room.emptySince !== undefined) {
+                    delete room.emptySince;
+                    roomChanged = true;
+                }
+                if (roomChanged) {
+                    await connection.set(key, JSON.stringify(room));
+                }
+                continue;
             }
 
-            const isInactive = room.lastActivity && now - room.lastActivity > timeoutMs;
-
-            // Check if room has no clients
-            const isEmpty = !room.clients || room.clients.length === 0;
-
-            if (isInactive || isEmpty) {
-                logger.info(`Cleaning up room`, {
-                    roomId: room.id,
-                    reason: isInactive ? 'inactivity' : 'empty room',
-                    lastActivity: new Date(room.lastActivity).toISOString(),
-                    clientCount: room.clients.length,
-                    hasPlayingVideo: !!room.playingNow && room.isPlaying,
-                });
-
-                await closeRoom(
-                    room.id,
-                    isInactive
-                        ? 'Room has been closed due to inactivity'
-                        : 'Room has been closed because it had no clients',
-                );
-                cleanedRoomsCount++;
+            if (room.clients.length > 0) {
+                room.clients = [];
+                roomChanged = true;
             }
+
+            if (!room.emptySince) {
+                room.emptySince = now;
+                roomChanged = true;
+            }
+
+            if (roomChanged) {
+                await connection.set(key, JSON.stringify(room));
+            }
+
+            const emptySince = room.emptySince ?? room.lastActivity;
+            const emptyForMs = now - emptySince;
+            const shouldRelease = emptyForMs > EMPTY_ROOM_TIMEOUT;
+
+            if (!shouldRelease) {
+                logger.debug(`Room ${room.id} is empty but within grace period`, {
+                    roomId: room.id,
+                    emptyForMinutes: Math.round(emptyForMs / (60 * 1000)),
+                    gracePeriodMinutes: Math.round(EMPTY_ROOM_TIMEOUT / (60 * 1000)),
+                });
+                continue;
+            }
+
+            logger.info(`Cleaning up empty room`, {
+                roomId: room.id,
+                reason: 'no connected clients',
+                emptySince: new Date(emptySince).toISOString(),
+                emptyForMinutes: Math.round(emptyForMs / (60 * 1000)),
+            });
+
+            await closeRoom(room.id, 'Room has been closed because it had no connected clients');
+            cleanedRoomsCount++;
         } catch (error) {
             logger.error(`Failed to process room ${key}`, { error });
         }
     }
 
-    // Also clean up orphaned clients (clients without a valid roomId)
     await cleanupOrphanedClients();
 
     return { cleanedRoomsCount };
 }
 
-// Function to clean up clients that don't have a valid room reference
 async function cleanupOrphanedClients() {
     const clientKeys = await connection.keys('client:*');
     let orphanedClientsCount = 0;
@@ -153,9 +155,7 @@ async function cleanupOrphanedClients() {
     for (const key of clientKeys) {
         const clientData = await connection.hgetall(key);
 
-        // Check if client has a room reference
         if (!clientData.roomId) {
-            // If client has lastSeen, check if it's too old
             if (
                 clientData.lastSeen &&
                 now - parseInt(clientData.lastSeen) > ORPHANED_CLIENT_TIMEOUT
@@ -166,7 +166,6 @@ async function cleanupOrphanedClients() {
             continue;
         }
 
-        // Check if the referenced room exists
         const roomExists = await connection.exists(`room:${clientData.roomId}`);
         if (!roomExists) {
             await connection.del(key);
@@ -181,10 +180,8 @@ async function cleanupOrphanedClients() {
     return { orphanedClientsCount };
 }
 
-// Add recurring cleanup jobs
 export async function scheduleCleanupJobs() {
     try {
-        // Regular cleanup job every 10 minutes
         await cleanupQueue.add(
             'cleanup',
             {},
