@@ -18,7 +18,11 @@ import {
 } from './modules/youtube/cache';
 import { mapYoutubeiVideo } from './modules/youtube/video-mapper';
 import { checkEmbeddable } from './modules/youtube/embeddable';
-import { getRelatedVerifiedMap, getSearchVerifiedMap } from './modules/youtube/verified-badges';
+import {
+    getRelatedRendererMetadata,
+    getSearchRendererMetadata,
+} from './modules/youtube/renderer-metadata';
+import { resolveViewCount } from '@vkara/shared-utils';
 import { setCachedChannel } from './modules/youtube/channel-cache';
 import { enrichChannelsVerified } from './modules/youtube/channel-verified';
 
@@ -241,7 +245,7 @@ export const searchYoutubeiElysia = new Elysia({})
                 newItems.forEach((item) => processedVideoIds.add(item.id));
             }
 
-            const verifiedByVideoId = await getSearchVerifiedMap({
+            const searchMetadata = await getSearchRendererMetadata({
                 client: youtubeiClient,
                 query: continuation ? undefined : query,
                 continuation,
@@ -264,7 +268,7 @@ export const searchYoutubeiElysia = new Elysia({})
                         redisClient,
                         youtubeiClient,
                     );
-                    const isVerified = verifiedByVideoId.get(item.id);
+                    const isVerified = searchMetadata.verifiedByVideoId.get(item.id);
                     const resolvedChannels =
                         typeof isVerified === 'boolean'
                             ? channels.map((channel, index) =>
@@ -286,6 +290,9 @@ export const searchYoutubeiElysia = new Elysia({})
                     );
                     const video = mapYoutubeiVideo(item, {
                         channels: resolvedChannels.map(({ name, verified }) => ({ name, verified })),
+                        views:
+                            searchMetadata.viewCountByVideoId.get(item.id) ??
+                            resolveViewCount(item.viewCount),
                     });
                     const isEmbeddable = await checkEmbeddable(video.id);
                     return isEmbeddable ? video : null;
@@ -442,7 +449,7 @@ export const searchYoutubeiElysia = new Elysia({})
                     );
                 }
 
-                const relatedVerifiedByVideoId = await getRelatedVerifiedMap({
+                const relatedMetadata = await getRelatedRendererMetadata({
                     client: youtubeiClient,
                     videoId: continuation ? undefined : videoId,
                     continuation,
@@ -455,7 +462,7 @@ export const searchYoutubeiElysia = new Elysia({})
                         redisClient,
                         youtubeiClient,
                     );
-                        const isVerified = relatedVerifiedByVideoId.get(item.id);
+                        const isVerified = relatedMetadata.verifiedByVideoId.get(item.id);
                         const resolvedChannels =
                             typeof isVerified === 'boolean'
                                 ? channels.map((channel, index) =>
@@ -480,6 +487,9 @@ export const searchYoutubeiElysia = new Elysia({})
                                 name,
                                 verified,
                             })),
+                            views:
+                                relatedMetadata.viewCountByVideoId.get(item.id) ??
+                                resolveViewCount(item.viewCount),
                         });
                         const isEmbeddable = await checkEmbeddable(video.id);
                         return isEmbeddable ? video : null;

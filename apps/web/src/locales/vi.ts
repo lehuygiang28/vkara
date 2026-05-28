@@ -170,6 +170,22 @@ export default {
 
     'videoChannels.and': 'và',
 
+    'relativeTime.justNow': 'Vừa xong',
+    'relativeTime.secondAgo': '1 giây trước',
+    'relativeTime.secondsAgo': '{count} giây trước',
+    'relativeTime.minuteAgo': '1 phút trước',
+    'relativeTime.minutesAgo': '{count} phút trước',
+    'relativeTime.hourAgo': '1 giờ trước',
+    'relativeTime.hoursAgo': '{count} giờ trước',
+    'relativeTime.dayAgo': '1 ngày trước',
+    'relativeTime.daysAgo': '{count} ngày trước',
+    'relativeTime.weekAgo': '1 tuần trước',
+    'relativeTime.weeksAgo': '{count} tuần trước',
+    'relativeTime.monthAgo': '1 tháng trước',
+    'relativeTime.monthsAgo': '{count} tháng trước',
+    'relativeTime.yearAgo': '1 năm trước',
+    'relativeTime.yearsAgo': '{count} năm trước',
+
     'joinLobby.title': 'Tham gia phòng',
     'joinLobby.subtitle': 'Nhập mã 6 số trên TV hoặc quét mã QR.',
     'joinLobby.roomIdLabel': 'Mã phòng',

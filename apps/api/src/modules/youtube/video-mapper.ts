@@ -7,6 +7,7 @@ type VideoChannel = YouTubeVideo['channels'][number];
 
 interface MapYoutubeiVideoOptions {
     channels?: VideoChannel[];
+    views?: number;
 }
 
 export const mapYoutubeiVideo = (
@@ -35,7 +36,7 @@ export const mapYoutubeiVideo = (
         type: 'video',
         url: '',
         uploadedAt: video.uploadDate || '',
-        views: video.viewCount || 0,
+        views: options.views ?? video.viewCount ?? 0,
         channels,
     };
 };

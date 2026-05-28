@@ -171,6 +171,22 @@ export default {
 
     'videoChannels.and': 'and',
 
+    'relativeTime.justNow': 'Just now',
+    'relativeTime.secondAgo': '1 second ago',
+    'relativeTime.secondsAgo': '{count} seconds ago',
+    'relativeTime.minuteAgo': '1 minute ago',
+    'relativeTime.minutesAgo': '{count} minutes ago',
+    'relativeTime.hourAgo': '1 hour ago',
+    'relativeTime.hoursAgo': '{count} hours ago',
+    'relativeTime.dayAgo': '1 day ago',
+    'relativeTime.daysAgo': '{count} days ago',
+    'relativeTime.weekAgo': '1 week ago',
+    'relativeTime.weeksAgo': '{count} weeks ago',
+    'relativeTime.monthAgo': '1 month ago',
+    'relativeTime.monthsAgo': '{count} months ago',
+    'relativeTime.yearAgo': '1 year ago',
+    'relativeTime.yearsAgo': '{count} years ago',
+
     'joinLobby.title': 'Join a room',
     'joinLobby.subtitle': 'Enter the 6-digit code from the TV or scan the QR code.',
     'joinLobby.roomIdLabel': 'Room code',

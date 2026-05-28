@@ -3,8 +3,10 @@
 
 import { memo } from 'react';
 import { VideoChannels } from '@/components/video-channels';
-import { formatViewCount } from '@vkara/shared-utils';
+import { coerceViewCount, formatViewCount } from '@vkara/shared-utils';
+import { formatUploadedAt } from '@/lib/format-uploaded-at';
 import { cn } from '@/lib/utils';
+import { useI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@/types/youtube.type';
 
 /** Fits title (2 lines) + channels (2 lines) + views within virtualized rows. */
@@ -23,6 +25,12 @@ export const VideoListItem = memo(function VideoListItem({
     isActive = false,
     onSelect,
 }: VideoListItemProps) {
+    const t = useI18n();
+    const uploadedAtLabel = video.uploadedAt
+        ? formatUploadedAt(video.uploadedAt, t)
+        : '';
+    const views = coerceViewCount(video.views);
+
     return (
         <div
             role="button"
@@ -60,18 +68,18 @@ export const VideoListItem = memo(function VideoListItem({
                 </div>
                 <VideoChannels video={video} tone="muted" maxLines={2} />
                 <div className="line-clamp-1 text-xs text-muted-foreground">
-                    {video.views > 0 && (
+                    {views > 0 && (
                         <>
-                            {formatViewCount(video.views)} {viewsLabel}
-                            {video.uploadedAt && ' • '}
+                            {formatViewCount(views)} {viewsLabel}
+                            {uploadedAtLabel && ' • '}
                         </>
                     )}
-                    {video.uploadedAt && (
+                    {uploadedAtLabel ? (
                         <>
-                            {video.views > 0 ? '' : '• '}
-                            {video.uploadedAt}
+                            {views > 0 ? '' : '• '}
+                            {uploadedAtLabel}
                         </>
-                    )}
+                    ) : null}
                 </div>
             </div>
         </div>

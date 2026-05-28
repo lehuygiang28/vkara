@@ -25,17 +25,20 @@ export function formatSeconds(durationInSeconds?: number | null): string {
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }
 
+import { coerceViewCount } from './parse-view-count';
+
 /**
  * Format view counts with K/M/B/T suffixes (e.g. 1.2M).
  */
-export function formatViewCount(viewCount: number): string {
-    if (Number.isNaN(viewCount) || viewCount < 0) {
+export function formatViewCount(viewCount: number | string | null | undefined): string {
+    const numeric = coerceViewCount(viewCount);
+    if (numeric <= 0) {
         return '0';
     }
 
     const units = ['', 'K', 'M', 'B', 'T'];
     let unitIndex = 0;
-    let count = viewCount;
+    let count = numeric;
 
     while (count >= 1000 && unitIndex < units.length - 1) {
         count /= 1000;
