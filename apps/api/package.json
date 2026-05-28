@@ -16,7 +16,8 @@
         "elysia-rate-limit": "^4.6.2",
         "ioredis": "^5.4.2",
         "locate-chrome": "^0.1.1",
-        "winston": "^3.17.0",
+        "winston": "^3.19.0",
+        "winston-transport": "^4.9.0",
         "youtube-sr": "^4.3.12",
         "youtubei": "^1.8.9"
     },
