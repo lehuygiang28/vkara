@@ -18,13 +18,12 @@
         "locate-chrome": "^0.1.1",
         "mongoose": "^8.9.5",
         "winston": "^3.17.0",
-        "youtube-search-api": "^1.2.2",
-        "youtubei": "^1.6.7"
+        "youtube-sr": "^4.3.12",
+        "youtubei": "^1.8.9"
     },
     "devDependencies": {
         "@types/locate-chrome": "^0.1.2",
-        "bun-types": "^1.1.43",
-        "youtube-sr": "^4.3.11"
+        "bun-types": "^1.1.43"
     },
     "module": "src/index.js"
 }

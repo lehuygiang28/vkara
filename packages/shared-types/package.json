@@ -10,7 +10,7 @@
     "./websocket": "./src/websocket.ts"
   },
   "dependencies": {
-    "youtube-sr": "^4.3.11",
-    "youtubei": "^1.6.7"
+    "youtube-sr": "^4.3.12",
+    "youtubei": "^1.8.9"
   }
 }

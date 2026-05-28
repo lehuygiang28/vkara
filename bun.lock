@@ -26,13 +26,12 @@
         "locate-chrome": "^0.1.1",
         "mongoose": "^8.9.5",
         "winston": "^3.17.0",
-        "youtube-search-api": "^1.2.2",
-        "youtubei": "^1.6.7",
+        "youtube-sr": "^4.3.12",
+        "youtubei": "^1.8.9",
       },
       "devDependencies": {
         "@types/locate-chrome": "^0.1.2",
         "bun-types": "^1.1.43",
-        "youtube-sr": "^4.3.11",
       },
     },
     "apps/web": {
@@ -74,8 +73,6 @@
         "tailwindcss-animate": "^1.0.7",
         "use-debounce": "^10.0.4",
         "uuid": "^11.0.5",
-        "youtube-sr": "^4.3.11",
-        "youtubei": "^1.6.7",
         "zustand": "^5.0.3",
       },
       "devDependencies": {
@@ -96,8 +93,8 @@
       "name": "@vkara/shared-types",
       "version": "0.0.1",
       "dependencies": {
-        "youtube-sr": "^4.3.11",
-        "youtubei": "^1.6.7",
+        "youtube-sr": "^4.3.12",
+        "youtubei": "^1.8.9",
       },
     },
   },
@@ -540,8 +537,6 @@
 
     "axe-core": ["axe-core@4.11.4", "", {}, "sha512-KunSNx+TVpkAw/6ULfhnx+HWRecjqZGTOyquAoWHYLRSdK1tB5Ihce1ZW+UY3fj33bYAFWPu7W/GRSmmrCGuxA=="],
 
-    "axios": ["axios@0.21.4", "", { "dependencies": { "follow-redirects": "^1.14.0" } }, "sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg=="],
-
     "axobject-query": ["axobject-query@4.1.0", "", {}, "sha512-qIj0G9wZbMGNLjLmg1PT6v2mE9AH2zlnADJD/2tC6E00hgmhUOfEB6greHPAfLRSufHqROIUTkw6E+M3lH0PTQ=="],
 
     "balanced-match": ["balanced-match@1.0.2", "", {}, "sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw=="],
@@ -727,8 +722,6 @@
     "flatted": ["flatted@3.4.2", "", {}, "sha512-PjDse7RzhcPkIJwy5t7KPWQSZ9cAbzQXcafsetQoD7sOJRQlGikNbx7yZp2OotDnJyrDcbyRq3Ttb18iYOqkxA=="],
 
     "fn.name": ["fn.name@1.1.0", "", {}, "sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw=="],
-
-    "follow-redirects": ["follow-redirects@1.16.0", "", {}, "sha512-y5rN/uOsadFT/JfYwhxRS5R7Qce+g3zG97+JrtFZlC9klX/W5hD7iiLzScI4nZqUS7DNUdhPgw4xI8W2LuXlUw=="],
 
     "for-each": ["for-each@0.3.5", "", { "dependencies": { "is-callable": "^1.2.7" } }, "sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg=="],
 
@@ -1271,8 +1264,6 @@
     "yocto-queue": ["yocto-queue@0.1.0", "", {}, "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="],
 
     "youtube-player": ["youtube-player@5.5.2", "", { "dependencies": { "debug": "^2.6.6", "load-script": "^1.0.0", "sister": "^3.0.0" } }, "sha512-ZGtsemSpXnDky2AUYWgxjaopgB+shFHgXVpiJFeNB5nWEugpW1KWYDaHKuLqh2b67r24GtP6HoSW5swvf0fFIQ=="],
-
-    "youtube-search-api": ["youtube-search-api@1.2.2", "", { "dependencies": { "axios": "^0.21.0" } }, "sha512-zvC+3pDS5Cclv+n+EFunaHzTMAAgt88x5Cth5KpT1xL5Pic30U5oSN2HwFL7rofT8ffDrkitAmBK5UOo9JzjlA=="],
 
     "youtube-sr": ["youtube-sr@4.3.12", "", {}, "sha512-pAuh5FjCJ6q062lMw6ajr6j9IHKMXk/AZsEo/5xLhJcoO1gN/M2kxwfAwi3d9QLHMPg2DMdBL1DsuWbAsfc5HA=="],
 
