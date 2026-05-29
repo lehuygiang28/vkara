@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { QRCode } from 'react-qrcode-logo';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { useScopedI18n } from '@/locales/client';
+import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
 import { generateShareableUrl } from '@/lib/room-share';
 import { cn } from '@/lib/utils';
@@ -47,6 +47,7 @@ export default function YoutubePlayerPage() {
 
     const t = useScopedI18n('youtubePage');
     const t_Toast = useScopedI18n('toast');
+    const locale = useCurrentLocale();
     const [showRemotePanel, setShowRemotePanel] = useState(false);
     const { isFullScreen, toggleFullScreen } = useFullscreen();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
@@ -206,6 +207,7 @@ export default function YoutubePlayerPage() {
                             value={generateShareableUrl({
                                 roomId: room.id,
                                 password: resolveRoomPasswordForShare(room.password),
+                                locale,
                             })}
                             size={72}
                             qrStyle="dots"

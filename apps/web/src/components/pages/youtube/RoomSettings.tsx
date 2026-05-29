@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { Eye, EyeOff, Copy } from 'lucide-react';
 
-import { useI18n, useScopedI18n } from '@/locales/client';
+import { useCurrentLocale, useI18n, useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { useWebSocket } from '@/providers/websocket-provider';
@@ -71,10 +71,23 @@ export function RoomSettings() {
 
     const t = useI18n();
     const t_RoomSettings = useScopedI18n('roomSettings');
+    const locale = useCurrentLocale();
 
     const sharePassword = room
         ? resolveRoomPasswordForShare(room.password, roomPassword)
         : roomPassword;
+
+    const shareableUrl = useMemo(
+        () =>
+            room
+                ? generateShareableUrl({
+                      roomId: room.id,
+                      password: sharePassword,
+                      locale,
+                  })
+                : '',
+        [locale, room, sharePassword],
+    );
 
     const createRoom = useCallback(() => {
         const password = roomPassword.trim();
@@ -185,10 +198,7 @@ export function RoomSettings() {
                                         <div className="flex justify-center">
                                             <QRCode
                                                 id="shareable-qr-code"
-                                                value={generateShareableUrl({
-                                                    roomId: room.id,
-                                                    password: sharePassword,
-                                                })}
+                                                value={shareableUrl}
                                                 size={200}
                                                 qrStyle="dots"
                                                 eyeRadius={5}
@@ -204,10 +214,7 @@ export function RoomSettings() {
                                         <div className="flex">
                                             <Input
                                                 id="shareable-url"
-                                                value={generateShareableUrl({
-                                                    roomId: room.id,
-                                                    password: sharePassword,
-                                                })}
+                                                value={shareableUrl}
                                                 readOnly
                                             />
                                             <Button
@@ -215,12 +222,7 @@ export function RoomSettings() {
                                                 variant="outline"
                                                 size="icon"
                                                 onClick={() => {
-                                                    navigator.clipboard.writeText(
-                                                        generateShareableUrl({
-                                                            roomId: room.id,
-                                                            password: sharePassword,
-                                                        }),
-                                                    );
+                                                    navigator.clipboard.writeText(shareableUrl);
                                                     toast({
                                                         title: t_RoomSettings('copyUrlSuccess'),
                                                     });
