@@ -49,9 +49,8 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
             >
                 <ThinkingIndicator
                     messages={nowPlayingStatusMessages}
-                    active={isPlaying}
                     ariaLabel={t('nowPlayingStatusLabel')}
-                    className="gap-1.5 px-0 py-0"
+                    className="px-0 py-0"
                 />
                 <div className="flex min-w-0 items-start gap-3">
                     <div className="relative shrink-0">

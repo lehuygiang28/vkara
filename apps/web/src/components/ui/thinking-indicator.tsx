@@ -6,21 +6,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { fontWeights } from '@/lib/font-weight';
 
-const circleA =
-    'M 12 8 C 14.21 8 16 9.79 16 12 C 16 14.21 14.21 16 12 16 C 9.79 16 8 14.21 8 12 C 8 9.79 9.79 8 12 8 Z';
-
-const infinity =
-    'M 12 12 C 14 8.5 19 8.5 19 12 C 19 15.5 14 15.5 12 12 C 10 8.5 5 8.5 5 12 C 5 15.5 10 15.5 12 12 Z';
-
-const circleB =
-    'M 12 16 C 14.21 16 16 14.21 16 12 C 16 9.79 14.21 8 12 8 C 9.79 8 8 9.79 8 12 C 8 14.21 9.79 16 12 16 Z';
-
 const DEFAULT_MESSAGES = ['Thinking', 'Moonwalking', 'Planning', 'Refining'];
 
 export interface ThinkingIndicatorProps extends HTMLAttributes<HTMLDivElement> {
     messages?: string[];
     cycleIntervalMs?: number;
-    active?: boolean;
     ariaLabel?: string;
 }
 
@@ -30,7 +20,6 @@ const ThinkingIndicator = forwardRef<HTMLDivElement, ThinkingIndicatorProps>(
             className,
             messages = DEFAULT_MESSAGES,
             cycleIntervalMs = 4000,
-            active = false,
             ariaLabel,
             ...props
         },
@@ -62,38 +51,9 @@ const ThinkingIndicator = forwardRef<HTMLDivElement, ThinkingIndicatorProps>(
                 role="status"
                 aria-live={shouldCycle ? 'polite' : undefined}
                 aria-atomic="true"
-                className={cn('flex items-center gap-2 px-3 py-2', className)}
+                className={cn('px-3 py-2', className)}
                 {...props}
             >
-                <motion.svg
-                    aria-hidden
-                    width={20}
-                    height={20}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth={1.5}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className={cn(
-                        'shrink-0 transition-colors duration-300',
-                        active ? 'text-primary' : 'text-muted-foreground',
-                    )}
-                >
-                    <motion.path
-                        animate={{
-                            d: [circleA, infinity, circleB, infinity, circleA],
-                        }}
-                        transition={{
-                            d: {
-                                duration: active ? 4 : 6,
-                                ease: 'easeInOut',
-                                repeat: Infinity,
-                                times: [0, 0.25, 0.5, 0.75, 1.0],
-                            },
-                        }}
-                    />
-                </motion.svg>
                 <span
                     className="inline-grid overflow-hidden text-[13px]"
                     style={{ fontVariationSettings: fontWeights.medium }}
