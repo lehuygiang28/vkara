@@ -38,7 +38,7 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
     return (
         <div
             className={cn(
-                'flex items-center gap-3 border-t bg-background/95 px-safe-offset py-2.5 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+                'flex items-center gap-3 border-t bg-background/95 px-safe-offset py-1 backdrop-blur supports-[backdrop-filter]:bg-background/80',
                 className,
             )}
         >

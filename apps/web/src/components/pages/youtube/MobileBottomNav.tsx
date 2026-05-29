@@ -1,13 +1,6 @@
 'use client';
 
-import {
-    Clock3,
-    ListVideo,
-    MoreHorizontal,
-    Search,
-    Settings,
-    SlidersVertical,
-} from 'lucide-react';
+import { Clock3, ListVideo, MoreHorizontal, Search, Settings, SlidersVertical } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -34,8 +27,7 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
     const t = useScopedI18n('youtubePage');
     const { currentTab, room, setCurrentTab } = useYouTubeStore();
 
-    const isPrimary = (tab: string): tab is PrimaryTab =>
-        PRIMARY_TABS.includes(tab as PrimaryTab);
+    const isPrimary = (tab: string): tab is PrimaryTab => PRIMARY_TABS.includes(tab as PrimaryTab);
 
     const activePrimary = isPrimary(currentTab) ? currentTab : null;
 
