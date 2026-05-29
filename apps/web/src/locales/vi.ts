@@ -92,6 +92,14 @@ export default {
     'seekToInput.error.invalidInput': 'Định dạng nhập không hợp lệ',
     'seekToInput.button.seek': 'Nhảy',
 
+    'voiceSearchSettings.title': 'Tìm kiếm bằng giọng nói',
+    'voiceSearchSettings.descriptionWithBrowser':
+        'Mặc định trình duyệt chuyển giọng nói thành chữ. Bật Whisper để nhận diện chính xác hơn (qua model bạn host).',
+    'voiceSearchSettings.descriptionFallback':
+        'Trình duyệt không hỗ trợ nhận diện giọng nói sẵn có. Sẽ tự dùng Whisper khi đã cấu hình.',
+    'voiceSearchSettings.useWhisper': 'Dùng Whisper (AI)',
+    'voiceSearchSettings.useWhisperHint': 'Tốt cho tiếng Việt; sau khi nói xong có thể chờ vài giây.',
+
     'roomSettings.title': 'Cài đặt Phòng',
     'roomSettings.roomId': 'ID Phòng',
     'roomSettings.leaveRoom': 'Rời khỏi phòng',
@@ -164,12 +172,20 @@ export default {
     'videoSearch.videoActions': 'Thao tác video',
     'videoSearch.closeActions': 'Đóng',
     'videoSearch.voiceSearch': 'Tìm bằng giọng nói',
+    'videoSearch.voiceSpeakNow': 'Hãy nói ngay',
+    'videoSearch.voiceTrySaying': 'Thử nói',
+    'videoSearch.voiceExampleQuery': '“karaoke Sơn Tùng”',
+    'videoSearch.voiceClose': 'Đóng tìm kiếm giọng nói',
+    'videoSearch.voiceTapToStop': 'Chạm mic khi nói xong',
+    'videoSearch.voiceWhisperListening': 'Đang ghi âm… chữ sẽ hiện sau khi bạn dừng',
     'videoSearch.voiceListening': 'Đang nghe…',
     'videoSearch.voiceStop': 'Dừng nghe',
     'videoSearch.voiceNotSupported': 'Trình duyệt không hỗ trợ tìm kiếm bằng giọng nói',
     'videoSearch.voicePermissionDenied': 'Cần quyền truy cập micro để dùng giọng nói',
     'videoSearch.voiceNoSpeech': 'Không nghe thấy giọng nói. Hãy thử lại.',
     'videoSearch.voiceError': 'Không nhận diện được giọng nói. Hãy thử lại.',
+    'videoSearch.voiceNetworkError': 'Không kết nối được dịch vụ giọng nói. Kiểm tra mạng.',
+    'videoSearch.voiceProcessing': 'Đang nhận diện…',
     'videoSearch.clearSearch': 'Xóa tìm kiếm',
     'videoSearch.search': 'Tìm kiếm',
 

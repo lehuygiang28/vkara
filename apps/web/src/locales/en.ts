@@ -91,6 +91,14 @@ export default {
     'seekToInput.error.invalidInput': 'Invalid input format',
     'seekToInput.button.seek': 'Seek',
 
+    'voiceSearchSettings.title': 'Voice search',
+    'voiceSearchSettings.descriptionWithBrowser':
+        'By default, your browser converts speech to text. Enable Whisper for higher-quality recognition (uses your hosted model).',
+    'voiceSearchSettings.descriptionFallback':
+        'Your browser does not support built-in voice search. Whisper is used automatically when available.',
+    'voiceSearchSettings.useWhisper': 'Use Whisper (AI)',
+    'voiceSearchSettings.useWhisperHint': 'Better for Vietnamese; may take a few seconds after you stop speaking.',
+
     'roomSettings.title': 'Room Settings',
     'roomSettings.roomId': 'Room ID',
     'roomSettings.leaveRoom': 'Leave Room',
@@ -165,12 +173,20 @@ export default {
     'videoSearch.videoActions': 'Video actions',
     'videoSearch.closeActions': 'Close',
     'videoSearch.voiceSearch': 'Voice search',
+    'videoSearch.voiceSpeakNow': 'Speak now',
+    'videoSearch.voiceTrySaying': 'Try saying',
+    'videoSearch.voiceExampleQuery': '“Sơn Tùng karaoke”',
+    'videoSearch.voiceClose': 'Close voice search',
+    'videoSearch.voiceTapToStop': 'Tap the mic when you’re done',
+    'videoSearch.voiceWhisperListening': 'Recording… text will appear after you stop',
     'videoSearch.voiceListening': 'Listening…',
     'videoSearch.voiceStop': 'Stop listening',
     'videoSearch.voiceNotSupported': 'Voice search is not supported in this browser',
     'videoSearch.voicePermissionDenied': 'Microphone access is required for voice search',
     'videoSearch.voiceNoSpeech': 'No speech detected. Try again.',
     'videoSearch.voiceError': 'Could not recognize speech. Try again.',
+    'videoSearch.voiceNetworkError': 'Voice search is unavailable. Check your connection.',
+    'videoSearch.voiceProcessing': 'Transcribing…',
     'videoSearch.clearSearch': 'Clear search',
     'videoSearch.search': 'Search',
 

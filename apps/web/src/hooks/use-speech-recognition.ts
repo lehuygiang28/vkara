@@ -2,23 +2,21 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import {
+    getSpeechRecognitionConstructor,
+    localeToSpeechRecognitionLang,
+} from '@/lib/speech-recognition';
+
 export type SpeechRecognitionErrorCode = globalThis.SpeechRecognitionErrorCode;
+
+export { localeToSpeechRecognitionLang };
 
 type UseSpeechRecognitionOptions = {
     lang: string;
-    onTranscript: (transcript: string, isFinal: boolean) => void;
-    onError?: (error: SpeechRecognitionErrorCode) => void;
+    onTranscriptAction: (transcript: string, isFinal: boolean) => void;
+    onErrorAction?: (error: SpeechRecognitionErrorCode) => void;
+    enabled?: boolean;
 };
-
-function getSpeechRecognitionConstructor():
-    | (new () => SpeechRecognition)
-    | undefined {
-    if (typeof window === 'undefined') {
-        return undefined;
-    }
-
-    return window.SpeechRecognition ?? window.webkitSpeechRecognition;
-}
 
 function collectTranscript(results: SpeechRecognitionResultList): {
     transcript: string;
@@ -40,8 +38,9 @@ function collectTranscript(results: SpeechRecognitionResultList): {
 
 export function useSpeechRecognition({
     lang,
-    onTranscript,
-    onError,
+    onTranscriptAction: onTranscript,
+    onErrorAction: onError,
+    enabled = true,
 }: UseSpeechRecognitionOptions) {
     const [isSupported, setIsSupported] = useState(false);
     const [isListening, setIsListening] = useState(false);
@@ -58,6 +57,14 @@ export function useSpeechRecognition({
     }, [onError]);
 
     useEffect(() => {
+        if (!enabled) {
+            setIsSupported(false);
+            setIsListening(false);
+            recognitionRef.current?.abort();
+            recognitionRef.current = null;
+            return;
+        }
+
         const SpeechRecognitionCtor = getSpeechRecognitionConstructor();
         if (!SpeechRecognitionCtor) {
             setIsSupported(false);
@@ -104,7 +111,7 @@ export function useSpeechRecognition({
             recognition.abort();
             recognitionRef.current = null;
         };
-    }, [lang]);
+    }, [enabled, lang]);
 
     const stopListening = useCallback(() => {
         recognitionRef.current?.stop();
@@ -139,21 +146,10 @@ export function useSpeechRecognition({
     }, [isListening, startListening, stopListening]);
 
     return {
-        isSupported,
+        isSupported: enabled && isSupported,
         isListening,
         startListening,
         stopListening,
         toggleListening,
     };
-}
-
-export function localeToSpeechRecognitionLang(locale: string): string {
-    switch (locale) {
-        case 'vi':
-            return 'vi-VN';
-        case 'en':
-            return 'en-US';
-        default:
-            return 'en-US';
-    }
 }

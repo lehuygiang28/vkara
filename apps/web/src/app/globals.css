@@ -24,6 +24,29 @@
     );
 }
 
+@keyframes voice-ring-pulse {
+    0% {
+        transform: scale(0.92);
+        opacity: 0.45;
+    }
+    100% {
+        transform: scale(1.55);
+        opacity: 0;
+    }
+}
+
+.voice-ring-pulse {
+    animation: voice-ring-pulse 1.85s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.voice-ring-pulse-delay-1 {
+    animation-delay: 0.45s;
+}
+
+.voice-ring-pulse-delay-2 {
+    animation-delay: 0.9s;
+}
+
 @layer utilities {
     .pt-safe {
         padding-top: var(--safe-top);
