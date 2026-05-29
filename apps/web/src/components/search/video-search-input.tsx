@@ -1,16 +1,28 @@
 'use client';
 
 import { memo, useCallback, useEffect, useId, useRef, useState } from 'react';
-import { Loader2, Search, X } from 'lucide-react';
+import { Loader2, Mic, Search, X } from 'lucide-react';
 import { useDebouncedCallback } from 'use-debounce';
 
 import { cn } from '@/lib/utils';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
+import { toast } from '@/hooks/use-toast';
+import {
+    localeToSpeechRecognitionLang,
+    useSpeechRecognition,
+    type SpeechRecognitionErrorCode,
+} from '@/hooks/use-speech-recognition';
+import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 
 const SUGGESTION_DEBOUNCE_MS = 320;
 const MIN_SUGGESTION_CHARS = 2;
+
+const searchFieldClassName =
+    'flex h-11 w-full min-w-0 items-center overflow-hidden rounded-md border border-border/80 bg-muted/30 shadow-none transition-colors focus-within:border-ring focus-within:bg-background focus-within:ring-1 focus-within:ring-ring';
+
+const searchInputClassName =
+    'min-h-11 min-w-0 flex-1 border-0 bg-transparent px-3 py-2 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50';
 
 export interface VideoSearchInputProps {
     committedQuery: string;
@@ -70,6 +82,92 @@ function SuggestionList({
 
 const MemoSuggestionList = memo(SuggestionList);
 
+function SearchFieldActions({
+    draft,
+    isSearching,
+    isSpeechSupported,
+    isListening,
+    onClear,
+    onToggleListening,
+    onSearch,
+    clearLabel,
+    voiceLabel,
+    voiceStopLabel,
+    searchLabel,
+}: {
+    draft: string;
+    isSearching: boolean;
+    isSpeechSupported: boolean;
+    isListening: boolean;
+    onClear: () => void;
+    onToggleListening: () => void;
+    onSearch: () => void;
+    clearLabel: string;
+    voiceLabel: string;
+    voiceStopLabel: string;
+    searchLabel: string;
+}) {
+    return (
+        <div
+            className="flex shrink-0 items-center gap-px border-l border-border/60 pl-0.5 pr-1"
+            role="group"
+            aria-label={searchLabel}
+        >
+            {draft ? (
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0"
+                    onClick={onClear}
+                    aria-label={clearLabel}
+                >
+                    <X className="h-4 w-4 text-muted-foreground" />
+                </Button>
+            ) : null}
+            {isSpeechSupported ? (
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                        'h-9 w-9 shrink-0',
+                        isListening && 'bg-primary/15 text-primary hover:bg-primary/20',
+                    )}
+                    onClick={onToggleListening}
+                    disabled={isSearching}
+                    aria-label={isListening ? voiceStopLabel : voiceLabel}
+                    aria-pressed={isListening}
+                >
+                    <Mic
+                        className={cn(
+                            'h-4 w-4',
+                            isListening ? 'animate-pulse text-primary' : 'text-muted-foreground',
+                        )}
+                    />
+                </Button>
+            ) : null}
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-9 w-9 shrink-0"
+                onClick={onSearch}
+                disabled={isSearching}
+                aria-label={searchLabel}
+            >
+                {isSearching ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                ) : (
+                    <Search className="h-4 w-4 text-muted-foreground" />
+                )}
+            </Button>
+        </div>
+    );
+}
+
+const MemoSearchFieldActions = memo(SearchFieldActions);
+
 export const VideoSearchInput = memo(function VideoSearchInput({
     committedQuery,
     suggestions,
@@ -82,6 +180,8 @@ export const VideoSearchInput = memo(function VideoSearchInput({
     onClearSuggestions,
     onSearch,
 }: VideoSearchInputProps) {
+    const t = useScopedI18n('videoSearch');
+    const locale = useCurrentLocale();
     const listId = useId();
     const inputRef = useRef<HTMLInputElement>(null);
     const [draft, setDraft] = useState(committedQuery);
@@ -153,74 +253,108 @@ export const VideoSearchInput = memo(function VideoSearchInput({
         [runSearch],
     );
 
+    const handleSpeechError = useCallback(
+        (error: SpeechRecognitionErrorCode) => {
+            let description = t('voiceError');
+            if (error === 'not-allowed' || error === 'service-not-allowed') {
+                description = t('voicePermissionDenied');
+            } else if (error === 'no-speech') {
+                description = t('voiceNoSpeech');
+            }
+
+            toast({ title: description, variant: 'error' });
+        },
+        [t],
+    );
+
+    const handleSpeechTranscript = useCallback(
+        (transcript: string, isFinal: boolean) => {
+            handleChange(transcript);
+            if (isFinal) {
+                runSearch(transcript);
+            }
+        },
+        [handleChange, runSearch],
+    );
+
+    const { isSupported: isSpeechSupported, isListening, toggleListening, stopListening } =
+        useSpeechRecognition({
+            lang: localeToSpeechRecognitionLang(locale),
+            onTranscript: handleSpeechTranscript,
+            onError: handleSpeechError,
+        });
+
+    useEffect(() => {
+        if (isSearching) {
+            stopListening();
+        }
+    }, [isSearching, stopListening]);
+
     const trimmedDraft = draft.trim();
     const canSuggest = trimmedDraft.length >= MIN_SUGGESTION_CHARS;
     const showPanel = open && canSuggest && (isLoadingSuggestions || suggestions.length > 0);
 
     return (
         <Popover open={showPanel} onOpenChange={setOpen}>
-            <div className={cn('relative h-11 w-full shrink-0', className)}>
+            <div className={cn('w-full min-w-0', className)}>
                 <PopoverAnchor asChild>
-                    <Input
-                        ref={inputRef}
-                        type="text"
-                        inputMode="search"
-                        enterKeyHint="search"
-                        autoComplete="off"
-                        autoCorrect="off"
-                        spellCheck={false}
-                        placeholder={placeholder}
-                        value={draft}
-                        className="h-11 border-border/80 bg-muted/30 pr-20 text-base shadow-none focus-visible:bg-background"
-                        aria-autocomplete="list"
-                        aria-controls={showPanel ? listId : undefined}
-                        aria-expanded={showPanel}
-                        onChange={(e) => handleChange(e.target.value)}
-                        onFocus={() => {
-                            if (canSuggest && (isLoadingSuggestions || suggestions.length > 0)) {
-                                setOpen(true);
-                            }
-                        }}
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                runSearch(draft);
-                            }
-                            if (e.key === 'Escape') {
-                                setOpen(false);
-                            }
-                        }}
-                    />
-                </PopoverAnchor>
-                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-0.5">
-                    {draft ? (
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="pointer-events-auto h-10 w-10 shrink-0"
-                            onClick={handleClear}
-                            aria-label="Clear search"
-                        >
-                            <X className="h-4 w-4 text-muted-foreground" />
-                        </Button>
-                    ) : null}
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="pointer-events-auto h-10 w-10 shrink-0"
-                        onClick={() => runSearch(draft)}
-                        disabled={isSearching}
-                        aria-label="Search"
-                    >
-                        {isSearching ? (
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                        ) : (
-                            <Search className="h-4 w-4 text-muted-foreground" />
+                    <div
+                        className={cn(
+                            searchFieldClassName,
+                            isListening && 'border-primary/50 ring-1 ring-primary/30',
                         )}
-                    </Button>
-                </div>
+                    >
+                        <input
+                            ref={inputRef}
+                            type="search"
+                            inputMode="search"
+                            enterKeyHint="search"
+                            autoComplete="off"
+                            autoCorrect="off"
+                            spellCheck={false}
+                            placeholder={isListening ? t('voiceListening') : placeholder}
+                            value={draft}
+                            className={searchInputClassName}
+                            aria-autocomplete="list"
+                            aria-controls={showPanel ? listId : undefined}
+                            aria-expanded={showPanel}
+                            onChange={(e) => handleChange(e.target.value)}
+                            onFocus={() => {
+                                if (
+                                    canSuggest &&
+                                    (isLoadingSuggestions || suggestions.length > 0)
+                                ) {
+                                    setOpen(true);
+                                }
+                            }}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    runSearch(draft);
+                                }
+                                if (e.key === 'Escape') {
+                                    setOpen(false);
+                                    if (isListening) {
+                                        stopListening();
+                                    }
+                                }
+                            }}
+                        />
+                        <MemoSearchFieldActions
+                            draft={draft}
+                            isSearching={isSearching}
+                            isSpeechSupported={isSpeechSupported}
+                            isListening={isListening}
+                            onClear={handleClear}
+                            onToggleListening={toggleListening}
+                            onSearch={() => runSearch(draft)}
+                            clearLabel={t('clearSearch')}
+                            voiceLabel={t('voiceSearch')}
+                            voiceStopLabel={t('voiceStop')}
+                            searchLabel={t('search')}
+                        />
+                    </div>
+                </PopoverAnchor>
             </div>
             {showPanel ? (
                 <PopoverContent

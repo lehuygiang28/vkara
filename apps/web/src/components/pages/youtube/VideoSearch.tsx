@@ -149,10 +149,10 @@ export function VideoSearch() {
 
     return (
         <div className="flex h-full min-h-0 flex-col">
-            <div className="sticky top-0 z-10 border-b bg-background/95 px-safe-offset pb-5 pt-safe-offset backdrop-blur supports-[backdrop-filter]:bg-background/80">
-                <div className="flex items-center gap-2">
+            <div className="sticky top-0 z-10 border-b bg-background/95 px-safe-offset pb-4 pt-safe-offset backdrop-blur supports-[backdrop-filter]:bg-background/80">
+                <div className="flex min-w-0 items-stretch gap-1.5 sm:gap-2">
                     <VideoSearchInput
-                        className="min-w-0 flex-1"
+                        className="min-w-0 flex-1 basis-0"
                         committedQuery={searchQuery}
                         suggestions={suggestions}
                         isSearching={isLoading}
@@ -169,7 +169,7 @@ export function VideoSearch() {
                             setIsKaraoke(value === 'karaoke');
                         }}
                     >
-                        <SelectTrigger className="h-11 min-h-11 w-[5.75rem] shrink-0 border-border/80 bg-muted/30 px-2.5 py-0 text-base leading-none shadow-none data-[placeholder]:text-muted-foreground">
+                        <SelectTrigger className="h-11 min-h-11 w-[4.75rem] shrink-0 border-border/80 bg-muted/30 px-2 py-0 text-sm leading-none shadow-none sm:w-[5.25rem] sm:text-base data-[placeholder]:text-muted-foreground">
                             <SelectValue placeholder="Select mode" />
                         </SelectTrigger>
                         <SelectContent>
@@ -184,7 +184,7 @@ export function VideoSearch() {
                 </div>
             </div>
             {isLoading && searchResults.length === 0 ? (
-                <VideoSkeletonList count={6} className="pb-remote-scroll pt-2" />
+                <VideoSkeletonList count={6} className="pb-remote-scroll" />
             ) : showBrowseIdle && hasRelatedFeed ? (
                 <RelatedVideoList keyPrefix="search-idle-related" />
             ) : showBrowseIdle ? (
