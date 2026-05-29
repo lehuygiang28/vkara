@@ -23,7 +23,13 @@ import {
 } from '@vkara/shared-types';
 import { scheduleCleanupJobs } from '@/queues/cleanup';
 import { wsClientMessageSchema } from '@/schemas/client-message';
-import type { ClientInfo, ClientMessage, Room, ServerMessage, YouTubeVideo } from '@vkara/shared-types';
+import type {
+    ClientInfo,
+    ClientMessage,
+    Room,
+    ServerMessage,
+    YouTubeVideo,
+} from '@vkara/shared-types';
 
 import { redis } from './redis';
 import { checkEmbeddable, searchYoutubeiElysia } from './youtubei';
@@ -863,6 +869,15 @@ export const wsServer = new Elysia({
         }),
     )
     .use(searchYoutubeiElysia)
+    .get('/health', () => {
+        return {
+            status: 'ok',
+            timestamp: Date.now(),
+            uptime: process.uptime(),
+            memoryUsage: process.memoryUsage(),
+            cpuUsage: process.cpuUsage(),
+        };
+    })
     .listen(process.env.PORT || 8000);
 
 // Setup graceful shutdown
