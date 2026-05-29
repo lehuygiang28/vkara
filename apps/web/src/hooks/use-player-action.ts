@@ -173,14 +173,12 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleSetVideoVolume = useCallback(
         async (volume: number) => {
+            const clamped = Math.min(100, Math.max(0, volume));
+            useYouTubeStore.getState().setVolume(clamped);
             if (!(await ensureRoomReady())) return;
-            ensureConnectedAndSend({ type: 'setVolume', volume });
-            toast({
-                title: t('toast.setVolumeHandler'),
-                variant: 'success',
-            });
+            ensureConnectedAndSend({ type: 'setVolume', volume: clamped });
         },
-        [ensureRoomReady, ensureConnectedAndSend, t],
+        [ensureRoomReady, ensureConnectedAndSend],
     );
 
     const handlePlayerPlay = useCallback(async () => {

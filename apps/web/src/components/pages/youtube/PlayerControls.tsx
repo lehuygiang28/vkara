@@ -24,7 +24,7 @@ interface PlayerControlsProps {
 
 export function PlayerControls({ variant = 'bar', className }: PlayerControlsProps) {
     const t = useScopedI18n('youtubePage');
-    const { volume, room } = useYouTubeStore();
+    const { volume, room, setVolume } = useYouTubeStore();
     const {
         handlePlayerPlay,
         handlePlayerPause,
@@ -100,7 +100,8 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                         value={[volume]}
                         max={100}
                         step={5}
-                        onValueChange={(value) => handleSetVideoVolume(value[0] ?? 0)}
+                        onValueChange={(value) => setVolume(value[0] ?? 0)}
+                        onValueCommit={(value) => handleSetVideoVolume(value[0] ?? 0)}
                         className="flex-1"
                         aria-label={t('volume')}
                     />
@@ -174,7 +175,8 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     value={[volume]}
                     max={100}
                     step={5}
-                    onValueChange={(value) => handleSetVideoVolume(value[0] ?? 0)}
+                    onValueChange={(value) => setVolume(value[0] ?? 0)}
+                    onValueCommit={(value) => handleSetVideoVolume(value[0] ?? 0)}
                     className="flex-1"
                     aria-label={t('volume')}
                 />
