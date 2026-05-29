@@ -229,4 +229,12 @@ export default {
     'joinLobby.joinRequiredTitle': 'Join a room first',
     'joinLobby.joinRequiredDescription':
         'Enter a room code or scan the QR code before adding songs.',
+
+    'seo.title': 'vkara - Sing karaoke together online',
+    'seo.description':
+        'vkara is a free online karaoke app. Create a room, invite friends, and sing together anytime with YouTube videos.',
+    'seo.keywords':
+        'online karaoke,sing together,karaoke app,YouTube karaoke,karaoke room,group karaoke,vkara',
+    'seo.siteName': 'vkara',
+    'seo.ogImageAlt': 'vkara - Online karaoke app to sing with friends',
 } as const;

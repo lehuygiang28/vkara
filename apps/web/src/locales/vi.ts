@@ -226,4 +226,12 @@ export default {
     'joinLobby.or': 'hoặc',
     'joinLobby.joinRequiredTitle': 'Hãy tham gia phòng trước',
     'joinLobby.joinRequiredDescription': 'Nhập mã phòng hoặc quét QR trước khi thêm bài hát.',
+
+    'seo.title': 'vkara - Hát karaoke cùng nhau trực tuyến',
+    'seo.description':
+        'vkara là ứng dụng hát karaoke trực tuyến miễn phí. Tạo phòng, mời bạn bè và hát cùng nhau mọi lúc mọi nơi qua YouTube.',
+    'seo.keywords':
+        'karaoke trực tuyến,hát karaoke online,hát cùng nhau,karaoke YouTube,phòng karaoke,ứng dụng karaoke,vkara',
+    'seo.siteName': 'vkara',
+    'seo.ogImageAlt': 'vkara - Ứng dụng hát karaoke trực tuyến cùng bạn bè',
 } as const;

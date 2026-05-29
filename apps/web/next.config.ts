@@ -35,8 +35,7 @@ const nextConfig: NextConfig = {
     },
     async rewrites() {
         return [
-            // Fallback for deployments where middleware isn't applied to `/`.
-            // Keeps URL as `/` while serving default locale content.
+            // Fallback when middleware is not applied: serve vi at `/` without changing the URL.
             { source: '/', destination: '/vi' },
         ];
     },

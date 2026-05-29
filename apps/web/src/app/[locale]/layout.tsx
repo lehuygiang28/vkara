@@ -12,7 +12,10 @@ import { WebSocketProvider } from '@/providers/websocket-provider';
 import { I18nProvider } from '@/providers/i18n-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { PwaRegister } from '@/components/pwa-register';
-import { getSiteUrl } from '@/lib/site-url';
+import { JsonLd } from '@/components/seo/json-ld';
+import { type AppLocale } from '@/lib/locale-path';
+import { buildPageMetadata } from '@/lib/seo/metadata';
+import { getI18n, getStaticParams, setStaticParamsLocale } from '@/locales/server';
 
 const geistSans = Geist({
     variable: '--font-geist-sans',
@@ -24,30 +27,23 @@ const geistMono = Geist_Mono({
     subsets: ['latin'],
 });
 
-export const metadata: Metadata = {
-    metadataBase: getSiteUrl(),
-    title: 'vkara - Hát cùng nhau nàooooo',
-    description:
-        'vkara là ứng dụng hát karaoke trực tuyến, giúp bạn hát cùng nhau mọi lúc mọi nơi.',
-    applicationName: 'vkara',
-    manifest: '/manifest.webmanifest',
-    icons: {
-        icon: [
-            { url: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
-            { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
-            { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
-        ],
-        apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
-    },
-    appleWebApp: {
-        capable: true,
-        statusBarStyle: 'black-translucent',
-        title: 'vkara',
-    },
-    formatDetection: {
-        telephone: false,
-    },
-};
+export async function generateMetadata({
+    params,
+}: {
+    params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+    const { locale } = await params;
+    setStaticParamsLocale(locale);
+    const t = await getI18n();
+
+    return buildPageMetadata(locale as AppLocale, {
+        title: t('seo.title'),
+        description: t('seo.description'),
+        keywords: t('seo.keywords'),
+        siteName: t('seo.siteName'),
+        ogImageAlt: t('seo.ogImageAlt'),
+    });
+}
 
 export const viewport: Viewport = {
     width: 'device-width',
@@ -59,6 +55,10 @@ export const viewport: Viewport = {
     ],
 };
 
+export function generateStaticParams() {
+    return getStaticParams();
+}
+
 export default async function RootLayout({
     params,
     children,
@@ -67,18 +67,27 @@ export default async function RootLayout({
     children: ReactNode;
 }) {
     const { locale } = await params;
-    const { direction: dir } = new Locale(locale).textInfo;
+    setStaticParamsLocale(locale);
+    const appLocale = (locale ?? 'vi') as AppLocale;
+    const { direction: dir } = new Locale(appLocale).textInfo;
+    const t = await getI18n();
 
     return (
-        <html lang={locale ?? 'vi'} dir={dir} suppressHydrationWarning>
+        <html lang={appLocale} dir={dir} suppressHydrationWarning>
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased cursor-auto`}>
+                <JsonLd
+                    locale={appLocale}
+                    title={t('seo.title')}
+                    description={t('seo.description')}
+                    siteName={t('seo.siteName')}
+                />
                 <ThemeProvider
                     attribute="class"
                     defaultTheme="system"
                     enableSystem
                     disableTransitionOnChange
                 >
-                    <I18nProvider locale={locale ?? 'vi'}>
+                    <I18nProvider locale={appLocale}>
                         <WebSocketProvider>
                             <PwaRegister />
                             {children}

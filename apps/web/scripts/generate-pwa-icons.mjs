@@ -262,4 +262,43 @@ await writeIcon('icon-32.png', 32, 0.96);
 
 await writeFavicon();
 
+const OG_WIDTH = 1200;
+const OG_HEIGHT = 630;
+
+function ogImageSvg() {
+    return `
+<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
+  <defs>
+    <linearGradient id="ogBg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${COLORS.bg2}"/>
+      <stop offset="52%" stop-color="${COLORS.bg0}"/>
+      <stop offset="100%" stop-color="#00030a"/>
+    </linearGradient>
+    <radialGradient id="ogGlow" cx="35%" cy="45%" r="55%">
+      <stop offset="0%" stop-color="${COLORS.cyan}" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="${COLORS.bg0}" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="ogAccent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="${COLORS.cyanSoft}"/>
+      <stop offset="55%" stop-color="${COLORS.cyan}"/>
+      <stop offset="100%" stop-color="${COLORS.blue}"/>
+    </linearGradient>
+  </defs>
+  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="url(#ogBg)"/>
+  <circle cx="420" cy="315" r="360" fill="url(#ogGlow)"/>
+  <text x="80" y="280" fill="${COLORS.white}" font-family="system-ui, sans-serif" font-size="96" font-weight="700">vkara</text>
+  <text x="84" y="360" fill="${COLORS.cyanSoft}" font-family="system-ui, sans-serif" font-size="42" font-weight="500">Sing karaoke together online</text>
+  <text x="84" y="430" fill="${COLORS.white}" opacity="0.72" font-family="system-ui, sans-serif" font-size="28">Create a room. Invite friends. Sing anytime.</text>
+  <g transform="translate(820 130)">
+    ${iconSvg(360, 0.88)}
+  </g>
+</svg>`;
+}
+
+await sharp(Buffer.from(ogImageSvg()))
+    .resize(OG_WIDTH, OG_HEIGHT)
+    .png({ quality: 100, compressionLevel: 9 })
+    .toFile('public/og-image.png');
+
 console.log(`VKara PWA icons generated in ${OUT_DIR}/ and ${FAVICON_OUT}`);
+console.log('Open Graph image generated at public/og-image.png');

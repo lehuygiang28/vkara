@@ -3,6 +3,11 @@ export type AppLocale = (typeof APP_LOCALES)[number];
 export const DEFAULT_APP_LOCALE: AppLocale = 'vi';
 export const LOCALE_COOKIE_NAME = 'Next-Locale';
 
+/** Public URL for a locale. Default locale (vi) has no prefix. */
+export function getLocalePublicPath(locale: AppLocale): string {
+    return locale === DEFAULT_APP_LOCALE ? '/' : `/${locale}`;
+}
+
 function isAppLocale(segment: string): segment is AppLocale {
     return (APP_LOCALES as readonly string[]).includes(segment);
 }
@@ -93,17 +98,22 @@ export function stripLocaleFromPath(pathname: string): {
     return { locale: detectedLocale, cleanPath: path };
 }
 
-/** Visible path for share links so recipients open with the same locale (e.g. `/vi`). */
+/** Visible path when switching locale. Vi uses `/`, en uses `/en`. */
 export function buildLocalePrefixedPath(pathname: string, locale: AppLocale): string {
     const { cleanPath } = stripLocaleFromPath(pathname);
+    const localeRoot = getLocalePublicPath(locale);
 
     if (cleanPath === '/') {
-        return `/${locale}`;
+        return localeRoot;
     }
 
     const firstSegment = cleanPath.split('/').filter(Boolean)[0];
     if (firstSegment && isAppLocale(firstSegment)) {
-        return `/${locale}`;
+        return localeRoot;
+    }
+
+    if (locale === DEFAULT_APP_LOCALE) {
+        return cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`;
     }
 
     return `/${locale}${cleanPath.startsWith('/') ? cleanPath : `/${cleanPath}`}`;
@@ -111,5 +121,5 @@ export function buildLocalePrefixedPath(pathname: string, locale: AppLocale): st
 
 /** Root invite path for the current locale (app has a single page at `/`). */
 export function buildLocaleSharePath(locale: AppLocale): string {
-    return `/${locale}`;
+    return getLocalePublicPath(locale);
 }

@@ -11,7 +11,7 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: 'vkara',
         description:
             'vkara là ứng dụng hát karaoke trực tuyến, giúp bạn hát cùng nhau mọi lúc mọi nơi.',
-        start_url: '/vi',
+        start_url: '/',
         scope: '/',
         display: 'standalone',
         display_override: ['standalone', 'minimal-ui', 'browser'],

@@ -4,19 +4,23 @@ import { useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 import { useCurrentLocale, type SUPPORTED_LOCALES } from '@/locales/client';
-import { LOCALE_COOKIE_NAME, stripLocaleFromPath } from '@/lib/locale-path';
+import {
+    LOCALE_COOKIE_NAME,
+    buildLocalePrefixedPath,
+    type AppLocale,
+} from '@/lib/locale-path';
 
 const localeLoaders: Record<SUPPORTED_LOCALES, () => Promise<{ default: unknown }>> = {
     vi: () => import('@/locales/vi'),
     en: () => import('@/locales/en'),
 };
 
-type UseChangeLocaleCookieOptions = {
+type UseChangeLocaleOptions = {
     preserveSearchParams?: boolean;
 };
 
-/** Switch locale via cookie — URL stays clean (no /vi or /en prefix). */
-export function useChangeLocaleCookie(options: UseChangeLocaleCookieOptions = {}) {
+/** Switch locale: vi stays at `/`, en navigates to `/en`. */
+export function useChangeLocale(options: UseChangeLocaleOptions = {}) {
     const { preserveSearchParams = true } = options;
     const router = useRouter();
     const pathname = usePathname();
@@ -31,13 +35,13 @@ export function useChangeLocaleCookie(options: UseChangeLocaleCookieOptions = {}
 
             document.cookie = `${LOCALE_COOKIE_NAME}=${newLocale}; path=/; SameSite=Strict`;
 
-            const { cleanPath } = stripLocaleFromPath(pathname);
+            const nextPath = buildLocalePrefixedPath(pathname, newLocale as AppLocale);
             const qs =
                 preserveSearchParams && searchParams.toString()
                     ? `?${searchParams.toString()}`
                     : '';
 
-            router.push(`${cleanPath}${qs}`);
+            router.push(`${nextPath}${qs}`);
             router.refresh();
         },
         [currentLocale, pathname, preserveSearchParams, router, searchParams],

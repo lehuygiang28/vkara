@@ -7,7 +7,7 @@ import {
     useScopedI18n,
     type SUPPORTED_LOCALES,
 } from '@/locales/client';
-import { useChangeLocaleCookie } from '@/hooks/use-change-locale-cookie';
+import { useChangeLocale } from '@/hooks/use-change-locale';
 import { cn } from '@/lib/utils';
 import {
     DropdownMenuLabel,
@@ -104,7 +104,7 @@ function LocaleToggle({
 export function LanguageSwitcher({ variant = 'inline', className }: LanguageSwitcherProps) {
     const t = useScopedI18n('appearance');
     const locale = useCurrentLocale();
-    const changeLocale = useChangeLocaleCookie({ preserveSearchParams: true });
+    const changeLocale = useChangeLocale({ preserveSearchParams: true });
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {

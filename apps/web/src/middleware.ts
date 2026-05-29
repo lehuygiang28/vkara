@@ -1,12 +1,7 @@
 import { createI18nMiddleware } from 'next-international/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
-import {
-    APP_LOCALES,
-    DEFAULT_APP_LOCALE,
-    LOCALE_COOKIE_NAME,
-    stripLocaleFromPath,
-} from '@/lib/locale-path';
+import { APP_LOCALES, DEFAULT_APP_LOCALE, LOCALE_COOKIE_NAME } from '@/lib/locale-path';
 
 const I18nMiddleware = createI18nMiddleware({
     defaultLocale: DEFAULT_APP_LOCALE,
@@ -16,21 +11,40 @@ const I18nMiddleware = createI18nMiddleware({
 });
 
 /**
- * Locale lives in the `Next-Locale` cookie only — never in the visible URL.
- * If someone opens /en or /vi (bookmark, old link), set cookie and redirect to clean path.
+ * Default locale (vi) is served at `/` with no prefix.
+ * English is at `/en`. Legacy `/vi` URLs redirect to `/`.
  */
 export function middleware(request: NextRequest) {
-    const { locale, cleanPath } = stripLocaleFromPath(request.nextUrl.pathname);
+    const { pathname } = request.nextUrl;
 
-    if (locale) {
+    if (pathname === '/vi' || pathname.startsWith('/vi/')) {
         const url = request.nextUrl.clone();
-        url.pathname = cleanPath;
-        const response = NextResponse.redirect(url);
-        response.cookies.set(LOCALE_COOKIE_NAME, locale, { sameSite: 'strict', path: '/' });
+        url.pathname = pathname.slice(3) || '/';
+        const response = NextResponse.redirect(url, 301);
+        response.cookies.set(LOCALE_COOKIE_NAME, DEFAULT_APP_LOCALE, {
+            sameSite: 'strict',
+            path: '/',
+        });
         return response;
     }
 
-    return I18nMiddleware(request);
+    const localeSegment = pathname.split('/').filter(Boolean)[0];
+    if (localeSegment === 'en') {
+        const response = NextResponse.next();
+        response.cookies.set(LOCALE_COOKIE_NAME, 'en', { sameSite: 'strict', path: '/' });
+        return response;
+    }
+
+    const response = I18nMiddleware(request);
+
+    if (pathname === '/') {
+        response.cookies.set(LOCALE_COOKIE_NAME, DEFAULT_APP_LOCALE, {
+            sameSite: 'strict',
+            path: '/',
+        });
+    }
+
+    return response;
 }
 
 export const config = {
