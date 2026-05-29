@@ -18,6 +18,10 @@ import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
+import {
+    isServerPlaybackEcho,
+    isYoutubePlaybackIntentState,
+} from '@/lib/youtube-playback-sync';
 
 import { CountdownTimer } from '@/components/countdown-timer';
 import { VideoChannels } from '@/components/video-channels';
@@ -79,19 +83,24 @@ export default function YoutubePlayerPage() {
 
     const onPlayerStateChange = (event: YT.PlayerEvent) => {
         const playerState = event.target.getPlayerState();
-        const playing = playerState === YT.PlayerState.PLAYING;
 
-        // TV: native YouTube controls must sync to server so remotes stay in sync.
-        if (effectiveLayoutMode !== 'remote' && room?.id) {
+        // TV: sync native controls to server only on settled PLAYING/PAUSED.
+        // BUFFERING/CUED during remote play used to look like "paused" and spam pause → play loops.
+        if (
+            effectiveLayoutMode !== 'remote' &&
+            room?.id &&
+            isYoutubePlaybackIntentState(playerState) &&
+            !isServerPlaybackEcho()
+        ) {
+            const playing = playerState === YT.PlayerState.PLAYING;
             const serverPlaying = useYouTubeStore.getState().room?.isPlaying;
             if (serverPlaying !== undefined && serverPlaying !== playing) {
                 ensureConnectedAndSend({ type: playing ? 'play' : 'pause' });
             }
+            setIsPlaying(playing);
         }
 
-        setIsPlaying(playing);
-
-        if (playing) {
+        if (playerState === YT.PlayerState.PLAYING) {
             cancelCountdown();
         }
 

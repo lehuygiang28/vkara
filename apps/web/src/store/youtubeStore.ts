@@ -5,6 +5,11 @@ import { Room, ServerMessage } from '@/types/websocket.type';
 import { ErrorCode } from '@/types/server-errors.type';
 import { toast } from '@/hooks/use-toast';
 import { useScopedI18n } from '@/locales/client';
+import {
+    isYoutubeActivelyPlaying,
+    isYoutubeExplicitlyPaused,
+    markServerPlaybackCommand,
+} from '@/lib/youtube-playback-sync';
 
 export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
 export type LayoutModeSource = 'auto' | 'url' | 'user';
@@ -231,7 +236,14 @@ export const useYouTubeStore = create(
                     case 'play':
                         {
                             set((state) => {
-                                state?.player?.playVideo();
+                                const playerState = state.player?.getPlayerState();
+                                if (
+                                    playerState === undefined ||
+                                    !isYoutubeActivelyPlaying(playerState)
+                                ) {
+                                    markServerPlaybackCommand();
+                                    state.player?.playVideo();
+                                }
                                 return {
                                     ...state,
                                     room: state.room ? { ...state.room, isPlaying: true } : null,
@@ -242,10 +254,19 @@ export const useYouTubeStore = create(
                     case 'pause':
                         {
                             set((state) => {
-                                state?.player?.pauseVideo();
+                                const playerState = state.player?.getPlayerState();
+                                if (
+                                    playerState === undefined ||
+                                    !isYoutubeExplicitlyPaused(playerState)
+                                ) {
+                                    markServerPlaybackCommand();
+                                    state.player?.pauseVideo();
+                                }
                                 return {
                                     ...state,
-                                    room: state.room ? { ...state.room, isPlaying: false } : null,
+                                    room: state.room
+                                        ? { ...state.room, isPlaying: false }
+                                        : null,
                                 };
                             });
                         }
