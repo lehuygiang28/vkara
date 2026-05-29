@@ -4,13 +4,10 @@
 import { useEffect, useRef, useState } from 'react';
 import YouTube from 'react-youtube';
 import { ListVideo, Maximize, Minimize, Settings } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { QRCode } from 'react-qrcode-logo';
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
-import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
-import { generateShareableUrl } from '@/lib/room-share';
 import { cn } from '@/lib/utils';
 import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
@@ -29,6 +26,8 @@ import { Button } from '@/components/ui/button';
 import { ScrollToTop } from '@/components/scroll-to-top';
 import { PlayerControls } from './PlayerControls';
 import { RemoteShell } from './RemoteShell';
+import { TvPlayerQrZone } from './TvPlayerQrZone';
+import { LanguageSwitcher } from '@/components/language-switcher';
 import { ConnectionStatusBanner } from '@/components/connection-status-banner';
 
 export default function YoutubePlayerPage() {
@@ -131,7 +130,10 @@ export default function YoutubePlayerPage() {
         setCurrentTab(tab);
     };
 
+    const isTvIdle = Boolean(room?.id && isTvViewport && !room?.playingNow);
+
     const renderPlayer = () => (
+        <LayoutGroup id="tv-player-qr">
         <div className="relative h-full w-full">
             {room?.playingNow ? (
                 <YouTube
@@ -152,15 +154,23 @@ export default function YoutubePlayerPage() {
                     className="absolute inset-0"
                 />
             ) : (
-                <div className="absolute inset-0 flex items-center justify-center bg-zinc-950 px-6 text-center">
-                    <motion.p
-                        initial={{ opacity: 0.5, y: 24 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, ease: 'easeOut' }}
-                        className="max-w-lg text-lg font-medium text-zinc-300 md:text-2xl"
-                    >
-                        {t('tvWaiting')}
-                    </motion.p>
+                <div className="absolute inset-0 bg-zinc-950" aria-hidden />
+            )}
+
+            {room?.id && isTvViewport && isTvIdle && (
+                <TvPlayerQrZone
+                    roomId={room.id}
+                    roomPassword={room.password}
+                    locale={locale}
+                    showQR={showQRInPlayer}
+                    isIdle
+                    onOpenSettings={() => openRemotePanel('settings')}
+                />
+            )}
+
+            {isTvViewport && (
+                <div className="pointer-events-auto absolute right-3 top-3 z-[6] pt-safe pr-safe">
+                    <LanguageSwitcher variant="overlay" />
                 </div>
             )}
 
@@ -194,74 +204,61 @@ export default function YoutubePlayerPage() {
             )}
 
             <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-2.5 pt-safe pl-safe">
-                {room?.id && showQRInPlayer && isTvViewport && (
-                    <div
-                        className="player-qr-zone hidden flex-col rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40 lg:flex"
-                        onClick={() => openRemotePanel('settings')}
-                        onKeyDown={(e) => e.key === 'Enter' && openRemotePanel('settings')}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={t('settings')}
-                    >
-                        <QRCode
-                            value={generateShareableUrl({
-                                roomId: room.id,
-                                password: resolveRoomPasswordForShare(room.password),
-                                locale,
-                            })}
-                            size={72}
-                            qrStyle="dots"
-                            eyeRadius={5}
-                            quietZone={2}
-                            ecLevel="L"
-                        />
-                        <span className="mt-1 text-center text-sm font-semibold text-white drop-shadow-sm">
-                            {room.id.slice(0, 3)} {room.id.slice(3)}
-                        </span>
-                    </div>
+                {!isTvIdle && room?.id && isTvViewport && showQRInPlayer && (
+                    <TvPlayerQrZone
+                        roomId={room.id}
+                        roomPassword={room.password}
+                        locale={locale}
+                        showQR={showQRInPlayer}
+                        isIdle={false}
+                        onOpenSettings={() => openRemotePanel('settings')}
+                    />
                 )}
 
-                <div
-                    className="flex flex-col gap-2 transition-opacity"
-                    style={{ opacity: opacityOfButtonsInPlayer / 100 }}
-                >
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                        onClick={() => openRemotePanel('queue')}
-                        aria-label={t('queue')}
+                {!isTvIdle && (
+                    <div
+                        className="flex flex-col gap-2 transition-opacity"
+                        style={{ opacity: opacityOfButtonsInPlayer / 100 }}
                     >
-                        <ListVideo className="h-5 w-5" />
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                        onClick={() => openRemotePanel('settings')}
-                        aria-label={t('settings')}
-                    >
-                        <Settings className="h-5 w-5" />
-                    </Button>
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                        onClick={handlerToggleFullScreen}
-                        aria-label={isFullScreen ? t('exitFullscreen') : t('fullscreen')}
-                    >
-                        {isFullScreen ? (
-                            <Minimize className="h-5 w-5" />
-                        ) : (
-                            <Maximize className="h-5 w-5" />
-                        )}
-                    </Button>
-                </div>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
+                            onClick={() => openRemotePanel('queue')}
+                            aria-label={t('queue')}
+                        >
+                            <ListVideo className="h-5 w-5" />
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
+                            onClick={() => openRemotePanel('settings')}
+                            aria-label={t('settings')}
+                        >
+                            <Settings className="h-5 w-5" />
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
+                            onClick={handlerToggleFullScreen}
+                            aria-label={isFullScreen ? t('exitFullscreen') : t('fullscreen')}
+                        >
+                            {isFullScreen ? (
+                                <Minimize className="h-5 w-5" />
+                            ) : (
+                                <Maximize className="h-5 w-5" />
+                            )}
+                        </Button>
+                    </div>
+                )}
             </div>
         </div>
+        </LayoutGroup>
     );
 
     if (needsLayoutBootstrap) {

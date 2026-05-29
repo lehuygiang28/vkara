@@ -1,8 +1,3 @@
-/**
- * Flag Symbol Country: 🇺🇸 🇻🇳
- * You can find your `Flag Symbol Country` in https://www.alt-codes.net/flags
- */
-
 export default {
     confirm: 'Xác nhận',
     cancel: 'Hủy',
@@ -15,8 +10,8 @@ export default {
     'appearance.light': 'Sáng',
     'appearance.system': 'Theo hệ thống',
     'appearance.language': 'Ngôn ngữ',
-    'appearance.languageEnglish': '🇺🇸 English',
-    'appearance.languageVietnamese': '🇻🇳 Tiếng Việt',
+    'appearance.languageEnglish': 'English',
+    'appearance.languageVietnamese': 'Tiếng Việt',
 
     'toast.playNowHandler': 'Phát ngay',
     'toast.addVideoHandler': 'Video đã được thêm vào hàng chờ',
@@ -58,8 +53,6 @@ export default {
     'youtubePage.settings': 'Cài đặt',
     'youtubePage.searchPlaceholder': 'Tìm và chọn một video để phát',
     'youtubePage.failedToFetch': 'Không thể tải kết quả tìm kiếm. Vui lòng thử lại.',
-    'youtubePage.playerPlaceholder':
-        'Chưa có video nào được phát. {br}Tìm kiếm và chọn một video để bắt đầu.',
     'youtubePage.layout': 'Hiển thị',
     'youtubePage.selectLayoutMode': 'Chọn chế độ hiển thị',
     'youtubePage.layoutBoth': 'Cả video và điều khiển',
@@ -80,7 +73,14 @@ export default {
     'youtubePage.more': 'Thêm',
     'youtubePage.mainNavigation': 'Điều hướng chính',
     'youtubePage.volume': 'Âm lượng',
-    'youtubePage.tvWaiting': 'Quét mã QR trên TV hoặc dùng điện thoại để chọn bài hát.',
+    'youtubePage.tvEmptyTitle': 'Kết nối điện thoại để chọn bài',
+    'youtubePage.tvEmptySubtitle':
+        'Quét mã bên dưới, tìm bài trên điện thoại, video sẽ phát ngay trên TV.',
+    'youtubePage.tvEmptyStep1': 'Mở camera điện thoại và quét mã QR',
+    'youtubePage.tvEmptyStep2': 'Tìm bài hát và thêm vào danh sách chờ',
+    'youtubePage.tvEmptyStep3': 'Chạm Phát để bắt đầu trên màn hình này',
+    'youtubePage.tvRoomCode': 'Mã phòng',
+    'youtubePage.tvEmptyQrAria': 'Mã QR phòng. Mở cài đặt phòng.',
     'youtubePage.layoutAuto': 'Tự động (theo màn hình)',
     'youtubePage.layoutAutoHint':
         'Màn hình lớn hiển thị video (TV). Điện thoại dùng để tìm bài và điều khiển.',

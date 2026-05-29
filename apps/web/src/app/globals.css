@@ -85,22 +85,27 @@
         height: 100dvh;
     }
 
-    /** TV player QR — dim by default; full opacity on hover; hide cursor over QR */
+    /** TV player QR (corner) — very dim by default; full opacity + hidden cursor on hover */
     .player-qr-zone {
-        opacity: 0.38;
+        opacity: 0.22;
         cursor: none;
         transition:
-            opacity 0.25s ease,
-            filter 0.25s ease;
+            opacity 0.3s ease,
+            filter 0.3s ease;
     }
 
     .player-qr-zone:hover,
     .player-qr-zone:focus-visible {
         opacity: 1;
+        cursor: none;
         filter: drop-shadow(0 4px 16px rgb(0 0 0 / 0.55));
     }
 
+    .player-qr-zone,
+    .player-qr-zone *,
+    .player-qr-zone:hover,
     .player-qr-zone:hover *,
+    .player-qr-zone:focus-visible,
     .player-qr-zone:focus-visible * {
         cursor: none;
     }

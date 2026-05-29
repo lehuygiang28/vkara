@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Languages } from 'lucide-react';
 
 import {
     useCurrentLocale,
@@ -10,21 +9,99 @@ import {
 } from '@/locales/client';
 import { useChangeLocaleCookie } from '@/hooks/use-change-locale-cookie';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 import {
     DropdownMenuLabel,
     DropdownMenuRadioGroup,
     DropdownMenuRadioItem,
 } from '@/components/ui/dropdown-menu';
 
-const LOCALES: SUPPORTED_LOCALES[] = ['vi', 'en'];
+const LOCALE_OPTIONS: {
+    code: SUPPORTED_LOCALES;
+    shortLabel: string;
+    menuLabelKey: 'languageVietnamese' | 'languageEnglish';
+}[] = [
+    { code: 'vi', shortLabel: 'Vi', menuLabelKey: 'languageVietnamese' },
+    { code: 'en', shortLabel: 'En', menuLabelKey: 'languageEnglish' },
+];
+
+type LanguageSwitcherVariant = 'inline' | 'overlay' | 'menu';
 
 type LanguageSwitcherProps = {
-    variant?: 'compact' | 'menu';
+    variant?: LanguageSwitcherVariant;
     className?: string;
 };
 
-export function LanguageSwitcher({ variant = 'compact', className }: LanguageSwitcherProps) {
+function LocaleToggle({
+    locale,
+    onChange,
+    mode,
+    className,
+    ariaLabel,
+}: {
+    locale: SUPPORTED_LOCALES;
+    onChange: (code: SUPPORTED_LOCALES) => void;
+    mode: 'inline' | 'overlay';
+    className?: string;
+    ariaLabel: string;
+}) {
+    const isOverlay = mode === 'overlay';
+
+    return (
+        <div
+            className={cn(
+                'inline-flex items-center',
+                isOverlay
+                    ? 'gap-1 text-sm font-medium opacity-40 transition-opacity duration-300 hover:opacity-100'
+                    : 'gap-0.5 rounded-full border border-border/60 bg-muted/40 p-0.5 text-xs font-medium',
+                className,
+            )}
+            role="group"
+            aria-label={ariaLabel}
+        >
+            {LOCALE_OPTIONS.map((option, index) => (
+                <span key={option.code} className="inline-flex items-center">
+                    {index > 0 && (
+                        <span
+                            className={cn(
+                                'select-none',
+                                isOverlay ? 'px-0.5 text-zinc-600' : 'px-0.5 text-muted-foreground/50',
+                            )}
+                            aria-hidden
+                        >
+                            /
+                        </span>
+                    )}
+                    <button
+                        type="button"
+                        className={cn(
+                            'rounded-full transition-colors duration-200 focus-visible:outline-none',
+                            isOverlay
+                                ? cn(
+                                      'px-1 py-0.5 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950',
+                                      locale === option.code
+                                          ? 'text-zinc-100'
+                                          : 'text-zinc-500 hover:text-zinc-300',
+                                  )
+                                : cn(
+                                      'px-2.5 py-1 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                                      locale === option.code
+                                          ? 'bg-background text-foreground shadow-sm'
+                                          : 'text-muted-foreground hover:text-foreground',
+                                  ),
+                        )}
+                        aria-pressed={locale === option.code}
+                        aria-current={locale === option.code ? 'true' : undefined}
+                        onClick={() => onChange(option.code)}
+                    >
+                        {option.shortLabel}
+                    </button>
+                </span>
+            ))}
+        </div>
+    );
+}
+
+export function LanguageSwitcher({ variant = 'inline', className }: LanguageSwitcherProps) {
     const t = useScopedI18n('appearance');
     const locale = useCurrentLocale();
     const changeLocale = useChangeLocaleCookie({ preserveSearchParams: true });
@@ -35,61 +112,45 @@ export function LanguageSwitcher({ variant = 'compact', className }: LanguageSwi
     }, []);
 
     if (!mounted) {
-        return variant === 'compact' ? (
-            <div className={cn('h-9 w-[4.5rem]', className)} aria-hidden />
-        ) : null;
+        if (variant === 'menu') return null;
+        return (
+            <div
+                className={cn(
+                    variant === 'overlay' ? 'h-6 w-12' : 'h-8 w-[4.25rem]',
+                    className,
+                )}
+                aria-hidden
+            />
+        );
     }
 
     if (variant === 'menu') {
         return (
             <>
-                <DropdownMenuLabel className="pt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                <DropdownMenuLabel className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     {t('language')}
                 </DropdownMenuLabel>
                 <DropdownMenuRadioGroup
                     value={locale}
                     onValueChange={(value) => changeLocale(value as SUPPORTED_LOCALES)}
                 >
-                    <DropdownMenuRadioItem value="vi" className="gap-2">
-                        <Languages className="h-4 w-4" />
-                        {t('languageVietnamese')}
-                    </DropdownMenuRadioItem>
-                    <DropdownMenuRadioItem value="en" className="gap-2">
-                        <Languages className="h-4 w-4" />
-                        {t('languageEnglish')}
-                    </DropdownMenuRadioItem>
+                    {LOCALE_OPTIONS.map((option) => (
+                        <DropdownMenuRadioItem key={option.code} value={option.code}>
+                            {t(option.menuLabelKey)}
+                        </DropdownMenuRadioItem>
+                    ))}
                 </DropdownMenuRadioGroup>
             </>
         );
     }
 
     return (
-        <div
-            className={cn(
-                'inline-flex rounded-lg border border-border/80 bg-muted/30 p-0.5',
-                className,
-            )}
-            role="group"
-            aria-label={t('language')}
-        >
-            {LOCALES.map((code) => (
-                <Button
-                    key={code}
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                        'h-8 min-w-[2.25rem] rounded-md px-2.5 text-xs font-semibold',
-                        locale === code
-                            ? 'bg-background text-foreground shadow-sm'
-                            : 'text-muted-foreground hover:text-foreground',
-                    )}
-                    aria-pressed={locale === code}
-                    onClick={() => changeLocale(code)}
-                >
-                    {code === 'vi' ? 'VI' : 'EN'}
-                </Button>
-            ))}
-        </div>
+        <LocaleToggle
+            locale={locale}
+            onChange={changeLocale}
+            mode={variant}
+            className={className}
+            ariaLabel={t('language')}
+        />
     );
 }

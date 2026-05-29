@@ -1,8 +1,3 @@
-/**
- * Flag Symbol Country: 🇺🇸 🇻🇳
- * You can find your `Flag Symbol Country` in https://www.alt-codes.net/flags
- */
-
 export default {
     confirm: 'Confirm',
     cancel: 'Cancel',
@@ -15,8 +10,8 @@ export default {
     'appearance.light': 'Light',
     'appearance.system': 'System',
     'appearance.language': 'Language',
-    'appearance.languageEnglish': '🇺🇸 English',
-    'appearance.languageVietnamese': '🇻🇳 Tiếng Việt',
+    'appearance.languageEnglish': 'English',
+    'appearance.languageVietnamese': 'Tiếng Việt',
 
     'toast.playNowHandler': 'Play now',
     'toast.addVideoHandler': 'Video added to queue',
@@ -58,7 +53,6 @@ export default {
     'youtubePage.settings': 'Settings',
     'youtubePage.searchPlaceholder': 'Search and select a video to play',
     'youtubePage.failedToFetch': 'Failed to fetch search results. Please try again.',
-    'youtubePage.playerPlaceholder': 'No video is playing. {br}Search and select a video to start.',
     'youtubePage.seekTo': 'Seek to',
     'youtubePage.controls': 'Controls',
     'youtubePage.queue': 'Queue',
@@ -79,7 +73,14 @@ export default {
     'youtubePage.more': 'More',
     'youtubePage.mainNavigation': 'Main navigation',
     'youtubePage.volume': 'Volume',
-    'youtubePage.tvWaiting': 'Scan the QR on the TV screen, or use your phone to pick songs.',
+    'youtubePage.tvEmptyTitle': 'Connect your phone to pick songs',
+    'youtubePage.tvEmptySubtitle':
+        'Scan the code below, search on your phone, and the video starts here on TV.',
+    'youtubePage.tvEmptyStep1': 'Open your phone camera and scan the QR code',
+    'youtubePage.tvEmptyStep2': 'Search for a song and add it to the queue',
+    'youtubePage.tvEmptyStep3': 'Tap play and it starts on this screen',
+    'youtubePage.tvRoomCode': 'Room code',
+    'youtubePage.tvEmptyQrAria': 'Room QR code. Opens room settings.',
     'youtubePage.layoutAuto': 'Automatic (by screen size)',
     'youtubePage.layoutAutoHint':
         'Large screens show video (TV). Phones are remotes for search and playback control.',
