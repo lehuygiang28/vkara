@@ -10,7 +10,11 @@ export function parseYoutubeViewCountText(text: string): number | null {
         return 0;
     }
 
-    trimmed = trimmed.replace(/,/g, '').replace(/\s*views?$/i, '').trim();
+    trimmed = trimmed.split('•')[0]?.trim() ?? trimmed;
+    trimmed = trimmed
+        .replace(/,/g, '')
+        .replace(/\s*views?$/i, '')
+        .trim();
 
     const compactMatch = COMPACT_VIEW_PATTERN.exec(trimmed);
     if (compactMatch) {
@@ -59,10 +63,7 @@ export function coerceViewCount(raw: unknown): number {
 }
 
 /** Prefer parsed label text; fall back to numeric viewCount from youtubei. */
-export function resolveViewCount(
-    viewCount?: number | null,
-    viewCountText?: string | null,
-): number {
+export function resolveViewCount(viewCount?: number | null, viewCountText?: string | null): number {
     if (viewCountText) {
         const fromText = parseYoutubeViewCountText(viewCountText);
         if (fromText !== null && fromText > 0) {

@@ -19,9 +19,11 @@ import {
 import { mapYoutubeiVideo } from './modules/youtube/video-mapper';
 import { checkEmbeddable } from './modules/youtube/embeddable';
 import {
+    extractRendererMetadata,
     getRelatedRendererMetadata,
     getSearchRendererMetadata,
 } from './modules/youtube/renderer-metadata';
+import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
 import { resolveViewCount } from '@vkara/shared-utils';
 import { setCachedChannel } from './modules/youtube/channel-cache';
 import { enrichChannelsVerified } from './modules/youtube/channel-verified';
@@ -369,6 +371,7 @@ export const searchYoutubeiElysia = new Elysia({})
             try {
                 let results: VideoRelated | undefined;
                 let newItems: VideoCompact[] = [];
+                let relatedMetadata = extractRendererMetadata(undefined);
                 const processedVideoIds = new Set<string>();
                 const prefix = redisKeyPrefixes.RELATED;
                 const activeRelatedInstances = stateRelatedInstances || relatedInstances;
@@ -426,8 +429,13 @@ export const searchYoutubeiElysia = new Elysia({})
 
                 if (!results) {
                     logger.info(`Getting related videos for: "${videoId}"`);
-                    const video = await youtubeiClient.getVideo(videoId);
-                    if (video && video.related) {
+                    const { video, nextResponseData } = await loadVideoFromNextResponses(
+                        youtubeiClient,
+                        videoId,
+                    );
+                    relatedMetadata = extractRendererMetadata(nextResponseData);
+
+                    if (video?.related) {
                         results = video.related;
 
                         // Filter out duplicate videos and ensure we only have video items
@@ -449,11 +457,13 @@ export const searchYoutubeiElysia = new Elysia({})
                     );
                 }
 
-                const relatedMetadata = await getRelatedRendererMetadata({
-                    client: youtubeiClient,
-                    videoId: continuation ? undefined : videoId,
-                    continuation,
-                });
+                if (relatedMetadata.viewCountByVideoId.size === 0) {
+                    relatedMetadata = await getRelatedRendererMetadata({
+                        client: youtubeiClient,
+                        videoId: continuation ? undefined : videoId,
+                        continuation,
+                    });
+                }
 
                 const embeddableVideos = await Promise.all(
                     newItems.map(async (item) => {
