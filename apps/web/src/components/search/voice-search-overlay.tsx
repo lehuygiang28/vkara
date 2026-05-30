@@ -5,6 +5,7 @@ import * as ReactDOM from 'react-dom';
 import { Loader2, Mic, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
+import { useOverlayPortal } from '@/components/pages/youtube/remote-panel-overlay-root';
 import { useScopedI18n } from '@/locales/client';
 
 export type VoiceSearchOverlayProps = {
@@ -27,14 +28,12 @@ export function VoiceSearchOverlay({
     onMicPressAction: onMicPress,
 }: VoiceSearchOverlayProps) {
     const t = useScopedI18n('videoSearch');
+    const { portalTarget, positionClass } = useOverlayPortal(open);
 
     useEffect(() => {
         if (!open) {
             return;
         }
-
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
 
         const onKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
@@ -45,12 +44,11 @@ export function VoiceSearchOverlay({
         window.addEventListener('keydown', onKeyDown);
 
         return () => {
-            document.body.style.overflow = previousOverflow;
             window.removeEventListener('keydown', onKeyDown);
         };
     }, [open, onClose]);
 
-    if (!open || typeof document === 'undefined') {
+    if (!open || typeof document === 'undefined' || !portalTarget) {
         return null;
     }
 
@@ -72,7 +70,10 @@ export function VoiceSearchOverlay({
 
     return ReactDOM.createPortal(
         <div
-            className="fixed inset-0 z-[200] flex flex-col bg-[#0f0f0f] text-white"
+            className={cn(
+                positionClass,
+                'inset-0 z-[200] flex flex-col bg-[#0f0f0f] text-white',
+            )}
             role="dialog"
             aria-modal="true"
             aria-labelledby="voice-search-headline"
@@ -182,6 +183,6 @@ export function VoiceSearchOverlay({
                 </div>
             </footer>
         </div>,
-        document.body,
+        portalTarget,
     );
 }

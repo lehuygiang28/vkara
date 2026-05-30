@@ -12,6 +12,7 @@ import { NowPlayingBar } from './NowPlayingBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { RemoteJoinLobby } from './RemoteJoinLobby';
 import { RemoteTabPanel } from './RemoteTabPanel';
+import { RemotePanelOverlayProvider } from './remote-panel-overlay-root';
 import { useRemoteBottomChrome } from '@/hooks/use-remote-bottom-chrome';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -28,6 +29,7 @@ export function RemoteShell() {
     }, [currentTab, setCurrentTab]);
 
     const showJoinLobby = effectiveLayoutMode === 'remote' && !room;
+    const containOverlays = effectiveLayoutMode !== 'remote';
 
     if (showJoinLobby) {
         return (
@@ -42,13 +44,15 @@ export function RemoteShell() {
     return (
         <TooltipProvider delayDuration={400}>
             <div className="flex h-full min-h-0 flex-col">
-                <RemoteTabPanel>
-                    {currentTab === 'search' && <VideoSearch />}
-                    {currentTab === 'queue' && <VideoQueue />}
-                    {currentTab === 'history' && <VideoHistory />}
-                    {currentTab === 'controls' && <PlayerControlsTabs />}
-                    {currentTab === 'settings' && <RoomSettings />}
-                </RemoteTabPanel>
+                <RemotePanelOverlayProvider containOverlays={containOverlays}>
+                    <RemoteTabPanel>
+                        {currentTab === 'search' && <VideoSearch />}
+                        {currentTab === 'queue' && <VideoQueue />}
+                        {currentTab === 'history' && <VideoHistory />}
+                        {currentTab === 'controls' && <PlayerControlsTabs />}
+                        {currentTab === 'settings' && <RoomSettings />}
+                    </RemoteTabPanel>
+                </RemotePanelOverlayProvider>
                 <div className="mt-auto shrink-0">
                     <NowPlayingBar onOpenQueue={() => setCurrentTab('queue')} />
                     <MobileBottomNav />

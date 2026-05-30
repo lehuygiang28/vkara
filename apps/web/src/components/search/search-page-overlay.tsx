@@ -8,6 +8,7 @@ import { useDebouncedCallback } from 'use-debounce';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { VoiceSearchOverlay } from '@/components/search/voice-search-overlay';
+import { useOverlayPortal } from '@/components/pages/youtube/remote-panel-overlay-root';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
 import type { SpeechRecognitionErrorCode } from '@/hooks/use-speech-recognition';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
@@ -229,13 +230,7 @@ function SearchPageOverlayContent({
         return () => debouncedNotify.cancel();
     }, [debouncedNotify]);
 
-    useEffect(() => {
-        const previousOverflow = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => {
-            document.body.style.overflow = previousOverflow;
-        };
-    }, []);
+    const { portalTarget, positionClass } = useOverlayPortal(true);
 
     const runSearch = useCallback(
         (value: string) => {
@@ -388,7 +383,7 @@ function SearchPageOverlayContent({
         }
     }, [isSearching, stopListening]);
 
-    if (typeof document === 'undefined') {
+    if (typeof document === 'undefined' || !portalTarget) {
         return null;
     }
 
@@ -404,7 +399,7 @@ function SearchPageOverlayContent({
                 onMicPressAction={handleVoiceMicPress}
             />
             <div
-                className="fixed inset-0 z-[190] flex flex-col bg-background text-foreground"
+                className={`${positionClass} inset-0 z-[190] flex flex-col bg-background text-foreground`}
                 role="dialog"
                 aria-modal="true"
                 aria-label={t('search')}
@@ -498,7 +493,7 @@ function SearchPageOverlayContent({
                 </div>
             </div>
         </>,
-        document.body,
+        portalTarget,
     );
 }
 
