@@ -188,6 +188,7 @@ export default {
     'videoSearch.voiceError': 'Không nhận diện được giọng nói. Hãy thử lại.',
     'videoSearch.voiceNetworkError': 'Không kết nối được dịch vụ giọng nói. Kiểm tra mạng.',
     'videoSearch.voiceProcessing': 'Đang nhận diện…',
+    'videoSearch.scrollToTop': 'Lên đầu danh sách',
     'videoSearch.clearSearch': 'Xóa tìm kiếm',
     'videoSearch.search': 'Tìm kiếm',
     'videoSearch.browseEmptyTitle': 'Bắt đầu tìm kiếm',

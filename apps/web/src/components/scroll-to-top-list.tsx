@@ -1,29 +1,37 @@
 'use client';
 
 import { ChevronUp } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+
 import { cn } from '@/lib/utils';
 
-interface ScrollToTopButtonProps {
+interface ScrollToTopListButtonProps {
     show: boolean;
     onClick: () => void;
+    label: string;
 }
 
-export function ScrollToTopListButton({ show, onClick }: ScrollToTopButtonProps) {
+/** Floating control to jump to the top of a scrollable video list. */
+export function ScrollToTopListButton({ show, onClick, label }: ScrollToTopListButtonProps) {
+    if (!show) return null;
+
     return (
-        <Button
-            size="sm"
-            variant="secondary"
-            aria-hidden={!show}
-            tabIndex={show ? 0 : -1}
-            className={cn(
-                'absolute top-2 right-2 z-10 gap-2 rounded-full border bg-background/85 px-4 shadow-lg backdrop-blur-sm transition-opacity duration-200',
-                show ? 'opacity-100' : 'pointer-events-none opacity-0',
-            )}
+        <button
+            type="button"
+            aria-label={label}
+            title={label}
             onClick={onClick}
+            className={cn(
+                'absolute z-20 flex size-11 cursor-pointer items-center justify-center rounded-full',
+                'border border-border/80 bg-background/92 text-foreground',
+                'shadow-[0_2px_12px_rgba(0,0,0,0.08)] backdrop-blur-sm',
+                'right-safe-offset bottom-3',
+                'transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none',
+                'hover:bg-accent/80 active:scale-[0.96]',
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                'animate-in fade-in-0 zoom-in-95 duration-200 motion-reduce:animate-none',
+            )}
         >
-            <ChevronUp className="h-4 w-4" />
-            <span>Top</span>
-        </Button>
+            <ChevronUp className="size-5 shrink-0" strokeWidth={2} aria-hidden />
+        </button>
     );
 }

@@ -121,10 +121,14 @@ export const VideoList = memo(function VideoList({
         };
     }, []);
 
-    const scrollToTop = () => {
+    const scrollToTop = useCallback(() => {
         closeMenu();
-        scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
-    };
+        const scrollEl = scrollRef.current;
+        if (!scrollEl) return;
+
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        scrollEl.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    }, [closeMenu]);
 
     const virtualItems = virtualizer.getVirtualItems();
     const totalSize = virtualizer.getTotalSize();
@@ -207,7 +211,11 @@ export const VideoList = memo(function VideoList({
                 </VideoListActionPopover>
             ) : null}
 
-            <ScrollToTopListButton show={showScrollTop} onClick={scrollToTop} />
+            <ScrollToTopListButton
+                show={showScrollTop && !menuVideo}
+                onClick={scrollToTop}
+                label={t('scrollToTop')}
+            />
         </div>
     );
 });

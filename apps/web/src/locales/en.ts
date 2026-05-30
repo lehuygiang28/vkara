@@ -190,6 +190,7 @@ export default {
     'videoSearch.voiceError': 'Could not recognize speech. Try again.',
     'videoSearch.voiceNetworkError': 'Voice search is unavailable. Check your connection.',
     'videoSearch.voiceProcessing': 'Transcribing…',
+    'videoSearch.scrollToTop': 'Back to top',
     'videoSearch.clearSearch': 'Clear search',
     'videoSearch.search': 'Search',
     'videoSearch.browseEmptyTitle': 'Start searching',
