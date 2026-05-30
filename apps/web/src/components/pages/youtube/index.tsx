@@ -37,6 +37,7 @@ export default function YoutubePlayerPage() {
         showBottomControls,
         opacityOfButtonsInPlayer,
         setPlayer,
+        setVolume,
         nextVideo,
         setIsPlaying,
         handleServerMessage,
@@ -76,6 +77,15 @@ export default function YoutubePlayerPage() {
 
     const onPlayerReady = (event: YT.PlayerEvent) => {
         setPlayer(event.target);
+        const { room: currentRoom, volume: storedVolume } = useYouTubeStore.getState();
+        const targetVolume = Math.min(
+            100,
+            Math.max(0, currentRoom?.volume ?? storedVolume),
+        );
+        event.target.setVolume(targetVolume);
+        if (targetVolume !== storedVolume) {
+            setVolume(targetVolume);
+        }
     };
 
     const onPlayerStateChange = (event: YT.PlayerEvent) => {
@@ -146,6 +156,7 @@ export default function YoutubePlayerPage() {
                             playerVars: {
                                 autoplay: 1,
                                 controls: 1,
+                                playsinline: 1,
                                 cc_load_policy: 0,
                                 iv_load_policy: 3,
                                 origin: 'https://youtube.com',
