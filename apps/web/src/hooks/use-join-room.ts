@@ -33,6 +33,7 @@ export function useJoinRoom() {
                 resetJoinFormState();
             } else {
                 toast({
+                    id: 'invalid-room-id',
                     title: t('invalidRoomId'),
                     description: t('roomIdMustBe4Digits'),
                     variant: 'error',
@@ -47,6 +48,7 @@ export function useJoinRoom() {
             const parsed = parseRoomFromScan(text);
             if (!parsed) {
                 toast({
+                    id: 'invalid-room-id',
                     title: t('invalidRoomId'),
                     description: t('roomIdMustBe4Digits'),
                     variant: 'error',

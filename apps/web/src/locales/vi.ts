@@ -82,6 +82,7 @@ export default {
     'youtubePage.seekTo': 'Nhảy tới',
     'youtubePage.controls': 'Điều khiển',
     'youtubePage.queue': 'Danh sách',
+    'youtubePage.queueBadgeLabel': 'Hàng chờ, {count} bài',
     'youtubePage.nowPlaying': 'Đang phát',
     'youtubePage.nowPlayingStatus2': 'Hát mạnh lên',
     'youtubePage.nowPlayingStatus3': 'Nhạc đang căng',

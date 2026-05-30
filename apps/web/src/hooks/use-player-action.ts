@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { shouldBroadcastPlaybackTime, type PlaybackTimeSyncState } from '@vkara/shared-types';
-import { toast } from '@/hooks/use-toast';
+import { toast, toastFeedback } from '@/hooks/use-toast';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -29,6 +29,11 @@ export type PlayerAction = {
 const CREATE_ROOM_TIMEOUT_MS = 15000;
 const ACTION_COOLDOWN_MS = 600;
 
+function truncateVideoTitle(title: string, max = 52): string {
+    if (title.length <= max) return title;
+    return `${title.slice(0, max - 1)}…`;
+}
+
 export const usePlayerAction = (): PlayerAction => {
     const t = useI18n();
     const tJoinLobby = useScopedI18n('joinLobby');
@@ -52,11 +57,21 @@ export const usePlayerAction = (): PlayerAction => {
         actionCooldownRef.current.set(key, Date.now() + ACTION_COOLDOWN_MS);
     }, []);
 
+    const notifySessionNotReady = useCallback(() => {
+        toast({
+            id: 'session-not-ready',
+            title: t('toast.sessionNotReady'),
+            description: t('toast.sessionNotReadyDescription'),
+            variant: 'error',
+        });
+    }, [t]);
+
     const createRoomIfNeeded = useCallback(async (): Promise<boolean> => {
         if (room?.id) return true;
 
         if (effectiveLayoutMode === 'remote') {
             toast({
+                id: 'join-required',
                 title: tJoinLobby('joinRequiredTitle'),
                 description: tJoinLobby('joinRequiredDescription'),
                 variant: 'error',
@@ -86,42 +101,35 @@ export const usePlayerAction = (): PlayerAction => {
             ]);
             return true;
         } catch {
-            toast({
-                title: t('toast.sessionNotReady'),
-                description: t('toast.sessionNotReadyDescription'),
-                variant: 'error',
-            });
+            notifySessionNotReady();
             return false;
         }
-    }, [room?.id, effectiveLayoutMode, ensureConnectedAndSend, tJoinLobby, t]);
+    }, [room?.id, effectiveLayoutMode, ensureConnectedAndSend, tJoinLobby, notifySessionNotReady]);
 
     const ensureRoomReady = useCallback(async (): Promise<boolean> => {
         if (room?.id) {
             if (!(await waitForRoomSession())) {
-                toast({
-                    title: t('toast.sessionNotReady'),
-                    description: t('toast.sessionNotReadyDescription'),
-                    variant: 'error',
-                });
+                notifySessionNotReady();
                 return false;
             }
             return true;
         }
 
         return createRoomIfNeeded();
-    }, [room?.id, waitForRoomSession, createRoomIfNeeded, t]);
+    }, [room?.id, waitForRoomSession, createRoomIfNeeded, notifySessionNotReady]);
 
     const handlePlayVideoNow = useCallback(
         async (video: YouTubeVideo) => {
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'playNow', video });
-            toast({
+            toastFeedback({
+                id: 'action-play-now',
                 title: t('toast.playNowHandler'),
-                description: video.title,
+                description: truncateVideoTitle(video.title),
                 variant: 'info',
             });
         },
-        [ensureConnectedAndSend, t, ensureRoomReady],
+        [ensureConnectedAndSend, ensureRoomReady, t],
     );
 
     const handleAddVideoToQueue = useCallback(
@@ -132,25 +140,20 @@ export const usePlayerAction = (): PlayerAction => {
 
             markActionCooldown(cooldownKey);
             ensureConnectedAndSend({ type: 'addVideo', video });
-            toast({
+            toastFeedback({
+                id: 'action-add-queue',
                 title: t('toast.addVideoHandler'),
-                description: video.title,
-                variant: 'success',
+                description: truncateVideoTitle(video.title),
             });
         },
-        [
-            ensureRoomReady,
-            ensureConnectedAndSend,
-            t,
-            isActionCoolingDown,
-            markActionCooldown,
-        ],
+        [ensureRoomReady, ensureConnectedAndSend, t, isActionCoolingDown, markActionCooldown],
     );
 
     const handlePlayNextVideo = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'nextVideo' });
-        toast({
+        toastFeedback({
+            id: 'action-next-video',
             title: t('toast.nextVideoHandler'),
             variant: 'info',
         });
@@ -159,13 +162,11 @@ export const usePlayerAction = (): PlayerAction => {
     const handleRemoveVideoFromQueue = useCallback(
         async (video: YouTubeVideo) => {
             if (!(await ensureRoomReady())) return;
-
             ensureConnectedAndSend({ type: 'removeVideoFromQueue', videoId: video.id });
-
-            toast({
+            toastFeedback({
+                id: 'action-remove-queue',
                 title: t('toast.removeVideoHandler'),
-                description: video.title,
-                variant: 'success',
+                description: truncateVideoTitle(video.title),
             });
         },
         [ensureRoomReady, ensureConnectedAndSend, t],
@@ -186,29 +187,17 @@ export const usePlayerAction = (): PlayerAction => {
     const handlePlayerPlay = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'play' });
-        toast({
-            title: t('youtubePage.play'),
-            variant: 'success',
-        });
-    }, [ensureRoomReady, ensureConnectedAndSend, t]);
+    }, [ensureRoomReady, ensureConnectedAndSend]);
 
     const handlePlayerPause = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'pause' });
-        toast({
-            title: t('youtubePage.pause'),
-            variant: 'success',
-        });
-    }, [ensureRoomReady, ensureConnectedAndSend, t]);
+    }, [ensureRoomReady, ensureConnectedAndSend]);
 
     const handleReplayVideo = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'replay' });
-        toast({
-            title: t('youtubePage.replay'),
-            variant: 'info',
-        });
-    }, [ensureRoomReady, ensureConnectedAndSend, t]);
+    }, [ensureRoomReady, ensureConnectedAndSend]);
 
     const handleSeekToSeconds = useCallback(
         async (seconds: number) => {
@@ -227,22 +216,18 @@ export const usePlayerAction = (): PlayerAction => {
 
             lastSeekSentRef.current = { at: Date.now(), seconds };
             ensureConnectedAndSend({ type: 'seek', time: seconds });
-            toast({
-                title: `${t('youtubePage.seekTo')} ${seconds}s`,
-                variant: 'info',
-            });
         },
-        [ensureRoomReady, ensureConnectedAndSend, t],
+        [ensureRoomReady, ensureConnectedAndSend],
     );
 
     const handleMoveVideoToTop = useCallback(
         async (video: YouTubeVideo) => {
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'moveToTop', videoId: video.id });
-            toast({
+            toastFeedback({
+                id: 'action-move-top',
                 title: t('toast.moveVideoToTopHandler'),
-                description: video.title,
-                variant: 'success',
+                description: truncateVideoTitle(video.title),
             });
         },
         [ensureRoomReady, ensureConnectedAndSend, t],
@@ -251,7 +236,8 @@ export const usePlayerAction = (): PlayerAction => {
     const handleShuffleQueue = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'shuffleQueue' });
-        toast({
+        toastFeedback({
+            id: 'action-shuffle',
             title: t('toast.shuffleQueueHandler'),
             variant: 'info',
         });
@@ -260,19 +246,18 @@ export const usePlayerAction = (): PlayerAction => {
     const handleClearQueue = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'clearQueue' });
-        toast({
+        toastFeedback({
+            id: 'action-clear-queue',
             title: t('toast.clearQueueHandler'),
-            variant: 'success',
         });
     }, [ensureRoomReady, ensureConnectedAndSend, t]);
 
     const handleClearHistory = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'clearHistory' });
-
-        toast({
+        toastFeedback({
+            id: 'action-clear-history',
             title: t('toast.clearHistoryHandler'),
-            variant: 'success',
         });
     }, [ensureRoomReady, ensureConnectedAndSend, t]);
 
@@ -284,27 +269,26 @@ export const usePlayerAction = (): PlayerAction => {
 
             markActionCooldown(cooldownKey);
             ensureConnectedAndSend({ type: 'addVideoAndMoveToTop', video });
-            toast({
+            toastFeedback({
+                id: 'action-add-next',
                 title: t('toast.addVideoAndMoveToTopHandler'),
-                description: video.title,
-                variant: 'success',
+                description: truncateVideoTitle(video.title),
             });
         },
-        [
-            ensureRoomReady,
-            ensureConnectedAndSend,
-            t,
-            isActionCoolingDown,
-            markActionCooldown,
-        ],
+        [ensureRoomReady, ensureConnectedAndSend, t, isActionCoolingDown, markActionCooldown],
     );
 
     const handleImportPlaylist = useCallback(
         async (playlistUrlOrId: string) => {
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'importPlaylist', playlistUrlOrId });
+            toastFeedback({
+                id: 'action-import-playlist',
+                title: t('toast.importPlaylistHandler'),
+                variant: 'info',
+            });
         },
-        [ensureRoomReady, ensureConnectedAndSend],
+        [ensureRoomReady, ensureConnectedAndSend, t],
     );
 
     return {

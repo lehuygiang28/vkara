@@ -22,14 +22,26 @@ export function RemoteShell() {
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
     useRemoteBottomChrome(Boolean(room?.playingNow));
 
+    const showJoinLobby = effectiveLayoutMode === 'remote' && !room;
+    const containOverlays = effectiveLayoutMode !== 'remote';
+
     useEffect(() => {
         if (currentTab === 'related') {
             setCurrentTab('search');
         }
     }, [currentTab, setCurrentTab]);
 
-    const showJoinLobby = effectiveLayoutMode === 'remote' && !room;
-    const containOverlays = effectiveLayoutMode !== 'remote';
+    useEffect(() => {
+        const root = document.documentElement;
+        if (showJoinLobby) {
+            root.dataset.vkaraRemoteChrome = 'none';
+        } else {
+            root.dataset.vkaraRemoteChrome = 'full';
+        }
+        return () => {
+            delete root.dataset.vkaraRemoteChrome;
+        };
+    }, [showJoinLobby]);
 
     if (showJoinLobby) {
         return (

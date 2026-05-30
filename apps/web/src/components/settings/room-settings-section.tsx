@@ -34,7 +34,7 @@ import { useJoinRoom } from '@/hooks/use-join-room';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { toast } from '@/hooks/use-toast';
+import { toast, toastCopied } from '@/hooks/use-toast';
 import { generateShareableUrl } from '@/lib/room-share';
 import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { resolveRoomPasswordForShare, ROOM_ID_LENGTH } from '@vkara/shared-utils';
@@ -83,6 +83,7 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
         (value: string) => {
             if (!room?.id) {
                 toast({
+                    id: 'session-not-ready',
                     title: t('toast.sessionNotReady'),
                     description: t('toast.sessionNotReadyDescription'),
                     variant: 'error',
@@ -178,7 +179,7 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                             size="icon"
                                             onClick={() => {
                                                 navigator.clipboard.writeText(room.password || '');
-                                                toast({ title: tRoom('copyPasswordSuccess') });
+                                                toastCopied(tRoom('copyPasswordSuccess'));
                                             }}
                                             className="ml-2"
                                             aria-label="Copy password"
@@ -217,7 +218,7 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                         size="icon"
                                         onClick={() => {
                                             navigator.clipboard.writeText(shareableUrl);
-                                            toast({ title: tRoom('copyUrlSuccess') });
+                                            toastCopied(tRoom('copyUrlSuccess'));
                                         }}
                                         className="ml-2"
                                         aria-label="Copy URL"

@@ -12,6 +12,8 @@
     --vkara-now-playing-height: 0rem;
     --vkara-toast-gap: 0.5rem;
     --vkara-toast-top: max(calc(var(--safe-top) + 0.75rem), 0.75rem);
+    --vkara-toast-bottom-base: max(calc(var(--safe-bottom) + 0.75rem), 0.75rem);
+    --vkara-toast-bottom: var(--vkara-toast-bottom-base);
     /** Nav block height including pb-safe-offset (home indicator) */
     --vkara-mobile-nav-block: calc(
         var(--vkara-mobile-nav-height) + max(calc(var(--safe-bottom) + 0.25rem), 0.25rem)
@@ -24,6 +26,10 @@
     --vkara-remote-scroll-bottom: calc(
         var(--vkara-mobile-nav-block) + var(--vkara-now-playing-height) + 0.75rem
     );
+}
+
+html[data-vkara-remote-chrome='full'] {
+    --vkara-toast-bottom: calc(var(--vkara-remote-floating-bottom) + 0.25rem);
 }
 
 @keyframes voice-ring-pulse {

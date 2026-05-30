@@ -114,7 +114,7 @@ export function VideoSearch() {
                 description = t('voiceNetworkError');
             }
 
-            toast({ title: description, variant: 'error' });
+            toast({ id: 'voice-search-error', title: description, variant: 'error' });
         },
         [t],
     );

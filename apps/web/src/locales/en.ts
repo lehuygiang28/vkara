@@ -68,6 +68,7 @@ export default {
     'youtubePage.seekTo': 'Seek to',
     'youtubePage.controls': 'Controls',
     'youtubePage.queue': 'Queue',
+    'youtubePage.queueBadgeLabel': 'Queue, {count} songs',
     'youtubePage.nowPlaying': 'Now playing',
     'youtubePage.nowPlayingStatus2': 'Sing along',
     'youtubePage.nowPlayingStatus3': 'Enjoy the beat',

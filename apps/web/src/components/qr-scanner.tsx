@@ -84,6 +84,7 @@ export function QRScanner({ onScan, buttonClassName = '' }: QRScannerProps) {
             if (err instanceof DOMException && err.name === 'NotAllowedError') {
                 setError(t('permissionDenied'));
                 toast({
+                    id: 'qr-camera-permission',
                     title: t('cameraError'),
                     description: t('permissionDenied'),
                     variant: 'error',
@@ -91,6 +92,7 @@ export function QRScanner({ onScan, buttonClassName = '' }: QRScannerProps) {
             } else {
                 setError(t('genericError'));
                 toast({
+                    id: 'qr-camera-error',
                     title: t('cameraError'),
                     description: t('genericError'),
                     variant: 'error',

@@ -160,6 +160,7 @@ export const useYouTubeStore = create(
                     case 'roomClosed':
                         set({ room: null });
                         toast({
+                            id: 'room-closed',
                             title: t('roomClosed'),
                             description: t('roomClosedDescription'),
                             variant: 'error',
@@ -168,6 +169,7 @@ export const useYouTubeStore = create(
                     case 'roomNotFound':
                         set({ room: null });
                         toast({
+                            id: 'room-not-found',
                             title: t('roomNotFound'),
                             description: t('roomNotFoundDescription'),
                             variant: 'error',
@@ -257,6 +259,7 @@ export const useYouTubeStore = create(
                                 case ErrorCode.ROOM_NOT_FOUND:
                                     set({ room: null });
                                     toast({
+                                        id: 'room-not-found',
                                         title: t('roomNotFound'),
                                         description: t('roomNotFoundDescription'),
                                         variant: 'error',
@@ -264,6 +267,7 @@ export const useYouTubeStore = create(
                                     break;
                                 case ErrorCode.NOT_IN_ROOM:
                                     toast({
+                                        id: 'session-not-ready',
                                         title: t('sessionNotReady'),
                                         description: t('sessionNotReadyDescription'),
                                         variant: 'error',
@@ -271,6 +275,7 @@ export const useYouTubeStore = create(
                                     break;
                                 case ErrorCode.INCORRECT_PASSWORD:
                                     toast({
+                                        id: 'incorrect-password',
                                         title: t('incorrectPassword'),
                                         description: t('incorrectPasswordDescription'),
                                         variant: 'error',
@@ -278,6 +283,7 @@ export const useYouTubeStore = create(
                                     break;
                                 case ErrorCode.ALREADY_IN_QUEUE:
                                     toast({
+                                        id: 'already-in-queue',
                                         title: t('alreadyInQueue'),
                                         description: t('alreadyInQueueDescription'),
                                         variant: 'warning',
@@ -285,6 +291,7 @@ export const useYouTubeStore = create(
                                     break;
                                 case ErrorCode.VIDEO_NOT_EMBEDDABLE:
                                     toast({
+                                        id: 'video-not-embeddable',
                                         title: t('videoNotEmbeddable'),
                                         description: t('videoNotEmbeddableDescription'),
                                         variant: 'error',

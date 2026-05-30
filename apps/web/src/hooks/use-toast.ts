@@ -10,20 +10,31 @@ export interface ToastInput {
     description?: ReactNode;
     variant?: ToastVariant;
     duration?: number;
+    /** Stable id — replaces an existing toast with the same id (dedupe). */
+    id?: string;
+    /** Show dismiss control (default: errors/warnings only). */
+    closeButton?: boolean;
 }
 
 function defaultDuration(variant?: ToastVariant | null): number {
     switch (variant) {
         case 'destructive':
         case 'error':
-            return 7000;
+            return 6500;
         case 'warning':
-            return 6000;
+            return 5500;
         case 'success':
+            return 2200;
+        case 'info':
             return 2800;
         default:
-            return 3500;
+            return 2600;
     }
+}
+
+function shouldShowCloseButton(variant?: ToastVariant | null, explicit?: boolean): boolean {
+    if (explicit != null) return explicit;
+    return variant === 'error' || variant === 'destructive' || variant === 'warning';
 }
 
 function toSonnerOptions(input: ToastInput): ExternalToast {
@@ -33,17 +44,18 @@ function toSonnerOptions(input: ToastInput): ExternalToast {
             : undefined;
 
     return {
+        id: input.id,
         description,
         duration: input.duration ?? defaultDuration(input.variant),
+        closeButton: shouldShowCloseButton(input.variant, input.closeButton),
+        dismissible: true,
     };
 }
 
-/** App toast API — backed by Sonner (single visible toast, auto-dismiss). */
+/** App toast API — Sonner-backed, deduped by id, no global dismiss. */
 function toast(input: ToastInput) {
     const message = input.title != null ? String(input.title) : '';
     const options = toSonnerOptions(input);
-
-    sonner.dismiss();
 
     switch (input.variant) {
         case 'success':
@@ -60,4 +72,39 @@ function toast(input: ToastInput) {
     }
 }
 
-export { toast };
+/** Brief copy-to-clipboard feedback — no description, short duration. */
+function toastCopied(title: ReactNode) {
+    return toast({
+        title,
+        variant: 'success',
+        duration: 1800,
+        id: 'clipboard-copy',
+    });
+}
+
+/** Compact action feedback — short toast + light haptic on touch devices. */
+function toastFeedback(input: {
+    title: ReactNode;
+    description?: ReactNode;
+    variant?: 'success' | 'info';
+    id?: string;
+}) {
+    try {
+        if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
+            navigator.vibrate(12);
+        }
+    } catch {
+        // Vibration unavailable or blocked.
+    }
+
+    return toast({
+        title: input.title,
+        description: input.description,
+        variant: input.variant ?? 'success',
+        duration: 2000,
+        id: input.id ?? 'action-feedback',
+        closeButton: false,
+    });
+}
+
+export { toast, toastCopied, toastFeedback };
