@@ -375,7 +375,7 @@ export const VideoSearchInput = memo(function VideoSearchInput({
                         <div className={searchFieldClassName}>
                             <input
                                 ref={inputRef}
-                                type="search"
+                                type="text"
                                 role="combobox"
                                 inputMode="search"
                                 enterKeyHint="search"
