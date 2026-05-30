@@ -1,3 +1,26 @@
+/** >1080p (1440p/4K when available); YouTube may downgrade based on bandwidth. */
+export const PREFERRED_PLAYBACK_QUALITY: YT.SuggestedVideoQuality = 'highres';
+
+/** Request highest quality so YouTube can auto-adjust downward. */
+export function applyPreferredPlaybackQuality(player: YT.Player): void {
+    if (typeof player.setPlaybackQuality !== 'function') {
+        return;
+    }
+
+    const levels = player.getAvailableQualityLevels?.() ?? [];
+    if (levels.length === 0 || levels.includes(PREFERRED_PLAYBACK_QUALITY)) {
+        player.setPlaybackQuality(PREFERRED_PLAYBACK_QUALITY);
+        return;
+    }
+
+    if (levels.includes('hd1080')) {
+        player.setPlaybackQuality('hd1080');
+        return;
+    }
+
+    player.setPlaybackQuality(PREFERRED_PLAYBACK_QUALITY);
+}
+
 /** Embed is playing or loading — not a settled pause. */
 export function isYoutubeActivelyPlaying(state: number): boolean {
     return state === YT.PlayerState.PLAYING || state === YT.PlayerState.BUFFERING;

@@ -15,7 +15,11 @@ import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
-import { isServerPlaybackEcho, isYoutubePlaybackIntentState } from '@/lib/youtube-playback-sync';
+import {
+    applyPreferredPlaybackQuality,
+    isServerPlaybackEcho,
+    isYoutubePlaybackIntentState,
+} from '@/lib/youtube-playback-sync';
 import { isVideoLive } from '@/lib/youtube-video';
 
 import { CountdownTimer } from '@/components/countdown-timer';
@@ -86,6 +90,7 @@ export default function YoutubePlayerPage() {
         const { room: currentRoom, volume: storedVolume } = useYouTubeStore.getState();
         const targetVolume = Math.min(100, Math.max(0, currentRoom?.volume ?? storedVolume));
         event.target.setVolume(targetVolume);
+        applyPreferredPlaybackQuality(event.target);
         if (targetVolume !== storedVolume) {
             setVolume(targetVolume);
         }
@@ -111,6 +116,7 @@ export default function YoutubePlayerPage() {
         }
 
         if (playerState === YT.PlayerState.PLAYING) {
+            applyPreferredPlaybackQuality(event.target);
             cancelCountdown();
         }
 
