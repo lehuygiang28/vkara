@@ -1,5 +1,4 @@
 import type { ElysiaWS } from 'elysia/ws';
-import youtubeSr from 'youtube-sr';
 
 import {
     cleanUpRoomField,
@@ -21,6 +20,7 @@ import {
 } from '@vkara/shared-types';
 import { publishToRoom } from '@/modules/room/room-broadcast';
 import { checkEmbeddable, checkEmbeddableMany } from '@/modules/youtube/embeddable';
+import { fetchYoutubePlaylistVideos } from '@/modules/youtube/fetch-playlist-videos';
 import { redis } from '@/redis';
 import {
     isVideoAlreadyInRoom,
@@ -413,14 +413,28 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     async function importPlaylist(ws: ElysiaWS, playlistUrlOrId: string) {
         const roomId = await validateClientInRoom(ws);
 
-        if (!playlistUrlOrId.startsWith('http') && !playlistUrlOrId.includes('youtube.com')) {
-            playlistUrlOrId = `https://www.youtube.com/playlist?list=${playlistUrlOrId}&playnext=1`;
+        let videos;
+        try {
+            videos = await fetchYoutubePlaylistVideos(playlistUrlOrId, {
+                fetchAll: true,
+                limit: 200,
+            });
+        } catch (error) {
+            serviceLogger.error('Import playlist failed', { error, playlistUrlOrId });
+            throw new RoomError(
+                ErrorCode.INVALID_MESSAGE,
+                'Could not load playlist. Check the URL and try again.',
+            );
         }
-        const url = new URL(playlistUrlOrId);
-        url.searchParams.set('playnext', '1');
 
-        const results = await youtubeSr.getPlaylist(url.toString(), { fetchAll: true, limit: 200 });
-        const videoCandidates = results.videos.map(cleanUpVideoField);
+        if (videos.length === 0) {
+            throw new RoomError(
+                ErrorCode.VIDEO_NOT_FOUND,
+                'Playlist is empty or could not be loaded.',
+            );
+        }
+
+        const videoCandidates = videos.map(cleanUpVideoField);
         const embedResults = await checkEmbeddableMany(videoCandidates.map((video) => video.id));
         const embeddableIds = new Set(
             embedResults.filter((result) => result.canEmbed).map((result) => result.videoId),

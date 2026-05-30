@@ -5,4 +5,5 @@ export * from './personalization';
 export * from './room';
 export * from './url';
 export * from './youtube-id';
+export * from './youtube-playlist-url';
 export * from './youtube-live';

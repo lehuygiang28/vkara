@@ -28,6 +28,7 @@ import {
 } from './modules/youtube/fetch-search-page';
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
 import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
+import { fetchYoutubePlaylistVideos } from './modules/youtube/fetch-playlist-videos';
 
 const logger = createContextLogger('Search-Youtubei');
 const youtubeiLogger = createContextLogger('Queue/Youtubei');
@@ -196,15 +197,8 @@ export const searchYoutubeiElysia = new Elysia({})
     .post(
         '/playlist',
         async ({ body: { playlistUrlOrId } }): Promise<YouTubeVideo[]> => {
-            if (!playlistUrlOrId.startsWith('http') && !playlistUrlOrId.includes('youtube.com')) {
-                playlistUrlOrId = `https://www.youtube.com/playlist?list=${playlistUrlOrId}&playnext=1`;
-            }
-
-            const url = new URL(playlistUrlOrId);
-            url.searchParams.set('playnext', '1');
-
-            const results = await youtube.getPlaylist(url.toString(), { fetchAll: true });
-            return results.videos.map(cleanUpVideoField);
+            const results = await fetchYoutubePlaylistVideos(playlistUrlOrId, { fetchAll: true });
+            return results.map(cleanUpVideoField);
         },
         {
             body: t.Object({
