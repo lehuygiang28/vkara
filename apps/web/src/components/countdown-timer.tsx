@@ -29,8 +29,34 @@ export function CountdownTimer({
     } = useCountdownStore();
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const onCompleteRef = useRef(onCountdownComplete);
 
     useEffect(() => {
+        onCompleteRef.current = onCountdownComplete;
+        setOnComplete(() => onCompleteRef.current());
+    }, [onCountdownComplete, setOnComplete]);
+
+    useEffect(() => {
+        if (!show || !shouldShowTimer) {
+            return;
+        }
+
+        startCountdown(initialSeconds);
+
+        timerRef.current = setInterval(() => {
+            setRemainingSeconds((prev: number) => {
+                if (prev <= 1) {
+                    if (timerRef.current) {
+                        clearInterval(timerRef.current);
+                        timerRef.current = null;
+                    }
+                    completeCountdown();
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+
         return () => {
             if (timerRef.current) {
                 clearInterval(timerRef.current);
@@ -38,37 +64,14 @@ export function CountdownTimer({
             }
             cancelCountdown();
         };
-    }, [cancelCountdown]);
-
-    useEffect(() => {
-        if (show && shouldShowTimer && !isActive) {
-            startCountdown(initialSeconds);
-            setOnComplete(onCountdownComplete);
-
-            timerRef.current = setInterval(() => {
-                setRemainingSeconds((prev: number) => {
-                    if (prev <= 1) {
-                        if (timerRef.current) {
-                            clearInterval(timerRef.current);
-                            timerRef.current = null;
-                        }
-                        completeCountdown();
-                        return 0;
-                    }
-                    return prev - 1;
-                });
-            }, 1000);
-        }
     }, [
         show,
         shouldShowTimer,
-        isActive,
         initialSeconds,
         startCountdown,
         setRemainingSeconds,
-        setOnComplete,
-        onCountdownComplete,
         completeCountdown,
+        cancelCountdown,
     ]);
 
     if (!isActive || !shouldShowTimer || !show) return null;

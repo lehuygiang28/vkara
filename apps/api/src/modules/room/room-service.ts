@@ -25,6 +25,7 @@ import {
     filterEmbeddableVideos,
     resolveNextEmbeddableFromQueue,
 } from '@/modules/youtube/resolve-embeddable-queue';
+import { mergeQueueAfterAdvance } from '@/modules/room/merge-queue-after-advance';
 import { redis } from '@/redis';
 import {
     isVideoAlreadyInRoom,
@@ -73,6 +74,9 @@ async function roomIdExists(roomId: string): Promise<boolean> {
 
 /** Throttles currentTime WS spam per room. */
 const lastPlaybackBroadcastByRoom = new Map<string, PlaybackTimeSyncState>();
+
+/** Coalesces concurrent advance/skip requests per room. */
+const advanceInFlightByRoom = new Map<string, Promise<void>>();
 
 export function createRoomService({ wsConnections, sendToClient }: RoomServiceDeps) {
     async function leaveCurrentRoom(ws: ElysiaWS) {
@@ -256,38 +260,63 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         ws: ElysiaWS,
         options: { archiveCurrent?: boolean } = {},
     ): Promise<void> {
-        const archiveCurrent = options.archiveCurrent ?? true;
         const roomId = await validateClientInRoom(ws);
-        const snapshot = await requireRoom(roomId);
+        const inFlight = advanceInFlightByRoom.get(roomId);
+        if (inFlight) {
+            return inFlight;
+        }
 
-        const { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
-            snapshot.videoQueue,
-        );
+        const advancePromise = (async () => {
+            const archiveCurrent = options.archiveCurrent ?? true;
+            const snapshot = await requireRoom(roomId);
 
-        const room = await mutateRoom(roomId, (room) => {
-            if (archiveCurrent && room.playingNow?.id) {
-                room.historyQueue = [
-                    room.playingNow,
-                    ...room.historyQueue.filter((v) => v.id !== room.playingNow!.id),
-                ];
+            if (!snapshot.playingNow && snapshot.videoQueue.length === 0) {
+                return;
             }
 
-            room.videoQueue = remainingQueue;
+            const snapshotQueue = snapshot.videoQueue;
+            const { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
+                snapshotQueue,
+            );
 
-            if (nextPlayable) {
-                room.playingNow = nextPlayable;
-                room.isPlaying = true;
-                room.currentTime = 0;
-            } else {
-                room.playingNow = null;
-                room.isPlaying = false;
-                room.currentTime = 0;
+            const room = await mutateRoom(roomId, (room) => {
+                if (archiveCurrent && room.playingNow?.id) {
+                    room.historyQueue = [
+                        room.playingNow,
+                        ...room.historyQueue.filter((v) => v.id !== room.playingNow!.id),
+                    ];
+                }
+
+                room.videoQueue = mergeQueueAfterAdvance(
+                    snapshotQueue,
+                    remainingQueue,
+                    room.videoQueue,
+                );
+
+                if (nextPlayable) {
+                    room.playingNow = nextPlayable;
+                    room.isPlaying = true;
+                    room.currentTime = 0;
+                } else {
+                    room.playingNow = null;
+                    room.isPlaying = false;
+                    room.currentTime = 0;
+                }
+
+                lastPlaybackBroadcastByRoom.delete(roomId);
+            });
+
+            broadcastRoomState(roomId, room);
+        })();
+
+        advanceInFlightByRoom.set(roomId, advancePromise);
+        try {
+            await advancePromise;
+        } finally {
+            if (advanceInFlightByRoom.get(roomId) === advancePromise) {
+                advanceInFlightByRoom.delete(roomId);
             }
-
-            lastPlaybackBroadcastByRoom.delete(roomId);
-        });
-
-        broadcastRoomState(roomId, room);
+        }
     }
 
     async function nextVideo(ws: ElysiaWS) {
@@ -439,6 +468,10 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         }
 
         const room = await mutateRoom(roomId, (room) => {
+            if (room.playingNow?.id === video.id) {
+                return;
+            }
+
             if (isVideoAlreadyInRoom(room, video.id)) {
                 room.videoQueue = room.videoQueue.filter((v) => v.id !== video.id);
             }

@@ -68,13 +68,20 @@ export default function YoutubePlayerPage() {
     );
     const prevLayoutMode = useRef(effectiveLayoutMode);
     const skippedUnplayableRef = useRef<string | null>(null);
+    const endedForVideoIdRef = useRef<string | null>(null);
 
     useStripRoomQueryFromUrl();
 
     const { ensureConnectedAndSend, lastMessage } = useWebSocket();
+    const { reset: resetCountdown } = useCountdownStore();
 
     // No-op unless ENABLE_PERIODIC_PLAYBACK_SYNC — avoids polling getCurrentTime every second.
     usePlaybackPositionSync();
+
+    useEffect(() => {
+        resetCountdown();
+        endedForVideoIdRef.current = null;
+    }, [room?.playingNow?.id, resetCountdown]);
 
     useEffect(() => {
         if (lastMessage) {
@@ -127,9 +134,11 @@ export default function YoutubePlayerPage() {
 
         if (playerState === YT.PlayerState.ENDED) {
             const current = useYouTubeStore.getState().room?.playingNow;
-            if (!current || !isVideoLive(current)) {
-                setShouldShowTimer(true);
+            if (!current || isVideoLive(current)) {
+                return;
             }
+            endedForVideoIdRef.current = current.id;
+            setShouldShowTimer(true);
         }
     };
 
@@ -160,7 +169,18 @@ export default function YoutubePlayerPage() {
     }, [room?.playingNow?.id]);
 
     const handleVideoFinished = () => {
-        if (room) {
+        const currentRoom = useYouTubeStore.getState().room;
+        const endedForId = endedForVideoIdRef.current;
+
+        if (!endedForId || currentRoom?.playingNow?.id !== endedForId) {
+            cancelCountdown();
+            endedForVideoIdRef.current = null;
+            return;
+        }
+
+        endedForVideoIdRef.current = null;
+
+        if (currentRoom) {
             ensureConnectedAndSend({ type: 'videoFinished' });
         } else {
             nextVideo();

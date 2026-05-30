@@ -38,15 +38,12 @@ export const useCountdownStore = create<CountdownStore>((set, get) => ({
     },
 
     cancelCountdown: () => {
-        const state = get();
-        if (state.isActive) {
-            set({
-                isActive: false,
-                isCancelled: true,
-                remainingSeconds: 0,
-                shouldShowTimer: false,
-            });
-        }
+        set({
+            isActive: false,
+            isCancelled: true,
+            remainingSeconds: 0,
+            shouldShowTimer: false,
+        });
     },
 
     completeCountdown: () => {
