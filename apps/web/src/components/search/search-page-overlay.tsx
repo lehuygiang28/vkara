@@ -1,7 +1,7 @@
 'use client';
 
-import { memo, useCallback, useEffect, useId, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import * as ReactDOM from 'react-dom';
 import { ArrowUpLeft, ChevronLeft, Clock, Loader2, Mic, Search, X } from 'lucide-react';
 import { useDebouncedCallback } from 'use-debounce';
 
@@ -13,6 +13,18 @@ import type { SpeechRecognitionErrorCode } from '@/hooks/use-speech-recognition'
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 
 const SUGGESTION_DEBOUNCE_MS = 320;
+
+function focusSearchInput(input: HTMLInputElement | null) {
+    if (!input) return;
+    input.focus({ preventScroll: true });
+    if (input.value.length === 0) return;
+    try {
+        const length = input.value.length;
+        input.setSelectionRange(length, length);
+    } catch {
+        // Some browsers reject selection until the input is focused.
+    }
+}
 
 export type SearchPageOverlayProps = {
     open: boolean;
@@ -166,8 +178,10 @@ function SuggestionPanel({
 
 const MemoSuggestionPanel = memo(SuggestionPanel);
 
-export function SearchPageOverlay({
-    open,
+type SearchPageOverlayContentProps = Omit<SearchPageOverlayProps, 'open'>;
+
+/** Mounted only while the search overlay is open — keeps voice hooks and DOM idle when closed. */
+function SearchPageOverlayContent({
     initialQuery,
     committedQuery,
     suggestions,
@@ -179,13 +193,13 @@ export function SearchPageOverlay({
     onClearSuggestionsAction: onClearSuggestions,
     onRemoveLocalSuggestionAction: onRemoveLocalSuggestion,
     onSearchAction: onSearch,
-}: SearchPageOverlayProps) {
+}: SearchPageOverlayContentProps) {
     const t = useScopedI18n('videoSearch');
     const locale = useCurrentLocale();
     const listId = useId();
     const inputRef = useRef<HTMLInputElement>(null);
-    const resolvedInitialQuery = initialQuery !== undefined ? initialQuery : committedQuery;
-    const [draft, setDraft] = useState(resolvedInitialQuery);
+    const openingQuery = (initialQuery !== undefined ? initialQuery : committedQuery).trim();
+    const [draft, setDraft] = useState(openingQuery);
     const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
     const [overlayTranscript, setOverlayTranscript] = useState('');
     const useWhisperEngineRef = useRef(false);
@@ -194,37 +208,34 @@ export function SearchPageOverlay({
         onDebouncedQuery(value);
     }, SUGGESTION_DEBOUNCE_MS);
 
-    useEffect(() => {
-        if (!open) return;
-        setDraft(initialQuery !== undefined ? initialQuery : committedQuery);
-    }, [open, initialQuery, committedQuery]);
+    useLayoutEffect(() => {
+        focusSearchInput(inputRef.current);
+
+        // iOS may ignore synchronous focus; retry once on the next frame only if needed.
+        const frame = window.requestAnimationFrame(() => {
+            if (document.activeElement !== inputRef.current) {
+                focusSearchInput(inputRef.current);
+            }
+        });
+
+        return () => window.cancelAnimationFrame(frame);
+    }, []);
 
     useEffect(() => {
-        if (!open) return;
-        const frame = window.requestAnimationFrame(() => {
-            inputRef.current?.focus();
-            const length = inputRef.current?.value.length ?? 0;
-            inputRef.current?.setSelectionRange(length, length);
-        });
-        onDebouncedQuery((initialQuery !== undefined ? initialQuery : committedQuery).trim());
-        return () => window.cancelAnimationFrame(frame);
-    }, [open, initialQuery, committedQuery, onDebouncedQuery]);
+        onDebouncedQuery(openingQuery);
+    }, [onDebouncedQuery, openingQuery]);
 
     useEffect(() => {
         return () => debouncedNotify.cancel();
     }, [debouncedNotify]);
 
     useEffect(() => {
-        if (!open) {
-            document.body.style.overflow = '';
-            return;
-        }
         const previousOverflow = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
         return () => {
             document.body.style.overflow = previousOverflow;
         };
-    }, [open]);
+    }, []);
 
     const runSearch = useCallback(
         (value: string) => {
@@ -248,7 +259,7 @@ export function SearchPageOverlay({
         debouncedNotify.cancel();
         setDraft('');
         onDebouncedQuery('');
-        inputRef.current?.focus();
+        focusSearchInput(inputRef.current);
     }, [debouncedNotify, onDebouncedQuery]);
 
     const handlePickSuggestion = useCallback(
@@ -263,7 +274,7 @@ export function SearchPageOverlay({
             debouncedNotify.cancel();
             setDraft(value);
             onDebouncedQuery(value);
-            inputRef.current?.focus();
+            focusSearchInput(inputRef.current);
         },
         [debouncedNotify, onDebouncedQuery],
     );
@@ -273,7 +284,7 @@ export function SearchPageOverlay({
             onRemoveLocalSuggestion?.(value);
             debouncedNotify.cancel();
             onDebouncedQuery(draft.trim());
-            inputRef.current?.focus();
+            focusSearchInput(inputRef.current);
         },
         [debouncedNotify, draft, onDebouncedQuery, onRemoveLocalSuggestion],
     );
@@ -377,11 +388,11 @@ export function SearchPageOverlay({
         }
     }, [isSearching, stopListening]);
 
-    if (!open || typeof document === 'undefined') {
+    if (typeof document === 'undefined') {
         return null;
     }
 
-    return createPortal(
+    return ReactDOM.createPortal(
         <>
             <VoiceSearchOverlay
                 open={voiceOverlayOpen}
@@ -408,7 +419,7 @@ export function SearchPageOverlay({
                         <ChevronLeft className="h-7 w-7" strokeWidth={1.75} />
                     </button>
 
-                    <div className="flex min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border/50 bg-muted/40 pl-4 pr-1 shadow-none focus-within:border-ring/60 focus-within:bg-muted/25 focus-within:ring-1 focus-within:ring-ring/40">
+                    <div className="relative flex min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border/50 bg-muted/40 pl-4 pr-1 shadow-none focus-within:border-ring/60 focus-within:bg-muted/25 focus-within:ring-1 focus-within:ring-ring/40">
                         <input
                             ref={inputRef}
                             type="text"
@@ -417,10 +428,11 @@ export function SearchPageOverlay({
                             enterKeyHint="search"
                             autoComplete="off"
                             autoCorrect="off"
+                            autoCapitalize="off"
                             spellCheck={false}
                             placeholder={t('searchPlaceholder')}
                             value={draft}
-                            className="min-h-11 min-w-0 flex-1 border-0 bg-transparent py-2.5 text-base outline-none placeholder:text-muted-foreground"
+                            className="search-overlay-input min-h-11 min-w-0 flex-1 border-0 bg-transparent py-2.5 text-base outline-none placeholder:text-muted-foreground"
                             aria-autocomplete="list"
                             aria-controls={listId}
                             aria-expanded={suggestions.length > 0}
@@ -488,4 +500,12 @@ export function SearchPageOverlay({
         </>,
         document.body,
     );
+}
+
+export function SearchPageOverlay({ open, ...props }: SearchPageOverlayProps) {
+    if (!open) {
+        return null;
+    }
+
+    return <SearchPageOverlayContent {...props} />;
 }

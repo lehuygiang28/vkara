@@ -96,6 +96,16 @@
         height: 100dvh;
     }
 
+    /** Search overlay — keep caret clipped inside the field (iOS fixed modal bug) */
+    .search-overlay-input {
+        -webkit-appearance: none;
+        appearance: none;
+        touch-action: manipulation;
+        caret-color: hsl(var(--foreground));
+        position: relative;
+        z-index: 1;
+    }
+
     /** TV player QR (corner) — very dim by default; full opacity + hidden cursor on hover */
     .player-qr-zone {
         opacity: 0.22;

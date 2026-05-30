@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import * as ReactDOM from 'react-dom';
 import { Loader2, Mic, X } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -70,7 +70,7 @@ export function VoiceSearchOverlay({
 
     const showHint = !hasLiveText && !isProcessing;
 
-    return createPortal(
+    return ReactDOM.createPortal(
         <div
             className="fixed inset-0 z-[200] flex flex-col bg-[#0f0f0f] text-white"
             role="dialog"
