@@ -2,10 +2,34 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
 import type { YouTubeVideo } from '@/types/youtube.type';
-import { getYoutubeSuggestions, searchYoutube, getRelatedVideos } from '@/services/youtube-api';
+import { blendSuggestions, rankVideos } from '@vkara/shared-utils';
+import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
+import { getPersonalizationProfile, usePersonalizationStore } from '@/store/personalizationStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 const MIN_SUGGESTION_QUERY_LENGTH = 2;
+
+const personalizeSearchResults = (
+    items: YouTubeVideo[],
+    query: string,
+    isKaraoke: boolean,
+): YouTubeVideo[] => {
+    const roomHistory = useYouTubeStore.getState().room?.historyQueue ?? [];
+    return rankVideos(items, getPersonalizationProfile(), {
+        query,
+        isKaraoke,
+        roomHistory: roomHistory.map((video) => ({
+            id: video.id,
+            title: video.title,
+            channels: video.channels,
+        })),
+    });
+};
+
+const getLocalSuggestionQueries = (): string[] => {
+    const { searchHistory } = getPersonalizationProfile();
+    return searchHistory.map((entry) => entry.query);
+};
 
 interface SearchState {
     searchQuery: string;
@@ -18,20 +42,12 @@ interface SearchState {
     nextToken: string | null;
     error: string | null;
 
-    relatedResults: YouTubeVideo[];
-    isRelatedLoading: boolean;
-    isRelatedLoadingMore: boolean;
-    relatedNextToken: string | null;
-
     setSearchQuery: (query: string) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
     performSearch: (query: string, token?: string | null) => Promise<void>;
     loadMore: () => Promise<void>;
     fetchSuggestions: (query: string) => Promise<void>;
     clearSuggestions: () => void;
-
-    fetchRelatedResults: (videoId: string, token?: string | null) => Promise<void>;
-    loadMoreRelated: () => Promise<void>;
 }
 
 let suggestionsAbort: AbortController | null = null;
@@ -52,11 +68,6 @@ export const useSearchStore = create(
             suggestions: [],
             nextToken: null,
             error: null,
-
-            relatedResults: [],
-            isRelatedLoading: false,
-            isRelatedLoadingMore: false,
-            relatedNextToken: null,
 
             setSearchQuery: (query) => set({ searchQuery: query }),
 
@@ -116,8 +127,10 @@ export const useSearchStore = create(
 
                         if (generation !== searchGeneration) return;
 
+                        usePersonalizationStore.getState().recordSearch(trimmed, isKaraoke);
+
                         set({
-                            searchResults: items,
+                            searchResults: personalizeSearchResults(items, trimmed, isKaraoke),
                             nextToken: continuation,
                         });
                     } catch (err) {
@@ -147,7 +160,10 @@ export const useSearchStore = create(
                         const newItems = items.filter((video) => !existingIds.has(video.id));
 
                         return {
-                            searchResults: [...state.searchResults, ...newItems],
+                            searchResults: [
+                                ...state.searchResults,
+                                ...personalizeSearchResults(newItems, trimmed, isKaraoke),
+                            ],
                             nextToken: continuation,
                         };
                     });
@@ -167,12 +183,24 @@ export const useSearchStore = create(
 
             fetchSuggestions: async (query) => {
                 const trimmed = query.trim();
+                const localQueries = getLocalSuggestionQueries();
 
                 suggestionsAbort?.abort();
                 const generation = ++suggestionsGeneration;
 
+                if (trimmed.length === 0) {
+                    set({
+                        suggestions: blendSuggestions(localQueries, [], ''),
+                        isLoadingSuggestions: false,
+                    });
+                    return;
+                }
+
                 if (trimmed.length < MIN_SUGGESTION_QUERY_LENGTH) {
-                    set({ suggestions: [], isLoadingSuggestions: false });
+                    set({
+                        suggestions: blendSuggestions(localQueries, [], trimmed),
+                        isLoadingSuggestions: false,
+                    });
                     return;
                 }
 
@@ -186,7 +214,9 @@ export const useSearchStore = create(
 
                     if (generation !== suggestionsGeneration) return;
 
-                    set({ suggestions: fetchedSuggestions });
+                    set({
+                        suggestions: blendSuggestions(localQueries, fetchedSuggestions, trimmed),
+                    });
                 } catch (error) {
                     if (error instanceof Error && error.name === 'AbortError') return;
                     if (generation !== suggestionsGeneration) return;
@@ -196,58 +226,6 @@ export const useSearchStore = create(
                     if (generation === suggestionsGeneration) {
                         set({ isLoadingSuggestions: false });
                     }
-                }
-            },
-
-            fetchRelatedResults: async (videoId: string, token?: string | null) => {
-                if (!token) {
-                    set({
-                        isRelatedLoading: true,
-                        relatedResults: [],
-                        relatedNextToken: null,
-                    });
-                } else {
-                    set({ isRelatedLoadingMore: true });
-                }
-
-                try {
-                    const { items, continuation } = await getRelatedVideos(videoId, token);
-
-                    set((state) => {
-                        if (!token) {
-                            return {
-                                relatedResults: items,
-                                relatedNextToken: continuation,
-                            };
-                        }
-
-                        const existingIds = new Set(state.relatedResults.map((video) => video.id));
-                        const newItems = items.filter((video) => !existingIds.has(video.id));
-
-                        return {
-                            relatedResults: [...state.relatedResults, ...newItems],
-                            relatedNextToken: continuation,
-                        };
-                    });
-                } catch (error) {
-                    console.error('Error fetching related results:', error);
-                } finally {
-                    set({
-                        isRelatedLoading: false,
-                        isRelatedLoadingMore: false,
-                    });
-                }
-            },
-
-            loadMoreRelated: async () => {
-                const { relatedNextToken, isRelatedLoadingMore } = get();
-                const youtubeStore = useYouTubeStore.getState();
-                const currentVideoId =
-                    youtubeStore.room?.playingNow?.id ??
-                    youtubeStore.room?.historyQueue[0]?.id;
-
-                if (currentVideoId && relatedNextToken && !isRelatedLoadingMore) {
-                    await get().fetchRelatedResults(currentVideoId, relatedNextToken);
                 }
             },
 

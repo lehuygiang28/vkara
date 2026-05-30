@@ -192,6 +192,21 @@ export default {
     'videoSearch.voiceProcessing': 'Transcribing…',
     'videoSearch.clearSearch': 'Clear search',
     'videoSearch.search': 'Search',
+    'videoSearch.browseEmptyTitle': 'Start searching',
+    'videoSearch.browseEmptyHint': 'Search for songs or artists — suggestions will appear here.',
+    'videoSearch.browseEmptyFeed': 'No suggestions yet — try searching for a song.',
+    'videoSearch.removeRecentSearch': 'Remove from search history',
+    'videoSearch.deleteSearch': 'Delete',
+    'videoSearch.back': 'Back',
+    'videoSearch.refillSearch': 'Fill search field',
+
+    'searchHistorySettings.title': 'Search history',
+    'searchHistorySettings.description':
+        'Recent searches are stored on this device to improve suggestions.',
+    'searchHistorySettings.clearAll': 'Clear search history',
+    'searchHistorySettings.confirmTitle': 'Clear all search history?',
+    'searchHistorySettings.confirmDescription':
+        'This removes every recent search from this device. It cannot be undone.',
 
     'qrScanner.title': 'Scan QR Code',
     'qrScanner.buttonText': 'Scan QR',

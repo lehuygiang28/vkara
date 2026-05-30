@@ -190,6 +190,21 @@ export default {
     'videoSearch.voiceProcessing': 'Đang nhận diện…',
     'videoSearch.clearSearch': 'Xóa tìm kiếm',
     'videoSearch.search': 'Tìm kiếm',
+    'videoSearch.browseEmptyTitle': 'Bắt đầu tìm kiếm',
+    'videoSearch.browseEmptyHint': 'Tìm bài hát hoặc ca sĩ — gợi ý sẽ hiện ở đây.',
+    'videoSearch.browseEmptyFeed': 'Chưa có gợi ý — hãy thử tìm một bài hát.',
+    'videoSearch.removeRecentSearch': 'Xóa khỏi lịch sử tìm kiếm',
+    'videoSearch.deleteSearch': 'Xóa',
+    'videoSearch.back': 'Quay lại',
+    'videoSearch.refillSearch': 'Điền vào ô tìm kiếm',
+
+    'searchHistorySettings.title': 'Lịch sử tìm kiếm',
+    'searchHistorySettings.description':
+        'Các tìm kiếm gần đây được lưu trên thiết bị này để cải thiện gợi ý.',
+    'searchHistorySettings.clearAll': 'Xóa lịch sử tìm kiếm',
+    'searchHistorySettings.confirmTitle': 'Xóa toàn bộ lịch sử tìm kiếm?',
+    'searchHistorySettings.confirmDescription':
+        'Thao tác này xóa mọi tìm kiếm gần đây trên thiết bị và không thể hoàn tác.',
 
     'qrScanner.title': 'Quét mã QR',
     'qrScanner.buttonText': 'Quét QR',

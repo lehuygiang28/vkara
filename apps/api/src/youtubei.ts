@@ -109,60 +109,65 @@ export const searchYoutubeiElysia = new Elysia({})
             items: YouTubeVideo[];
             continuation?: string | null;
         }> => {
-            let results: SearchResult<'video'> | undefined;
-            let newItems: VideoCompact[] = [];
-            let searchMetadata = extractRendererMetadata(undefined);
-            const processedVideoIds = new Set<string>();
-            const prefix = redisKeyPrefixes.SEARCH;
-            const activeSearchInstances = stateSearchInstances || searchInstances;
+            try {
+                let results: SearchResult<'video'> | undefined;
+                let newItems: VideoCompact[] = [];
+                let searchMetadata = extractRendererMetadata(undefined);
+                const processedVideoIds = new Set<string>();
+                const prefix = redisKeyPrefixes.SEARCH;
+                const activeSearchInstances = stateSearchInstances || searchInstances;
 
-            if (continuation) {
-                logger.info(`Continuing search: "${query}"`);
-                const cachedResult = activeSearchInstances.get(continuation)?.instance;
+                if (continuation) {
+                    logger.info(`Continuing search: "${query}"`);
+                    const cachedResult = activeSearchInstances.get(continuation)?.instance;
 
-                const page = await fetchSearchContinuationPage(
+                    const page = await fetchSearchContinuationPage(
+                        youtubeiClient,
+                        continuation,
+                        cachedResult,
+                    );
+
+                    newItems = collectUniqueNewItems(page.items, processedVideoIds);
+                    searchMetadata = page.metadata;
+                    results = page.searchResult;
+
+                    activeSearchInstances.delete(continuation);
+                    await redisClient.del(getRedisKey(prefix, continuation));
+                } else {
+                    logger.info(`New search: "${query}"`);
+                    const page = await fetchSearchInitialPage(youtubeiClient, query);
+                    newItems = collectUniqueNewItems(page.items, processedVideoIds);
+                    searchMetadata = page.metadata;
+                    results = page.searchResult;
+                }
+
+                if (results?.continuation) {
+                    await storeContinuation(
+                        prefix,
+                        results.continuation,
+                        activeSearchInstances,
+                        results,
+                        redisClient,
+                    );
+                }
+
+                const items = await prepareYoutubeVideos(
                     youtubeiClient,
-                    continuation,
-                    cachedResult,
-                );
-
-                newItems = collectUniqueNewItems(page.items, processedVideoIds);
-                searchMetadata = page.metadata;
-                results = page.searchResult;
-
-                activeSearchInstances.delete(continuation);
-                await redisClient.del(getRedisKey(prefix, continuation));
-            } else {
-                logger.info(`New search: "${query}"`);
-                const page = await fetchSearchInitialPage(youtubeiClient, query);
-                newItems = collectUniqueNewItems(page.items, processedVideoIds);
-                searchMetadata = page.metadata;
-                results = page.searchResult;
-            }
-
-            if (results?.continuation) {
-                await storeContinuation(
-                    prefix,
-                    results.continuation,
-                    activeSearchInstances,
-                    results,
                     redisClient,
+                    newItems,
+                    searchMetadata,
                 );
+
+                logger.debug(`Current search instances cache size: ${activeSearchInstances.size}`);
+
+                return {
+                    items,
+                    continuation: results?.continuation,
+                };
+            } catch (error) {
+                logger.error('Failed to search YouTube', { error, query, continuation });
+                return { items: [], continuation: null };
             }
-
-            const items = await prepareYoutubeVideos(
-                youtubeiClient,
-                redisClient,
-                newItems,
-                searchMetadata,
-            );
-
-            logger.debug(`Current search instances cache size: ${activeSearchInstances.size}`);
-
-            return {
-                items,
-                continuation: results?.continuation,
-            };
         },
         {
             body: t.Object({

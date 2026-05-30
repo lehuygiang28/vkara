@@ -10,6 +10,9 @@ import { SearchProto, optionsToProto } from 'youtubei/dist/esm/youtube/SearchRes
 import { extractRendererMetadata, type RendererMetadataMaps } from './renderer-metadata';
 import { postInnertube } from './innertube-post';
 import { asYoutubeRawData } from './youtubei-raw-data';
+import { createContextLogger } from '@/utils/logger';
+
+const logger = createContextLogger('FetchSearchPage');
 
 const SEARCH_ENDPOINT = '/youtubei/v1/search';
 
@@ -38,6 +41,21 @@ const hydrateSearchResult = (
     return searchResult;
 };
 
+const emptySearchPage = (
+    client: Client,
+    existingResult?: SearchResult<'video'>,
+): SearchPageFetchResult => {
+    const searchResult = existingResult ?? hydrateSearchResult(client, [], null);
+    searchResult.continuation = null;
+
+    return {
+        items: [],
+        continuation: null,
+        metadata: extractRendererMetadata(undefined),
+        searchResult,
+    };
+};
+
 /** First search page: one InnerTube call → items + renderer metadata. */
 export async function fetchSearchInitialPage(
     client: Client,
@@ -59,10 +77,14 @@ export async function fetchSearchInitialPage(
     );
 
     if (estimatedResults > 0) {
-        const rawData = asYoutubeRawData(response.data);
-        const parsed = SearchResultParser.parseInitialSearchResult(rawData, client);
-        items = parsed.data as VideoCompact[];
-        continuation = parsed.continuation;
+        try {
+            const rawData = asYoutubeRawData(response.data);
+            const parsed = SearchResultParser.parseInitialSearchResult(rawData, client);
+            items = parsed.data as VideoCompact[];
+            continuation = parsed.continuation;
+        } catch (error) {
+            logger.warn('Failed to parse initial search response', { query, error });
+        }
     }
 
     const searchResult = hydrateSearchResult(client, items, continuation, estimatedResults);
@@ -76,26 +98,31 @@ export async function fetchSearchContinuationPage(
     continuation: string,
     existingResult?: SearchResult<'video'>,
 ): Promise<SearchPageFetchResult> {
-    const response = await postInnertube(client, SEARCH_ENDPOINT, { continuation });
-    const rawData = asYoutubeRawData(response.data);
-    const metadata = extractRendererMetadata(rawData);
-    const parsed = SearchResultParser.parseContinuationSearchResult(rawData, client);
-    const pageItems = parsed.data as VideoCompact[];
-    const nextContinuation = parsed.continuation;
+    try {
+        const response = await postInnertube(client, SEARCH_ENDPOINT, { continuation });
+        const rawData = asYoutubeRawData(response.data);
+        const metadata = extractRendererMetadata(rawData);
+        const parsed = SearchResultParser.parseContinuationSearchResult(rawData, client);
+        const pageItems = parsed.data as VideoCompact[];
+        const nextContinuation = parsed.continuation;
 
-    const searchResult = existingResult ?? new SearchResult<'video'>({ client });
-    if (existingResult) {
-        searchResult.items.push(...pageItems);
-        searchResult.continuation = nextContinuation;
-    } else {
-        searchResult.items = pageItems;
-        searchResult.continuation = nextContinuation;
+        const searchResult = existingResult ?? new SearchResult<'video'>({ client });
+        if (existingResult) {
+            searchResult.items.push(...pageItems);
+            searchResult.continuation = nextContinuation;
+        } else {
+            searchResult.items = pageItems;
+            searchResult.continuation = nextContinuation;
+        }
+
+        return {
+            items: pageItems,
+            continuation: nextContinuation,
+            metadata,
+            searchResult,
+        };
+    } catch (error) {
+        logger.warn('Failed to fetch or parse search continuation', { continuation, error });
+        return emptySearchPage(client, existingResult);
     }
-
-    return {
-        items: pageItems,
-        continuation: nextContinuation,
-        metadata,
-        searchResult,
-    };
 }

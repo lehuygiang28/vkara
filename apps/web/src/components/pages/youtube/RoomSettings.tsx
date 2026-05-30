@@ -12,6 +12,7 @@ import { useJoinRoom } from '@/hooks/use-join-room';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { QRScanner } from '@/components/qr-scanner';
 import { VoiceSearchSettings } from '@/components/voice-search-settings';
+import { SearchHistorySettings } from '@/components/search-history-settings';
 
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -129,6 +130,7 @@ export function RoomSettings() {
             <ScrollArea className="h-full" hideScrollbar>
                 <div className="space-y-3 px-safe-offset pb-remote-scroll pt-safe-offset">
                     <VoiceSearchSettings />
+                    <SearchHistorySettings />
                     <Card>
                         <CardHeader>
                             <CardTitle>{t_RoomSettings('title')}</CardTitle>
