@@ -265,11 +265,7 @@ export const searchYoutubeiElysia = new Elysia({})
 
             const embeddableVideos = await Promise.all(
                 newItems.map(async (item) => {
-                    const channels = await resolveVideoChannels(
-                        item,
-                        redisClient,
-                        youtubeiClient,
-                    );
+                    const channels = await resolveVideoChannels(item, redisClient, youtubeiClient);
                     const isVerified = searchMetadata.verifiedByVideoId.get(item.id);
                     const resolvedChannels =
                         typeof isVerified === 'boolean'
@@ -291,7 +287,10 @@ export const searchYoutubeiElysia = new Elysia({})
                             ),
                     );
                     const video = mapYoutubeiVideo(item, {
-                        channels: resolvedChannels.map(({ name, verified }) => ({ name, verified })),
+                        channels: resolvedChannels.map(({ name, verified }) => ({
+                            name,
+                            verified,
+                        })),
                         views:
                             searchMetadata.viewCountByVideoId.get(item.id) ??
                             resolveViewCount(item.viewCount),
@@ -468,10 +467,10 @@ export const searchYoutubeiElysia = new Elysia({})
                 const embeddableVideos = await Promise.all(
                     newItems.map(async (item) => {
                         const channels = await resolveVideoChannels(
-                        item,
-                        redisClient,
-                        youtubeiClient,
-                    );
+                            item,
+                            redisClient,
+                            youtubeiClient,
+                        );
                         const isVerified = relatedMetadata.verifiedByVideoId.get(item.id);
                         const resolvedChannels =
                             typeof isVerified === 'boolean'

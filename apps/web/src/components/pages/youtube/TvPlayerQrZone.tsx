@@ -1,7 +1,7 @@
 'use client';
 
 import { QRCode } from 'react-qrcode-logo';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 import { generateShareableUrl } from '@/lib/room-share';
 import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
@@ -18,7 +18,7 @@ type TvPlayerQrZoneProps = {
     locale: 'vi' | 'en';
     showQR: boolean;
     isIdle: boolean;
-    onOpenSettings: () => void;
+    onOpenSettingsAction: () => void;
 };
 
 function formatRoomId(roomId: string) {
@@ -46,7 +46,7 @@ export function TvPlayerQrZone({
     locale,
     showQR,
     isIdle,
-    onOpenSettings,
+    onOpenSettingsAction: onOpenSettings,
 }: TvPlayerQrZoneProps) {
     const t = useScopedI18n('youtubePage');
     const reduceMotion = useReducedMotion();
@@ -122,70 +122,44 @@ export function TvPlayerQrZone({
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
 
                 <motion.div
+                    layout
+                    className="relative z-[1] flex w-full max-w-xl flex-col items-center text-center"
+                >
+                    <div className="mb-6 flex flex-col items-center gap-3 sm:mb-8 sm:gap-4">
+                        <h1 className="max-w-[16ch] text-balance text-3xl font-semibold leading-tight tracking-tight text-zinc-50 sm:max-w-none sm:text-4xl">
+                            {t('tvEmptyTitle')}
+                        </h1>
+                        <p className="hidden max-w-md text-pretty text-base leading-relaxed text-zinc-400 sm:block sm:text-lg">
+                            {t('tvEmptySubtitle')}
+                        </p>
+                    </div>
+
+                    <motion.button
+                        type="button"
                         layout
-                        className="relative z-[1] flex w-full max-w-xl flex-col items-center text-center"
+                        layoutId="tv-player-qr-anchor"
+                        transition={layoutTransition}
+                        onClick={onOpenSettings}
+                        className="group flex flex-col items-center rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
+                        aria-label={t('tvEmptyQrAria')}
                     >
-                        <AnimatePresence mode="wait">
-                            <motion.div
-                                key="tv-idle-copy"
-                                initial={reduceMotion ? false : { opacity: 0, y: 16 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={
-                                    reduceMotion
-                                        ? { opacity: 0 }
-                                        : { opacity: 0, y: -12, transition: { duration: 0.28 } }
-                                }
-                                transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
-                                className="mb-6 flex flex-col items-center gap-3 sm:mb-8 sm:gap-4"
-                            >
-                                <h1 className="max-w-[16ch] text-balance text-3xl font-semibold leading-tight tracking-tight text-zinc-50 sm:max-w-none sm:text-4xl">
-                                    {t('tvEmptyTitle')}
-                                </h1>
-                                <p className="hidden max-w-md text-pretty text-base leading-relaxed text-zinc-400 sm:block sm:text-lg">
-                                    {t('tvEmptySubtitle')}
-                                </p>
-                            </motion.div>
-                        </AnimatePresence>
+                        {qrShell}
+                        {roomLabel}
+                    </motion.button>
 
-                        <motion.button
-                            type="button"
-                            layout
-                            layoutId="tv-player-qr-anchor"
-                            transition={layoutTransition}
-                            onClick={onOpenSettings}
-                            className="group flex flex-col items-center rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
-                            aria-label={t('tvEmptyQrAria')}
-                        >
-                            {qrShell}
-                            {roomLabel}
-                        </motion.button>
-
-                        <AnimatePresence mode="wait">
-                            <motion.ol
-                                key="tv-idle-steps"
-                                initial={reduceMotion ? false : { opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={
-                                    reduceMotion
-                                        ? { opacity: 0 }
-                                        : { opacity: 0, transition: { duration: 0.22 } }
-                                }
-                                transition={{ duration: 0.5, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-                                className="mt-6 w-full max-w-md space-y-4 text-left sm:mt-10 sm:space-y-5"
-                            >
-                                {steps.map((step, index) => (
-                                    <li key={step} className="flex items-start gap-4">
-                                        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-700/90 text-sm font-medium text-zinc-300">
-                                            {index + 1}
-                                        </span>
-                                        <span className="pt-1 text-sm leading-relaxed text-zinc-400 sm:text-base">
-                                            {step}
-                                        </span>
-                                    </li>
-                                ))}
-                            </motion.ol>
-                        </AnimatePresence>
-                    </motion.div>
+                    <motion.ol className="mt-6 w-full max-w-md space-y-4 text-left sm:mt-10 sm:space-y-5">
+                        {steps.map((step, index) => (
+                            <li key={step} className="flex items-start gap-4">
+                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-700/90 text-sm font-medium text-zinc-300">
+                                    {index + 1}
+                                </span>
+                                <span className="pt-1 text-sm leading-relaxed text-zinc-400 sm:text-base">
+                                    {step}
+                                </span>
+                            </li>
+                        ))}
+                    </motion.ol>
+                </motion.div>
             </div>
         );
     }

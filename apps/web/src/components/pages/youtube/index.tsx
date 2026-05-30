@@ -15,10 +15,7 @@ import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
-import {
-    isServerPlaybackEcho,
-    isYoutubePlaybackIntentState,
-} from '@/lib/youtube-playback-sync';
+import { isServerPlaybackEcho, isYoutubePlaybackIntentState } from '@/lib/youtube-playback-sync';
 
 import { CountdownTimer } from '@/components/countdown-timer';
 import { VideoChannels } from '@/components/video-channels';
@@ -28,7 +25,10 @@ import { PlayerControls } from './PlayerControls';
 import { RemoteShell } from './RemoteShell';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import { ConnectionStatusBanner } from '@/components/connection-status-banner';
+import {
+    ConnectionStatusBanner,
+    ConnectionStatusIndicator,
+} from '@/components/connection-status-banner';
 
 export default function YoutubePlayerPage() {
     const {
@@ -55,7 +55,7 @@ export default function YoutubePlayerPage() {
 
     useStripRoomQueryFromUrl();
 
-    const { ensureConnectedAndSend, lastMessage } = useWebSocket();
+    const { ensureConnectedAndSend, lastMessage, connectionStatus } = useWebSocket();
 
     // No-op unless ENABLE_PERIODIC_PLAYBACK_SYNC — avoids polling getCurrentTime every second.
     usePlaybackPositionSync();
@@ -68,10 +68,7 @@ export default function YoutubePlayerPage() {
     }, [lastMessage, handleServerMessage]);
 
     useEffect(() => {
-        if (
-            effectiveLayoutMode === 'remote' &&
-            prevLayoutMode.current !== 'remote'
-        ) {
+        if (effectiveLayoutMode === 'remote' && prevLayoutMode.current !== 'remote') {
             setCurrentTab('search');
         }
         prevLayoutMode.current = effectiveLayoutMode;
@@ -130,174 +127,206 @@ export default function YoutubePlayerPage() {
         setCurrentTab(tab);
     };
 
-    const isTvIdle = Boolean(room?.id && isTvViewport && !room?.playingNow);
+    const isRemoteOnly = effectiveLayoutMode === 'remote';
+    const showsPlayer = effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
+    const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
+    const isTvIdle = Boolean(isTvPlayerIdle && room?.id);
+    const useTvIdleShell = needsLayoutBootstrap || isTvPlayerIdle;
+    const isConnectionPending = connectionStatus !== 'OPEN';
 
     const renderPlayer = () => (
         <LayoutGroup id="tv-player-qr">
-        <div className="relative h-full w-full">
-            {room?.playingNow ? (
-                <YouTube
-                    videoId={room.playingNow.id}
-                    opts={{
-                        height: '100%',
-                        width: '100%',
-                        playerVars: {
-                            autoplay: 1,
-                            controls: 1,
-                            cc_load_policy: 0,
-                            iv_load_policy: 3,
-                            origin: 'https://youtube.com',
-                        },
-                    }}
-                    onReady={onPlayerReady}
-                    onStateChange={onPlayerStateChange}
-                    className="absolute inset-0"
-                />
-            ) : (
-                <div className="absolute inset-0 bg-zinc-950" aria-hidden />
-            )}
+            <div className="relative h-full w-full">
+                {room?.playingNow ? (
+                    <YouTube
+                        videoId={room.playingNow.id}
+                        opts={{
+                            height: '100%',
+                            width: '100%',
+                            playerVars: {
+                                autoplay: 1,
+                                controls: 1,
+                                cc_load_policy: 0,
+                                iv_load_policy: 3,
+                                origin: 'https://youtube.com',
+                            },
+                        }}
+                        onReady={onPlayerReady}
+                        onStateChange={onPlayerStateChange}
+                        className="absolute inset-0"
+                    />
+                ) : (
+                    <div className="absolute inset-0 bg-zinc-950" aria-hidden />
+                )}
 
-            {room?.id && isTvViewport && isTvIdle && (
-                <TvPlayerQrZone
-                    roomId={room.id}
-                    roomPassword={room.password}
-                    locale={locale}
-                    showQR={showQRInPlayer}
-                    isIdle
-                    onOpenSettings={() => openRemotePanel('settings')}
-                />
-            )}
-
-            {isTvViewport && (
-                <div className="pointer-events-auto absolute right-3 top-3 z-[6] pt-safe pr-safe">
-                    <LanguageSwitcher variant="overlay" />
-                </div>
-            )}
-
-            {room?.playingNow && shouldShowTimer && room.videoQueue.length > 0 && (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/85 p-4 text-center">
-                    <h3 className="mb-4 text-xl font-semibold">{t('nextUp')}</h3>
-                    <div className="flex max-w-md flex-col items-center gap-4">
-                        <img
-                            src={room.videoQueue[0].thumbnail.url}
-                            alt={room.videoQueue[0].title}
-                            className="h-27 w-48 rounded-lg object-cover"
-                        />
-                        <div className="space-y-2">
-                            <p className="line-clamp-2 font-medium">{room.videoQueue[0].title}</p>
-                            <VideoChannels
-                                video={room.videoQueue[0]}
-                                tone="inverse"
-                                className="justify-center text-center"
-                            />
-                            <p className="text-sm text-muted-foreground">
-                                {t('startingIn')}:{' '}
-                                <CountdownTimer
-                                    classNames="text-sm font-medium text-white"
-                                    initialSeconds={3}
-                                    onCountdownComplete={handleVideoFinished}
-                                />
-                            </p>
-                        </div>
+                {isTvPlayerIdle && !room?.id && (
+                    <div
+                        className="absolute inset-0 z-[5] bg-zinc-950"
+                        aria-busy={isConnectionPending}
+                        aria-live="polite"
+                    >
+                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
                     </div>
-                </div>
-            )}
+                )}
 
-            <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-2.5 pt-safe pl-safe">
-                {!isTvIdle && room?.id && isTvViewport && showQRInPlayer && (
+                {isTvPlayerIdle && <ConnectionStatusIndicator variant="tv-overlay" />}
+
+                {isTvIdle && room?.id && (
                     <TvPlayerQrZone
                         roomId={room.id}
                         roomPassword={room.password}
                         locale={locale}
                         showQR={showQRInPlayer}
-                        isIdle={false}
-                        onOpenSettings={() => openRemotePanel('settings')}
+                        isIdle
+                        onOpenSettingsAction={() => openRemotePanel('settings')}
                     />
                 )}
 
-                {!isTvIdle && (
-                    <div
-                        className="flex flex-col gap-2 transition-opacity"
-                        style={{ opacity: opacityOfButtonsInPlayer / 100 }}
-                    >
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                            onClick={() => openRemotePanel('queue')}
-                            aria-label={t('queue')}
-                        >
-                            <ListVideo className="h-5 w-5" />
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                            onClick={() => openRemotePanel('settings')}
-                            aria-label={t('settings')}
-                        >
-                            <Settings className="h-5 w-5" />
-                        </Button>
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                            onClick={handlerToggleFullScreen}
-                            aria-label={isFullScreen ? t('exitFullscreen') : t('fullscreen')}
-                        >
-                            {isFullScreen ? (
-                                <Minimize className="h-5 w-5" />
-                            ) : (
-                                <Maximize className="h-5 w-5" />
-                            )}
-                        </Button>
+                {isTvPlayerIdle && (
+                    <div className="pointer-events-auto absolute right-3 top-3 z-[6] pt-safe pr-safe">
+                        <LanguageSwitcher variant="overlay" />
                     </div>
                 )}
+
+                {room?.playingNow && shouldShowTimer && room.videoQueue.length > 0 && (
+                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/85 p-4 text-center">
+                        <h3 className="mb-4 text-xl font-semibold">{t('nextUp')}</h3>
+                        <div className="flex max-w-md flex-col items-center gap-4">
+                            <img
+                                src={room.videoQueue[0].thumbnail.url}
+                                alt={room.videoQueue[0].title}
+                                className="h-27 w-48 rounded-lg object-cover"
+                            />
+                            <div className="space-y-2">
+                                <p className="line-clamp-2 font-medium">
+                                    {room.videoQueue[0].title}
+                                </p>
+                                <VideoChannels
+                                    video={room.videoQueue[0]}
+                                    tone="inverse"
+                                    className="justify-center text-center"
+                                />
+                                <p className="text-sm text-muted-foreground">
+                                    {t('startingIn')}:{' '}
+                                    <CountdownTimer
+                                        classNames="text-sm font-medium text-white"
+                                        initialSeconds={3}
+                                        onCountdownComplete={handleVideoFinished}
+                                    />
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-2.5 pt-safe pl-safe">
+                    {!isTvPlayerIdle && room?.id && isTvViewport && showQRInPlayer && (
+                        <TvPlayerQrZone
+                            roomId={room.id}
+                            roomPassword={room.password}
+                            locale={locale}
+                            showQR={showQRInPlayer}
+                            isIdle={false}
+                            onOpenSettingsAction={() => openRemotePanel('settings')}
+                        />
+                    )}
+
+                    {!isTvPlayerIdle && (
+                        <div
+                            className="flex flex-col gap-2 transition-opacity"
+                            style={{ opacity: opacityOfButtonsInPlayer / 100 }}
+                        >
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="icon"
+                                className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
+                                onClick={() => openRemotePanel('queue')}
+                                aria-label={t('queue')}
+                            >
+                                <ListVideo className="h-5 w-5" />
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="icon"
+                                className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
+                                onClick={() => openRemotePanel('settings')}
+                                aria-label={t('settings')}
+                            >
+                                <Settings className="h-5 w-5" />
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                size="icon"
+                                className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
+                                onClick={handlerToggleFullScreen}
+                                aria-label={isFullScreen ? t('exitFullscreen') : t('fullscreen')}
+                            >
+                                {isFullScreen ? (
+                                    <Minimize className="h-5 w-5" />
+                                ) : (
+                                    <Maximize className="h-5 w-5" />
+                                )}
+                            </Button>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
         </LayoutGroup>
     );
 
     if (needsLayoutBootstrap) {
-        return <div className="h-dvh-screen w-full bg-zinc-950" aria-busy="true" />;
+        return (
+            <div
+                className="relative flex h-dvh-screen w-full flex-col overflow-hidden bg-zinc-950"
+                aria-busy="true"
+            >
+                <ConnectionStatusIndicator variant="tv-overlay" />
+            </div>
+        );
     }
 
-    const isRemoteOnly = effectiveLayoutMode === 'remote';
-    const showsPlayer =
-        effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
-
     return (
-        <div className="flex h-dvh-screen w-full flex-col overflow-hidden bg-background">
+        <div
+            className={cn(
+                'flex h-dvh-screen w-full flex-col overflow-hidden',
+                useTvIdleShell ? 'bg-zinc-950' : 'bg-background',
+            )}
+        >
             <ScrollToTop />
-            <ConnectionStatusBanner />
+            {!useTvIdleShell && <ConnectionStatusBanner />}
             <main className="flex min-h-0 flex-1 flex-col overflow-hidden md:h-full md:flex-row">
                 {showsPlayer && (
                     <div
                         className={cn(
-                            'relative min-h-0 w-full bg-black',
-                            effectiveLayoutMode === 'both' && 'md:h-full md:w-2/3 lg:w-3/4',
+                            'relative min-h-0 w-full',
+                            useTvIdleShell ? 'bg-zinc-950' : 'bg-black',
+                            effectiveLayoutMode === 'both' &&
+                                !isTvPlayerIdle &&
+                                'md:h-full md:w-2/3 lg:w-3/4',
+                            effectiveLayoutMode === 'both' && isTvPlayerIdle && 'h-full w-full',
                             effectiveLayoutMode === 'player' && 'h-[42dvh] md:h-full',
                             isRemoteOnly && 'hidden',
                         )}
                     >
                         {renderPlayer()}
-                        {effectiveLayoutMode === 'both' && showBottomControls && (
-                            <div className="hidden border-t bg-background/95 p-3 backdrop-blur lg:block">
-                                <PlayerControls variant="bar" />
-                            </div>
-                        )}
+                        {effectiveLayoutMode === 'both' &&
+                            showBottomControls &&
+                            !isTvPlayerIdle && (
+                                <div className="hidden border-t bg-background/95 p-3 backdrop-blur lg:block">
+                                    <PlayerControls variant="bar" />
+                                </div>
+                            )}
                     </div>
                 )}
 
-                {(isRemoteOnly || effectiveLayoutMode === 'both') && (
+                {(isRemoteOnly || effectiveLayoutMode === 'both') && !isTvPlayerIdle && (
                     <div
                         className={cn(
                             'flex h-full min-h-0 w-full flex-1 flex-col',
-                            effectiveLayoutMode === 'both' &&
-                                'md:w-1/3 md:border-l lg:w-1/4',
+                            effectiveLayoutMode === 'both' && 'md:w-1/3 md:border-l lg:w-1/4',
                             isRemoteOnly && 'mx-auto max-w-lg',
                         )}
                     >
