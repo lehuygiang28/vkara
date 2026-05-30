@@ -21,7 +21,6 @@ import { isVideoLive } from '@/lib/youtube-video';
 import { CountdownTimer } from '@/components/countdown-timer';
 import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';
-import { ScrollToTop } from '@/components/scroll-to-top';
 import { PlayerControls } from './PlayerControls';
 import { RemoteShell } from './RemoteShell';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
@@ -198,7 +197,7 @@ export default function YoutubePlayerPage() {
                 )}
 
                 {isTvPlayerIdle && (
-                    <div className="pointer-events-auto absolute right-3 top-3 z-[6] pt-safe pr-safe">
+                    <div className="pointer-events-auto absolute right-safe-offset top-safe-offset z-[6]">
                         <LanguageSwitcher variant="overlay" />
                     </div>
                 )}
@@ -234,7 +233,7 @@ export default function YoutubePlayerPage() {
                     </div>
                 )}
 
-                <div className="absolute left-3 top-3 z-10 flex flex-col items-start gap-2.5 pt-safe pl-safe">
+                <div className="absolute left-safe-offset top-safe-offset z-10 flex flex-col items-start gap-2.5">
                     {!isTvPlayerIdle && room?.id && isTvViewport && showQRInPlayer && (
                         <TvPlayerQrZone
                             roomId={room.id}
@@ -310,7 +309,6 @@ export default function YoutubePlayerPage() {
                 useTvIdleShell ? 'bg-zinc-950' : 'bg-background',
             )}
         >
-            <ScrollToTop />
             {!useTvIdleShell && <ConnectionStatusBanner />}
             <main className="flex min-h-0 flex-1 flex-col overflow-hidden md:h-full md:flex-row">
                 {showsPlayer && (
@@ -364,7 +362,7 @@ export default function YoutubePlayerPage() {
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
                                 transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-                                className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-background pt-safe pr-safe shadow-xl"
+                                className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-background pt-safe-offset pr-safe-offset shadow-xl"
                             >
                                 <RemoteShell />
                             </motion.div>

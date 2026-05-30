@@ -110,7 +110,7 @@ export function VoiceSearchOverlay({
                 ) : null}
             </div>
 
-            <footer className="flex shrink-0 flex-col items-center px-6 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-6">
+            <footer className="flex shrink-0 flex-col items-center px-6 pb-safe-offset-lg pt-6">
                 <div className="relative flex h-[min(42dvh,280px)] w-full max-w-sm flex-col items-center justify-end">
                     {showHint ? (
                         <p className="mb-10 max-w-[17rem] text-center text-sm leading-relaxed text-[#aaaaaa]">

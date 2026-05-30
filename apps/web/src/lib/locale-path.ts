@@ -8,7 +8,7 @@ export function getLocalePublicPath(locale: AppLocale): string {
     return locale === DEFAULT_APP_LOCALE ? '/' : `/${locale}`;
 }
 
-function isAppLocale(segment: string): segment is AppLocale {
+export function isAppLocale(segment: string): segment is AppLocale {
     return (APP_LOCALES as readonly string[]).includes(segment);
 }
 

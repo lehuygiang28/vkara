@@ -1,6 +1,7 @@
 import '../globals.css';
 
 import { ReactNode } from 'react';
+import { notFound } from 'next/navigation';
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
@@ -13,7 +14,7 @@ import { I18nProvider } from '@/providers/i18n-provider';
 import { Toaster } from '@/components/ui/toaster';
 import { PwaRegister } from '@/components/pwa-register';
 import { JsonLd } from '@/components/seo/json-ld';
-import { type AppLocale } from '@/lib/locale-path';
+import { isAppLocale, type AppLocale } from '@/lib/locale-path';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { getI18n, getStaticParams, setStaticParamsLocale } from '@/locales/server';
 
@@ -33,10 +34,13 @@ export async function generateMetadata({
     params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
     const { locale } = await params;
+    if (!isAppLocale(locale)) {
+        notFound();
+    }
     setStaticParamsLocale(locale);
     const t = await getI18n();
 
-    return buildPageMetadata(locale as AppLocale, {
+    return buildPageMetadata(locale, {
         title: t('seo.title'),
         description: t('seo.description'),
         keywords: t('seo.keywords'),
@@ -67,8 +71,11 @@ export default async function RootLayout({
     children: ReactNode;
 }) {
     const { locale } = await params;
-    setStaticParamsLocale(locale);
-    const appLocale = (locale ?? 'vi') as AppLocale;
+    if (!isAppLocale(locale)) {
+        notFound();
+    }
+    const appLocale: AppLocale = locale;
+    setStaticParamsLocale(appLocale);
     const { direction: dir } = new Locale(appLocale).textInfo;
     const t = await getI18n();
 

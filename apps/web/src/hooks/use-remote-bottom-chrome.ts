@@ -5,10 +5,9 @@ import { useEffect } from 'react';
 const NOW_PLAYING_HEIGHT = '4.25rem';
 
 /**
- * Sets --vkara-now-playing-height for bottom chrome (action popover, scroll padding).
- * Toasts render at the top; this hook does not position toasts.
+ * Sets --vkara-now-playing-height for bottom chrome (scroll padding, floating action UI).
  */
-export function useToastBottomInset(hasNowPlayingBar: boolean) {
+export function useRemoteBottomChrome(hasNowPlayingBar: boolean) {
     useEffect(() => {
         document.documentElement.style.setProperty(
             '--vkara-now-playing-height',

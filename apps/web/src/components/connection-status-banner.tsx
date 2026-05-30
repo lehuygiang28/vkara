@@ -36,7 +36,7 @@ export function ConnectionStatusIndicator({
                 role="status"
                 aria-live="polite"
                 className={cn(
-                    'pointer-events-none absolute inset-x-0 top-0 z-[7] flex justify-center px-4 pt-safe',
+                    'pointer-events-none absolute inset-x-0 top-0 z-[7] flex justify-center px-4 pt-safe-offset',
                     className,
                 )}
             >

@@ -38,7 +38,7 @@ export function VideoListActionPopover({
                     'pointer-events-none fixed inset-x-0 z-50 flex justify-center px-safe-offset',
                     className,
                 )}
-                style={{ bottom: 'var(--vkara-toast-bottom)' }}
+                style={{ bottom: 'var(--vkara-remote-floating-bottom)' }}
                 role="dialog"
                 aria-modal="true"
                 aria-label={t('videoActions')}

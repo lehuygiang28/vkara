@@ -12,14 +12,14 @@ import { NowPlayingBar } from './NowPlayingBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { RemoteJoinLobby } from './RemoteJoinLobby';
 import { RemoteTabPanel } from './RemoteTabPanel';
-import { useToastBottomInset } from '@/hooks/use-toast-bottom-inset';
+import { useRemoteBottomChrome } from '@/hooks/use-remote-bottom-chrome';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 export function RemoteShell() {
     const { currentTab, room, setCurrentTab } = useYouTubeStore();
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
-    useToastBottomInset(Boolean(room?.playingNow));
+    useRemoteBottomChrome(Boolean(room?.playingNow));
 
     useEffect(() => {
         if (currentTab === 'related') {

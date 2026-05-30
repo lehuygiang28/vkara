@@ -33,6 +33,21 @@ const nextConfig: NextConfig = {
             },
         ];
     },
+    async redirects() {
+        return [
+            // iOS Safari requests these at the site root (bypasses i18n middleware due to `.` in path).
+            {
+                source: '/apple-touch-icon.png',
+                destination: '/icons/apple-touch-icon.png',
+                permanent: false,
+            },
+            {
+                source: '/apple-touch-icon-precomposed.png',
+                destination: '/icons/apple-touch-icon.png',
+                permanent: false,
+            },
+        ];
+    },
     async rewrites() {
         return [
             // Fallback when middleware is not applied: serve vi at `/` without changing the URL.

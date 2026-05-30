@@ -398,7 +398,7 @@ export function SearchPageOverlay({
                 aria-modal="true"
                 aria-label={t('search')}
             >
-                <header className="flex shrink-0 items-center gap-1 px-1 pt-safe-offset sm:gap-2 sm:px-2">
+                <header className="flex shrink-0 items-center gap-1 px-safe-offset pt-safe-offset sm:gap-2">
                     <button
                         type="button"
                         onClick={onCloseAction}
