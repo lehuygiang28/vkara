@@ -104,6 +104,22 @@ export function RoomSettings() {
         [locale, room, sharePassword],
     );
 
+    const selectedLayoutMode = layoutModeSource === 'auto' ? 'auto' : layoutMode;
+    const layoutModeDescriptionKey = useMemo(() => {
+        switch (selectedLayoutMode) {
+            case 'auto':
+                return 'youtubePage.layoutAutoDesc';
+            case 'remote':
+                return 'youtubePage.layoutRemoteDesc';
+            case 'player':
+                return 'youtubePage.layoutPlayerDesc';
+            case 'both':
+                return 'youtubePage.layoutBothDesc';
+            default:
+                return 'youtubePage.layoutAutoDesc';
+        }
+    }, [selectedLayoutMode]);
+
     const createRoom = useCallback(() => {
         const password = roomPassword.trim();
         ensureConnectedAndSend({
@@ -391,13 +407,8 @@ export function RoomSettings() {
                                 <Label htmlFor="selectLayoutMode">
                                     {t('youtubePage.selectLayoutMode')}
                                 </Label>
-                                <p className="text-xs text-muted-foreground">
-                                    {t('youtubePage.layoutAutoHint')}
-                                </p>
                                 <Select
-                                    value={
-                                        layoutModeSource === 'auto' ? 'auto' : layoutMode
-                                    }
+                                    value={selectedLayoutMode}
                                     onValueChange={(value) => {
                                         if (value === 'auto') {
                                             enableAutoLayoutMode();
@@ -433,6 +444,9 @@ export function RoomSettings() {
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
+                                <p className="text-xs text-muted-foreground">
+                                    {t(layoutModeDescriptionKey)}
+                                </p>
                             </div>
 
                             {/* Setting show QR in player (synced to TV via room) */}

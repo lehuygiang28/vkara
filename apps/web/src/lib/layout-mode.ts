@@ -1,6 +1,6 @@
 import type { LayoutModeSource, YouTubeStoreLayoutMode } from '@/store/youtubeStore';
 
-/** Large screens act as TV (video only); phones/tablets act as remotes. */
+/** Large screens → TV (player); phones → Mobile remote. */
 export const TV_MIN_WIDTH_PX = 1024;
 
 export function getSuggestedLayoutMode(width: number): YouTubeStoreLayoutMode {

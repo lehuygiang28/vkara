@@ -53,11 +53,20 @@ export default {
     'youtubePage.settings': 'Cài đặt',
     'youtubePage.searchPlaceholder': 'Tìm và chọn một video để phát',
     'youtubePage.failedToFetch': 'Không thể tải kết quả tìm kiếm. Vui lòng thử lại.',
-    'youtubePage.layout': 'Hiển thị',
-    'youtubePage.selectLayoutMode': 'Chọn chế độ hiển thị',
-    'youtubePage.layoutBoth': 'Cả video và điều khiển',
-    'youtubePage.layoutRemote': 'Chỉ điều khiển',
-    'youtubePage.layoutPlayer': 'Chỉ video',
+    'youtubePage.layout': 'Chế độ thiết bị',
+    'youtubePage.selectLayoutMode': 'Bạn đang dùng vkara trên',
+    'youtubePage.layoutAuto': 'Tự động',
+    'youtubePage.layoutAutoDesc':
+        'Điện thoại → chế độ điều khiển. Màn hình lớn → TV (video full màn).',
+    'youtubePage.layoutRemote': 'Điện thoại · Điều khiển',
+    'youtubePage.layoutRemoteDesc':
+        'Tìm bài, quản lý hàng chờ và điều khiển phát — không hiện video trên máy này.',
+    'youtubePage.layoutPlayer': 'TV',
+    'youtubePage.layoutPlayerDesc':
+        'Video full màn hình. Dùng điện thoại khác làm remote để chọn bài.',
+    'youtubePage.layoutBoth': 'Laptop',
+    'youtubePage.layoutBothDesc':
+        'Video và bảng điều khiển cạnh nhau — xem và chọn bài trên cùng một máy.',
     'youtubePage.seekTo': 'Nhảy tới',
     'youtubePage.controls': 'Điều khiển',
     'youtubePage.queue': 'Danh sách',
@@ -83,9 +92,6 @@ export default {
     'youtubePage.tvEmptyStep3': 'Chạm Phát để bắt đầu trên màn hình này',
     'youtubePage.tvRoomCode': 'Mã phòng',
     'youtubePage.tvEmptyQrAria': 'Mã QR phòng. Mở cài đặt phòng.',
-    'youtubePage.layoutAuto': 'Tự động (theo màn hình)',
-    'youtubePage.layoutAutoHint':
-        'Màn hình lớn hiển thị video (TV). Điện thoại dùng để tìm bài và điều khiển.',
 
     'seekToInput.title': 'Nhảy đến thời gian cụ thể',
     'seekToInput.description': 'Nhập thời gian dưới dạng giây, MM:SS, hoặc HH:MM:SS',
@@ -123,7 +129,7 @@ export default {
     'roomSettings.shareableUrl': 'URL chia sẻ',
     'roomSettings.copyUrlSuccess': 'URL đã được sao chép',
     'roomSettings.qrCode': 'Mã QR',
-    'roomSettings.showQRInPlayer': 'Hiện QR trong video',
+    'roomSettings.showQRInPlayer': 'Hiện QR trên TV',
     'roomSettings.show': 'Hiển thị',
     'roomSettings.hide': 'Ẩn',
     'roomSettings.copyPasswordSuccess': 'Mật khẩu đã được sao chép',

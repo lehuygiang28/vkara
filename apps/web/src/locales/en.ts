@@ -60,11 +60,20 @@ export default {
     'youtubePage.nowPlayingStatus2': 'Sing along',
     'youtubePage.nowPlayingStatus3': 'Enjoy the beat',
     'youtubePage.nowPlayingStatusLabel': 'Playback status',
-    'youtubePage.layout': 'Layout',
-    'youtubePage.selectLayoutMode': 'Select layout mode',
-    'youtubePage.layoutBoth': 'Both Player and Remote',
-    'youtubePage.layoutRemote': 'Remote Only',
-    'youtubePage.layoutPlayer': 'Player Only',
+    'youtubePage.layout': 'Device mode',
+    'youtubePage.selectLayoutMode': 'Using vkara on',
+    'youtubePage.layoutAuto': 'Automatic',
+    'youtubePage.layoutAutoDesc':
+        'Phone → remote. Large screen → TV (full-screen video).',
+    'youtubePage.layoutRemote': 'Mobile · Remote',
+    'youtubePage.layoutRemoteDesc':
+        'Search, queue, and playback controls — no video on this device.',
+    'youtubePage.layoutPlayer': 'TV',
+    'youtubePage.layoutPlayerDesc':
+        'Full-screen video. Use another phone as the remote to pick songs.',
+    'youtubePage.layoutBoth': 'Laptop',
+    'youtubePage.layoutBothDesc':
+        'Video and controls side by side — watch and pick songs on one device.',
     'youtubePage.nextUp': 'Next Up',
     'youtubePage.startingIn': 'Starting in',
     'youtubePage.exitFullscreen': 'Exit Fullscreen',
@@ -83,9 +92,6 @@ export default {
     'youtubePage.tvEmptyStep3': 'Tap play and it starts on this screen',
     'youtubePage.tvRoomCode': 'Room code',
     'youtubePage.tvEmptyQrAria': 'Room QR code. Opens room settings.',
-    'youtubePage.layoutAuto': 'Automatic (by screen size)',
-    'youtubePage.layoutAutoHint':
-        'Large screens show video (TV). Phones are remotes for search and playback control.',
 
     'seekToInput.title': 'Seek to specific time',
     'seekToInput.description': 'Enter time in seconds, MM:SS, or HH:MM:SS format',
@@ -124,7 +130,7 @@ export default {
     'roomSettings.shareableUrl': 'Shareable URL',
     'roomSettings.copyUrlSuccess': 'URL copied to clipboard',
     'roomSettings.qrCode': 'QR Code',
-    'roomSettings.showQRInPlayer': 'Show QR code in player',
+    'roomSettings.showQRInPlayer': 'Show QR on TV',
     'roomSettings.show': 'Show',
     'roomSettings.hide': 'Hide',
     'roomSettings.copyPasswordSuccess': 'Password copied to clipboard',
