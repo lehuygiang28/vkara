@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Play, ListVideo, X } from 'lucide-react';
+import { Play, ListVideo, X, Search, History } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -13,10 +13,11 @@ import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 import { VideoListToolbar } from './video-list-toolbar';
+import { VideoListEmptyState } from './video-list-empty-state';
 
 export function VideoHistory() {
     const { handlePlayVideoNow, handleAddVideoToQueue, handleClearHistory } = usePlayerAction();
-    const { room } = useYouTubeStore();
+    const { room, setCurrentTab } = useYouTubeStore();
     const t = useScopedI18n('videoHistory');
 
     const renderActions = useCallback(
@@ -71,7 +72,20 @@ export function VideoHistory() {
             <VideoList
                 keyPrefix="history-list"
                 videos={room?.historyQueue || []}
-                emptyMessage={t('noHistory')}
+                emptyState={
+                    <VideoListEmptyState
+                        icon={<History className="h-7 w-7 text-muted-foreground" />}
+                        title={t('noHistory')}
+                        description={t('noHistoryHint')}
+                        actions={[
+                            {
+                                label: t('searchCta'),
+                                icon: <Search />,
+                                onClick: () => setCurrentTab('search'),
+                            },
+                        ]}
+                    />
+                }
                 renderActions={renderActions}
             />
         </div>

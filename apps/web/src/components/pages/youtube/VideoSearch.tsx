@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { BrowseSearchHeader, ResultsSearchHeader } from '@/components/search/search-header';
@@ -16,6 +17,7 @@ import { toast } from '@/hooks/use-toast';
 import { VideoSkeletonList } from '@/components/video-skeleton';
 import { VideoList } from './VideoList';
 import { BrowseSuggestionsList } from './BrowseSuggestionsList';
+import { VideoListEmptyState } from './video-list-empty-state';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
 
 export function VideoSearch() {
@@ -39,6 +41,7 @@ export function VideoSearch() {
         nextToken,
         error,
         loadMoreFailed,
+        searchOverlayRequestId,
         setIsKaraoke,
         performSearch,
         loadMore,
@@ -58,6 +61,7 @@ export function VideoSearch() {
             nextToken: state.nextToken,
             error: state.error,
             loadMoreFailed: state.loadMoreFailed,
+            searchOverlayRequestId: state.searchOverlayRequestId,
             setIsKaraoke: state.setIsKaraoke,
             performSearch: state.performSearch,
             loadMore: state.loadMore,
@@ -209,6 +213,12 @@ export function VideoSearch() {
         setSearchOverlayOpen(true);
     }, []);
 
+    useEffect(() => {
+        if (searchOverlayRequestId > 0) {
+            openSearchOverlay();
+        }
+    }, [searchOverlayRequestId, openSearchOverlay]);
+
     const handleClearResultsQuery = useCallback(() => {
         openSearchOverlay('');
     }, [openSearchOverlay]);
@@ -220,6 +230,8 @@ export function VideoSearch() {
         }
         void loadMore();
     }, [loadMoreFailed, loadMore, retryLoadMore]);
+
+    const showNoResults = Boolean(searchQuery) && searchResults.length === 0 && !isLoading;
 
     return (
         <div className="flex h-full min-h-0 flex-col">
@@ -279,12 +291,21 @@ export function VideoSearch() {
                 <VideoList
                     keyPrefix="search-list"
                     videos={searchResults}
-                    emptyMessage={
-                        searchQuery && searchResults.length === 0 && !isLoading
-                            ? error
-                                ? t('loadMoreFailed')
-                                : t('noResults')
-                            : ''
+                    emptyState={
+                        showNoResults ? (
+                            <VideoListEmptyState
+                                icon={<Search className="h-7 w-7 text-muted-foreground" />}
+                                title={error ? t('loadMoreFailed') : t('noResults')}
+                                description={error ? t('noResultsErrorHint') : t('noResultsHint')}
+                                actions={[
+                                    {
+                                        label: t('noResultsCta'),
+                                        icon: <Search />,
+                                        onClick: () => openSearchOverlay(searchQuery),
+                                    },
+                                ]}
+                            />
+                        ) : undefined
                     }
                     renderActions={renderActions}
                     onLoadMore={handleLoadMore}

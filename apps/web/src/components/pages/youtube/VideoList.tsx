@@ -27,7 +27,8 @@ export type VideoListActionHelpers = {
 interface VideoListProps {
     keyPrefix?: string;
     videos: YouTubeVideo[];
-    emptyMessage: string;
+    emptyMessage?: string;
+    emptyState?: ReactNode;
     renderActions: (video: YouTubeVideo, helpers: VideoListActionHelpers) => ReactNode;
     onLoadMore?: () => void;
     hasMore?: boolean;
@@ -38,7 +39,8 @@ interface VideoListProps {
 
 export const VideoList = memo(function VideoList({
     videos = [],
-    emptyMessage,
+    emptyMessage = '',
+    emptyState,
     renderActions,
     onLoadMore,
     hasMore = false,
@@ -145,9 +147,11 @@ export const VideoList = memo(function VideoList({
                 ) : null}
 
                 {videos.length === 0 ? (
-                    <div className="flex min-h-[40%] items-center justify-center px-safe-offset py-12 pb-remote-scroll text-center text-sm text-muted-foreground">
-                        {emptyMessage}
-                    </div>
+                    emptyState ?? (
+                        <div className="flex min-h-[40%] items-center justify-center px-safe-offset py-12 pb-remote-scroll text-center text-sm text-muted-foreground">
+                            {emptyMessage}
+                        </div>
+                    )
                 ) : (
                     <div
                         className={cn('relative w-full px-safe-offset pb-2', !onRefresh && 'pt-3')}

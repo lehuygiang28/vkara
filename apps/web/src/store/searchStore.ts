@@ -42,6 +42,7 @@ interface SearchState {
     nextToken: string | null;
     error: string | null;
     loadMoreFailed: boolean;
+    searchOverlayRequestId: number;
 
     setSearchQuery: (query: string) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
@@ -51,6 +52,7 @@ interface SearchState {
     refreshSearch: () => Promise<void>;
     fetchSuggestions: (query: string) => Promise<void>;
     clearSuggestions: () => void;
+    requestSearchOverlay: () => void;
 }
 
 let suggestionsAbort: AbortController | null = null;
@@ -72,6 +74,7 @@ export const useSearchStore = create(
             nextToken: null,
             error: null,
             loadMoreFailed: false,
+            searchOverlayRequestId: 0,
 
             setSearchQuery: (query) => set({ searchQuery: query }),
 
@@ -250,6 +253,9 @@ export const useSearchStore = create(
                     }
                 }
             },
+
+            requestSearchOverlay: () =>
+                set((state) => ({ searchOverlayRequestId: state.searchOverlayRequestId + 1 })),
 
         }),
         {

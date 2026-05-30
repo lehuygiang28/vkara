@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { Trash2, MoveUp, Shuffle, ListMusic } from 'lucide-react';
+import { Trash2, MoveUp, Shuffle, ListMusic, Search, ListVideo } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -12,10 +12,11 @@ import { TooltipButton } from '@/components/tooltip-button';
 import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 import { VideoListToolbar } from './video-list-toolbar';
+import { VideoListEmptyState } from './video-list-empty-state';
 import { Input } from '@/components/ui/input';
 
 export function VideoQueue() {
-    const { room } = useYouTubeStore();
+    const { room, setCurrentTab } = useYouTubeStore();
     const {
         handleRemoveVideoFromQueue,
         handleMoveVideoToTop,
@@ -123,7 +124,20 @@ export function VideoQueue() {
             <VideoList
                 keyPrefix="queue-list"
                 videos={room?.videoQueue || []}
-                emptyMessage={t('noVideos')}
+                emptyState={
+                    <VideoListEmptyState
+                        icon={<ListVideo className="h-7 w-7 text-muted-foreground" />}
+                        title={t('noVideos')}
+                        description={t('noVideosHint')}
+                        actions={[
+                            {
+                                label: t('searchCta'),
+                                icon: <Search />,
+                                onClick: () => setCurrentTab('search'),
+                            },
+                        ]}
+                    />
+                }
                 renderActions={renderActions}
             />
         </div>

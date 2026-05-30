@@ -8,15 +8,18 @@ import { hasBrowseFeedSources } from '@vkara/shared-utils';
 import { useScopedI18n } from '@/locales/client';
 import { useBrowseFeed } from '@/hooks/use-browse-feed';
 import { usePersonalizationStore } from '@/store/personalizationStore';
+import { useSearchStore } from '@/store/searchStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { VideoSkeletonList } from '@/components/video-skeleton';
 
 import { VideoList } from './VideoList';
+import { VideoListEmptyState } from './video-list-empty-state';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
 
 export function BrowseSuggestionsList() {
     const t = useScopedI18n('videoSearch');
     const renderActions = useVideoSearchListActions();
+    const requestSearchOverlay = useSearchStore((state) => state.requestSearchOverlay);
     const { searchHistory, channelScores, recentVideos } = usePersonalizationStore(
         useShallow((state) => ({
             searchHistory: state.searchHistory,
@@ -63,13 +66,19 @@ export function BrowseSuggestionsList() {
 
     if (!hasBrowseFeedSources(profile, room)) {
         return (
-            <div className="flex flex-1 flex-col items-center justify-center px-safe-offset pb-remote-scroll pt-4 text-center">
-                <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-muted/60">
-                    <Search className="h-7 w-7 text-muted-foreground" aria-hidden />
-                </div>
-                <p className="text-base font-medium text-foreground">{t('browseEmptyTitle')}</p>
-                <p className="mt-2 max-w-xs text-sm text-muted-foreground">{t('browseEmptyHint')}</p>
-            </div>
+            <VideoListEmptyState
+                icon={<Search className="h-7 w-7 text-muted-foreground" />}
+                title={t('browseEmptyTitle')}
+                description={t('browseEmptyHint')}
+                actions={[
+                    {
+                        label: t('browseEmptyCta'),
+                        icon: <Search />,
+                        onClick: requestSearchOverlay,
+                    },
+                ]}
+                className="flex-1"
+            />
         );
     }
 
@@ -81,7 +90,20 @@ export function BrowseSuggestionsList() {
         <VideoList
             keyPrefix="browse-suggestions"
             videos={videos}
-            emptyMessage={videos.length === 0 ? t('browseEmptyFeed') : ''}
+            emptyState={
+                <VideoListEmptyState
+                    icon={<Search className="h-7 w-7 text-muted-foreground" />}
+                    title={t('browseEmptyFeedTitle')}
+                    description={t('browseEmptyFeed')}
+                    actions={[
+                        {
+                            label: t('browseEmptyCta'),
+                            icon: <Search />,
+                            onClick: requestSearchOverlay,
+                        },
+                    ]}
+                />
+            }
             renderActions={renderActions}
             onLoadMore={loadMore}
             hasMore={hasMore}
