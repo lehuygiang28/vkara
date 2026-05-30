@@ -1,25 +1,22 @@
 'use client';
 
-import { useMemo, type ReactNode } from 'react';
+import { useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { hasBrowseFeedSources } from '@vkara/shared-utils';
 
 import { useScopedI18n } from '@/locales/client';
-import type { YouTubeVideo } from '@/types/youtube.type';
 import { useBrowseFeed } from '@/hooks/use-browse-feed';
 import { usePersonalizationStore } from '@/store/personalizationStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { VideoSkeletonList } from '@/components/video-skeleton';
 
-import { VideoList, type VideoListActionHelpers } from './VideoList';
+import { VideoList } from './VideoList';
+import { useVideoSearchListActions } from './use-video-search-list-actions';
 
-type BrowseSuggestionsListProps = {
-    renderActions: (video: YouTubeVideo, helpers: VideoListActionHelpers) => ReactNode;
-};
-
-export function BrowseSuggestionsList({ renderActions }: BrowseSuggestionsListProps) {
+export function BrowseSuggestionsList() {
     const t = useScopedI18n('videoSearch');
+    const renderActions = useVideoSearchListActions();
     const { searchHistory, channelScores, recentVideos } = usePersonalizationStore(
         useShallow((state) => ({
             searchHistory: state.searchHistory,
@@ -61,7 +58,8 @@ export function BrowseSuggestionsList({ renderActions }: BrowseSuggestionsListPr
         [playingNow, historyQueue],
     );
 
-    const { videos, isLoading, isLoadingMore, hasMore, loadMore } = useBrowseFeed(profile, room);
+    const { videos, isLoading, isLoadingMore, hasMore, loadError, loadMore, refresh } =
+        useBrowseFeed(profile, room);
 
     if (!hasBrowseFeedSources(profile, room)) {
         return (
@@ -88,6 +86,8 @@ export function BrowseSuggestionsList({ renderActions }: BrowseSuggestionsListPr
             onLoadMore={loadMore}
             hasMore={hasMore}
             isLoading={isLoadingMore}
+            loadError={loadError ? t('loadMoreFailed') : null}
+            onRefresh={refresh}
         />
     );
 }

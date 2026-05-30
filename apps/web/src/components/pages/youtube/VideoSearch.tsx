@@ -1,8 +1,6 @@
 'use client';
 
-import { memo, useCallback, useEffect, useRef, useState } from 'react';
-import { ListPlus, Play } from 'lucide-react';
-import type { YouTubeVideo } from '@/types/youtube.type';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { BrowseSearchHeader, ResultsSearchHeader } from '@/components/search/search-header';
@@ -11,7 +9,6 @@ import { VoiceSearchOverlay } from '@/components/search/voice-search-overlay';
 import { useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { useSearchStore } from '@/store/searchStore';
 import { usePersonalizationStore } from '@/store/personalizationStore';
-import { usePlayerAction } from '@/hooks/use-player-action';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
 import type { SpeechRecognitionErrorCode } from '@/hooks/use-speech-recognition';
 import { toast } from '@/hooks/use-toast';
@@ -19,50 +16,7 @@ import { toast } from '@/hooks/use-toast';
 import { VideoSkeletonList } from '@/components/video-skeleton';
 import { VideoList } from './VideoList';
 import { BrowseSuggestionsList } from './BrowseSuggestionsList';
-import { VideoListActionBar } from './video-list-action-bar';
-
-const VideoActionButtons = memo(function VideoActionButtons({
-    video,
-    onPlay,
-    onQueue,
-    closeMenu,
-}: {
-    video: YouTubeVideo;
-    onPlay: (video: YouTubeVideo) => void;
-    onQueue: (video: YouTubeVideo) => void;
-    closeMenu: () => void;
-}) {
-    const t = useScopedI18n('videoSearch');
-
-    return (
-        <VideoListActionBar
-            actions={[
-                {
-                    id: 'play',
-                    label: t('playNow'),
-                    buttonText: t('playNowShort'),
-                    icon: <Play />,
-                    tone: 'success',
-                    onClick: () => {
-                        closeMenu();
-                        onPlay(video);
-                    },
-                },
-                {
-                    id: 'queue',
-                    label: t('addToQueue'),
-                    buttonText: t('addToQueueShort'),
-                    icon: <ListPlus />,
-                    tone: 'default',
-                    onClick: () => {
-                        closeMenu();
-                        onQueue(video);
-                    },
-                },
-            ]}
-        />
-    );
-});
+import { useVideoSearchListActions } from './use-video-search-list-actions';
 
 export function VideoSearch() {
     const t = useScopedI18n('videoSearch');
@@ -83,9 +37,13 @@ export function VideoSearch() {
         searchResults,
         suggestions,
         nextToken,
+        error,
+        loadMoreFailed,
         setIsKaraoke,
         performSearch,
         loadMore,
+        retryLoadMore,
+        refreshSearch,
         fetchSuggestions,
         clearSuggestions,
     } = useSearchStore(
@@ -98,20 +56,23 @@ export function VideoSearch() {
             searchResults: state.searchResults,
             suggestions: state.suggestions,
             nextToken: state.nextToken,
+            error: state.error,
+            loadMoreFailed: state.loadMoreFailed,
             setIsKaraoke: state.setIsKaraoke,
             performSearch: state.performSearch,
             loadMore: state.loadMore,
+            retryLoadMore: state.retryLoadMore,
+            refreshSearch: state.refreshSearch,
             fetchSuggestions: state.fetchSuggestions,
             clearSuggestions: state.clearSuggestions,
         })),
     );
 
-    const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
-    const recordEngagement = usePersonalizationStore((state) => state.recordEngagement);
     const removeSearchHistory = usePersonalizationStore((state) => state.removeSearchHistory);
     const localSuggestionQueries = usePersonalizationStore(
         useShallow((state) => state.searchHistory.map((entry) => entry.query)),
     );
+    const renderActions = useVideoSearchListActions();
 
     const handleSearch = useCallback(
         (query: string) => {
@@ -133,34 +94,6 @@ export function VideoSearch() {
             removeSearchHistory(query);
         },
         [removeSearchHistory],
-    );
-
-    const handlePlay = useCallback(
-        (video: YouTubeVideo) => {
-            recordEngagement(video, 'play');
-            handlePlayVideoNow(video);
-        },
-        [recordEngagement, handlePlayVideoNow],
-    );
-
-    const handleQueue = useCallback(
-        (video: YouTubeVideo) => {
-            recordEngagement(video, 'queue');
-            handleAddVideoToQueue(video);
-        },
-        [recordEngagement, handleAddVideoToQueue],
-    );
-
-    const renderActions = useCallback(
-        (video: YouTubeVideo, { closeMenu }: { closeMenu: () => void }) => (
-            <VideoActionButtons
-                video={video}
-                closeMenu={closeMenu}
-                onPlay={handlePlay}
-                onQueue={handleQueue}
-            />
-        ),
-        [handlePlay, handleQueue],
     );
 
     const handleSpeechError = useCallback(
@@ -280,6 +213,14 @@ export function VideoSearch() {
         openSearchOverlay('');
     }, [openSearchOverlay]);
 
+    const handleLoadMore = useCallback(() => {
+        if (loadMoreFailed) {
+            void retryLoadMore();
+            return;
+        }
+        void loadMore();
+    }, [loadMoreFailed, loadMore, retryLoadMore]);
+
     return (
         <div className="flex h-full min-h-0 flex-col">
             <VoiceSearchOverlay
@@ -333,20 +274,24 @@ export function VideoSearch() {
             {isLoading && searchResults.length === 0 && !showBrowseIdle ? (
                 <VideoSkeletonList count={6} className="pb-remote-scroll" />
             ) : showBrowseIdle ? (
-                <BrowseSuggestionsList renderActions={renderActions} />
+                <BrowseSuggestionsList />
             ) : (
                 <VideoList
                     keyPrefix="search-list"
                     videos={searchResults}
                     emptyMessage={
                         searchQuery && searchResults.length === 0 && !isLoading
-                            ? t('noResults')
+                            ? error
+                                ? t('loadMoreFailed')
+                                : t('noResults')
                             : ''
                     }
                     renderActions={renderActions}
-                    onLoadMore={loadMore}
-                    hasMore={Boolean(nextToken)}
+                    onLoadMore={handleLoadMore}
+                    hasMore={Boolean(nextToken) || loadMoreFailed}
                     isLoading={isLoading || isLoadingMore}
+                    loadError={loadMoreFailed ? t('loadMoreFailed') : null}
+                    onRefresh={() => void refreshSearch()}
                 />
             )}
         </div>

@@ -1,19 +1,24 @@
 'use client';
 
-import { useEffect, useRef, memo, useState, useCallback, type ReactNode } from 'react';
+import { useCallback, useRef, useState, memo, type ReactNode } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
-
 import { cn } from '@/lib/utils';
 import type { YouTubeVideo } from '@/types/youtube.type';
 import { useScopedI18n } from '@/locales/client';
+import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
+import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { VideoSkeleton } from '@/components/video-skeleton';
 import { ScrollToTopListButton } from '@/components/scroll-to-top-list';
 import { VideoListItem, VIDEO_LIST_ROW_HEIGHT } from './VideoListItem';
 import { VideoListActionPopover } from './VideoListActionPopover';
+import { VideoListPullHeader } from './video-list-pull-indicator';
 
 const LOADING_ROW_COUNT = 3;
 const LOAD_MORE_SENTINEL_HEIGHT = 32;
+const LOAD_ERROR_FOOTER_HEIGHT = 72;
 const LOADING_ROW_GAP = 12;
+const PULL_REFRESH_THRESHOLD = 72;
+const PULL_REFRESH_MAX = 96;
 
 export type VideoListActionHelpers = {
     closeMenu: () => void;
@@ -27,6 +32,8 @@ interface VideoListProps {
     onLoadMore?: () => void;
     hasMore?: boolean;
     isLoading?: boolean;
+    loadError?: string | null;
+    onRefresh?: () => void | Promise<void>;
 }
 
 export const VideoList = memo(function VideoList({
@@ -36,25 +43,46 @@ export const VideoList = memo(function VideoList({
     onLoadMore,
     hasMore = false,
     isLoading = false,
+    loadError = null,
+    onRefresh,
 }: VideoListProps) {
     const t = useScopedI18n('videoSearch');
     const viewsLabel = t('views');
 
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const observerTarget = useRef<HTMLDivElement | null>(null);
+    const scrollRef = useRef<HTMLDivElement | null>(null);
+    const sentinelRef = useRef<HTMLDivElement | null>(null);
+    const [scrollReady, setScrollReady] = useState(false);
     const [showScrollTop, setShowScrollTop] = useState(false);
-    const showScrollTopRef = useRef(false);
-    const loadMoreLockRef = useRef(false);
     const [menuVideo, setMenuVideo] = useState<YouTubeVideo | null>(null);
-    const menuVideoRef = useRef<YouTubeVideo | null>(null);
-    menuVideoRef.current = menuVideo;
+
+    const assignScrollRef = useCallback((node: HTMLDivElement | null) => {
+        scrollRef.current = node;
+        setScrollReady(node !== null);
+    }, []);
 
     const closeMenu = useCallback(() => setMenuVideo(null), []);
 
+    const handleRefresh = useCallback(async () => {
+        if (!onRefresh) return;
+        await Promise.resolve(onRefresh());
+    }, [onRefresh]);
+
+    const { isRefreshing, pullPosition } = usePullToRefresh({
+        onRefresh: handleRefresh,
+        elementRef: scrollRef,
+        refreshThreshold: PULL_REFRESH_THRESHOLD,
+        maximumPullLength: PULL_REFRESH_MAX,
+        enableResistance: true,
+        isDisabled: !scrollReady || !onRefresh || isLoading || videos.length === 0,
+    });
+
+    const canLoadMore = hasMore || Boolean(loadError);
+    const errorFooterHeight = loadError && !isLoading ? LOAD_ERROR_FOOTER_HEIGHT : 0;
     const loadingFooterHeight = isLoading
         ? LOADING_ROW_COUNT * VIDEO_LIST_ROW_HEIGHT + LOADING_ROW_GAP
         : 0;
-    const paddingEnd = loadingFooterHeight + (hasMore ? LOAD_MORE_SENTINEL_HEIGHT : 0);
+    const paddingEnd =
+        loadingFooterHeight + errorFooterHeight + (canLoadMore ? LOAD_MORE_SENTINEL_HEIGHT : 0);
 
     const virtualizer = useVirtualizer({
         count: videos.length,
@@ -65,61 +93,25 @@ export const VideoList = memo(function VideoList({
         getItemKey: (index) => videos[index]?.id ?? `row-${index}`,
     });
 
+    useInfiniteScrollSentinel({
+        rootRef: scrollRef,
+        sentinelRef,
+        enabled: canLoadMore,
+        isLoading,
+        onLoadMoreAction: onLoadMore,
+    });
+
     const handleRowPress = useCallback((video: YouTubeVideo) => {
         setMenuVideo((current) => (current?.id === video.id ? null : video));
     }, []);
 
-    useEffect(() => {
-        const root = scrollRef.current;
-        const target = observerTarget.current;
-        if (!root || !target || !hasMore || isLoading) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                if (!entries[0]?.isIntersecting || loadMoreLockRef.current) return;
-                loadMoreLockRef.current = true;
-                onLoadMore?.();
-            },
-            { root, rootMargin: '160px', threshold: 0 },
-        );
-
-        observer.observe(target);
-        return () => observer.disconnect();
-    }, [hasMore, isLoading, onLoadMore, videos.length]);
-
-    useEffect(() => {
-        if (!isLoading) {
-            loadMoreLockRef.current = false;
+    const handleScroll = useCallback(() => {
+        if (menuVideo) {
+            setMenuVideo(null);
         }
-    }, [isLoading]);
-
-    useEffect(() => {
-        const scrollEl = scrollRef.current;
-        if (!scrollEl) return;
-
-        let rafId = 0;
-        const onScroll = () => {
-            if (menuVideoRef.current) {
-                setMenuVideo(null);
-            }
-
-            if (rafId) return;
-            rafId = requestAnimationFrame(() => {
-                rafId = 0;
-                const shouldShow = scrollEl.scrollTop > 200;
-                if (shouldShow !== showScrollTopRef.current) {
-                    showScrollTopRef.current = shouldShow;
-                    setShowScrollTop(shouldShow);
-                }
-            });
-        };
-
-        scrollEl.addEventListener('scroll', onScroll, { passive: true });
-        return () => {
-            scrollEl.removeEventListener('scroll', onScroll);
-            if (rafId) cancelAnimationFrame(rafId);
-        };
-    }, []);
+        const scrollTop = scrollRef.current?.scrollTop ?? 0;
+        setShowScrollTop(scrollTop > 200);
+    }, [menuVideo]);
 
     const scrollToTop = useCallback(() => {
         closeMenu();
@@ -138,16 +130,27 @@ export const VideoList = memo(function VideoList({
     return (
         <div className="relative min-h-0 flex-1 overflow-hidden">
             <div
-                ref={scrollRef}
-                className="h-full overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]"
+                ref={assignScrollRef}
+                onScroll={handleScroll}
+                className="relative h-full overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]"
             >
+                {onRefresh ? (
+                    <VideoListPullHeader
+                        pullPosition={pullPosition}
+                        isRefreshing={isRefreshing}
+                        holdGap={PULL_REFRESH_THRESHOLD}
+                        refreshThreshold={PULL_REFRESH_THRESHOLD}
+                        maxPullGap={PULL_REFRESH_MAX}
+                    />
+                ) : null}
+
                 {videos.length === 0 ? (
                     <div className="flex min-h-[40%] items-center justify-center px-safe-offset py-12 pb-remote-scroll text-center text-sm text-muted-foreground">
                         {emptyMessage}
                     </div>
                 ) : (
                     <div
-                        className="relative w-full px-safe-offset pb-2 pt-3"
+                        className={cn('relative w-full px-safe-offset pb-2', !onRefresh && 'pt-3')}
                         style={{ height: `${totalSize}px` }}
                     >
                         {virtualItems.map((virtualRow) => {
@@ -189,12 +192,33 @@ export const VideoList = memo(function VideoList({
                             </div>
                         ) : null}
 
-                        {hasMore ? (
+                        {loadError && !isLoading ? (
                             <div
-                                ref={observerTarget}
-                                className="absolute left-0 h-8 w-full"
+                                className="absolute left-0 w-full px-safe-offset"
                                 style={{
                                     transform: `translate3d(0, ${contentHeight + loadingFooterHeight}px, 0)`,
+                                    height: errorFooterHeight,
+                                }}
+                                role="status"
+                                aria-live="polite"
+                            >
+                                <div className="flex flex-col items-center gap-2 rounded-md border border-[#EAEAEA] bg-[#FDEBEC] px-4 py-3 text-center dark:border-border dark:bg-destructive/10">
+                                    <p className="text-sm text-[#9F2F2D] dark:text-destructive">
+                                        {loadError}
+                                    </p>
+                                    <p className="text-xs text-muted-foreground">
+                                        {t('loadMoreRetryHint')}
+                                    </p>
+                                </div>
+                            </div>
+                        ) : null}
+
+                        {canLoadMore ? (
+                            <div
+                                ref={sentinelRef}
+                                className="absolute left-0 h-8 w-full"
+                                style={{
+                                    transform: `translate3d(0, ${contentHeight + loadingFooterHeight + errorFooterHeight}px, 0)`,
                                 }}
                                 aria-hidden
                             />
@@ -202,7 +226,9 @@ export const VideoList = memo(function VideoList({
                     </div>
                 )}
 
-                <div className={cn(!isLoading && videos.length > 0 && 'shrink-0 pb-remote-scroll')} />
+                <div
+                    className={cn(!isLoading && videos.length > 0 && 'shrink-0 pb-remote-scroll')}
+                />
             </div>
 
             {menuVideo ? (

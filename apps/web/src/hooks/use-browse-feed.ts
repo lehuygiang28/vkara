@@ -54,6 +54,7 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [hasMore, setHasMore] = useState(false);
+    const [loadError, setLoadError] = useState(false);
 
     const feedKey = useMemo(() => browseFeedKey(profile, room), [profile, room]);
 
@@ -69,6 +70,7 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
     const videosRef = useRef<YouTubeVideo[]>([]);
     const generationRef = useRef(0);
     const loadingRef = useRef(false);
+    const fetchFailedRef = useRef(false);
 
     const computeHasMore = useCallback((): boolean => {
         if (cursorsRef.current.some((cursor) => cursor.nextToken !== null)) {
@@ -151,10 +153,9 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
                     if (error instanceof Error && error.name === 'AbortError') {
                         return [];
                     }
-                    console.warn('Browse feed source failed, skipping:', cursor.source, error);
-                    cursor.nextToken = null;
-                    cursorIndexRef.current += 1;
-                    continue;
+                    console.warn('Browse feed source failed:', cursor.source, error);
+                    fetchFailedRef.current = true;
+                    return [];
                 }
 
                 if (generation !== generationRef.current || signal.aborted) {
@@ -205,6 +206,10 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
             loadingRef.current = true;
             setIsLoading(initial);
             setIsLoadingMore(!initial);
+            if (initial) {
+                setLoadError(false);
+            }
+            fetchFailedRef.current = false;
 
             const generation = generationRef.current;
             const controller = new AbortController();
@@ -234,15 +239,22 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
                 if (batch.length > 0) {
                     videosRef.current = [...videosRef.current, ...batch];
                     setVideos(videosRef.current);
+                    setLoadError(false);
+                    setHasMore(computeHasMore());
+                } else if (fetchFailedRef.current) {
+                    setLoadError(true);
+                    setHasMore(true);
+                } else {
+                    setLoadError(false);
+                    setHasMore(computeHasMore());
                 }
-
-                setHasMore(computeHasMore());
             } catch (error) {
                 if (error instanceof Error && error.name === 'AbortError') {
                     return;
                 }
                 console.error('Browse feed error:', error);
-                setHasMore(false);
+                setLoadError(true);
+                setHasMore(true);
             } finally {
                 loadingRef.current = false;
                 if (generation === generationRef.current) {
@@ -261,6 +273,7 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
 
         setVideos([]);
         setHasMore(false);
+        setLoadError(false);
         loadingRef.current = false;
 
         if (sources.length === 0) {
@@ -281,16 +294,32 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
     }, [feedKey, resetPager, runLoad]);
 
     const loadMore = useCallback(() => {
-        if (!loadingRef.current && hasMore) {
+        if (!loadingRef.current && (hasMore || loadError)) {
             void runLoad(false);
         }
-    }, [hasMore, runLoad]);
+    }, [hasMore, loadError, runLoad]);
+
+    const refresh = useCallback(async () => {
+        const sources = buildBrowseFeedSources(profileRef.current, roomRef.current);
+        if (sources.length === 0 || loadingRef.current) {
+            return;
+        }
+
+        generationRef.current += 1;
+        resetPager(sources);
+        setVideos([]);
+        setLoadError(false);
+        setHasMore(true);
+        await runLoad(true);
+    }, [resetPager, runLoad]);
 
     return {
         videos,
         isLoading,
         isLoadingMore,
-        hasMore,
+        hasMore: hasMore || loadError,
+        loadError,
         loadMore,
+        refresh,
     };
 }

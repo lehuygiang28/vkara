@@ -41,11 +41,14 @@ interface SearchState {
     suggestions: string[];
     nextToken: string | null;
     error: string | null;
+    loadMoreFailed: boolean;
 
     setSearchQuery: (query: string) => void;
     setIsKaraoke: (isKaraoke: boolean) => void;
     performSearch: (query: string, token?: string | null) => Promise<void>;
     loadMore: () => Promise<void>;
+    retryLoadMore: () => Promise<void>;
+    refreshSearch: () => Promise<void>;
     fetchSuggestions: (query: string) => Promise<void>;
     clearSuggestions: () => void;
 }
@@ -68,6 +71,7 @@ export const useSearchStore = create(
             suggestions: [],
             nextToken: null,
             error: null,
+            loadMoreFailed: false,
 
             setSearchQuery: (query) => set({ searchQuery: query }),
 
@@ -97,6 +101,7 @@ export const useSearchStore = create(
                         searchResults: [],
                         nextToken: null,
                         error: null,
+                        loadMoreFailed: false,
                         isLoading: false,
                         isLoadingMore: false,
                     });
@@ -116,6 +121,7 @@ export const useSearchStore = create(
                         searchResults: [],
                         nextToken: null,
                         error: null,
+                        loadMoreFailed: false,
                     });
 
                     try {
@@ -146,7 +152,7 @@ export const useSearchStore = create(
                     return;
                 }
 
-                set({ isLoadingMore: true });
+                set({ isLoadingMore: true, loadMoreFailed: false });
 
                 try {
                     const { items, continuation } = await searchYoutube({
@@ -165,10 +171,12 @@ export const useSearchStore = create(
                                 ...personalizeSearchResults(newItems, trimmed, isKaraoke),
                             ],
                             nextToken: continuation,
+                            loadMoreFailed: false,
                         };
                     });
                 } catch (err) {
                     console.error('Search error:', err);
+                    set({ loadMoreFailed: true });
                 } finally {
                     set({ isLoadingMore: false });
                 }
@@ -179,6 +187,20 @@ export const useSearchStore = create(
                 if (nextToken && !isLoadingMore && searchQuery.trim()) {
                     await get().performSearch(searchQuery, nextToken);
                 }
+            },
+
+            retryLoadMore: async () => {
+                const { loadMoreFailed, isLoadingMore } = get();
+                if (!loadMoreFailed || isLoadingMore) return;
+                set({ loadMoreFailed: false });
+                await get().loadMore();
+            },
+
+            refreshSearch: async () => {
+                const { searchQuery, isLoading, isLoadingMore } = get();
+                const trimmed = searchQuery.trim();
+                if (!trimmed || isLoading || isLoadingMore) return;
+                await get().performSearch(trimmed);
             },
 
             fetchSuggestions: async (query) => {
