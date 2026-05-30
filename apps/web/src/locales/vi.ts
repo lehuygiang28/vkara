@@ -2,8 +2,8 @@ export default {
     confirm: 'Xác nhận',
     cancel: 'Hủy',
 
-    'connection.connecting': 'Đang kết nối lại...',
-    'connection.offline': 'Mất kết nối. Đang thử kết nối lại...',
+    'connection.connecting': 'Đang kết nối lại',
+    'connection.offline': 'Mất kết nối · đang thử lại',
 
     'appearance.title': 'Giao diện',
     'appearance.dark': 'Tối',

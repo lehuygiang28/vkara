@@ -27,10 +27,7 @@ import { Button } from '@/components/ui/button';
 import { RemoteShell } from './RemoteShell';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
 import { LanguageSwitcher } from '@/components/language-switcher';
-import {
-    ConnectionStatusBanner,
-    ConnectionStatusIndicator,
-} from '@/components/connection-status-banner';
+import { ConnectionStatusToast } from '@/components/connection-status-toast';
 
 const YoutubeTvEmbed = dynamic(
     () => import('./youtube-tv-embed').then((mod) => mod.YoutubeTvEmbed),
@@ -74,7 +71,7 @@ export default function YoutubePlayerPage() {
 
     useStripRoomQueryFromUrl();
 
-    const { ensureConnectedAndSend, lastMessage, connectionStatus } = useWebSocket();
+    const { ensureConnectedAndSend, lastMessage } = useWebSocket();
 
     // No-op unless ENABLE_PERIODIC_PLAYBACK_SYNC — avoids polling getCurrentTime every second.
     usePlaybackPositionSync();
@@ -181,7 +178,6 @@ export default function YoutubePlayerPage() {
     const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
     const isTvIdle = Boolean(isTvPlayerIdle && room?.id);
     const useTvIdleShell = needsLayoutBootstrap || isTvPlayerIdle;
-    const isConnectionPending = connectionStatus !== 'OPEN';
     const showPlayerSettingsButton =
         effectiveLayoutMode === 'player' && !isTvPlayerIdle && hasFinePointer;
 
@@ -205,14 +201,11 @@ export default function YoutubePlayerPage() {
                 {isTvPlayerIdle && !room?.id && (
                     <div
                         className="absolute inset-0 z-[5] bg-zinc-950"
-                        aria-busy={isConnectionPending}
-                        aria-live="polite"
+                        aria-hidden
                     >
                         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
                     </div>
                 )}
-
-                {isTvPlayerIdle && <ConnectionStatusIndicator variant="tv-overlay" />}
 
                 {isTvIdle && room?.id && (
                     <TvPlayerQrZone
@@ -299,7 +292,7 @@ export default function YoutubePlayerPage() {
                 className="relative flex h-dvh-screen w-full flex-col overflow-hidden bg-zinc-950"
                 aria-busy="true"
             >
-                <ConnectionStatusIndicator variant="tv-overlay" />
+                <ConnectionStatusToast />
             </div>
         );
     }
@@ -311,7 +304,7 @@ export default function YoutubePlayerPage() {
                 useTvIdleShell ? 'bg-zinc-950' : 'bg-background',
             )}
         >
-            {!useTvIdleShell && <ConnectionStatusBanner />}
+            <ConnectionStatusToast />
             <main className="flex min-h-0 flex-1 flex-col overflow-hidden md:h-full md:flex-row">
                 {showsPlayer && (
                     <div

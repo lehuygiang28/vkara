@@ -2,8 +2,8 @@ export default {
     confirm: 'Confirm',
     cancel: 'Cancel',
 
-    'connection.connecting': 'Reconnecting...',
-    'connection.offline': 'Connection lost. Trying to reconnect...',
+    'connection.connecting': 'Reconnecting',
+    'connection.offline': 'Offline · retrying',
 
     'appearance.title': 'Appearance',
     'appearance.dark': 'Dark',
