@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { Play, ListVideo, X, Search, History } from 'lucide-react';
+import { Play, ListVideo, MoveUp, X, Search, History } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -16,7 +16,8 @@ import { VideoListToolbar } from './video-list-toolbar';
 import { VideoListEmptyState } from './video-list-empty-state';
 
 export function VideoHistory() {
-    const { handlePlayVideoNow, handleAddVideoToQueue, handleClearHistory } = usePlayerAction();
+    const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop, handleClearHistory } =
+        usePlayerAction();
     const { room, setCurrentTab } = useYouTubeStore();
     const t = useScopedI18n('videoHistory');
 
@@ -46,10 +47,21 @@ export function VideoHistory() {
                             handleAddVideoToQueue(video);
                         },
                     },
+                    {
+                        id: 'priority',
+                        label: t('playNext'),
+                        buttonText: t('playNextShort'),
+                        icon: <MoveUp />,
+                        tone: 'priority',
+                        onClick: () => {
+                            closeMenu();
+                            handleAddVideoAndMoveToTop(video);
+                        },
+                    },
                 ]}
             />
         ),
-        [t, handlePlayVideoNow, handleAddVideoToQueue],
+        [t, handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop],
     );
 
     const hasHistory = (room?.historyQueue?.length || 0) > 0;

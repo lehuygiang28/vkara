@@ -39,7 +39,7 @@ export function VideoQueue() {
                     {
                         id: 'priority',
                         label: t('moveToTop'),
-                        buttonText: t('moveToTop'),
+                        buttonText: t('moveToTopShort'),
                         icon: <MoveUp />,
                         tone: 'priority',
                         onClick: () => {

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback } from 'react';
-import { ListPlus, Play } from 'lucide-react';
+import { ListPlus, MoveUp, Play } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@/types/youtube.type';
@@ -15,7 +15,8 @@ import type { VideoListActionHelpers } from './VideoList';
 export function useVideoSearchListActions() {
     const t = useScopedI18n('videoSearch');
     const recordEngagement = usePersonalizationStore((state) => state.recordEngagement);
-    const { handlePlayVideoNow, handleAddVideoToQueue } = usePlayerAction();
+    const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop } =
+        usePlayerAction();
 
     return useCallback(
         (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers) => (
@@ -45,9 +46,21 @@ export function useVideoSearchListActions() {
                             handleAddVideoToQueue(video);
                         },
                     },
+                    {
+                        id: 'priority',
+                        label: t('addVideoAndMoveToTop'),
+                        buttonText: t('addVideoAndMoveToTopShort'),
+                        icon: <MoveUp />,
+                        tone: 'priority',
+                        onClick: () => {
+                            closeMenu();
+                            recordEngagement(video, 'queue');
+                            handleAddVideoAndMoveToTop(video);
+                        },
+                    },
                 ]}
             />
         ),
-        [t, recordEngagement, handlePlayVideoNow, handleAddVideoToQueue],
+        [t, recordEngagement, handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop],
     );
 }

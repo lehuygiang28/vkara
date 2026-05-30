@@ -119,15 +119,18 @@ export function VideoListActionBar({ actions, className }: VideoListActionBarPro
     if (actions.length === 0) return null;
 
     const isPair = actions.length === 2;
+    const isTriple = actions.length === 3;
 
     return (
         <div
             className={cn(
                 'w-full min-w-0 gap-1.5',
-                isPair ? 'grid grid-cols-2' : 'flex',
+                isPair && 'grid grid-cols-2',
+                isTriple && 'grid grid-cols-3',
                 !isPair &&
-                    actions.length > 2 &&
-                    'overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
+                    !isTriple &&
+                    actions.length > 1 &&
+                    'flex overflow-x-auto pb-0.5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
                 className,
             )}
             role="group"
@@ -136,7 +139,7 @@ export function VideoListActionBar({ actions, className }: VideoListActionBarPro
                 <div
                     key={action.id}
                     className={cn(
-                        isPair ? 'min-w-0' : 'min-w-[4.75rem] shrink-0 flex-1 basis-0',
+                        isPair || isTriple ? 'min-w-0' : 'min-w-[4.75rem] shrink-0 flex-1 basis-0',
                     )}
                 >
                     <ActionChip {...action} />
