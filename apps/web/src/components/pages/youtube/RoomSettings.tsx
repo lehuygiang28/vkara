@@ -30,7 +30,6 @@ import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
 import { roomCodeFieldProps, roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { generateShareableUrl } from '@/lib/room-share';
 import { toast } from '@/hooks/use-toast';
-import { Slider } from '@/components/ui/slider';
 import { TooltipButton } from '@/components/tooltip-button';
 import {
     InputOTP,
@@ -45,16 +44,10 @@ export function RoomSettings() {
         room,
         layoutMode,
         layoutModeSource,
-        showQRInPlayer,
-        showBottomControls,
-        opacityOfButtonsInPlayer,
         setRoom,
         setLayoutMode,
         enableAutoLayoutMode,
         setCurrentTab,
-        setShowQRInPlayer,
-        setShowBottomControls,
-        setOpacityOfButtonsInPlayer,
     } = useYouTubeStore();
     const { ensureConnectedAndSend, connectionStatus } = useWebSocket();
     const {
@@ -78,6 +71,26 @@ export function RoomSettings() {
     const sharePassword = room
         ? resolveRoomPasswordForShare(room.password, roomPassword)
         : roomPassword;
+    const showQRInPlayer = room?.showQRInPlayer ?? true;
+
+    const handleShowQRInPlayerChange = useCallback(
+        (value: string) => {
+            if (!room?.id) {
+                toast({
+                    title: t('toast.sessionNotReady'),
+                    description: t('toast.sessionNotReadyDescription'),
+                    variant: 'error',
+                });
+                return;
+            }
+
+            ensureConnectedAndSend({
+                type: 'setShowQRInPlayer',
+                show: value === 'true',
+            });
+        },
+        [room?.id, ensureConnectedAndSend, t],
+    );
 
     const shareableUrl = useMemo(
         () =>
@@ -422,85 +435,31 @@ export function RoomSettings() {
                                 </Select>
                             </div>
 
-                            {/* Setting show QR in player */}
-                            {layoutMode !== 'remote' && (
-                                <div className="mt-4">
-                                    <Label htmlFor="show-qr-in-player">
-                                        {t_RoomSettings('showQRInPlayer')}
-                                    </Label>
-                                    <Select
-                                        value={showQRInPlayer ? 'true' : 'false'}
-                                        onValueChange={(value) =>
-                                            setShowQRInPlayer(value === 'true')
-                                        }
-                                    >
-                                        <SelectTrigger className="w-full mt-2">
-                                            <SelectValue
-                                                placeholder={t_RoomSettings('showQRInPlayer')}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="true">
-                                                {t_RoomSettings('show')}
-                                            </SelectItem>
-                                            <SelectItem value="false">
-                                                {t_RoomSettings('hide')}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
-
-                            {/* Setting show bottom controls */}
-                            {layoutMode === 'both' && (
-                                <div className="mt-4">
-                                    <Label htmlFor="show-bottom-controls">
-                                        {t_RoomSettings('showBottomControls')}
-                                    </Label>
-                                    <Select
-                                        value={showBottomControls ? 'true' : 'false'}
-                                        onValueChange={(value) =>
-                                            setShowBottomControls(value === 'true')
-                                        }
-                                    >
-                                        <SelectTrigger className="w-full mt-2">
-                                            <SelectValue
-                                                placeholder={t_RoomSettings('showBottomControls')}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="true">
-                                                {t_RoomSettings('show')}
-                                            </SelectItem>
-                                            <SelectItem value="false">
-                                                {t_RoomSettings('hide')}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            )}
-
-                            {/* Setting opacity of buttons in player */}
-                            {layoutMode === 'player' && (
-                                <div className="mt-4 space-y-2">
-                                    <Label htmlFor="opacity-slider">
-                                        {t_RoomSettings('opacityOfButtonsInPlayer')}
-                                    </Label>
-                                    <Slider
-                                        id="opacity-slider"
-                                        min={0}
-                                        max={100}
-                                        step={5}
-                                        value={[opacityOfButtonsInPlayer]}
-                                        onValueChange={(value) =>
-                                            setOpacityOfButtonsInPlayer(value[0])
-                                        }
-                                    />
-                                    <div className="text-sm text-muted-foreground">
-                                        {opacityOfButtonsInPlayer}%
-                                    </div>
-                                </div>
-                            )}
+                            {/* Setting show QR in player (synced to TV via room) */}
+                            <div className="mt-4">
+                                <Label htmlFor="show-qr-in-player">
+                                    {t_RoomSettings('showQRInPlayer')}
+                                </Label>
+                                <Select
+                                    value={showQRInPlayer ? 'true' : 'false'}
+                                    onValueChange={handleShowQRInPlayerChange}
+                                    disabled={!room?.id}
+                                >
+                                    <SelectTrigger className="w-full mt-2">
+                                        <SelectValue
+                                            placeholder={t_RoomSettings('showQRInPlayer')}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="true">
+                                            {t_RoomSettings('show')}
+                                        </SelectItem>
+                                        <SelectItem value="false">
+                                            {t_RoomSettings('hide')}
+                                        </SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
                         </CardContent>
                     </Card>
                 </div>

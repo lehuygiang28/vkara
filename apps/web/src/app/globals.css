@@ -121,6 +121,17 @@
     .player-qr-zone:focus-visible * {
         cursor: none;
     }
+
+    /** Laptop player settings — dim by default, full opacity on hover */
+    .player-settings-button {
+        opacity: 0.5;
+        transition: opacity 0.3s ease;
+    }
+
+    .player-settings-button:hover,
+    .player-settings-button:focus-visible {
+        opacity: 1;
+    }
 }
 
 body {

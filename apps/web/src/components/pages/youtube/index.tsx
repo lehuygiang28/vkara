@@ -2,14 +2,13 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useRef, useState } from 'react';
-import { ListVideo, Maximize, Minimize, Settings } from 'lucide-react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { Settings } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { cn } from '@/lib/utils';
-import { useFullscreen } from '@/hooks/use-fullscreen';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { useCountdownStore } from '@/store/countdownTimersStore';
@@ -25,7 +24,6 @@ import { isVideoLive } from '@/lib/youtube-video';
 import { CountdownTimer } from '@/components/countdown-timer';
 import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';
-import { PlayerControls } from './PlayerControls';
 import { RemoteShell } from './RemoteShell';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
 import { LanguageSwitcher } from '@/components/language-switcher';
@@ -39,18 +37,24 @@ const YoutubeTvEmbed = dynamic(
     { ssr: false },
 );
 
+function subscribeFinePointer(callback: () => void) {
+    const mq = window.matchMedia('(hover: hover) and (pointer: fine)');
+    mq.addEventListener('change', callback);
+    return () => mq.removeEventListener('change', callback);
+}
+
+function getFinePointerSnapshot() {
+    return window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+}
+
 export default function YoutubePlayerPage() {
     const {
         room,
-        showQRInPlayer,
-        showBottomControls,
-        opacityOfButtonsInPlayer,
         setPlayer,
         setVolume,
         nextVideo,
         setIsPlaying,
         handleServerMessage,
-        setLayoutMode,
         setCurrentTab,
     } = useYouTubeStore();
 
@@ -58,9 +62,13 @@ export default function YoutubePlayerPage() {
     const t_Toast = useScopedI18n('toast');
     const locale = useCurrentLocale();
     const [showRemotePanel, setShowRemotePanel] = useState(false);
-    const { isFullScreen, toggleFullScreen } = useFullscreen();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
     const { effectiveLayoutMode, isTvViewport, needsLayoutBootstrap } = useEffectiveLayoutMode();
+    const hasFinePointer = useSyncExternalStore(
+        subscribeFinePointer,
+        getFinePointerSnapshot,
+        () => false,
+    );
     const prevLayoutMode = useRef(effectiveLayoutMode);
     const skippedUnplayableRef = useRef<string | null>(null);
 
@@ -162,25 +170,20 @@ export default function YoutubePlayerPage() {
         }
     };
 
-    const handlerToggleFullScreen = () => {
-        toggleFullScreen();
-        setShowRemotePanel(false);
-        if (!isFullScreen) {
-            setLayoutMode('player', 'user');
-        }
-    };
-
-    const openRemotePanel = (tab: 'queue' | 'settings') => {
+    const openSettingsPanel = () => {
         setShowRemotePanel(true);
-        setCurrentTab(tab);
+        setCurrentTab('settings');
     };
 
+    const showQRInPlayer = room?.showQRInPlayer ?? true;
     const isRemoteOnly = effectiveLayoutMode === 'remote';
     const showsPlayer = effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
     const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
     const isTvIdle = Boolean(isTvPlayerIdle && room?.id);
     const useTvIdleShell = needsLayoutBootstrap || isTvPlayerIdle;
     const isConnectionPending = connectionStatus !== 'OPEN';
+    const showPlayerSettingsButton =
+        effectiveLayoutMode === 'player' && !isTvPlayerIdle && hasFinePointer;
 
     const renderPlayer = () => (
         <LayoutGroup id="tv-player-qr">
@@ -216,7 +219,7 @@ export default function YoutubePlayerPage() {
                         locale={locale}
                         showQR={showQRInPlayer}
                         isIdle
-                        onOpenSettingsAction={() => openRemotePanel('settings')}
+                        onOpenSettingsAction={openSettingsPanel}
                     />
                 )}
 
@@ -265,52 +268,25 @@ export default function YoutubePlayerPage() {
                             locale={locale}
                             showQR={showQRInPlayer}
                             isIdle={false}
-                            onOpenSettingsAction={() => openRemotePanel('settings')}
+                            onOpenSettingsAction={openSettingsPanel}
                         />
                     )}
-
-                    {!isTvPlayerIdle && (
-                        <div
-                            className="flex flex-col gap-2 transition-opacity"
-                            style={{ opacity: opacityOfButtonsInPlayer / 100 }}
-                        >
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                size="icon"
-                                className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                                onClick={() => openRemotePanel('queue')}
-                                aria-label={t('queue')}
-                            >
-                                <ListVideo className="h-5 w-5" />
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                size="icon"
-                                className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                                onClick={() => openRemotePanel('settings')}
-                                aria-label={t('settings')}
-                            >
-                                <Settings className="h-5 w-5" />
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                size="icon"
-                                className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                                onClick={handlerToggleFullScreen}
-                                aria-label={isFullScreen ? t('exitFullscreen') : t('fullscreen')}
-                            >
-                                {isFullScreen ? (
-                                    <Minimize className="h-5 w-5" />
-                                ) : (
-                                    <Maximize className="h-5 w-5" />
-                                )}
-                            </Button>
-                        </div>
-                    )}
                 </div>
+
+                {showPlayerSettingsButton && (
+                    <div className="player-settings-button pointer-events-auto absolute right-safe-offset top-safe-offset z-20">
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            size="icon"
+                            className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
+                            onClick={openSettingsPanel}
+                            aria-label={t('settings')}
+                        >
+                            <Settings className="h-5 w-5" />
+                        </Button>
+                    </div>
+                )}
             </div>
         </LayoutGroup>
     );
@@ -349,13 +325,6 @@ export default function YoutubePlayerPage() {
                         )}
                     >
                         {renderPlayer()}
-                        {effectiveLayoutMode === 'both' &&
-                            showBottomControls &&
-                            !isTvPlayerIdle && (
-                                <div className="hidden border-t bg-background/95 p-3 backdrop-blur lg:block">
-                                    <PlayerControls variant="bar" />
-                                </div>
-                            )}
                     </div>
                 )}
 

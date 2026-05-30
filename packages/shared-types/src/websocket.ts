@@ -14,6 +14,8 @@ export interface Room {
   videoQueue: YouTubeVideo[];
   historyQueue: YouTubeVideo[];
   volume: number;
+  /** Corner QR overlay on the TV player (synced across clients). */
+  showQRInPlayer: boolean;
   playingNow: YouTubeVideo | null;
   lastActivity: number;
   /** Set when the last client leaves; used to release empty rooms after a grace period. */
@@ -43,6 +45,7 @@ export type RawClientMessage = {
   | { type: "playNow"; video: YouTubeVideo }
   | { type: "nextVideo" }
   | { type: "setVolume"; volume: number }
+  | { type: "setShowQRInPlayer"; show: boolean }
   | { type: "replay" }
   | { type: "play" }
   | { type: "pause" }

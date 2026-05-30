@@ -123,6 +123,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             videoQueue: [],
             historyQueue: [],
             volume: 100,
+            showQRInPlayer: true,
             playingNow: null,
             lastActivity: Date.now(),
             creatorId: ws.id,
@@ -318,6 +319,16 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
         broadcastRoomState(roomId, room);
         publishToRoom(roomId, { type: 'volumeChanged', volume: room.volume });
+    }
+
+    async function setShowQRInPlayer(ws: ElysiaWS, show: boolean): Promise<void> {
+        const roomId = await validateClientInRoom(ws);
+
+        const room = await mutateRoom(roomId, (room) => {
+            room.showQRInPlayer = show;
+        });
+
+        broadcastRoomState(roomId, room);
     }
 
     async function play(ws: ElysiaWS) {
@@ -551,6 +562,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid volume value');
                 }
                 await setVolume(ws, message.volume);
+                break;
+            case 'setShowQRInPlayer':
+                if (typeof message.show !== 'boolean') {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid showQRInPlayer value');
+                }
+                await setShowQRInPlayer(ws, message.show);
                 break;
             case 'replay':
                 await replay(ws);

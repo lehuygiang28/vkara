@@ -127,8 +127,6 @@ export default {
     'roomSettings.showQRInPlayer': 'Show QR code in player',
     'roomSettings.show': 'Show',
     'roomSettings.hide': 'Hide',
-    'roomSettings.showBottomControls': 'Show bottom controls',
-    'roomSettings.opacityOfButtonsInPlayer': 'Opacity of buttons in player',
     'roomSettings.copyPasswordSuccess': 'Password copied to clipboard',
     'roomSettings.invalidRoomId': 'Invalid room ID',
     'roomSettings.roomIdMustBe6Digits': 'Room ID must be 6 digits',

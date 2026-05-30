@@ -56,6 +56,7 @@ export const wsClientMessageSchema = t.Union([
     withBase(t.Object({ type: t.Literal('playNow'), video: youTubeVideoSchema })),
     withBase(t.Object({ type: t.Literal('nextVideo') })),
     withBase(t.Object({ type: t.Literal('setVolume'), volume: t.Number() })),
+    withBase(t.Object({ type: t.Literal('setShowQRInPlayer'), show: t.Boolean() })),
     withBase(t.Object({ type: t.Literal('replay') })),
     withBase(t.Object({ type: t.Literal('play') })),
     withBase(t.Object({ type: t.Literal('pause') })),
