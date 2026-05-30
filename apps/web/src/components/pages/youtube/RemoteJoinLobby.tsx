@@ -3,8 +3,8 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { isValidRoomId } from '@vkara/shared-utils';
-import { roomCodeFieldProps, roomSecretFieldProps } from '@/lib/room-field-autofill';
+import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/shared-utils';
+import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useScopedI18n } from '@/locales/client';
 import { useJoinRoom } from '@/hooks/use-join-room';
@@ -17,7 +17,6 @@ import { Label } from '@/components/ui/label';
 import {
     InputOTP,
     InputOTPGroup,
-    InputOTPSeparator,
     InputOTPSlot,
 } from '@/components/ui/input-otp';
 
@@ -72,22 +71,17 @@ export function RemoteJoinLobby() {
                     <div className="flex flex-col items-center space-y-3">
                         <InputOTP
                             id="lobby-join-room-id"
-                            maxLength={6}
+                            maxLength={ROOM_ID_LENGTH}
                             value={joinRoomId}
                             onChange={setJoinRoomId}
                             inputMode="numeric"
                             {...roomCodeFieldProps}
                         >
                             <InputOTPGroup>
-                                <InputOTPSlot index={0} />
-                                <InputOTPSlot index={1} />
-                                <InputOTPSlot index={2} />
-                            </InputOTPGroup>
-                            <InputOTPSeparator />
-                            <InputOTPGroup>
-                                <InputOTPSlot index={3} />
-                                <InputOTPSlot index={4} />
-                                <InputOTPSlot index={5} />
+                                <InputOTPSlot index={0} className={roomCodeOtpSlotClassName} />
+                                <InputOTPSlot index={1} className={roomCodeOtpSlotClassName} />
+                                <InputOTPSlot index={2} className={roomCodeOtpSlotClassName} />
+                                <InputOTPSlot index={3} className={roomCodeOtpSlotClassName} />
                             </InputOTPGroup>
                         </InputOTP>
                     </div>

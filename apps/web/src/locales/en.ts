@@ -135,7 +135,7 @@ export default {
     'roomSettings.hide': 'Hide',
     'roomSettings.copyPasswordSuccess': 'Password copied to clipboard',
     'roomSettings.invalidRoomId': 'Invalid room ID',
-    'roomSettings.roomIdMustBe6Digits': 'Room ID must be 6 digits',
+    'roomSettings.roomIdMustBe4Digits': 'Room ID must be 4 digits',
     'roomSettings.usePassword': 'Use Password',
 
     'connectionStatus.notConnected': 'Not Connected',
@@ -242,7 +242,7 @@ export default {
     'relativeTime.yearsAgo': '{count} years ago',
 
     'joinLobby.title': 'Join a room',
-    'joinLobby.subtitle': 'Enter the 6-digit code from the TV or scan the QR code.',
+    'joinLobby.subtitle': 'Enter the 4-digit code from the TV or scan the QR code.',
     'joinLobby.roomIdLabel': 'Room code',
     'joinLobby.passwordLabel': 'Room password (optional)',
     'joinLobby.passwordPlaceholder': 'Enter room password',

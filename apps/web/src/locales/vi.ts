@@ -134,7 +134,7 @@ export default {
     'roomSettings.hide': 'Ẩn',
     'roomSettings.copyPasswordSuccess': 'Mật khẩu đã được sao chép',
     'roomSettings.invalidRoomId': 'Mã phòng không hợp lệ',
-    'roomSettings.roomIdMustBe6Digits': 'Mã phòng phải có 6 chữ số',
+    'roomSettings.roomIdMustBe4Digits': 'Mã phòng phải có 4 chữ số',
     'roomSettings.usePassword': 'Sử dụng mật khẩu',
 
     'connectionStatus.notConnected': 'Không kết nối',
@@ -240,7 +240,7 @@ export default {
     'relativeTime.yearsAgo': '{count} năm trước',
 
     'joinLobby.title': 'Tham gia phòng',
-    'joinLobby.subtitle': 'Nhập mã 6 số trên TV hoặc quét mã QR.',
+    'joinLobby.subtitle': 'Nhập mã 4 số trên TV hoặc quét mã QR.',
     'joinLobby.roomIdLabel': 'Mã phòng',
     'joinLobby.passwordLabel': 'Mật khẩu phòng (tùy chọn)',
     'joinLobby.passwordPlaceholder': 'Nhập mật khẩu phòng',

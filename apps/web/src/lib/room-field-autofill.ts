@@ -11,6 +11,9 @@ type RoomFieldInputProps = Pick<
 /**
  * Room join/create fields are not login forms — disable browser and password-manager autofill.
  */
+export const roomCodeOtpSlotClassName =
+    'h-12 w-12 text-2xl font-semibold tabular-nums sm:h-14 sm:w-14 sm:text-3xl';
+
 export const roomCodeFieldProps = {
     autoComplete: 'off',
     autoCorrect: 'off',

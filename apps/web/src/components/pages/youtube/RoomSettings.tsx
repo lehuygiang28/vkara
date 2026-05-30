@@ -26,15 +26,14 @@ import {
     SelectValue,
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
-import { roomCodeFieldProps, roomSecretFieldProps } from '@/lib/room-field-autofill';
+import { resolveRoomPasswordForShare, ROOM_ID_LENGTH } from '@vkara/shared-utils';
+import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { generateShareableUrl } from '@/lib/room-share';
 import { toast } from '@/hooks/use-toast';
 import { TooltipButton } from '@/components/tooltip-button';
 import {
     InputOTP,
     InputOTPGroup,
-    InputOTPSeparator,
     InputOTPSlot,
 } from '@/components/ui/input-otp';
 
@@ -170,11 +169,7 @@ export function RoomSettings() {
                                 <div className="space-y-4">
                                     <p className="text-sm font-medium">
                                         {t_RoomSettings('roomId')}:{' '}
-                                        <span className="font-bold">
-                                            {room.id?.slice(0, Math.round(room.id.length / 2)) +
-                                                ' ' +
-                                                room.id?.slice(-Math.round(room.id.length / 2))}
-                                        </span>
+                                        <span className="font-bold font-mono text-2xl tabular-nums">{room.id}</span>
                                     </p>
                                     {room?.id && room?.password && (
                                         <div className="space-y-2">
@@ -346,22 +341,17 @@ export function RoomSettings() {
                                         <div className="flex flex-col items-center space-y-4">
                                             <InputOTP
                                                 id="join-room-id"
-                                                maxLength={6}
+                                                maxLength={ROOM_ID_LENGTH}
                                                 value={joinRoomId}
                                                 onChange={setJoinRoomId}
                                                 inputMode="numeric"
                                                 {...roomCodeFieldProps}
                                             >
                                                 <InputOTPGroup>
-                                                    <InputOTPSlot index={0} />
-                                                    <InputOTPSlot index={1} />
-                                                    <InputOTPSlot index={2} />
-                                                </InputOTPGroup>
-                                                <InputOTPSeparator />
-                                                <InputOTPGroup>
-                                                    <InputOTPSlot index={3} />
-                                                    <InputOTPSlot index={4} />
-                                                    <InputOTPSlot index={5} />
+                                                    <InputOTPSlot index={0} className={roomCodeOtpSlotClassName} />
+                                                    <InputOTPSlot index={1} className={roomCodeOtpSlotClassName} />
+                                                    <InputOTPSlot index={2} className={roomCodeOtpSlotClassName} />
+                                                    <InputOTPSlot index={3} className={roomCodeOtpSlotClassName} />
                                                 </InputOTPGroup>
                                             </InputOTP>
                                             <p className="text-sm text-muted-foreground">

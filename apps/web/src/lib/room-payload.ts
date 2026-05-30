@@ -8,7 +8,7 @@ export type ParsedRoomInvite = {
 };
 
 /**
- * Parse room invite from in-app QR scan: HTTPS URL with ?roomId=, vkara: payload, or 6 digits.
+ * Parse room invite from in-app QR scan: HTTPS URL with ?roomId=, vkara: payload, or 4 digits.
  */
 export function parseRoomFromScan(text: string): ParsedRoomInvite | null {
     const trimmed = text.trim();

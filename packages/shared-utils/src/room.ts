@@ -1,5 +1,6 @@
-/** Six-digit numeric room IDs used across client and server. */
-export const ROOM_ID_PATTERN = /^\d{6}$/;
+/** Four-digit numeric room IDs used across client and server. */
+export const ROOM_ID_LENGTH = 4;
+export const ROOM_ID_PATTERN = new RegExp(`^\\d{${ROOM_ID_LENGTH}}$`);
 
 export function isValidRoomId(roomId?: string | null): boolean {
     if (!roomId) {
@@ -22,7 +23,7 @@ export function resolveRoomPasswordForShare(
 
 /**
  * Build a shareable room invite URL (no browser APIs).
- * Example: `https://example.com/vi?roomId=123456&password=secret`
+ * Example: `https://example.com/vi?roomId=1234&password=secret`
  */
 export function buildShareableRoomUrl({
     baseUrl,

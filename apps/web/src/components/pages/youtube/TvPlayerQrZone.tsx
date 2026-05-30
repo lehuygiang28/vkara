@@ -21,10 +21,6 @@ type TvPlayerQrZoneProps = {
     onOpenSettingsAction: () => void;
 };
 
-function formatRoomId(roomId: string) {
-    return `${roomId.slice(0, 3)} ${roomId.slice(3)}`;
-}
-
 function PlayerQrMark({ shareUrl, size }: { shareUrl: string; size: number }) {
     return (
         <QRCode
@@ -85,35 +81,46 @@ export function TvPlayerQrZone({
                         </div>
                     </>
                 ) : (
-                    <PlayerQrMark shareUrl={shareUrl} size={CORNER_QR_SIZE} />
+                    <div style={{ width: CORNER_QR_SIZE }}>
+                        <PlayerQrMark shareUrl={shareUrl} size={CORNER_QR_SIZE} />
+                    </div>
                 )
             ) : (
                 <div
                     className={cn(
-                        'flex items-center justify-center rounded-xl bg-zinc-100 font-mono font-semibold tracking-[0.2em] text-zinc-900',
-                        isIdle ? 'h-[240px] w-[240px] text-4xl' : 'h-[72px] w-[72px] text-sm',
+                        'flex items-center justify-center rounded-xl bg-zinc-100 font-mono font-semibold tabular-nums text-zinc-900',
+                        isIdle ? 'h-[240px] w-[240px] text-6xl sm:text-7xl' : 'h-[80px] w-[80px] text-2xl',
                     )}
                 >
-                    {formatRoomId(roomId)}
+                    {roomId}
                 </div>
             )}
         </motion.div>
     );
 
-    const roomLabel = (
+    const roomLabel = isIdle ? (
         <motion.span
             layout
             layoutId="tv-player-room-label"
             transition={layoutTransition}
-            className={cn(
-                'font-semibold tabular-nums text-white drop-shadow-sm',
-                isIdle
-                    ? 'mt-4 text-center text-lg tracking-wide'
-                    : 'mt-1 text-center text-sm tracking-wide',
-            )}
+            className="mt-4 text-center text-3xl font-semibold tabular-nums text-white drop-shadow-sm sm:text-4xl"
         >
-            {isIdle ? `${t('tvRoomCode')}: ${formatRoomId(roomId)}` : formatRoomId(roomId)}
+            {`${t('tvRoomCode')}: ${roomId}`}
         </motion.span>
+    ) : (
+        <motion.div
+            layout
+            layoutId="tv-player-room-label"
+            transition={layoutTransition}
+            className="mt-1 grid grid-cols-4 font-mono text-2xl font-semibold leading-none tabular-nums text-white drop-shadow-sm"
+            style={{ width: CORNER_QR_SIZE }}
+        >
+            {roomId.split('').map((digit, index) => (
+                <span key={`${digit}-${index}`} className="text-center">
+                    {digit}
+                </span>
+            ))}
+        </motion.div>
     );
 
     if (isIdle) {
@@ -179,7 +186,7 @@ export function TvPlayerQrZone({
                 onKeyDown={(e) => e.key === 'Enter' && onOpenSettings()}
                 role="button"
                 tabIndex={0}
-                aria-label={`${t('tvRoomCode')} ${formatRoomId(roomId)}. ${t('settings')}`}
+                aria-label={`${t('tvRoomCode')} ${roomId}. ${t('settings')}`}
             >
                 {qrShell}
                 {roomLabel}

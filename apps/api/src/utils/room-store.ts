@@ -37,7 +37,7 @@ export async function loadRoom(roomId: string): Promise<Room | null> {
 
 export async function requireRoom(roomId: string, isRejoin = false): Promise<Room> {
     if (!isValidRoomId(roomId)) {
-        throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Room ID must be a valid 6-digit code');
+        throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Room ID must be a valid 4-digit code');
     }
 
     const room = await loadRoom(roomId);
@@ -66,7 +66,7 @@ export async function mutateRoom(
     const key = roomKey(roomId);
 
     if (!isValidRoomId(roomId)) {
-        throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Room ID must be a valid 6-digit code');
+        throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Room ID must be a valid 4-digit code');
     }
 
     for (let attempt = 0; attempt < MUTATION_MAX_RETRIES; attempt++) {

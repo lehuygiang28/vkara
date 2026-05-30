@@ -17,6 +17,7 @@ import {
     type ServerMessage,
     type YouTubeVideo,
 } from '@vkara/shared-types';
+import { ROOM_ID_LENGTH } from '@vkara/shared-utils';
 import { publishToRoom } from '@/modules/room/room-broadcast';
 import { checkEmbeddable } from '@/modules/youtube/embeddable';
 import { fetchYoutubePlaylistVideos } from '@/modules/youtube/fetch-playlist-videos';
@@ -110,7 +111,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         let roomExists: boolean;
 
         do {
-            roomId = generateRandomNumber({ digits: 6 }).toString();
+            roomId = generateRandomNumber({ digits: ROOM_ID_LENGTH }).toString();
             roomExists = await roomIdExists(roomId);
         } while (roomExists);
 

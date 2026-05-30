@@ -2,6 +2,8 @@
 
 import { useCallback } from 'react';
 
+import { isValidRoomId } from '@vkara/shared-utils';
+
 import { parseRoomFromScan } from '@/lib/room-payload';
 import { useScopedI18n } from '@/locales/client';
 import { useWebSocket } from '@/providers/websocket-provider';
@@ -22,7 +24,7 @@ export function useJoinRoom() {
     const joinRoom = useCallback(
         (data?: { roomId?: string; password?: string | null }) => {
             const roomIdWillUse = data?.roomId ?? joinRoomId;
-            if (roomIdWillUse.length === 6) {
+            if (isValidRoomId(roomIdWillUse)) {
                 ensureConnectedAndSend({
                     type: 'joinRoom',
                     roomId: roomIdWillUse,
@@ -32,7 +34,7 @@ export function useJoinRoom() {
             } else {
                 toast({
                     title: t('invalidRoomId'),
-                    description: t('roomIdMustBe6Digits'),
+                    description: t('roomIdMustBe4Digits'),
                     variant: 'error',
                 });
             }
@@ -46,7 +48,7 @@ export function useJoinRoom() {
             if (!parsed) {
                 toast({
                     title: t('invalidRoomId'),
-                    description: t('roomIdMustBe6Digits'),
+                    description: t('roomIdMustBe4Digits'),
                     variant: 'error',
                 });
                 return;
