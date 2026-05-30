@@ -301,12 +301,8 @@ export const usePlayerAction = (): PlayerAction => {
         async (playlistUrlOrId: string) => {
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'importPlaylist', playlistUrlOrId });
-            toast({
-                title: t('toast.importPlaylistHandler'),
-                variant: 'info',
-            });
         },
-        [ensureRoomReady, ensureConnectedAndSend, t],
+        [ensureRoomReady, ensureConnectedAndSend],
     );
 
     return {

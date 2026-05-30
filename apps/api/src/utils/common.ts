@@ -1,4 +1,3 @@
-import { Video } from 'youtube-sr';
 import { normalizeVideoChannels, type Room, type YouTubeVideo } from '@vkara/shared-types';
 
 /**
@@ -54,57 +53,6 @@ export function shuffleArray<T>(array: T[]): T[] {
 
 export function isNullish<T>(value: T | null | undefined): value is null | undefined {
     return value === null || value === undefined;
-}
-
-/**
- * Takes a YouTube video object and cleans up its fields to match the YouTubeVideo
- * type, which is used throughout the application.
- *
- * @param {Video} video The YouTube video object.
- * @returns {YouTubeVideo} The cleaned up YouTube video object.
- * @example
- * const video = YouTubeVideo.fromURL('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
- * const cleanVideo = cleanUpVideoField(video);
- * console.log(cleanVideo);
- * // {
- * //   id: 'dQw4w9WgXcQ',
- * //   duration: 213,
- * //   duration_formatted: '3:33',
- * //   title: 'Rick Astley - Never Gonna Give You Up (Official Music Video)',
- * //   type: 'video',
- * //   uploadedAt: '2009-10-24T07:32:03.000Z',
- * //   url: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
- * //   views: 123456,
- * //   channel: {
- * //     name: 'Rick Astley',
- * //     verified: true,
- * //   },
- * //   thumbnail: {
- * //     url: 'https://i.ytimg.com/vi/dQw4w9WgXcQ/maxresdefault.jpg',
- * //   },
- * // }
- */
-export function cleanUpVideoField(video: Video): YouTubeVideo {
-    const videoJSON = video.toJSON();
-    const channel = video.channel?.toJSON();
-    const name = channel?.name || '';
-    const verified = video.channel?.verified || channel?.verified || false;
-
-    return {
-        id: videoJSON.id,
-        duration: videoJSON.duration || video.duration || 0,
-        duration_formatted: videoJSON.duration_formatted || '0:00',
-        title: videoJSON.title,
-        type: videoJSON.type,
-        uploadedAt: videoJSON.uploadedAt,
-        url: videoJSON.url,
-        views: videoJSON.views || video.views || 0,
-        channels: name ? [{ name, verified }] : [{ name: '—', verified: false }],
-        thumbnail: {
-            url: videoJSON.thumbnail.url || '',
-        },
-        isLive: Boolean(videoJSON.live ?? video.live),
-    };
 }
 
 type VideoWithLegacyChannel = YouTubeVideo & {

@@ -1,8 +1,8 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState } from 'react';
-import YouTube from 'react-youtube';
 import { ListVideo, Maximize, Minimize, Settings } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
@@ -30,6 +30,11 @@ import {
     ConnectionStatusIndicator,
 } from '@/components/connection-status-banner';
 
+const YoutubeTvEmbed = dynamic(
+    () => import('./youtube-tv-embed').then((mod) => mod.YoutubeTvEmbed),
+    { ssr: false },
+);
+
 export default function YoutubePlayerPage() {
     const {
         room,
@@ -53,6 +58,7 @@ export default function YoutubePlayerPage() {
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
     const { effectiveLayoutMode, isTvViewport, needsLayoutBootstrap } = useEffectiveLayoutMode();
     const prevLayoutMode = useRef(effectiveLayoutMode);
+    const skippedUnplayableRef = useRef<string | null>(null);
 
     useStripRoomQueryFromUrl();
 
@@ -78,10 +84,7 @@ export default function YoutubePlayerPage() {
     const onPlayerReady = (event: YT.PlayerEvent) => {
         setPlayer(event.target);
         const { room: currentRoom, volume: storedVolume } = useYouTubeStore.getState();
-        const targetVolume = Math.min(
-            100,
-            Math.max(0, currentRoom?.volume ?? storedVolume),
-        );
+        const targetVolume = Math.min(100, Math.max(0, currentRoom?.volume ?? storedVolume));
         event.target.setVolume(targetVolume);
         if (targetVolume !== storedVolume) {
             setVolume(targetVolume);
@@ -119,6 +122,32 @@ export default function YoutubePlayerPage() {
         }
     };
 
+    const onPlayerError = (event: YT.OnErrorEvent) => {
+        const errorCode = event.data;
+        const isEmbedBlocked = errorCode === 101 || errorCode === 150;
+        const isMissingOrBroken = errorCode === 100 || errorCode === 5 || errorCode === 2;
+
+        if (!isEmbedBlocked && !isMissingOrBroken) {
+            return;
+        }
+
+        const currentVideoId = useYouTubeStore.getState().room?.playingNow?.id;
+        if (!currentVideoId || !room?.id) {
+            return;
+        }
+
+        if (skippedUnplayableRef.current === currentVideoId) {
+            return;
+        }
+        skippedUnplayableRef.current = currentVideoId;
+
+        ensureConnectedAndSend({ type: 'skipUnplayableVideo', videoId: currentVideoId });
+    };
+
+    useEffect(() => {
+        skippedUnplayableRef.current = null;
+    }, [room?.playingNow?.id]);
+
     const handleVideoFinished = () => {
         if (room) {
             ensureConnectedAndSend({ type: 'videoFinished' });
@@ -151,22 +180,11 @@ export default function YoutubePlayerPage() {
         <LayoutGroup id="tv-player-qr">
             <div className="relative h-full w-full">
                 {room?.playingNow ? (
-                    <YouTube
+                    <YoutubeTvEmbed
                         videoId={room.playingNow.id}
-                        opts={{
-                            height: '100%',
-                            width: '100%',
-                            playerVars: {
-                                autoplay: 1,
-                                controls: 1,
-                                playsinline: 1,
-                                cc_load_policy: 0,
-                                iv_load_policy: 3,
-                                origin: 'https://youtube.com',
-                            },
-                        }}
-                        onReady={onPlayerReady}
-                        onStateChange={onPlayerStateChange}
+                        onReadyAction={onPlayerReady}
+                        onStateChangeAction={onPlayerStateChange}
+                        onErrorAction={onPlayerError}
                         className="absolute inset-0"
                     />
                 ) : (

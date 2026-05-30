@@ -1,4 +1,3 @@
-import type { Video } from "youtube-sr";
 import type { SearchType } from "youtubei";
 
 export interface SearchResults {
@@ -14,27 +13,19 @@ export type YouTubeChannel = {
   verified: boolean;
 };
 
-export type YouTubeVideo = Omit<
-  ReturnType<Video["toJSON"]>,
-  | "shorts_url"
-  | "description"
-  | "unlisted"
-  | "nsfw"
-  | "tags"
-  | "ratings"
-  | "shorts"
-  | "live"
-  | "private"
-  | "music"
-  | "channel"
-  | "thumbnail"
-  | "type"
-> & {
+export type YouTubeVideo = {
+  id: string;
+  duration: number;
+  duration_formatted: string;
+  title: string;
+  type: SearchType;
+  uploadedAt: string;
+  url: string;
+  views: number;
   channels: YouTubeChannel[];
   thumbnail: {
     url: string;
   };
-  type: SearchType;
   /** Active YouTube livestream (no fixed duration). */
   isLive?: boolean;
 };

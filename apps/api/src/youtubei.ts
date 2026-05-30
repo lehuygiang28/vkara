@@ -1,13 +1,12 @@
 import { Elysia, t } from 'elysia';
 import Redis from 'ioredis';
 import { Queue, Worker } from 'bullmq';
-import { Client, type VideoCompact, type SearchResult } from 'youtubei';
-import youtube from 'youtube-sr';
+import { type VideoCompact, type SearchResult } from 'youtubei';
+import { fetchSearchSuggestions } from './modules/youtube/fetch-search-suggestions';
 import { createRedisOptions } from '@vkara/shared-infra';
 
 import { createContextLogger } from '@/utils/logger';
 import type { YouTubeVideo } from '@vkara/shared-types';
-import { cleanUpVideoField } from './utils/common';
 import {
     cleanupOldInstances,
     getRedisKey,
@@ -29,15 +28,12 @@ import {
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
 import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
 import { fetchYoutubePlaylistVideos } from './modules/youtube/fetch-playlist-videos';
+import { getYoutubeiClient } from './modules/youtube/youtubei-client';
 
 const logger = createContextLogger('Search-Youtubei');
 const youtubeiLogger = createContextLogger('Queue/Youtubei');
 
-const youtubei = new Client({
-    oauth: {
-        enabled: false,
-    },
-});
+const youtubei = getYoutubeiClient();
 
 const redisConnectionOptions = createRedisOptions(process.env);
 const redis = new Redis(redisConnectionOptions);
@@ -179,15 +175,7 @@ export const searchYoutubeiElysia = new Elysia({})
     )
     .post(
         '/suggestions',
-        async ({ body: { query } }): Promise<string[]> => {
-            try {
-                const suggestions = await youtube.getSuggestions(query);
-                return suggestions;
-            } catch (error) {
-                logger.error('Failed to get suggestions', { error });
-                return [];
-            }
-        },
+        async ({ body: { query } }): Promise<string[]> => fetchSearchSuggestions(query),
         {
             body: t.Object({
                 query: t.String(),
@@ -197,8 +185,7 @@ export const searchYoutubeiElysia = new Elysia({})
     .post(
         '/playlist',
         async ({ body: { playlistUrlOrId } }): Promise<YouTubeVideo[]> => {
-            const results = await fetchYoutubePlaylistVideos(playlistUrlOrId, { fetchAll: true });
-            return results.map(cleanUpVideoField);
+            return fetchYoutubePlaylistVideos(playlistUrlOrId, { fetchAll: true });
         },
         {
             body: t.Object({
@@ -316,4 +303,3 @@ export const searchYoutubeiElysia = new Elysia({})
             }),
         },
     );
-

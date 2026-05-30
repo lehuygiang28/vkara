@@ -4,7 +4,7 @@ const PLAYLIST_ID_PATTERN = /(PL|FL|UU|LL|RD|OL)[a-zA-Z0-9-_]{11,41}/;
 const ALBUM_PATTERN = /(RDC|O)LAK5uy_[a-zA-Z0-9-_]{33}/;
 
 export type YoutubePlaylistInput = {
-    /** URL passed to youtube-sr or custom mix fetcher */
+    /** URL passed to youtubei playlist fetcher */
     fetchUrl: string;
     isMix: boolean;
     listId: string;
@@ -53,7 +53,7 @@ function buildStandardPlaylistUrl(listId: string): string {
 
 /**
  * Normalizes a YouTube playlist URL or bare list ID for fetching.
- * Mix/radio lists (RD*) must stay on watch URLs — playlist URLs and playnext break youtube-sr.
+ * Mix/radio lists (RD*) must stay on watch URLs — playlist URLs and playnext break InnerTube mix fetch.
  */
 export function parseYoutubePlaylistInput(raw: string): YoutubePlaylistInput {
     const trimmed = raw.trim();

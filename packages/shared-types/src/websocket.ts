@@ -48,6 +48,7 @@ export type RawClientMessage = {
   | { type: "pause" }
   | { type: "seek"; time: number }
   | { type: "videoFinished" }
+  | { type: "skipUnplayableVideo"; videoId: string }
   | { type: "moveToTop"; videoId: string }
   | { type: "shuffleQueue" }
   | { type: "clearQueue" }

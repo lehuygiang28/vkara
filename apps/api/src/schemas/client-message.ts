@@ -61,6 +61,7 @@ export const wsClientMessageSchema = t.Union([
     withBase(t.Object({ type: t.Literal('pause') })),
     withBase(t.Object({ type: t.Literal('seek'), time: t.Number() })),
     withBase(t.Object({ type: t.Literal('videoFinished') })),
+    withBase(t.Object({ type: t.Literal('skipUnplayableVideo'), videoId: t.String() })),
     withBase(t.Object({ type: t.Literal('moveToTop'), videoId: t.String() })),
     withBase(t.Object({ type: t.Literal('shuffleQueue') })),
     withBase(t.Object({ type: t.Literal('clearQueue') })),

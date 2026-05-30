@@ -105,7 +105,6 @@
       "name": "@vkara/shared-types",
       "version": "0.0.1",
       "dependencies": {
-        "youtube-sr": "^4.3.12",
         "youtubei": "^1.8.9",
       },
     },

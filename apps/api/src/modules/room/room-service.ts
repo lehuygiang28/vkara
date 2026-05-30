@@ -2,7 +2,6 @@ import type { ElysiaWS } from 'elysia/ws';
 
 import {
     cleanUpRoomField,
-    cleanUpVideoField,
     generateRandomNumber,
     shuffleArray,
 } from '@/utils/common';
@@ -19,8 +18,12 @@ import {
     type YouTubeVideo,
 } from '@vkara/shared-types';
 import { publishToRoom } from '@/modules/room/room-broadcast';
-import { checkEmbeddable, checkEmbeddableMany } from '@/modules/youtube/embeddable';
+import { checkEmbeddable } from '@/modules/youtube/embeddable';
 import { fetchYoutubePlaylistVideos } from '@/modules/youtube/fetch-playlist-videos';
+import {
+    filterEmbeddableVideos,
+    resolveNextEmbeddableFromQueue,
+} from '@/modules/youtube/resolve-embeddable-queue';
 import { redis } from '@/redis';
 import {
     isVideoAlreadyInRoom,
@@ -247,19 +250,30 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         broadcastRoomState(roomId, room);
     }
 
-    async function nextVideo(ws: ElysiaWS) {
+    async function advanceToNextPlayable(
+        ws: ElysiaWS,
+        options: { archiveCurrent?: boolean } = {},
+    ): Promise<void> {
+        const archiveCurrent = options.archiveCurrent ?? true;
         const roomId = await validateClientInRoom(ws);
+        const snapshot = await requireRoom(roomId);
+
+        const { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
+            snapshot.videoQueue,
+        );
 
         const room = await mutateRoom(roomId, (room) => {
-            if (room.playingNow?.id) {
+            if (archiveCurrent && room.playingNow?.id) {
                 room.historyQueue = [
                     room.playingNow,
                     ...room.historyQueue.filter((v) => v.id !== room.playingNow!.id),
                 ];
             }
 
-            if (room.videoQueue.length > 0) {
-                room.playingNow = room.videoQueue.shift()!;
+            room.videoQueue = remainingQueue;
+
+            if (nextPlayable) {
+                room.playingNow = nextPlayable;
                 room.isPlaying = true;
                 room.currentTime = 0;
             } else {
@@ -272,6 +286,26 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         });
 
         broadcastRoomState(roomId, room);
+    }
+
+    async function nextVideo(ws: ElysiaWS) {
+        await advanceToNextPlayable(ws, { archiveCurrent: true });
+    }
+
+    async function skipUnplayableVideo(ws: ElysiaWS, videoId: string) {
+        const roomId = await validateClientInRoom(ws);
+        const snapshot = await requireRoom(roomId);
+
+        if (snapshot.playingNow?.id && videoId && snapshot.playingNow.id !== videoId) {
+            return;
+        }
+
+        await advanceToNextPlayable(ws, { archiveCurrent: false });
+
+        publishToRoom(roomId, {
+            type: 'errorWithCode',
+            code: ErrorCode.VIDEO_NOT_EMBEDDABLE,
+        });
     }
 
     async function setVolume(ws: ElysiaWS, volume: number): Promise<void> {
@@ -413,7 +447,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     async function importPlaylist(ws: ElysiaWS, playlistUrlOrId: string) {
         const roomId = await validateClientInRoom(ws);
 
-        let videos;
+        let videos: YouTubeVideo[];
         try {
             videos = await fetchYoutubePlaylistVideos(playlistUrlOrId, {
                 fetchAll: true,
@@ -434,12 +468,17 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             );
         }
 
-        const videoCandidates = videos.map(cleanUpVideoField);
-        const embedResults = await checkEmbeddableMany(videoCandidates.map((video) => video.id));
-        const embeddableIds = new Set(
-            embedResults.filter((result) => result.canEmbed).map((result) => result.videoId),
-        );
-        const embeddableVideos = videoCandidates.filter((video) => embeddableIds.has(video.id));
+        const embeddableVideos = await filterEmbeddableVideos(videos);
+
+        if (embeddableVideos.length === 0) {
+            throw new RoomError(
+                ErrorCode.VIDEO_NOT_FOUND,
+                'No embeddable videos found in this playlist.',
+            );
+        }
+
+        const snapshot = await requireRoom(roomId);
+        const shouldStartPlayback = !snapshot.playingNow;
 
         const room = await mutateRoom(roomId, (room) => {
             const existingIds = new Set([
@@ -449,14 +488,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             const newVideos = embeddableVideos.filter((video) => !existingIds.has(video.id));
 
             room.videoQueue = [...room.videoQueue, ...newVideos];
-
-            if (!room.playingNow && room.videoQueue.length > 0) {
-                room.playingNow = room.videoQueue.shift()!;
-                room.isPlaying = true;
-                room.currentTime = 0;
-                lastPlaybackBroadcastByRoom.delete(roomId);
-            }
         });
+
+        if (shouldStartPlayback && room.videoQueue.length > 0) {
+            await advanceToNextPlayable(ws, { archiveCurrent: false });
+            return;
+        }
 
         broadcastRoomState(roomId, room);
     }
@@ -532,6 +569,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 break;
             case 'videoFinished':
                 await nextVideo(ws);
+                break;
+            case 'skipUnplayableVideo':
+                if (!message.videoId || typeof message.videoId !== 'string') {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid video ID');
+                }
+                await skipUnplayableVideo(ws, message.videoId);
                 break;
             case 'moveToTop':
                 if (!message.videoId || typeof message.videoId !== 'string') {
