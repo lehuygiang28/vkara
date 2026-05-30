@@ -6,7 +6,6 @@ import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';
 
-import { AppearanceMenuSection } from '@/components/appearance-menu-section';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -68,7 +67,6 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
                     </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent side="top" align="center" className="mb-2 w-64">
-                    <AppearanceMenuSection />
                     <DropdownMenuItem onClick={() => setCurrentTab('history')}>
                         <Clock3 className="mr-2 h-4 w-4" />
                         {t('history')}

@@ -13,6 +13,18 @@ export default {
     'appearance.languageEnglish': 'English',
     'appearance.languageVietnamese': 'Tiếng Việt',
 
+    'settingsSections.pageTitle': 'Cài đặt',
+    'settingsSections.pageDescription': 'Phòng dùng chung với TV và mọi người.',
+    'settingsSections.room': 'Phòng',
+    'settingsSections.thisDevice': 'Thiết bị này',
+    'settingsSections.scopeDevice': 'Thiết bị này',
+    'settingsSections.scopeRoom': 'Cả phòng',
+    'settingsSections.deviceHint': 'Chỉ trên điện thoại hoặc trình duyệt này',
+    'settingsSections.roomHint': 'Áp dụng cho TV và mọi người đang kết nối',
+    'settingsSections.invite': 'Mời tham gia',
+    'settingsSections.createRoom': 'Tạo phòng mới',
+    'settingsSections.connectHint': 'Tạo hoặc tham gia phòng để điều khiển TV cùng nhau.',
+
     'toast.playNowHandler': 'Phát ngay',
     'toast.addVideoHandler': 'Video đã được thêm vào hàng chờ',
     'toast.nextVideoHandler': 'Video tiếp theo đang được phát',

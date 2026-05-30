@@ -13,6 +13,18 @@ export default {
     'appearance.languageEnglish': 'English',
     'appearance.languageVietnamese': 'Tiếng Việt',
 
+    'settingsSections.pageTitle': 'Settings',
+    'settingsSections.pageDescription': 'Room settings sync with the TV and everyone connected. Everything else is only on this device.',
+    'settingsSections.room': 'Room',
+    'settingsSections.thisDevice': 'This device',
+    'settingsSections.scopeDevice': 'This device',
+    'settingsSections.scopeRoom': 'Everyone',
+    'settingsSections.deviceHint': 'Only on this phone or browser',
+    'settingsSections.roomHint': 'Applies to the TV and everyone connected',
+    'settingsSections.invite': 'Invite',
+    'settingsSections.createRoom': 'Create new room',
+    'settingsSections.connectHint': 'Create or join a room to control the TV together.',
+
     'toast.playNowHandler': 'Play now',
     'toast.addVideoHandler': 'Video added to queue',
     'toast.nextVideoHandler': 'Next video is playing',
