@@ -106,17 +106,8 @@
         z-index: 1;
     }
 
-    /** TV player QR (corner) — very dim by default; full opacity + hidden cursor on hover */
+    /** TV player QR (corner) — always fully visible over the video */
     .player-qr-zone {
-        opacity: 0.22;
-        cursor: none;
-        transition:
-            opacity 0.3s ease,
-            filter 0.3s ease;
-    }
-
-    .player-qr-zone:hover,
-    .player-qr-zone:focus-visible {
         opacity: 1;
         cursor: none;
         filter: drop-shadow(0 4px 16px rgb(0 0 0 / 0.55));

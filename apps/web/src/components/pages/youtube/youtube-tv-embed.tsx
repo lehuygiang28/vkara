@@ -2,6 +2,8 @@
 
 import YouTube from 'react-youtube';
 
+import { cn } from '@/lib/utils';
+
 type YoutubeTvEmbedProps = {
     videoId: string;
     onReadyAction: (event: YT.PlayerEvent) => void;
@@ -21,25 +23,32 @@ export function YoutubeTvEmbed({
     const playerOrigin = window.location.origin;
 
     return (
-        <YouTube
-            videoId={videoId}
-            opts={{
-                height: '100%',
-                width: '100%',
-                host: 'https://www.youtube-nocookie.com',
-                playerVars: {
-                    autoplay: 1,
-                    controls: 1,
-                    playsinline: 1,
-                    cc_load_policy: 0,
-                    iv_load_policy: 3,
-                    origin: playerOrigin,
-                },
-            }}
-            onReady={onReadyAction}
-            onStateChange={onStateChangeAction}
-            onError={onErrorAction}
-            className={className}
-        />
+        <div className={cn('relative', className)}>
+            <YouTube
+                videoId={videoId}
+                className="h-full w-full [&>div]:h-full [&>div]:w-full [&_iframe]:h-full [&_iframe]:w-full"
+                opts={{
+                    height: '100%',
+                    width: '100%',
+                    host: 'https://www.youtube-nocookie.com',
+                    playerVars: {
+                        origin: playerOrigin,
+                        autoplay: 1,
+                        controls: 0,
+                        disablekb: 1,
+                        fs: 0,
+                        modestbranding: 1,
+                        playsinline: 1,
+                        rel: 0,
+                        cc_load_policy: 0,
+                        iv_load_policy: 3,
+                    },
+                }}
+                onReady={onReadyAction}
+                onStateChange={onStateChangeAction}
+                onError={onErrorAction}
+            />
+            <div className="absolute inset-0 z-10" aria-hidden />
+        </div>
     );
 }
