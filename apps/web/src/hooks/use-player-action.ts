@@ -174,7 +174,9 @@ export const usePlayerAction = (): PlayerAction => {
     const handleSetVideoVolume = useCallback(
         async (volume: number) => {
             const clamped = Math.min(100, Math.max(0, volume));
-            useYouTubeStore.getState().setVolume(clamped);
+            const { setVolume, player } = useYouTubeStore.getState();
+            setVolume(clamped);
+            player?.setVolume(clamped);
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'setVolume', volume: clamped });
         },

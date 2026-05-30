@@ -55,7 +55,7 @@ export const useYouTubeStore = create(
         (set) => ({
             wsId: null,
             player: null,
-            volume: 60,
+            volume: 100,
             currentTab: 'search',
             room: null,
             isLoading: false,
@@ -168,9 +168,14 @@ export const useYouTubeStore = create(
 
             handleServerMessage: (message, t) => {
                 switch (message.type) {
-                    case 'roomJoined':
-                        set({ room: message.room, wsId: message.yourId });
+                    case 'roomJoined': {
+                        const roomVolume = Math.min(100, Math.max(0, message.room.volume));
+                        set((state) => {
+                            state?.player?.setVolume(roomVolume);
+                            return { room: message.room, wsId: message.yourId, volume: roomVolume };
+                        });
                         break;
+                    }
                     case 'roomUpdate':
                         set({ room: message.room });
                         break;

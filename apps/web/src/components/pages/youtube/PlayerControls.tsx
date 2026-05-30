@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import {
     Pause,
     Play,
@@ -36,9 +37,21 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
 
     const disabled = !room?.playingNow;
     const isMuted = volume === 0;
+    const preMuteVolumeRef = useRef(100);
+
+    useEffect(() => {
+        if (volume > 0) {
+            preMuteVolumeRef.current = volume;
+        }
+    }, [volume]);
 
     const toggleMute = () => {
-        handleSetVideoVolume(isMuted ? 60 : 0);
+        if (isMuted) {
+            handleSetVideoVolume(preMuteVolumeRef.current);
+            return;
+        }
+        preMuteVolumeRef.current = volume > 0 ? volume : 100;
+        handleSetVideoVolume(0);
     };
 
     if (variant === 'panel') {
