@@ -32,7 +32,8 @@ import type {
 } from '@vkara/shared-types';
 
 import { redis } from './redis';
-import { checkEmbeddable, searchYoutubeiElysia } from './youtubei';
+import { checkEmbeddable, checkEmbeddableMany } from './modules/youtube/embeddable';
+import { searchYoutubeiElysia } from './youtubei';
 
 const serverLogger = createContextLogger('Server');
 
@@ -538,33 +539,15 @@ async function importPlaylist(ws: ElysiaWS, playlistUrlOrId: string) {
 
     const results = await youtubeSr.getPlaylist(url.toString(), { fetchAll: true, limit: 200 });
     const videoCandidates = results.videos.map(cleanUpVideoField);
+    const candidatesToCheck = videoCandidates.filter(
+        (video) => !room.videoQueue.some((queued) => queued.id === video.id),
+    );
 
-    // Batch processing with a limit of 50 videos per batch
-    const batchSize = 50;
-    const timeoutMs = 100; // Timeout between batches
-    const embeddableVideos = [];
-
-    for (let i = 0; i < videoCandidates.length; i += batchSize) {
-        const batch = videoCandidates.slice(i, i + batchSize);
-
-        const batchResults = await Promise.all(
-            batch.map(async (video) => {
-                const isNotInQueue = !room.videoQueue.some((q) => q.id === video.id);
-                if (isNotInQueue && (await checkEmbeddable(video.id))) {
-                    return video;
-                }
-                return null;
-            }),
-        );
-
-        // Filter out null results
-        embeddableVideos.push(...batchResults.filter((video) => video !== null));
-
-        // Wait for timeout before processing the next batch
-        if (i + batchSize < videoCandidates.length) {
-            await new Promise((resolve) => setTimeout(resolve, timeoutMs));
-        }
-    }
+    const embedResults = await checkEmbeddableMany(candidatesToCheck.map((video) => video.id));
+    const embeddableIds = new Set(
+        embedResults.filter((result) => result.canEmbed).map((result) => result.videoId),
+    );
+    const embeddableVideos = candidatesToCheck.filter((video) => embeddableIds.has(video.id));
 
     // Add the embeddable videos to the room queue
     room.videoQueue = [...room.videoQueue, ...embeddableVideos];

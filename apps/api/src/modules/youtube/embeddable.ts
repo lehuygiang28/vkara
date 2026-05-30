@@ -1,16 +1,31 @@
+import { createInFlightDedup } from './in-flight-dedup';
+import { mapWithConcurrency } from './map-with-concurrency';
+
 const CACHE_TTL_MS = 60 * 60 * 1000;
+const EMBED_CHECK_CONCURRENCY = 6;
 
 const embeddableCache = new Map<string, { value: boolean; expiresAt: number }>();
+const embedCheckInFlight = createInFlightDedup<string, boolean>();
 
-export const checkEmbeddable = async (videoId: string): Promise<boolean> => {
+const getCachedEmbeddable = (videoId: string): boolean | undefined => {
     const cached = embeddableCache.get(videoId);
     if (cached && cached.expiresAt > Date.now()) {
         return cached.value;
     }
+    return undefined;
+};
 
-    const baseUrls = [`https://www.youtube-nocookie.com/embed/`, `https://www.youtube.com/embed/`];
-    const errString = `Playback on other websites has been disabled by the video own`;
-    const stringAbility = `previewPlayabilityStatus`;
+const setCachedEmbeddable = (videoId: string, value: boolean): void => {
+    embeddableCache.set(videoId, { value, expiresAt: Date.now() + CACHE_TTL_MS });
+};
+
+const fetchEmbeddable = async (videoId: string): Promise<boolean> => {
+    const baseUrls = [
+        'https://www.youtube-nocookie.com/embed/',
+        'https://www.youtube.com/embed/',
+    ];
+    const errString = 'Playback on other websites has been disabled by the video own';
+    const stringAbility = 'previewPlayabilityStatus';
 
     const url = `${baseUrls[Math.floor(Math.random() * baseUrls.length)]}${videoId}`;
     const raw = await fetch(url, {
@@ -24,12 +39,40 @@ export const checkEmbeddable = async (videoId: string): Promise<boolean> => {
     });
 
     if (!raw.ok) {
-        embeddableCache.set(videoId, { value: false, expiresAt: Date.now() + CACHE_TTL_MS });
+        setCachedEmbeddable(videoId, false);
         return false;
     }
 
     const text = await raw.text();
     const isEmbeddable = !text.includes(errString) && text.includes(stringAbility);
-    embeddableCache.set(videoId, { value: isEmbeddable, expiresAt: Date.now() + CACHE_TTL_MS });
+    setCachedEmbeddable(videoId, isEmbeddable);
     return isEmbeddable;
+};
+
+export const checkEmbeddable = async (videoId: string): Promise<boolean> => {
+    const cached = getCachedEmbeddable(videoId);
+    if (cached !== undefined) {
+        return cached;
+    }
+
+    const inFlight = embedCheckInFlight.run(videoId, () => fetchEmbeddable(videoId));
+    return inFlight;
+};
+
+/** Batch embed checks with cache + in-flight dedupe + concurrency cap. */
+export const checkEmbeddableMany = async (
+    videoIds: string[],
+): Promise<{ videoId: string; canEmbed: boolean }[]> => {
+    const uniqueIds = [...new Set(videoIds)];
+
+    const results = await mapWithConcurrency(uniqueIds, EMBED_CHECK_CONCURRENCY, async (videoId) => ({
+        videoId,
+        canEmbed: await checkEmbeddable(videoId),
+    }));
+
+    const byId = new Map(results.map((entry) => [entry.videoId, entry.canEmbed]));
+    return videoIds.map((videoId) => ({
+        videoId,
+        canEmbed: byId.get(videoId) ?? false,
+    }));
 };

@@ -1,7 +1,7 @@
 import { Elysia, t } from 'elysia';
 import Redis from 'ioredis';
 import { Queue, Worker } from 'bullmq';
-import { Client, type VideoCompact, type SearchResult, type VideoRelated } from 'youtubei';
+import { Client, type VideoCompact, type SearchResult } from 'youtubei';
 import youtube from 'youtube-sr';
 import { createRedisOptions } from '@vkara/shared-infra';
 
@@ -16,12 +16,16 @@ import {
     searchInstances,
     storeContinuation,
 } from './modules/youtube/cache';
-import { checkEmbeddable } from './modules/youtube/embeddable';
+import { checkEmbeddableMany } from './modules/youtube/embeddable';
+import { extractRendererMetadata } from './modules/youtube/renderer-metadata';
 import {
-    extractRendererMetadata,
-    getRelatedRendererMetadata,
-    getSearchRendererMetadata,
-} from './modules/youtube/renderer-metadata';
+    createRelatedContinuationCache,
+    fetchRelatedContinuationPage,
+} from './modules/youtube/fetch-related-page';
+import {
+    fetchSearchContinuationPage,
+    fetchSearchInitialPage,
+} from './modules/youtube/fetch-search-page';
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
 import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
 
@@ -107,72 +111,34 @@ export const searchYoutubeiElysia = new Elysia({})
         }> => {
             let results: SearchResult<'video'> | undefined;
             let newItems: VideoCompact[] = [];
+            let searchMetadata = extractRendererMetadata(undefined);
             const processedVideoIds = new Set<string>();
             const prefix = redisKeyPrefixes.SEARCH;
             const activeSearchInstances = stateSearchInstances || searchInstances;
 
-            if (
-                continuation &&
-                (activeSearchInstances.has(continuation) ||
-                    (await redisClient.exists(getRedisKey(prefix, continuation))))
-            ) {
+            if (continuation) {
                 logger.info(`Continuing search: "${query}"`);
-                if (!activeSearchInstances.has(continuation)) {
-                    const timestamp = parseInt(
-                        (await redisClient.get(getRedisKey(prefix, continuation))) || '0',
-                    );
-                    if (timestamp) {
-                        results = await youtubeiClient.search(query, {
-                            type: 'video',
-                            sortBy: 'relevance',
-                        });
-                        results.continuation = continuation;
-                        activeSearchInstances.set(continuation, {
-                            instance: results,
-                            timestamp: timestamp,
-                        });
-                    }
-                } else {
-                    const stored = activeSearchInstances.get(continuation)!;
-                    results = stored.instance;
-                }
+                const cachedResult = activeSearchInstances.get(continuation)?.instance;
 
-                if (results) {
-                    const currentLength = results.items.length;
-                    await results.next();
-                    newItems = collectUniqueNewItems(
-                        results.items.slice(currentLength),
-                        processedVideoIds,
-                    );
+                const page = await fetchSearchContinuationPage(
+                    youtubeiClient,
+                    continuation,
+                    cachedResult,
+                );
 
-                    if (results.continuation) {
-                        activeSearchInstances.delete(continuation);
-                        await storeContinuation(
-                            prefix,
-                            results.continuation,
-                            activeSearchInstances,
-                            results,
-                            redisClient,
-                        );
-                        await redisClient.del(getRedisKey(prefix, continuation));
-                    }
-                }
-            }
+                newItems = collectUniqueNewItems(page.items, processedVideoIds);
+                searchMetadata = page.metadata;
+                results = page.searchResult;
 
-            if (!results) {
+                activeSearchInstances.delete(continuation);
+                await redisClient.del(getRedisKey(prefix, continuation));
+            } else {
                 logger.info(`New search: "${query}"`);
-                results = await youtubeiClient.search(query, {
-                    type: 'video',
-                    sortBy: 'relevance',
-                });
-                newItems = collectUniqueNewItems(results.items, processedVideoIds);
+                const page = await fetchSearchInitialPage(youtubeiClient, query);
+                newItems = collectUniqueNewItems(page.items, processedVideoIds);
+                searchMetadata = page.metadata;
+                results = page.searchResult;
             }
-
-            const searchMetadata = await getSearchRendererMetadata({
-                client: youtubeiClient,
-                query: continuation ? undefined : query,
-                continuation,
-            });
 
             if (results?.continuation) {
                 await storeContinuation(
@@ -256,62 +222,34 @@ export const searchYoutubeiElysia = new Elysia({})
             continuation?: string | null;
         }> => {
             try {
-                let results: VideoRelated | undefined;
+                let results: SearchResult<'video'> | undefined;
                 let newItems: VideoCompact[] = [];
                 let relatedMetadata = extractRendererMetadata(undefined);
                 const processedVideoIds = new Set<string>();
                 const prefix = redisKeyPrefixes.RELATED;
                 const activeRelatedInstances = stateRelatedInstances || relatedInstances;
 
-                if (
-                    continuation &&
-                    (activeRelatedInstances.has(continuation) ||
-                        (await redisClient.exists(getRedisKey(prefix, continuation))))
-                ) {
+                if (continuation) {
                     logger.info(`Continuing related videos for: "${videoId}"`);
-                    if (!activeRelatedInstances.has(continuation)) {
-                        const timestamp = parseInt(
-                            (await redisClient.get(getRedisKey(prefix, continuation))) || '0',
-                        );
-                        if (timestamp) {
-                            const video = await youtubeiClient.getVideo(videoId);
-                            if (video && video.related) {
-                                results = video.related;
-                                results.continuation = video?.related?.continuation || continuation;
-                                activeRelatedInstances.set(continuation, {
-                                    instance: results as unknown as SearchResult<'video'>,
-                                    timestamp: timestamp,
-                                });
-                            }
-                        }
-                    } else {
-                        const stored = activeRelatedInstances.get(continuation)!;
-                        results = stored.instance as unknown as VideoRelated;
-                    }
+                    const cachedShell = activeRelatedInstances.get(continuation)?.instance;
 
-                    if (results) {
-                        const currentLength = results.items.length;
-                        await results.next();
-                        newItems = collectUniqueNewItems(
-                            results.items.slice(currentLength) as VideoCompact[],
-                            processedVideoIds,
-                        );
+                    const page = await fetchRelatedContinuationPage(youtubeiClient, continuation);
+                    newItems = collectUniqueNewItems(page.items, processedVideoIds);
+                    relatedMetadata = page.metadata;
 
-                        if (results.continuation) {
-                            activeRelatedInstances.delete(continuation);
-                            await storeContinuation(
-                                prefix,
-                                results.continuation,
-                                activeRelatedInstances,
-                                results,
-                                redisClient,
-                            );
-                            await redisClient.del(getRedisKey(prefix, continuation));
-                        }
-                    }
-                }
+                    const mergedItems = cachedShell
+                        ? [...(cachedShell.items as VideoCompact[]), ...page.items]
+                        : page.items;
 
-                if (!results) {
+                    results = createRelatedContinuationCache(
+                        youtubeiClient,
+                        mergedItems,
+                        page.continuation,
+                    );
+
+                    activeRelatedInstances.delete(continuation);
+                    await redisClient.del(getRedisKey(prefix, continuation));
+                } else {
                     logger.info(`Getting related videos for: "${videoId}"`);
                     const { video, nextResponseData } = await loadVideoFromNextResponses(
                         youtubeiClient,
@@ -320,10 +258,14 @@ export const searchYoutubeiElysia = new Elysia({})
                     relatedMetadata = extractRendererMetadata(nextResponseData);
 
                     if (video?.related) {
-                        results = video.related;
                         newItems = collectUniqueNewItems(
-                            results.items as VideoCompact[],
+                            video.related.items as VideoCompact[],
                             processedVideoIds,
+                        );
+                        results = createRelatedContinuationCache(
+                            youtubeiClient,
+                            video.related.items as VideoCompact[],
+                            video.related.continuation,
                         );
                     }
                 }
@@ -336,14 +278,6 @@ export const searchYoutubeiElysia = new Elysia({})
                         results,
                         redisClient,
                     );
-                }
-
-                if (relatedMetadata.viewCountByVideoId.size === 0) {
-                    relatedMetadata = await getRelatedRendererMetadata({
-                        client: youtubeiClient,
-                        videoId: continuation ? undefined : videoId,
-                        continuation,
-                    });
                 }
 
                 const items = await prepareYoutubeVideos(
@@ -375,16 +309,8 @@ export const searchYoutubeiElysia = new Elysia({})
     )
     .post(
         '/check-embeddable',
-        async ({ body: { videoIds } }): Promise<{ videoId: string; canEmbed: boolean }[]> => {
-            const results = await Promise.all(
-                videoIds.map(async (videoId) => ({
-                    videoId,
-                    canEmbed: await checkEmbeddable(videoId),
-                })),
-            );
-
-            return results;
-        },
+        async ({ body: { videoIds } }): Promise<{ videoId: string; canEmbed: boolean }[]> =>
+            checkEmbeddableMany(videoIds),
         {
             body: t.Object({
                 videoIds: t.Array(t.String()),
@@ -392,5 +318,3 @@ export const searchYoutubeiElysia = new Elysia({})
         },
     );
 
-export { checkEmbeddable } from './modules/youtube/embeddable';
-export type SearchYoutubeiApp = typeof searchYoutubeiElysia;

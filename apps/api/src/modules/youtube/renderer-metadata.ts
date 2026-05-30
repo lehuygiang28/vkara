@@ -1,4 +1,3 @@
-import type { Client } from 'youtubei';
 import { parseYoutubeViewCountText } from '@vkara/shared-utils';
 
 const AUDIENCE_COUNT_PATTERN =
@@ -226,52 +225,4 @@ const collectRendererMetadata = (node: unknown, maps: RendererMetadataMaps): voi
             collectRendererMetadata(value, maps);
         }
     }
-};
-
-const fetchRendererMetadata = async (
-    client: Client,
-    endpoint: '/youtubei/v1/search' | '/youtubei/v1/next',
-    payload: Record<string, string>,
-): Promise<RendererMetadataMaps> => {
-    try {
-        const response = await client.http.post(endpoint, { data: payload });
-        return extractRendererMetadata(response?.data);
-    } catch {
-        // Return empty maps — callers fall back to youtubei compact fields.
-        return { verifiedByVideoId: new Map(), viewCountByVideoId: new Map() };
-    }
-};
-
-export const getSearchRendererMetadata = async ({
-    client,
-    query,
-    continuation,
-}: {
-    client: Client;
-    query?: string;
-    continuation?: string;
-}): Promise<RendererMetadataMaps> => {
-    if (!query && !continuation) {
-        return { verifiedByVideoId: new Map(), viewCountByVideoId: new Map() };
-    }
-
-    const payload: Record<string, string> = continuation ? { continuation } : { query: query! };
-    return fetchRendererMetadata(client, '/youtubei/v1/search', payload);
-};
-
-export const getRelatedRendererMetadata = async ({
-    client,
-    videoId,
-    continuation,
-}: {
-    client: Client;
-    videoId?: string;
-    continuation?: string;
-}): Promise<RendererMetadataMaps> => {
-    if (!videoId && !continuation) {
-        return { verifiedByVideoId: new Map(), viewCountByVideoId: new Map() };
-    }
-
-    const payload: Record<string, string> = continuation ? { continuation } : { videoId: videoId! };
-    return fetchRendererMetadata(client, '/youtubei/v1/next', payload);
 };

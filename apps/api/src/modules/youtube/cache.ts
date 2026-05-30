@@ -1,5 +1,5 @@
 import type Redis from 'ioredis';
-import type { SearchResult, VideoRelated } from 'youtubei';
+import type { SearchResult } from 'youtubei';
 
 import { createContextLogger } from '@/utils/logger';
 
@@ -27,7 +27,7 @@ export async function storeContinuation(
     prefix: string,
     continuation: string,
     instancesMap: Map<string, SearchInstanceWithTimestamp> | undefined,
-    instance: SearchResult<'video'> | VideoRelated,
+    instance: SearchResult<'video'>,
     redisClient: Redis,
 ): Promise<void> {
     const safeInstancesMap =

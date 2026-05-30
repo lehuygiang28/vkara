@@ -5,9 +5,12 @@ import type { YouTubeVideo } from '@vkara/shared-types';
 import { createContextLogger } from '@/utils/logger';
 
 import { setCachedChannel } from './channel-cache';
-import { checkEmbeddable } from './embeddable';
+import { prefetchUniqueChannelVerified } from './channel-verified';
 import { prefetchLiveViewerCounts } from './live-viewers';
-import { resolveCompactVideoChannels } from './resolve-compact-channels';
+import {
+    collectCompactChannelCandidates,
+    resolveCompactVideoChannels,
+} from './resolve-compact-channels';
 import { resolveItemViews } from './resolve-item-views';
 import type { RendererMetadataMaps } from './renderer-metadata';
 import { mapYoutubeiVideo } from './video-mapper';
@@ -23,7 +26,7 @@ export type YoutubeRendererMetadata = Pick<
 >;
 
 /** Drop channel rows, playlists, and other non-playable compact entries. */
-export function filterVideoCompactItems(items: VideoCompact[]): VideoCompact[] {
+function filterVideoCompactItems(items: VideoCompact[]): VideoCompact[] {
     return items.filter((item) => {
         if (isSearchResultVideo(item)) {
             return true;
@@ -71,7 +74,8 @@ async function cacheResolvedChannels(
 
 /**
  * Shared pipeline for /search and /related:
- * validate → live viewers → channels → map → embeddable filter.
+ * validate → prefetch channels/live → map.
+ * Embeddable is checked lazily on add/play (WebSocket), not per search row.
  */
 export async function prepareYoutubeVideos(
     client: Client,
@@ -84,28 +88,34 @@ export async function prepareYoutubeVideos(
         return [];
     }
 
+    await prefetchUniqueChannelVerified(
+        redisClient,
+        client,
+        collectCompactChannelCandidates(videoItems, metadata.verifiedByVideoId),
+    );
+
     const liveViewerCounts = await prefetchLiveViewerCounts(client, videoItems);
 
     const prepared = await Promise.all(
         videoItems.map(async (item) => {
-            const channels = await resolveCompactVideoChannels(item, redisClient, client);
+            const metadataVerified = metadata.verifiedByVideoId.get(item.id);
+            const channels = await resolveCompactVideoChannels(
+                item,
+                redisClient,
+                metadataVerified,
+            );
             const resolvedChannels = applyVerifiedFromMetadata(channels, item.id, metadata);
             await cacheResolvedChannels(redisClient, resolvedChannels);
 
-            const video = mapYoutubeiVideo(item, {
+            return mapYoutubeiVideo(item, {
                 channels: resolvedChannels.map(({ name, verified }) => ({
                     name,
                     verified,
                 })),
                 views: await resolveItemViews(client, item, metadata, liveViewerCounts),
             });
-
-            const isEmbeddable = await checkEmbeddable(video.id);
-            return isEmbeddable ? video : null;
         }),
     );
 
-    return prepared.filter(
-        (video): video is YouTubeVideo => video !== null && isPlayableYoutubeVideo(video),
-    );
+    return prepared.filter((video) => isPlayableYoutubeVideo(video));
 }

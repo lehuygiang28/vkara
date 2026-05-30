@@ -2,9 +2,12 @@ import type { Client } from 'youtubei';
 import type Redis from 'ioredis';
 
 import { getCachedChannel, setCachedChannel } from './channel-cache';
+import { createInFlightDedup } from './in-flight-dedup';
+import { postInnertube } from './innertube-post';
 
-const VERIFIED_ACCESSIBILITY_LABEL =
-    /verified|official artist channel/i;
+const VERIFIED_ACCESSIBILITY_LABEL = /verified|official artist channel/i;
+
+const channelBrowseInFlight = createInFlightDedup<string, boolean>();
 
 type BrowsePayload = {
     header?: {
@@ -26,7 +29,7 @@ type BrowsePayload = {
     };
 };
 
-export const getChannelVerifiedFromBrowsePayload = (data: unknown): boolean => {
+const getChannelVerifiedFromBrowsePayload = (data: unknown): boolean => {
     const label = (data as BrowsePayload)?.header?.pageHeaderRenderer?.content
         ?.pageHeaderViewModel?.title?.dynamicTextViewModel?.rendererContext
         ?.accessibilityContext?.label;
@@ -34,12 +37,12 @@ export const getChannelVerifiedFromBrowsePayload = (data: unknown): boolean => {
     return typeof label === 'string' && VERIFIED_ACCESSIBILITY_LABEL.test(label);
 };
 
-export const fetchChannelVerifiedFromBrowse = async (
+const fetchChannelVerifiedFromBrowse = async (
     client: Client,
     channelId: string,
 ): Promise<boolean> => {
-    const response = await client.http.post('/youtubei/v1/browse', {
-        data: { browseId: channelId },
+    const response = await postInnertube(client, '/youtubei/v1/browse', {
+        browseId: channelId,
     });
     return getChannelVerifiedFromBrowsePayload(response?.data);
 };
@@ -65,18 +68,25 @@ export const resolveChannelVerified = async (
         return true;
     }
 
-    try {
-        const fromBrowse = await fetchChannelVerifiedFromBrowse(client, channelId);
-        const verified = Boolean(cached?.verified || fromBrowse);
-        await setCachedChannel(redisClient, {
-            id: channelId,
-            name: channelName || cached?.name || channelId,
-            verified,
-        });
-        return verified;
-    } catch {
-        return Boolean(cached?.verified);
-    }
+    return channelBrowseInFlight.run(channelId, async () => {
+        const cachedAgain = await getCachedChannel(redisClient, channelId);
+        if (cachedAgain?.verified) {
+            return true;
+        }
+
+        try {
+            const fromBrowse = await fetchChannelVerifiedFromBrowse(client, channelId);
+            const verified = Boolean(cachedAgain?.verified || fromBrowse);
+            await setCachedChannel(redisClient, {
+                id: channelId,
+                name: channelName || cachedAgain?.name || channelId,
+                verified,
+            });
+            return verified;
+        } catch {
+            return Boolean(cachedAgain?.verified);
+        }
+    });
 };
 
 export type ChannelWithId = {
@@ -85,24 +95,36 @@ export type ChannelWithId = {
     verified: boolean;
 };
 
-export const enrichChannelsVerified = async (
+/** Prefetch unique channels once per batch (avoids N parallel browse calls for same channel). */
+export const prefetchUniqueChannelVerified = async (
     redisClient: Redis,
     client: Client,
     channels: ChannelWithId[],
-): Promise<ChannelWithId[]> =>
-    Promise.all(
-        channels.map(async (channel) => {
-            if (!channel.id) {
-                return channel;
-            }
+): Promise<void> => {
+    const unique = new Map<string, ChannelWithId>();
 
-            const verified = await resolveChannelVerified(
+    for (const channel of channels) {
+        if (!channel.id) {
+            continue;
+        }
+
+        const existing = unique.get(channel.id);
+        unique.set(channel.id, {
+            id: channel.id,
+            name: channel.name,
+            verified: Boolean(existing?.verified || channel.verified),
+        });
+    }
+
+    await Promise.all(
+        [...unique.values()].map((channel) =>
+            resolveChannelVerified(
                 redisClient,
                 client,
-                channel.id,
+                channel.id!,
                 channel.name,
                 channel.verified,
-            );
-            return { ...channel, verified };
-        }),
+            ),
+        ),
     );
+};

@@ -4,6 +4,8 @@ import { coerceViewCount, resolveYoutubeLiveFlag } from '@vkara/shared-utils';
 
 import { createContextLogger } from '@/utils/logger';
 
+import { postInnertube } from './innertube-post';
+
 const logger = createContextLogger('LiveViewers');
 
 /** Live concurrent viewer counts change quickly; keep cache short. */
@@ -38,9 +40,7 @@ export async function fetchLiveViewerCount(
     }
 
     try {
-        const response = await client.http.post('/youtubei/v1/player', {
-            data: { videoId },
-        });
+        const response = await postInnertube(client, '/youtubei/v1/player', { videoId });
         const count = extractLiveViewerCount(response?.data);
         if (count > 0) {
             liveViewerCache.set(videoId, {
