@@ -1,6 +1,7 @@
 import type { VideoCompact } from 'youtubei';
 
 import type { YouTubeVideo } from '@vkara/shared-types';
+import { resolveYoutubeLiveFlag } from '@vkara/shared-utils';
 import { formatSeconds } from '@/utils/common';
 
 type VideoChannel = YouTubeVideo['channels'][number];
@@ -25,10 +26,16 @@ export const mapYoutubeiVideo = (
             ? options.channels
             : fallbackChannels;
 
+    const isLive = resolveYoutubeLiveFlag({
+        isLive: video.isLive,
+        duration: video.duration,
+        uploadDate: video.uploadDate,
+    });
+
     return {
         id: video.id,
-        duration: video.duration || 0,
-        duration_formatted: formatSeconds(video.duration),
+        duration: isLive ? 0 : video.duration || 0,
+        duration_formatted: isLive ? '' : formatSeconds(video.duration),
         thumbnail: {
             url: video.thumbnails[0].url,
         },
@@ -36,7 +43,8 @@ export const mapYoutubeiVideo = (
         type: 'video',
         url: '',
         uploadedAt: video.uploadDate || '',
-        views: options.views ?? video.viewCount ?? 0,
+        views: options.views !== undefined ? options.views : (video.viewCount ?? 0),
         channels,
+        isLive,
     };
 };

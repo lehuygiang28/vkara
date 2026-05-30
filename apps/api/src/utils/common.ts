@@ -103,6 +103,7 @@ export function cleanUpVideoField(video: Video): YouTubeVideo {
         thumbnail: {
             url: videoJSON.thumbnail.url || '',
         },
+        isLive: Boolean(videoJSON.live ?? video.live),
     };
 }
 

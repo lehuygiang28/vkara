@@ -73,6 +73,8 @@ export default {
     'youtubePage.more': 'More',
     'youtubePage.mainNavigation': 'Main navigation',
     'youtubePage.volume': 'Volume',
+    'youtubePage.liveNow': 'Live now',
+    'youtubePage.watching': 'watching',
     'youtubePage.tvEmptyTitle': 'Connect your phone to pick songs',
     'youtubePage.tvEmptySubtitle':
         'Scan the code below, search on your phone, and the video starts here on TV.',

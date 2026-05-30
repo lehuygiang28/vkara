@@ -16,7 +16,6 @@ import {
     searchInstances,
     storeContinuation,
 } from './modules/youtube/cache';
-import { mapYoutubeiVideo } from './modules/youtube/video-mapper';
 import { checkEmbeddable } from './modules/youtube/embeddable';
 import {
     extractRendererMetadata,
@@ -24,28 +23,22 @@ import {
     getSearchRendererMetadata,
 } from './modules/youtube/renderer-metadata';
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
-import { resolveViewCount } from '@vkara/shared-utils';
-import { setCachedChannel } from './modules/youtube/channel-cache';
-import { enrichChannelsVerified } from './modules/youtube/channel-verified';
+import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
 
 const logger = createContextLogger('Search-Youtubei');
 const youtubeiLogger = createContextLogger('Queue/Youtubei');
 
-// const response = await OAuth.authorize();
 const youtubei = new Client({
     oauth: {
         enabled: false,
-        // refreshToken: response.refreshToken,
     },
 });
 
 const redisConnectionOptions = createRedisOptions(process.env);
 const redis = new Redis(redisConnectionOptions);
 
-// Create the cleanup queue
 const cleanupQueue = new Queue('search-instance-cleanup', { connection: redisConnectionOptions });
 
-// Create a worker to process cleanup jobs
 const worker = new Worker(
     'search-instance-cleanup',
     async () => {
@@ -54,82 +47,6 @@ const worker = new Worker(
     { connection: redisConnectionOptions },
 );
 
-type ResolvedChannel = YouTubeVideo['channels'][number] & { id?: string };
-
-const isVerifiedChannel = (channel: unknown): boolean => {
-    if (!channel || typeof channel !== 'object') {
-        return false;
-    }
-
-    const candidate = channel as {
-        verified?: unknown;
-        isVerified?: unknown;
-        isOfficialArtistChannel?: unknown;
-    };
-
-    return Boolean(
-        candidate.verified ?? candidate.isVerified ?? candidate.isOfficialArtistChannel ?? false,
-    );
-};
-
-const resolveVideoChannels = async (
-    video: VideoCompact,
-    redisClient: Redis,
-    youtubeiClient: Client,
-): Promise<ResolvedChannel[]> => {
-    try {
-        const fullVideo = await video.getVideo();
-        const collaboratorChannels = fullVideo.channels
-            ?.filter((channel): channel is NonNullable<typeof channel> => Boolean(channel?.name))
-            .map((channel) => ({
-                id: channel.id,
-                name: channel.name,
-                verified: isVerifiedChannel(channel),
-            }));
-
-        if (collaboratorChannels && collaboratorChannels.length > 0) {
-            return enrichChannelsVerified(redisClient, youtubeiClient, collaboratorChannels);
-        }
-
-        const primaryChannel = fullVideo.channel?.name
-            ? {
-                  id: fullVideo.channel.id,
-                  name: fullVideo.channel.name,
-                  verified: isVerifiedChannel(fullVideo.channel),
-              }
-            : video.channel?.name
-              ? {
-                    id: video.channel.id,
-                    name: video.channel.name,
-                    verified: isVerifiedChannel(video.channel),
-                }
-              : null;
-
-        if (primaryChannel) {
-            return enrichChannelsVerified(redisClient, youtubeiClient, [primaryChannel]);
-        }
-
-        return [];
-    } catch (error) {
-        logger.debug('Failed to resolve video channel from full video payload', {
-            videoId: video.id,
-            error,
-        });
-
-        if (video.channel?.name) {
-            const fallback = {
-                id: video.channel.id,
-                name: video.channel.name,
-                verified: isVerifiedChannel(video.channel),
-            };
-            return enrichChannelsVerified(redisClient, youtubeiClient, [fallback]);
-        }
-
-        return [];
-    }
-};
-
-// Handle worker events
 worker.on('completed', (job) => {
     youtubeiLogger.debug(`Cleanup job ${job.id} has completed`, { jobId: job.id });
 });
@@ -142,18 +59,26 @@ worker.on('failed', (job, error) => {
     });
 });
 
-// Schedule cleanup job to run every 5 minutes
 const scheduleCleanupYoutubeiInstance = async () => {
     await cleanupQueue.add(
         'cleanup',
         {},
         {
             repeat: {
-                pattern: '*/5 * * * *', // Every 5 minutes
+                pattern: '*/5 * * * *',
             },
         },
     );
     youtubeiLogger.info('Scheduled recurring cleanup job');
+};
+
+const collectUniqueNewItems = (
+    items: VideoCompact[],
+    processedVideoIds: Set<string>,
+): VideoCompact[] => {
+    const uniqueItems = items.filter((item) => !processedVideoIds.has(item.id));
+    uniqueItems.forEach((item) => processedVideoIds.add(item.id));
+    return uniqueItems;
 };
 
 export const searchYoutubeiElysia = new Elysia({})
@@ -215,11 +140,10 @@ export const searchYoutubeiElysia = new Elysia({})
                 if (results) {
                     const currentLength = results.items.length;
                     await results.next();
-                    const allNewItems = results.items.slice(currentLength);
-
-                    // Filter out duplicate videos
-                    newItems = allNewItems.filter((item) => !processedVideoIds.has(item.id));
-                    newItems.forEach((item) => processedVideoIds.add(item.id));
+                    newItems = collectUniqueNewItems(
+                        results.items.slice(currentLength),
+                        processedVideoIds,
+                    );
 
                     if (results.continuation) {
                         activeSearchInstances.delete(continuation);
@@ -241,10 +165,7 @@ export const searchYoutubeiElysia = new Elysia({})
                     type: 'video',
                     sortBy: 'relevance',
                 });
-
-                // Filter out duplicate videos
-                newItems = results.items.filter((item) => !processedVideoIds.has(item.id));
-                newItems.forEach((item) => processedVideoIds.add(item.id));
+                newItems = collectUniqueNewItems(results.items, processedVideoIds);
             }
 
             const searchMetadata = await getSearchRendererMetadata({
@@ -263,50 +184,17 @@ export const searchYoutubeiElysia = new Elysia({})
                 );
             }
 
-            const embeddableVideos = await Promise.all(
-                newItems.map(async (item) => {
-                    const channels = await resolveVideoChannels(item, redisClient, youtubeiClient);
-                    const isVerified = searchMetadata.verifiedByVideoId.get(item.id);
-                    const resolvedChannels =
-                        typeof isVerified === 'boolean'
-                            ? channels.map((channel, index) =>
-                                  index === 0
-                                      ? { ...channel, verified: channel.verified || isVerified }
-                                      : channel,
-                              )
-                            : channels;
-                    await Promise.all(
-                        resolvedChannels
-                            .filter((channel) => Boolean(channel.id))
-                            .map((channel) =>
-                                setCachedChannel(redisClient, {
-                                    id: channel.id!,
-                                    name: channel.name,
-                                    verified: channel.verified,
-                                }),
-                            ),
-                    );
-                    const video = mapYoutubeiVideo(item, {
-                        channels: resolvedChannels.map(({ name, verified }) => ({
-                            name,
-                            verified,
-                        })),
-                        views:
-                            searchMetadata.viewCountByVideoId.get(item.id) ??
-                            resolveViewCount(item.viewCount),
-                    });
-                    const isEmbeddable = await checkEmbeddable(video.id);
-                    return isEmbeddable ? video : null;
-                }),
-            ).then((videos) =>
-                videos.filter((video): video is NonNullable<typeof video> => video !== null),
+            const items = await prepareYoutubeVideos(
+                youtubeiClient,
+                redisClient,
+                newItems,
+                searchMetadata,
             );
 
-            // Log current cache size
             logger.debug(`Current search instances cache size: ${activeSearchInstances.size}`);
 
             return {
-                items: embeddableVideos,
+                items,
                 continuation: results?.continuation,
             };
         },
@@ -404,13 +292,10 @@ export const searchYoutubeiElysia = new Elysia({})
                     if (results) {
                         const currentLength = results.items.length;
                         await results.next();
-                        const allNewItems = results.items
-                            .slice(currentLength)
-                            .filter((item): item is VideoCompact => 'duration' in item);
-
-                        // Filter out duplicate videos
-                        newItems = allNewItems.filter((item) => !processedVideoIds.has(item.id));
-                        newItems.forEach((item) => processedVideoIds.add(item.id));
+                        newItems = collectUniqueNewItems(
+                            results.items.slice(currentLength) as VideoCompact[],
+                            processedVideoIds,
+                        );
 
                         if (results.continuation) {
                             activeRelatedInstances.delete(continuation);
@@ -436,13 +321,10 @@ export const searchYoutubeiElysia = new Elysia({})
 
                     if (video?.related) {
                         results = video.related;
-
-                        // Filter out duplicate videos and ensure we only have video items
-                        newItems = results.items
-                            .filter((item): item is VideoCompact => 'duration' in item)
-                            .filter((item) => !processedVideoIds.has(item.id));
-
-                        newItems.forEach((item) => processedVideoIds.add(item.id));
+                        newItems = collectUniqueNewItems(
+                            results.items as VideoCompact[],
+                            processedVideoIds,
+                        );
                     }
                 }
 
@@ -464,56 +346,19 @@ export const searchYoutubeiElysia = new Elysia({})
                     });
                 }
 
-                const embeddableVideos = await Promise.all(
-                    newItems.map(async (item) => {
-                        const channels = await resolveVideoChannels(
-                            item,
-                            redisClient,
-                            youtubeiClient,
-                        );
-                        const isVerified = relatedMetadata.verifiedByVideoId.get(item.id);
-                        const resolvedChannels =
-                            typeof isVerified === 'boolean'
-                                ? channels.map((channel, index) =>
-                                      index === 0
-                                          ? { ...channel, verified: channel.verified || isVerified }
-                                          : channel,
-                                  )
-                                : channels;
-                        await Promise.all(
-                            resolvedChannels
-                                .filter((channel) => Boolean(channel.id))
-                                .map((channel) =>
-                                    setCachedChannel(redisClient, {
-                                        id: channel.id!,
-                                        name: channel.name,
-                                        verified: channel.verified,
-                                    }),
-                                ),
-                        );
-                        const video = mapYoutubeiVideo(item, {
-                            channels: resolvedChannels.map(({ name, verified }) => ({
-                                name,
-                                verified,
-                            })),
-                            views:
-                                relatedMetadata.viewCountByVideoId.get(item.id) ??
-                                resolveViewCount(item.viewCount),
-                        });
-                        const isEmbeddable = await checkEmbeddable(video.id);
-                        return isEmbeddable ? video : null;
-                    }),
-                ).then((videos) =>
-                    videos.filter((video): video is NonNullable<typeof video> => video !== null),
+                const items = await prepareYoutubeVideos(
+                    youtubeiClient,
+                    redisClient,
+                    newItems,
+                    relatedMetadata,
                 );
 
-                // Log current cache size
                 logger.debug(
                     `Current related instances cache size: ${activeRelatedInstances.size}`,
                 );
 
                 return {
-                    items: embeddableVideos,
+                    items,
                     continuation: results?.continuation,
                 };
             } catch (error) {

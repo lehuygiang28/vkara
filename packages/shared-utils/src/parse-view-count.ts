@@ -13,6 +13,7 @@ export function parseYoutubeViewCountText(text: string): number | null {
     trimmed = trimmed.split('•')[0]?.trim() ?? trimmed;
     trimmed = trimmed
         .replace(/,/g, '')
+        .replace(/\s*watching$/i, '')
         .replace(/\s*views?$/i, '')
         .trim();
 

@@ -35,6 +35,8 @@ export type YouTubeVideo = Omit<
     url: string;
   };
   type: SearchType;
+  /** Active YouTube livestream (no fixed duration). */
+  isLive?: boolean;
 };
 
 /** Legacy payloads may still include `channel`; normalize to `channels` for UI. */

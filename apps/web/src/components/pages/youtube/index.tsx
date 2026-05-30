@@ -16,6 +16,7 @@ import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 import { isServerPlaybackEcho, isYoutubePlaybackIntentState } from '@/lib/youtube-playback-sync';
+import { isVideoLive } from '@/lib/youtube-video';
 
 import { CountdownTimer } from '@/components/countdown-timer';
 import { VideoChannels } from '@/components/video-channels';
@@ -112,7 +113,10 @@ export default function YoutubePlayerPage() {
         }
 
         if (playerState === YT.PlayerState.ENDED) {
-            setShouldShowTimer(true);
+            const current = useYouTubeStore.getState().room?.playingNow;
+            if (!current || !isVideoLive(current)) {
+                setShouldShowTimer(true);
+            }
         }
     };
 

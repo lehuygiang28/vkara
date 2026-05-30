@@ -73,6 +73,8 @@ export default {
     'youtubePage.more': 'Thêm',
     'youtubePage.mainNavigation': 'Điều hướng chính',
     'youtubePage.volume': 'Âm lượng',
+    'youtubePage.liveNow': 'Đang phát trực tiếp',
+    'youtubePage.watching': 'đang xem',
     'youtubePage.tvEmptyTitle': 'Kết nối điện thoại để chọn bài',
     'youtubePage.tvEmptySubtitle':
         'Quét mã bên dưới, tìm bài trên điện thoại, video sẽ phát ngay trên TV.',

@@ -3,8 +3,10 @@
 
 import { memo } from 'react';
 import { VideoChannels } from '@/components/video-channels';
+import { LiveBadge } from '@/components/youtube-live-badge';
 import { coerceViewCount, formatViewCount } from '@vkara/shared-utils';
 import { formatUploadedAt } from '@/lib/format-uploaded-at';
+import { isVideoLive } from '@/lib/youtube-video';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@/types/youtube.type';
@@ -30,6 +32,27 @@ export const VideoListItem = memo(function VideoListItem({
         ? formatUploadedAt(video.uploadedAt, t)
         : '';
     const views = coerceViewCount(video.views);
+    const isLive = isVideoLive(video);
+
+    const metadataLine = (() => {
+        if (isLive) {
+            if (views > 0) {
+                return `${formatViewCount(views)} ${t('youtubePage.watching')}`;
+            }
+            return t('youtubePage.liveNow');
+        }
+
+        if (views > 0 && uploadedAtLabel) {
+            return `${formatViewCount(views)} ${viewsLabel} • ${uploadedAtLabel}`;
+        }
+        if (views > 0) {
+            return `${formatViewCount(views)} ${viewsLabel}`;
+        }
+        if (uploadedAtLabel) {
+            return uploadedAtLabel;
+        }
+        return null;
+    })();
 
     return (
         <div
@@ -56,10 +79,16 @@ export const VideoListItem = memo(function VideoListItem({
                     decoding="async"
                     className="absolute inset-0 h-full w-full object-cover"
                 />
-                {video.duration_formatted && (
-                    <div className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-xs text-white">
-                        {video.duration_formatted}
+                {isLive ? (
+                    <div className="absolute bottom-1 right-1">
+                        <LiveBadge />
                     </div>
+                ) : (
+                    video.duration_formatted && (
+                        <div className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-xs text-white">
+                            {video.duration_formatted}
+                        </div>
+                    )
                 )}
             </div>
             <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden">
@@ -67,20 +96,9 @@ export const VideoListItem = memo(function VideoListItem({
                     {video.title}
                 </div>
                 <VideoChannels video={video} tone="muted" maxLines={2} />
-                <div className="line-clamp-1 text-xs text-muted-foreground">
-                    {views > 0 && (
-                        <>
-                            {formatViewCount(views)} {viewsLabel}
-                            {uploadedAtLabel && ' • '}
-                        </>
-                    )}
-                    {uploadedAtLabel ? (
-                        <>
-                            {views > 0 ? '' : '• '}
-                            {uploadedAtLabel}
-                        </>
-                    ) : null}
-                </div>
+                {metadataLine ? (
+                    <div className="line-clamp-1 text-xs text-muted-foreground">{metadataLine}</div>
+                ) : null}
             </div>
         </div>
     );

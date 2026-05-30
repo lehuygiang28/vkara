@@ -1,6 +1,9 @@
 import type { Client } from 'youtubei';
 import { parseYoutubeViewCountText } from '@vkara/shared-utils';
 
+const AUDIENCE_COUNT_PATTERN =
+    /([\d.,]+)\s*([KMBkmb])?\s*(?:watching|viewers?|đang xem|người xem|người đang xem)/i;
+
 const VERIFIED_BADGE_STYLES = new Set([
     'BADGE_STYLE_TYPE_VERIFIED',
     'BADGE_STYLE_TYPE_VERIFIED_ARTIST',
@@ -55,8 +58,60 @@ const joinTextSource = (source?: TextRunSource): string | undefined => {
 const getVideoRenderer = (node: Record<string, unknown>): CompactVideoRenderer | undefined =>
     (node.videoRenderer ?? node.compactVideoRenderer) as CompactVideoRenderer | undefined;
 
-const extractViewCountText = (renderer: CompactVideoRenderer): string | undefined =>
-    joinTextSource(renderer.viewCountText) ?? joinTextSource(renderer.shortViewCountText);
+const extractViewCountText = (renderer: CompactVideoRenderer): string | undefined => {
+    const direct =
+        joinTextSource(renderer.viewCountText) ?? joinTextSource(renderer.shortViewCountText);
+    if (direct) {
+        return direct;
+    }
+
+    return findAudienceCountText(renderer);
+};
+
+/** Scan renderer subtree when viewCountText is omitted (common for live search cards). */
+const findAudienceCountText = (node: unknown): string | undefined => {
+    if (!node || typeof node !== 'object') {
+        return undefined;
+    }
+
+    if (Array.isArray(node)) {
+        for (const item of node) {
+            const found = findAudienceCountText(item);
+            if (found) {
+                return found;
+            }
+        }
+        return undefined;
+    }
+
+    const record = node as Record<string, unknown>;
+
+    for (const key of ['simpleText', 'content'] as const) {
+        const value = record[key];
+        if (typeof value === 'string' && AUDIENCE_COUNT_PATTERN.test(value)) {
+            return value;
+        }
+    }
+
+    const runs = record.runs;
+    if (Array.isArray(runs)) {
+        const joined = runs.map((run) => (run as { text?: string }).text ?? '').join('');
+        if (AUDIENCE_COUNT_PATTERN.test(joined)) {
+            return joined;
+        }
+    }
+
+    for (const value of Object.values(record)) {
+        if (value && typeof value === 'object') {
+            const found = findAudienceCountText(value);
+            if (found) {
+                return found;
+            }
+        }
+    }
+
+    return undefined;
+};
 
 const setParsedViewCount = (
     maps: RendererMetadataMaps,

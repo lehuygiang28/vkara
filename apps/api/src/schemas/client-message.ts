@@ -25,6 +25,7 @@ const youTubeVideoSchema = t.Object({
     thumbnail: t.Object({
         url: t.String(),
     }),
+    isLive: t.Optional(t.Boolean()),
 });
 
 const withBase = <T extends ReturnType<typeof t.Object>>(schema: T) =>

@@ -9,8 +9,10 @@ import { usePlayerAction } from '@/hooks/use-player-action';
 import { cn } from '@/lib/utils';
 
 import { VideoChannels } from '@/components/video-channels';
+import { LiveBadge } from '@/components/youtube-live-badge';
 import { ThinkingIndicator } from '@/components/ui/thinking-indicator';
 import { Button } from '@/components/ui/button';
+import { isVideoLive } from '@/lib/youtube-video';
 
 interface NowPlayingBarProps {
     className?: string;
@@ -24,6 +26,7 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
 
     const playing = room?.playingNow;
     const isPlaying = room?.isPlaying;
+    const isLive = playing ? isVideoLive(playing) : false;
 
     const nowPlayingStatusMessages = [
         t('nowPlaying'),
@@ -63,7 +66,7 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
                                     'ring-2 ring-primary/50 ring-offset-2 ring-offset-background',
                             )}
                         />
-                        {isPlaying ? (
+                        {isPlaying && !isLive ? (
                             <span
                                 className="absolute -bottom-0.5 left-1/2 h-1 w-1 -translate-x-1/2 rounded-full bg-primary"
                                 aria-hidden
@@ -71,9 +74,12 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
                         ) : null}
                     </div>
                     <div className="min-w-0 flex-1 space-y-0.5">
-                        <p className="line-clamp-2 break-words text-sm font-semibold leading-snug">
-                            {playing.title}
-                        </p>
+                        <div className="flex min-w-0 items-start gap-2">
+                            <p className="line-clamp-2 min-w-0 flex-1 break-words text-sm font-semibold leading-snug">
+                                {playing.title}
+                            </p>
+                            {isLive ? <LiveBadge variant="inline" className="mt-0.5 shrink-0" /> : null}
+                        </div>
                         <VideoChannels video={playing} tone="emphasis" maxLines={2} />
                     </div>
                 </div>
