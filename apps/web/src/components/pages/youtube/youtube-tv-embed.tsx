@@ -10,7 +10,17 @@ type YoutubeTvEmbedProps = {
     onStateChangeAction: (event: YT.PlayerEvent) => void;
     onErrorAction: (event: YT.OnErrorEvent) => void;
     className?: string;
+    /** TV: no iframe controls, pointer blocked. Laptop: native YouTube controls. */
+    variant?: 'tv' | 'laptop';
 };
+
+const SHARED_PLAYER_VARS = {
+    modestbranding: 1,
+    playsinline: 1,
+    rel: 0,
+    cc_load_policy: 0,
+    iv_load_policy: 3,
+} as const;
 
 /** TV embed — must run client-only so `origin` matches the page hosting the iframe. */
 export function YoutubeTvEmbed({
@@ -19,8 +29,10 @@ export function YoutubeTvEmbed({
     onStateChangeAction,
     onErrorAction,
     className,
+    variant = 'tv',
 }: YoutubeTvEmbedProps) {
     const playerOrigin = window.location.origin;
+    const isLaptop = variant === 'laptop';
 
     return (
         <div className={cn('relative', className)}>
@@ -34,21 +46,17 @@ export function YoutubeTvEmbed({
                     playerVars: {
                         origin: playerOrigin,
                         autoplay: 1,
-                        controls: 0,
-                        disablekb: 1,
-                        fs: 0,
-                        modestbranding: 1,
-                        playsinline: 1,
-                        rel: 0,
-                        cc_load_policy: 0,
-                        iv_load_policy: 3,
+                        ...SHARED_PLAYER_VARS,
+                        controls: isLaptop ? 1 : 0,
+                        disablekb: isLaptop ? 0 : 1,
+                        fs: isLaptop ? 1 : 0,
                     },
                 }}
                 onReady={onReadyAction}
                 onStateChange={onStateChangeAction}
                 onError={onErrorAction}
             />
-            <div className="absolute inset-0 z-10" aria-hidden />
+            {!isLaptop ? <div className="absolute inset-0 z-10" aria-hidden /> : null}
         </div>
     );
 }

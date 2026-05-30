@@ -190,11 +190,13 @@ export default function YoutubePlayerPage() {
             <div className="relative h-full w-full">
                 {room?.playingNow ? (
                     <YoutubeTvEmbed
+                        key={`${room.playingNow.id}-${effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}`}
                         videoId={room.playingNow.id}
                         onReadyAction={onPlayerReady}
                         onStateChangeAction={onPlayerStateChange}
                         onErrorAction={onPlayerError}
                         className="absolute inset-0"
+                        variant={effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}
                     />
                 ) : (
                     <div className="absolute inset-0 bg-zinc-950" aria-hidden />
