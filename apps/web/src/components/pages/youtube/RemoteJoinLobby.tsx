@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { isValidRoomId } from '@vkara/shared-utils';
+import { roomCodeFieldProps, roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useScopedI18n } from '@/locales/client';
 import { useJoinRoom } from '@/hooks/use-join-room';
@@ -53,6 +54,14 @@ export function RemoteJoinLobby() {
             </div>
             <div className="flex flex-1 flex-col items-center justify-center">
             <div className="w-full max-w-sm space-y-6">
+                <form
+                    className="space-y-6"
+                    autoComplete="off"
+                    onSubmit={(event) => {
+                        event.preventDefault();
+                        joinRoom();
+                    }}
+                >
                 <div className="space-y-2 text-center">
                     <h2 className="text-xl font-semibold tracking-tight">{t('title')}</h2>
                     <p className="text-sm text-muted-foreground">{t('subtitle')}</p>
@@ -67,6 +76,7 @@ export function RemoteJoinLobby() {
                             value={joinRoomId}
                             onChange={setJoinRoomId}
                             inputMode="numeric"
+                            {...roomCodeFieldProps}
                         >
                             <InputOTPGroup>
                                 <InputOTPSlot index={0} />
@@ -91,17 +101,19 @@ export function RemoteJoinLobby() {
                         value={joinRoomPassword}
                         onChange={(e) => setJoinRoomPassword(e.target.value)}
                         placeholder={t('passwordPlaceholder')}
+                        {...roomSecretFieldProps}
                     />
                 </div>
 
                 <Button
-                    onClick={() => joinRoom()}
+                    type="submit"
                     disabled={!isConnected}
                     className="w-full"
                     size="lg"
                 >
                     {t('joinButton')}
                 </Button>
+                </form>
 
                 <div className="relative">
                     <div className="absolute inset-0 flex items-center">

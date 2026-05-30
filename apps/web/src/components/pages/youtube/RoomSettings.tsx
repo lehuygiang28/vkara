@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
+import { roomCodeFieldProps, roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { generateShareableUrl } from '@/lib/room-share';
 import { toast } from '@/hooks/use-toast';
 import { Slider } from '@/components/ui/slider';
@@ -158,6 +159,8 @@ export function RoomSettings() {
                                                     value={room.password || ''}
                                                     className="pr-20"
                                                     disabled
+                                                    readOnly
+                                                    {...roomSecretFieldProps}
                                                 />
                                                 <Button
                                                     type="button"
@@ -218,6 +221,7 @@ export function RoomSettings() {
                                                 id="shareable-url"
                                                 value={shareableUrl}
                                                 readOnly
+                                                autoComplete="off"
                                             />
                                             <Button
                                                 type="button"
@@ -295,6 +299,7 @@ export function RoomSettings() {
                                                 placeholder={t_RoomSettings(
                                                     'roomPassword.placeholder',
                                                 )}
+                                                {...roomSecretFieldProps}
                                             />
                                             <Button
                                                 onClick={createRoom}
@@ -316,6 +321,7 @@ export function RoomSettings() {
                                                 value={joinRoomId}
                                                 onChange={setJoinRoomId}
                                                 inputMode="numeric"
+                                                {...roomCodeFieldProps}
                                             >
                                                 <InputOTPGroup>
                                                     <InputOTPSlot index={0} />
@@ -344,6 +350,7 @@ export function RoomSettings() {
                                             placeholder={t_RoomSettings(
                                                 'joinRoomPassword.placeholder',
                                             )}
+                                            {...roomSecretFieldProps}
                                         />
                                         <Button
                                             onClick={() => joinRoom()}
