@@ -4,10 +4,8 @@ import {
     createContext,
     useContext,
     useEffect,
-    useLayoutEffect,
     useMemo,
     useRef,
-    useState,
     type ReactNode,
     type RefObject,
 } from 'react';
@@ -56,23 +54,14 @@ export function useOverlayPortal(active: boolean) {
     const ctx = useRemotePanelOverlayContext();
     const containOverlays = ctx?.containOverlays ?? false;
     const overlayRootRef = ctx?.overlayRootRef;
-    const [portalTarget, setPortalTarget] = useState<HTMLElement | null>(null);
 
-    useLayoutEffect(() => {
-        if (!active) {
-            setPortalTarget(null);
-            return;
-        }
-
-        if (containOverlays) {
-            setPortalTarget(overlayRootRef?.current ?? null);
-            return;
-        }
-
-        if (typeof document !== 'undefined') {
-            setPortalTarget(document.body);
-        }
-    }, [active, containOverlays, overlayRootRef]);
+    const portalTarget = !active
+        ? null
+        : containOverlays
+          ? (overlayRootRef?.current ?? null)
+          : typeof document !== 'undefined'
+            ? document.body
+            : null;
 
     useEffect(() => {
         if (!active) {

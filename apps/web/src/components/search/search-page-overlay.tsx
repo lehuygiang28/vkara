@@ -1,6 +1,6 @@
 'use client';
 
-import { memo, useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useId, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom';
 import { ArrowUpLeft, ChevronLeft, Clock, Loader2, Mic, Search, X } from 'lucide-react';
 import { useDebouncedCallback } from 'use-debounce';
@@ -14,18 +14,6 @@ import type { SpeechRecognitionErrorCode } from '@/hooks/use-speech-recognition'
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 
 const SUGGESTION_DEBOUNCE_MS = 320;
-
-function focusSearchInput(input: HTMLInputElement | null) {
-    if (!input) return;
-    input.focus({ preventScroll: true });
-    if (input.value.length === 0) return;
-    try {
-        const length = input.value.length;
-        input.setSelectionRange(length, length);
-    } catch {
-        // Some browsers reject selection until the input is focused.
-    }
-}
 
 export type SearchPageOverlayProps = {
     open: boolean;
@@ -198,7 +186,6 @@ function SearchPageOverlayContent({
     const t = useScopedI18n('videoSearch');
     const locale = useCurrentLocale();
     const listId = useId();
-    const inputRef = useRef<HTMLInputElement>(null);
     const openingQuery = (initialQuery !== undefined ? initialQuery : committedQuery).trim();
     const [draft, setDraft] = useState(openingQuery);
     const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
@@ -208,19 +195,6 @@ function SearchPageOverlayContent({
     const debouncedNotify = useDebouncedCallback((value: string) => {
         onDebouncedQuery(value);
     }, SUGGESTION_DEBOUNCE_MS);
-
-    useLayoutEffect(() => {
-        focusSearchInput(inputRef.current);
-
-        // iOS may ignore synchronous focus; retry once on the next frame only if needed.
-        const frame = window.requestAnimationFrame(() => {
-            if (document.activeElement !== inputRef.current) {
-                focusSearchInput(inputRef.current);
-            }
-        });
-
-        return () => window.cancelAnimationFrame(frame);
-    }, []);
 
     useEffect(() => {
         onDebouncedQuery(openingQuery);
@@ -254,7 +228,6 @@ function SearchPageOverlayContent({
         debouncedNotify.cancel();
         setDraft('');
         onDebouncedQuery('');
-        focusSearchInput(inputRef.current);
     }, [debouncedNotify, onDebouncedQuery]);
 
     const handlePickSuggestion = useCallback(
@@ -269,7 +242,6 @@ function SearchPageOverlayContent({
             debouncedNotify.cancel();
             setDraft(value);
             onDebouncedQuery(value);
-            focusSearchInput(inputRef.current);
         },
         [debouncedNotify, onDebouncedQuery],
     );
@@ -279,7 +251,6 @@ function SearchPageOverlayContent({
             onRemoveLocalSuggestion?.(value);
             debouncedNotify.cancel();
             onDebouncedQuery(draft.trim());
-            focusSearchInput(inputRef.current);
         },
         [debouncedNotify, draft, onDebouncedQuery, onRemoveLocalSuggestion],
     );
@@ -416,8 +387,7 @@ function SearchPageOverlayContent({
 
                     <div className="relative flex min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border/50 bg-muted/40 pl-4 pr-1 shadow-none focus-within:border-ring/60 focus-within:bg-muted/25 focus-within:ring-1 focus-within:ring-ring/40">
                         <input
-                            ref={inputRef}
-                            type="text"
+                            type="search"
                             role="combobox"
                             inputMode="search"
                             enterKeyHint="search"
@@ -425,6 +395,7 @@ function SearchPageOverlayContent({
                             autoCorrect="off"
                             autoCapitalize="off"
                             spellCheck={false}
+                            autoFocus
                             placeholder={t('searchPlaceholder')}
                             value={draft}
                             className="search-overlay-input min-h-11 min-w-0 flex-1 border-0 bg-transparent py-2.5 text-base outline-none placeholder:text-muted-foreground"
