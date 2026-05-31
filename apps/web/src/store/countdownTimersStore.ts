@@ -6,13 +6,10 @@ interface CountdownStore {
     isCancelled: boolean;
     shouldShowTimer: boolean;
     initialSeconds: number;
-    onComplete?: () => void;
     startCountdown: (seconds: number) => void;
     cancelCountdown: () => void;
-    completeCountdown: () => void;
     setRemainingSeconds: (updater: number | ((prev: number) => number)) => void;
     setShouldShowTimer: (show: boolean) => void;
-    setOnComplete: (callback: () => void) => void;
     reset: () => void;
 }
 
@@ -22,7 +19,6 @@ export const useCountdownStore = create<CountdownStore>((set, get) => ({
     isCancelled: false,
     shouldShowTimer: false,
     initialSeconds: 5,
-    onComplete: undefined,
 
     startCountdown: (seconds) => {
         const state = get();
@@ -46,18 +42,6 @@ export const useCountdownStore = create<CountdownStore>((set, get) => ({
         });
     },
 
-    completeCountdown: () => {
-        const state = get();
-        if (state.onComplete && !state.isCancelled) {
-            state.onComplete();
-        }
-        set({
-            isActive: false,
-            remainingSeconds: 0,
-            shouldShowTimer: false,
-        });
-    },
-
     setRemainingSeconds: (updater) => {
         const state = get();
         if (state.isActive) {
@@ -69,14 +53,11 @@ export const useCountdownStore = create<CountdownStore>((set, get) => ({
 
     setShouldShowTimer: (show) => set({ shouldShowTimer: show }),
 
-    setOnComplete: (callback) => set({ onComplete: callback }),
-
     reset: () =>
         set({
             isActive: false,
             remainingSeconds: 0,
             isCancelled: false,
             shouldShowTimer: false,
-            onComplete: undefined,
         }),
 }));

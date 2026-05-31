@@ -17,30 +17,23 @@ export function CountdownTimer({
     show = true,
     classNames,
 }: CountdownTimerProps) {
-    const {
-        isActive,
-        remainingSeconds,
-        shouldShowTimer,
-        startCountdown,
-        cancelCountdown,
-        completeCountdown,
-        setRemainingSeconds,
-        setOnComplete,
-    } = useCountdownStore();
+    const isActive = useCountdownStore((state) => state.isActive);
+    const remainingSeconds = useCountdownStore((state) => state.remainingSeconds);
+    const shouldShowTimer = useCountdownStore((state) => state.shouldShowTimer);
 
     const timerRef = useRef<NodeJS.Timeout | null>(null);
     const onCompleteRef = useRef(onCountdownComplete);
 
     useEffect(() => {
         onCompleteRef.current = onCountdownComplete;
-        setOnComplete(() => onCompleteRef.current());
-    }, [onCountdownComplete, setOnComplete]);
+    }, [onCountdownComplete]);
 
     useEffect(() => {
         if (!show || !shouldShowTimer) {
             return;
         }
 
+        const { startCountdown, setRemainingSeconds, cancelCountdown } = useCountdownStore.getState();
         startCountdown(initialSeconds);
 
         timerRef.current = setInterval(() => {
@@ -50,7 +43,8 @@ export function CountdownTimer({
                         clearInterval(timerRef.current);
                         timerRef.current = null;
                     }
-                    completeCountdown();
+                    cancelCountdown();
+                    onCompleteRef.current();
                     return 0;
                 }
                 return prev - 1;
@@ -62,17 +56,8 @@ export function CountdownTimer({
                 clearInterval(timerRef.current);
                 timerRef.current = null;
             }
-            cancelCountdown();
         };
-    }, [
-        show,
-        shouldShowTimer,
-        initialSeconds,
-        startCountdown,
-        setRemainingSeconds,
-        completeCountdown,
-        cancelCountdown,
-    ]);
+    }, [show, shouldShowTimer, initialSeconds]);
 
     if (!isActive || !shouldShowTimer || !show) return null;
 

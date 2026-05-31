@@ -2,7 +2,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Settings } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
 
@@ -59,7 +59,10 @@ export default function YoutubePlayerPage() {
     const t_Toast = useScopedI18n('toast');
     const locale = useCurrentLocale();
     const [showRemotePanel, setShowRemotePanel] = useState(false);
-    const { shouldShowTimer, setShouldShowTimer, cancelCountdown } = useCountdownStore();
+    const shouldShowTimer = useCountdownStore((state) => state.shouldShowTimer);
+    const setShouldShowTimer = useCountdownStore((state) => state.setShouldShowTimer);
+    const cancelCountdown = useCountdownStore((state) => state.cancelCountdown);
+    const resetCountdown = useCountdownStore((state) => state.reset);
     const { effectiveLayoutMode, isTvViewport, needsLayoutBootstrap } = useEffectiveLayoutMode();
     const hasFinePointer = useSyncExternalStore(
         subscribeFinePointer,
@@ -73,7 +76,6 @@ export default function YoutubePlayerPage() {
     useStripRoomQueryFromUrl();
 
     const { ensureConnectedAndSend, lastMessage } = useWebSocket();
-    const { reset: resetCountdown } = useCountdownStore();
 
     // No-op unless ENABLE_PERIODIC_PLAYBACK_SYNC — avoids polling getCurrentTime every second.
     usePlaybackPositionSync();
@@ -168,7 +170,7 @@ export default function YoutubePlayerPage() {
         skippedUnplayableRef.current = null;
     }, [room?.playingNow?.id]);
 
-    const handleVideoFinished = () => {
+    const handleVideoFinished = useCallback(() => {
         const currentRoom = useYouTubeStore.getState().room;
         const endedForId = endedForVideoIdRef.current;
 
@@ -185,7 +187,7 @@ export default function YoutubePlayerPage() {
         } else {
             nextVideo();
         }
-    };
+    }, [cancelCountdown, ensureConnectedAndSend, nextVideo]);
 
     const openSettingsPanel = () => {
         setShowRemotePanel(true);
