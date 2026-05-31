@@ -103,6 +103,7 @@ export async function prepareYoutubeVideos(
                 item,
                 redisClient,
                 metadataVerified,
+                client,
             );
             const resolvedChannels = applyVerifiedFromMetadata(channels, item.id, metadata);
             await cacheResolvedChannels(redisClient, resolvedChannels);
