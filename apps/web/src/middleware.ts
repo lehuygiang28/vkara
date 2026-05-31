@@ -13,11 +13,22 @@ const I18nMiddleware = createI18nMiddleware({
 /**
  * Default locale (vi) is served at `/` with no prefix.
  * English is at `/en`. Legacy `/vi` URLs redirect to `/`.
+ *
+ * Skip redirect on internal Next.js subrequests (RSC, prefetch, middleware rewrite).
+ * AIO image also handles /vi at the Caddy edge.
  */
 export function middleware(request: NextRequest) {
     const { pathname } = request.nextUrl;
+    const isInternalSubrequest =
+        request.headers.has('rsc') ||
+        request.headers.get('purpose') === 'prefetch' ||
+        request.headers.has('x-middleware-subrequest');
 
-    if (pathname === '/vi' || pathname.startsWith('/vi/')) {
+    if (
+        process.env.VKARA_AIO !== '1' &&
+        !isInternalSubrequest &&
+        (pathname === '/vi' || pathname.startsWith('/vi/'))
+    ) {
         const url = request.nextUrl.clone();
         url.pathname = pathname.slice(3) || '/';
         const response = NextResponse.redirect(url, 301);

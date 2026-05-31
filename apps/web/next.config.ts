@@ -1,4 +1,5 @@
 import type { NextConfig } from 'next';
+import path from 'node:path';
 
 const withBundleAnalyzer = require('@next/bundle-analyzer')({
     enabled: process.env.ANALYZE === 'true',
@@ -7,6 +8,8 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 const nextConfig: NextConfig = {
     transpilePackages: ['@vkara/shared-types'],
     output: 'standalone',
+    // Trace deps from monorepo root — avoids bloated standalone node_modules.
+    outputFileTracingRoot: path.join(__dirname, '../..'),
     experimental: {
         optimizePackageImports: ['lucide-react', 'framer-motion'],
     },
@@ -53,12 +56,6 @@ const nextConfig: NextConfig = {
                 destination: '/icons/apple-touch-icon.png',
                 permanent: false,
             },
-        ];
-    },
-    async rewrites() {
-        return [
-            // Fallback when middleware is not applied: serve vi at `/` without changing the URL.
-            { source: '/', destination: '/vi' },
         ];
     },
 };

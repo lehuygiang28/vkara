@@ -1,0 +1,45 @@
+{
+	admin off
+	auto_https off
+}
+
+:3000 {
+	encode gzip zstd
+
+	# Legacy /vi URLs → / (browser only; internal Next rewrites to /vi stay in-app)
+	redir /vi / 301
+	handle_path /vi/* {
+		redir {path} 301
+	}
+
+	# REST API → Elysia (same paths as NEXT_PUBLIC_API_URL=/api/vkara)
+	handle_path /api/vkara/* {
+		reverse_proxy 127.0.0.1:8000 {
+			header_up Host {http.request.host}
+		}
+	}
+
+	# WebSocket → Elysia API (internal)
+	handle /ws* {
+		reverse_proxy 127.0.0.1:8000 {
+			header_up Host {http.request.host}
+		}
+	}
+
+	# Everything else → Next.js (internal)
+	handle {
+		reverse_proxy 127.0.0.1:3001 {
+			header_up Host {http.request.host}
+			header_up X-Forwarded-Host {http.request.host}
+			header_up X-Forwarded-Proto {http.request.scheme}
+			header_up X-Forwarded-For {remote_host}
+			# Security: never trust client-supplied middleware bypass headers (CVE-2025-29927).
+			header_up -X-Middleware-Subrequest
+			header_up -X-Middleware-Subrequest-Id
+			header_up -Sec-Fetch-Dest
+			header_up -Sec-Fetch-Mode
+			header_up -Sec-Fetch-Site
+			header_up -Sec-Fetch-User
+		}
+	}
+}

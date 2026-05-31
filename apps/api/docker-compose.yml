@@ -56,5 +56,23 @@ services:
             - vkara_net
         restart: unless-stopped
 
+    vkara_aio:
+        container_name: vkara-aio
+        hostname: vkara-aio
+        profiles:
+            - aio
+        build:
+            context: ../../
+            dockerfile: ./apps/api/containers/aio/Dockerfile
+        image: lehuygiang28/vkara-aio:${COMPOSE_TAG:-latest}
+        env_file:
+            - path: ./containers/aio/.env
+              required: false
+            - path: ./containers/aio/.env.example
+              required: false
+        ports:
+            - ${AIO_PORT:-3000}:3000
+        restart: unless-stopped
+
 networks:
     vkara_net:

@@ -19,6 +19,21 @@ interface EnhancedWebSocketState extends WebSocketState {
 
 const WebSocketContext = createContext<EnhancedWebSocketState | undefined>(undefined);
 
+function getWebSocketUrl(): string {
+    const wsEnv = process.env.NEXT_PUBLIC_WS_URL?.trim();
+    if (wsEnv) {
+        return `${resolveUrl(wsEnv, true)}/ws`;
+    }
+
+    const apiEnv = process.env.NEXT_PUBLIC_API_URL?.trim();
+    if (apiEnv?.startsWith('/')) {
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        return `${protocol}://${window.location.host}/ws`;
+    }
+
+    return `${resolveUrl('ws://localhost:8000', true)}/ws`;
+}
+
 export const useWebSocket = (): EnhancedWebSocketState => {
     const context = useContext(WebSocketContext);
     if (context === undefined) {
@@ -85,7 +100,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
         wsInitialized.current = true;
         const cleanup = initializeWebSocket({
-            url: `${resolveUrl(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000', true)}/ws`,
+            url: getWebSocketUrl(),
             reconnectAttempts: Infinity,
             initialRetryDelay: 800,
             maxRetryDelay: 20000,
