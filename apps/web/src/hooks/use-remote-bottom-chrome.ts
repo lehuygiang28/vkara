@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-const NOW_PLAYING_HEIGHT = '4.25rem';
+const NOW_PLAYING_HEIGHT = '3.5rem';
 
 /**
  * Sets --vkara-now-playing-height for bottom chrome (scroll padding, floating action UI).
