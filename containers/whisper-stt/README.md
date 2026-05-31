@@ -9,15 +9,38 @@ pinned: false
 license: mit
 ---
 
-OpenAI-compatible Whisper STT API for vkara voice search.
+OpenAI-compatible Whisper STT API for vkara voice search. **Optional** — the web app falls back to the browser Web Speech API when `WHISPER_URL` is unset.
+
+Deployment overview: [../README.md](../README.md).
+
+## Local Docker (self-host)
+
+```bash
+# from repo root
+docker compose --profile whisper up --build
+curl http://localhost:7860/health
+```
+
+Point vkara web at the service (`apps/web/.env.local` or `containers/aio/.env`):
+
+```env
+WHISPER_URL=http://localhost:7860
+HF_TOKEN=hf_...   # optional
+```
+
+Build only this image (context = this folder):
+
+```bash
+docker build -t vkara-whisper-stt:local .
+```
 
 ## Deploy on Hugging Face
 
 1. [Create a new Space](https://huggingface.co/new-space) → SDK: **Docker** → Hardware: **CPU basic** (free) or **CPU upgrade** / **T4 small** if slow.
-2. Upload this folder (or push git):
+2. Use **this folder as the Space repo root** (upload or push git):
 
 ```bash
-cd infra/hf-whisper-stt
+cd containers/whisper-stt
 git init && git add . && git commit -m "init whisper stt"
 git remote add origin https://huggingface.co/spaces/YOUR_USER/vkara-whisper-stt
 git push -u origin main
@@ -44,7 +67,7 @@ curl -s -X POST "https://YOUR_USER-vkara-whisper-stt.hf.space/v1/audio/transcrip
   -F "language=vi"
 ```
 
-Public Spaces may require `HF_TOKEN` in the header when calling from your API (set same token in vkara `WHISPER_HF_TOKEN`).
+Public Spaces may require `HF_TOKEN` in the header when calling from vkara web (set the same token in `HF_TOKEN`).
 
 ## Duplicate an existing Space instead
 
@@ -56,9 +79,11 @@ Public Spaces may require `HF_TOKEN` in the header when calling from your API (s
 
 **Duplicate:** Space page → **⋮** → **Duplicate this Space** → remove excess `preload_from_hub` models in README if build fails (HF limits ~10 preloads).
 
-## vkara API env (later)
+## vkara web env
 
 ```env
-WHISPER_BASE_URL=https://YOUR_USER-vkara-whisper-stt.hf.space
-WHISPER_HF_TOKEN=hf_...
+WHISPER_URL=https://YOUR_USER-vkara-whisper-stt.hf.space
+HF_TOKEN=hf_...
 ```
+
+Web proxies transcription via `/api/speech/transcribe` (server-side only — do not expose the token to the browser).

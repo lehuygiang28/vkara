@@ -1,4 +1,4 @@
-# Profiles: api | web | bundle | aio
+# Profiles: api | web | bundle | aio | whisper
 # Examples:
 #   docker compose --profile api up
 #   docker compose --profile aio up
@@ -79,5 +79,23 @@ services:
             - ${AIO_PORT:-3000}:3000
         restart: unless-stopped
 
+    whisper_stt:
+        container_name: vkara-whisper-stt
+        hostname: vkara-whisper-stt
+        profiles:
+            - whisper
+        build:
+            context: ./containers/whisper-stt
+            dockerfile: Dockerfile
+        image: vkara-whisper-stt:${COMPOSE_TAG:-latest}
+        ports:
+            - ${WHISPER_PORT:-7860}:7860
+        volumes:
+            - whisper_stt_cache:/data
+        restart: unless-stopped
+
 networks:
     vkara_net:
+
+volumes:
+    whisper_stt_cache:

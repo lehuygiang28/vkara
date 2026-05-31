@@ -11,8 +11,9 @@ vkara/
 │   └── web/Dockerfile       # Web only (Next.js standalone on Node)
 ├── containers/
 │   ├── aio/                 # All-in-one: Redis + API + Web + Caddy (:3000)
-│   └── api-redis/           # API + Redis (no web)
-└── docker-compose.yml       # Profiles: api | web | bundle | aio
+│   ├── api-redis/           # API + Redis (no web)
+│   └── whisper-stt/         # Optional Whisper STT (:7860), HF Space or self-host
+└── docker-compose.yml       # Profiles: api | web | bundle | aio | whisper
 ```
 
 | Image | Dockerfile | Exposed ports | Use when |
@@ -21,8 +22,9 @@ vkara/
 | `lehuygiang28/vkara-web` | `apps/web/Dockerfile` | `3000` | Frontend only; point env at external API |
 | `lehuygiang28/vkara-api-redis` | `containers/api-redis/Dockerfile` | `8000`, `6379` | Backend bundle without Next.js |
 | `lehuygiang28/vkara-aio` | `containers/aio/Dockerfile` | `3000` | Single container, one public port |
+| *(local / HF Space)* | `containers/whisper-stt/Dockerfile` | `7860` | Optional voice search STT (build context = that folder) |
 
-Build context is always the **repository root** (`.`), including monorepo `packages/*`.
+Build context is the **repository root** (`.`) for vkara app/bundle images, including monorepo `packages/*`. **Exception:** `whisper-stt` builds from `containers/whisper-stt/` only.
 
 ---
 
@@ -64,6 +66,19 @@ docker compose --profile bundle up --build
 # API → localhost:8001 (default), Redis → localhost:6379
 ```
 
+### Optional Whisper STT
+
+```bash
+docker compose --profile whisper up --build
+# → http://localhost:7860/health
+
+# apps/web/.env.local or containers/aio/.env:
+# WHISPER_URL=http://host.docker.internal:7860   (web in Docker)
+# WHISPER_URL=http://localhost:7860              (web on host)
+```
+
+Hugging Face deployment: [whisper-stt/README.md](./whisper-stt/README.md).
+
 ---
 
 ## Docker Compose profiles
@@ -74,6 +89,7 @@ docker compose --profile bundle up --build
 | `web` | `vkara_web` | `docker compose --profile web up` |
 | `bundle` | `api_redis` | `docker compose --profile bundle up` |
 | `aio` | `vkara_aio` | `docker compose --profile aio up` |
+| `whisper` | `whisper_stt` | `docker compose --profile whisper up` |
 
 Optional env for compose (shell or `.env` at repo root):
 
@@ -96,6 +112,7 @@ docker build -f apps/api/Dockerfile -t vkara-api:local .
 docker build -f apps/web/Dockerfile -t vkara-web:local .
 docker build -f containers/api-redis/Dockerfile -t vkara-api-redis:local .
 docker build -f containers/aio/Dockerfile -t vkara-aio:local .
+docker build -t vkara-whisper-stt:local containers/whisper-stt
 ```
 
 Pull published images:
