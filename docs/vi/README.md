@@ -43,7 +43,20 @@
 </p>
 
 <p align="center">
-  <img src="../../apps/web/public/og-image.png" alt="vkara - màn hình TV và điện thoại điều khiển trong cùng một phòng" width="640" />
+  <table>
+    <tr>
+      <td width="25%" align="center"><img src="../../assets/image/vi/join.jpg" alt="Vào phòng bằng mã hoặc QR" width="100%" /></td>
+      <td width="25%" align="center"><img src="../../assets/image/vi/home.jpg" alt="Tìm bài trên YouTube bằng điện thoại" width="100%" /></td>
+      <td width="25%" align="center"><img src="../../assets/image/vi/search.jpg" alt="Phát, thêm hoặc xếp hàng bài hát" width="100%" /></td>
+      <td width="25%" align="center"><img src="../../assets/image/vi/control.jpg" alt="Điều khiển phát nhạc trên điện thoại" width="100%" /></td>
+    </tr>
+    <tr>
+      <td align="center"><sub><strong>Vào phòng</strong></sub></td>
+      <td align="center"><sub><strong>Tìm bài</strong></sub></td>
+      <td align="center"><sub><strong>Thêm bài</strong></sub></td>
+      <td align="center"><sub><strong>Điều khiển</strong></sub></td>
+    </tr>
+  </table>
 </p>
 
 <p align="center"><em>Một màn hình lớn để phát nhạc. Điện thoại dùng để tìm bài, thêm bài và điều khiển.</em></p>

@@ -43,7 +43,20 @@
 </p>
 
 <p align="center">
-  <img src="apps/web/public/og-image.png" alt="vkara - TV player and phone remote in one room" width="640" />
+  <table>
+    <tr>
+      <td width="25%" align="center"><img src="assets/image/join.jpg" alt="Join a room with a code or QR" width="100%" /></td>
+      <td width="25%" align="center"><img src="assets/image/home.jpg" alt="Search YouTube on your phone" width="100%" /></td>
+      <td width="25%" align="center"><img src="assets/image/search.jpg" alt="Play, add, or queue a song" width="100%" /></td>
+      <td width="25%" align="center"><img src="assets/image/control.jpg" alt="Control playback from your phone" width="100%" /></td>
+    </tr>
+    <tr>
+      <td align="center"><sub><strong>Join</strong></sub></td>
+      <td align="center"><sub><strong>Search</strong></sub></td>
+      <td align="center"><sub><strong>Add songs</strong></sub></td>
+      <td align="center"><sub><strong>Remote</strong></sub></td>
+    </tr>
+  </table>
 </p>
 
 <p align="center"><em>One shared player on the big screen. Everyone else uses their phone as the remote.</em></p>
