@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 
+/** Countdown before auto-advancing to the next queued video on the TV player. */
+export const NEXT_VIDEO_COUNTDOWN_SECONDS = 5;
+
 interface CountdownStore {
     isActive: boolean;
     remainingSeconds: number;
@@ -18,7 +21,7 @@ export const useCountdownStore = create<CountdownStore>((set, get) => ({
     remainingSeconds: 0,
     isCancelled: false,
     shouldShowTimer: false,
-    initialSeconds: 5,
+    initialSeconds: NEXT_VIDEO_COUNTDOWN_SECONDS,
 
     startCountdown: (seconds) => {
         const state = get();

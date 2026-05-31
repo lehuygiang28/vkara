@@ -9,7 +9,7 @@ import { LayoutGroup } from 'framer-motion';
 import { getYouTubeThumbnailUrl } from '@vkara/shared-utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
-import { useCountdownStore } from '@/store/countdownTimersStore';
+import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import {
     applyPreferredPlaybackQuality,
@@ -228,7 +228,7 @@ export function PlayerColumn({
                                     {t('startingIn')}:{' '}
                                     <CountdownTimer
                                         classNames="text-sm font-medium text-white"
-                                        initialSeconds={3}
+                                        initialSeconds={NEXT_VIDEO_COUNTDOWN_SECONDS}
                                         onCountdownComplete={handleVideoFinished}
                                     />
                                 </p>
