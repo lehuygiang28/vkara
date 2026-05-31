@@ -1,25 +1,11 @@
-# Vkara API
+# vkara API
 
-## An open-source API for the Vkara project
+Bun + Elysia backend: REST, WebSocket rooms, Redis, BullMQ.
 
-## Technologies used
-
-- [Bun](https://github.com/oven-sh/bun)
-- [Elysia](https://github.com/elysiajs/elysia)
-- Websockets, MongoDB, Redis, Bullmq
-
-## How to run
+Setup and env vars: [repository README](../../README.md#quick-start) and [Docker deployment](../../containers/README.md).
 
 ```bash
-# Clone the repository
-git clone https://github.com/lehuygiang28/vkara-api
-
-# Install dependencies
-bun install
-
-# Run the server
-bun run dev # run the websocket server
-# bun run dev2 # run the youtube checker
+bun run dev:api   # from repo root
 ```
 
-For testing that your browser support websockets, visit [this page](https://echo.websocket.org/.ws). If you see some messages send to you every seconds, then your browser supports websockets
+Default port: **8000**.

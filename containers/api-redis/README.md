@@ -11,7 +11,7 @@ cp .env.example .env
 docker compose --profile bundle up --build
 ```
 
-Default host mapping: API **8001**, Redis **6379** (see root `docker-compose.yml`).
+Default host mapping: API **8000** only. Redis runs inside the container and is not published.
 
 ## Files
 

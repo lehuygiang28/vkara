@@ -1,6 +1,8 @@
 # Docker deployment
 
-Images and compose profiles for running vkara in production or self-hosted setups.
+Docker images and Compose profiles for vkara. For a product overview and local dev without Docker, see the [repository README](../README.md).
+
+**Fastest path:** `docker compose --profile aio up --build` → http://localhost:3000
 
 ## Layout
 
@@ -20,7 +22,7 @@ vkara/
 |-------|------------|---------------|----------|
 | `lehuygiang28/vkara-api` | `apps/api/Dockerfile` | `8000` | API behind your own Redis / reverse proxy |
 | `lehuygiang28/vkara-web` | `apps/web/Dockerfile` | `3000` | Frontend only; point env at external API |
-| `lehuygiang28/vkara-api-redis` | `containers/api-redis/Dockerfile` | `8000`, `6379` | Backend bundle without Next.js |
+| `lehuygiang28/vkara-api-redis` | `containers/api-redis/Dockerfile` | `8000` | Backend bundle without Next.js; Redis stays inside the container |
 | `lehuygiang28/vkara-aio` | `containers/aio/Dockerfile` | `3000` | Single container, one public port |
 | *(local / HF Space)* | `containers/whisper-stt/Dockerfile` | `7860` | Optional voice search STT (build context = that folder) |
 
@@ -42,14 +44,14 @@ docker compose --profile aio up --build
 
 ### Split stack (api + web)
 
-Terminal A — API (needs Redis reachable via env):
+Terminal A - API (needs Redis reachable via env):
 
 ```bash
 cp apps/api/.env.example apps/api/.env
 docker compose --profile api up --build
 ```
 
-Terminal B — Web:
+Terminal B - Web:
 
 ```bash
 cp apps/web/.env.example apps/web/.env.local
@@ -63,7 +65,7 @@ docker compose --profile web up --build
 ```bash
 cp containers/api-redis/.env.example containers/api-redis/.env
 docker compose --profile bundle up --build
-# API → localhost:8001 (default), Redis → localhost:6379
+# API → localhost:8000 (Redis is not exposed)
 ```
 
 ### Optional Whisper STT
@@ -98,8 +100,7 @@ Optional env for compose (shell or `.env` at repo root):
 | `COMPOSE_TAG` | `latest` | Image tag |
 | `WEB_PORT` | `3000` | Host port for web profile |
 | `AIO_PORT` | `3000` | Host port for aio profile |
-| `BUNDLE_PORT` | `8001` | Host port for api-redis bundle API |
-| `REDIS_PORT` | `6379` | Host port for bundle Redis |
+| `BUNDLE_PORT` | `8000` | Host port for api-redis bundle API |
 
 ---
 
@@ -143,8 +144,8 @@ Client :3000
 
 Build-time (in `containers/aio/Dockerfile`):
 
-- `NEXT_PUBLIC_API_URL=/api/vkara` — browser calls same-origin REST
-- `VKARA_AIO=1` — middleware skips `/vi` redirect (Caddy handles it at the edge)
+- `NEXT_PUBLIC_API_URL=/api/vkara` - browser calls same-origin REST
+- `VKARA_AIO=1` - middleware skips `/vi` redirect (Caddy handles it at the edge)
 
 Runtime processes (supervisord): `redis` → `api` → `web` → `caddy`.
 
@@ -154,6 +155,22 @@ Health check:
 curl http://localhost:3000/api/vkara/health
 curl -I http://localhost:3000/
 ```
+
+---
+
+## FAQ
+
+**Which Docker image should I use?**  
+`lehuygiang28/vkara-aio` for single-container self-hosting. Split `vkara-api` and `vkara-web` when you run your own reverse proxy or scale components separately. Use `vkara-api-redis` for backend-only.
+
+**Why set `PUBLIC_APP_URL`?**  
+The API checks YouTube embed permissions against your site origin. In production, set it to the exact URL users open in the browser (including `https://`).
+
+**Does AIO or api-redis expose Redis on the host?**  
+No. Redis listens on `127.0.0.1` inside those containers. Only the API port is published (`8000` for `api-redis`, `3000` for aio via Caddy).
+
+**When do I rebuild the web image?**  
+Whenever `NEXT_PUBLIC_*` values change. They are baked into the Next.js bundle at build time.
 
 ---
 
@@ -201,10 +218,10 @@ Redis credentials are fixed inside the image (`127.0.0.1:6379`, password `giang`
 ## Production notes
 
 1. **Set `PUBLIC_APP_URL`** (aio / api) to your real domain so YouTube embed checks pass.
-2. **Change Redis password** in bundle/aio before exposing Redis port (`bundle` profile maps `6379` to the host).
+2. **Change Redis password** inside bundle/aio images before production (Redis is not exposed on the host, but still protect the in-container instance).
 3. **HTTPS**: put aio behind a reverse proxy (Traefik, Caddy, nginx) or terminate TLS at the host; aio Caddy listens on plain HTTP `:3000`.
 4. **Web + API split**: rebuild web when changing `NEXT_PUBLIC_*`; they are baked into the Next.js bundle.
-5. **Monorepo builds**: do not run `docker build` from `apps/api` or `apps/web` alone — context must be repo root.
+5. **Monorepo builds**: do not run `docker build` from `apps/api` or `apps/web` alone - context must be repo root.
 
 ---
 
@@ -215,6 +232,6 @@ Redis credentials are fixed inside the image (`127.0.0.1:6379`, password `giang`
 | Web cannot reach API | `NEXT_PUBLIC_API_URL` / WS URL; CORS is open on API but URLs must match |
 | AIO `/` errors | Hard-refresh browser (old redirects may be cached) |
 | Build fails on `npm` / TypeScript | Build from repo root; aio Dockerfile installs workspace filters + `typescript` |
-| Redis connection refused (api profile) | API image has no Redis — use `bundle` or external Redis |
+| Redis connection refused (api profile) | API image has no Redis - use `bundle` or external Redis |
 
-For local development without Docker, use `bun run dev:web` and `bun run dev:api` from the repo root.
+For local development without Docker, use `bun run dev` from the repo root ([README](../README.md#quick-start)).
