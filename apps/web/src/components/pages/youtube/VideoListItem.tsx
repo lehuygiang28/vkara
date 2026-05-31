@@ -1,6 +1,6 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
+import Image from 'next/image';
 import { memo, type ReactNode } from 'react';
 import { VideoChannels } from '@/components/video-channels';
 import { LiveBadge } from '@/components/youtube-live-badge';
@@ -85,12 +85,13 @@ export const VideoListItem = memo(function VideoListItem({
                 )}
             >
                 <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-md sm:w-32">
-                    <img
-                        src={video.thumbnail?.url}
+                    <Image
+                        src={video.thumbnail?.url ?? ''}
                         alt=""
-                        loading="lazy"
-                        decoding="async"
-                        className="absolute inset-0 h-full w-full object-cover"
+                        fill
+                        sizes="(max-width: 640px) 96px, 128px"
+                        className="object-cover"
+                        unoptimized
                     />
                     {isLive ? (
                         <div className="absolute bottom-1 right-1">

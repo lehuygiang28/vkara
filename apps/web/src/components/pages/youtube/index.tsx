@@ -1,7 +1,7 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
 
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Settings } from 'lucide-react';
 import { motion, AnimatePresence, LayoutGroup } from 'framer-motion';
@@ -250,11 +250,16 @@ export default function YoutubePlayerPage() {
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/85 p-4 text-center">
                         <h3 className="mb-4 text-xl font-semibold">{t('nextUp')}</h3>
                         <div className="flex max-w-md flex-col items-center gap-4">
-                            <img
-                                src={room.videoQueue[0].thumbnail.url}
-                                alt={room.videoQueue[0].title}
-                                className="h-27 w-48 rounded-lg object-cover"
-                            />
+                            <div className="relative aspect-video w-48 overflow-hidden rounded-lg">
+                                <Image
+                                    src={room.videoQueue[0].thumbnail.url}
+                                    alt={room.videoQueue[0].title}
+                                    fill
+                                    sizes="192px"
+                                    className="object-cover"
+                                    unoptimized
+                                />
+                            </div>
                             <div className="space-y-2">
                                 <p className="line-clamp-2 font-medium">
                                     {room.videoQueue[0].title}
