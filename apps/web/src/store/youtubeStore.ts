@@ -1,16 +1,19 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { YouTubeVideo } from '@/types/youtube.type';
-import { Room, ServerMessage } from '@/types/websocket.type';
-import { ErrorCode } from '@/types/server-errors.type';
+import {
+    ErrorCode,
+    PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC,
+    type Room,
+    type ServerMessage,
+    type YouTubeVideo,
+} from '@vkara/shared-types';
 import { toast } from '@/hooks/use-toast';
-import { useScopedI18n } from '@/locales/client';
+import type { useScopedI18n } from '@/locales/client';
 import {
     isYoutubeActivelyPlaying,
     isYoutubeExplicitlyPaused,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
-import { PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC } from '@vkara/shared-types';
 
 export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
 export type LayoutModeSource = 'auto' | 'url' | 'user';

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import type { ConnectionStatus } from '@/types/websocket.type';
+import type { ConnectionStatus } from '@vkara/shared-types';
 import { useWebSocketStore } from '@/store/websocketStore';
 
 const SHOW_DELAY_MS = 500;

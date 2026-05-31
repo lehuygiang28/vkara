@@ -2,6 +2,7 @@
 
 import { Search, SlidersVertical } from 'lucide-react';
 
+import { getYouTubeThumbnailUrl } from '@vkara/shared-utils';
 import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
@@ -42,7 +43,9 @@ export function PlayerControlsTabs() {
 
     return (
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-            <ControlsAmbientBackdrop src={playing.thumbnail.url} />
+            <ControlsAmbientBackdrop
+                src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
+            />
 
             <div className="relative z-10 flex min-h-0 flex-1 flex-col px-safe-offset pt-safe-offset">
                 <ControlsNowPlayingMeta />

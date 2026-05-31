@@ -5,12 +5,18 @@ import type { YouTubeVideo } from '@vkara/shared-types';
 import { mergeQueueAfterAdvance } from './merge-queue-after-advance';
 
 function video(id: string): YouTubeVideo {
+    const thumbUrl = `https://example.com/${id}.jpg`;
     return {
         id,
         title: id,
-        thumbnail: { url: `https://example.com/${id}.jpg`, width: 120, height: 90 },
-        channel: { id: 'ch', name: 'Channel' },
         duration: 180,
+        duration_formatted: '3:00',
+        type: 'video',
+        url: `https://www.youtube.com/watch?v=${id}`,
+        uploadedAt: '',
+        views: 0,
+        channels: [{ name: 'Channel', verified: false }],
+        thumbnails: [{ url: thumbUrl, width: 120, height: 90 }],
     };
 }
 

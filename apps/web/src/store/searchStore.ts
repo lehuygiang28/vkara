@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-import type { YouTubeVideo } from '@/types/youtube.type';
+import type { YouTubeVideo } from '@vkara/shared-types';
 import { blendSuggestions, rankVideos } from '@vkara/shared-utils';
 import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
 import { getPersonalizationProfile, usePersonalizationStore } from '@/store/personalizationStore';

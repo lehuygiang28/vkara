@@ -1,8 +1,7 @@
 import type { LiveVideo, Video, VideoCompact } from 'youtubei';
 
-import type { YouTubeVideo } from '@vkara/shared-types';
-import { resolveYoutubeLiveFlag } from '@vkara/shared-utils';
-import { formatSeconds } from '@/utils/common';
+import type { YouTubeThumbnailVariant, YouTubeVideo } from '@vkara/shared-types';
+import { buildYouTubeThumbnails, formatSeconds, resolveYoutubeLiveFlag } from '@vkara/shared-utils';
 
 type VideoChannel = YouTubeVideo['channels'][number];
 
@@ -11,25 +10,34 @@ interface MapYoutubeiVideoOptions {
     views?: number;
 }
 
-/** youtubei `thumbnails.best` is a URL string; array entries are `{ url, width, height }`. */
-export function resolveYoutubeiThumbnailUrl(
-    videoId: string,
-    thumbnails?: VideoCompact['thumbnails'],
-): string {
-    if (thumbnails?.length) {
-        const best = thumbnails.best as unknown;
-        if (typeof best === 'string' && best.length > 0) {
-            return best;
-        }
+function collectYoutubeiVariants(thumbnails?: VideoCompact['thumbnails']): YouTubeThumbnailVariant[] {
+    const variants: YouTubeThumbnailVariant[] = [];
 
-        const fromLast = thumbnails[thumbnails.length - 1]?.url;
-        if (fromLast) return fromLast;
-
-        const fromFirst = thumbnails[0]?.url;
-        if (fromFirst) return fromFirst;
+    if (!thumbnails?.length) {
+        return variants;
     }
 
-    return `https://i.ytimg.com/vi/${videoId}/hqdefault.jpg`;
+    for (const entry of thumbnails) {
+        if (!entry?.url) {
+            continue;
+        }
+
+        variants.push({
+            url: entry.url,
+            width: entry.width,
+            height: entry.height,
+        });
+    }
+
+    return variants;
+}
+
+/** Map youtubei thumbnails and enrich with canonical i.ytimg.com sizes. */
+export function mapYoutubeiThumbnails(
+    videoId: string,
+    thumbnails?: VideoCompact['thumbnails'],
+): YouTubeThumbnailVariant[] {
+    return buildYouTubeThumbnails(videoId, collectYoutubeiVariants(thumbnails));
 }
 
 export const mapYoutubeiFullVideo = (video: Video | LiveVideo): YouTubeVideo => {
@@ -44,9 +52,7 @@ export const mapYoutubeiFullVideo = (video: Video | LiveVideo): YouTubeVideo => 
         id: video.id,
         duration: isLive ? 0 : duration,
         duration_formatted: isLive ? '' : formatSeconds(duration),
-        thumbnail: {
-            url: resolveYoutubeiThumbnailUrl(video.id, video.thumbnails),
-        },
+        thumbnails: mapYoutubeiThumbnails(video.id, video.thumbnails),
         title: video.title,
         type: 'video',
         url: `https://www.youtube.com/watch?v=${video.id}`,
@@ -87,9 +93,7 @@ export const mapYoutubeiVideo = (
         id: video.id,
         duration: isLive ? 0 : video.duration || 0,
         duration_formatted: isLive ? '' : formatSeconds(video.duration),
-        thumbnail: {
-            url: resolveYoutubeiThumbnailUrl(video.id, video.thumbnails),
-        },
+        thumbnails: mapYoutubeiThumbnails(video.id, video.thumbnails),
         title: video.title,
         type: 'video',
         url: `https://www.youtube.com/watch?v=${video.id}`,

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Settings } from 'lucide-react';
 import { LayoutGroup } from 'framer-motion';
 
+import { getYouTubeThumbnailUrl } from '@vkara/shared-utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { useCountdownStore } from '@/store/countdownTimersStore';
@@ -202,7 +203,11 @@ export function PlayerColumn({
                         <div className="flex max-w-md flex-col items-center gap-4">
                             <div className="relative aspect-video w-48 overflow-hidden rounded-lg">
                                 <Image
-                                    src={room.videoQueue[0].thumbnail.url}
+                                    src={getYouTubeThumbnailUrl(
+                                        room.videoQueue[0].thumbnails,
+                                        'list',
+                                        room.videoQueue[0].id,
+                                    )}
                                     alt={room.videoQueue[0].title}
                                     fill
                                     sizes="192px"

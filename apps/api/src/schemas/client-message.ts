@@ -6,6 +6,12 @@ const messageBaseSchema = t.Object({
     requiresAck: t.Optional(t.Boolean()),
 });
 
+const youTubeThumbnailVariantSchema = t.Object({
+    url: t.String(),
+    width: t.Optional(t.Number()),
+    height: t.Optional(t.Number()),
+});
+
 const youTubeVideoSchema = t.Object({
     id: t.String(),
     duration: t.Number(),
@@ -22,9 +28,7 @@ const youTubeVideoSchema = t.Object({
         }),
         { minItems: 1 },
     ),
-    thumbnail: t.Object({
-        url: t.String(),
-    }),
+    thumbnails: t.Array(youTubeThumbnailVariantSchema),
     isLive: t.Optional(t.Boolean()),
 });
 

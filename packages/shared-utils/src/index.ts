@@ -7,3 +7,4 @@ export * from './url';
 export * from './youtube-id';
 export * from './youtube-playlist-url';
 export * from './youtube-live';
+export * from './youtube-thumbnail';

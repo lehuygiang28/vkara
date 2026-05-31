@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { toast, toastFeedback } from '@/hooks/use-toast';
 import { useI18n, useScopedI18n } from '@/locales/client';
-import { YouTubeVideo } from '@/types/youtube.type';
+import type { YouTubeVideo } from '@vkara/shared-types';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';

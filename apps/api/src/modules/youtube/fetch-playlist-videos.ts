@@ -3,12 +3,12 @@ import type { YouTubeVideo } from '@vkara/shared-types';
 import { parseYoutubePlaylistInput, type YoutubePlaylistInput } from '@vkara/shared-utils';
 
 import { createContextLogger } from '@/utils/logger';
-import { formatSeconds } from '@/utils/common';
+import { formatSeconds } from '@vkara/shared-utils';
 
 import { postInnertube } from './innertube-post';
 import { getYoutubeiClient } from './youtubei-client';
 import { asYoutubeRawData } from './youtubei-raw-data';
-import { mapYoutubeiFullVideo, mapYoutubeiVideo, resolveYoutubeiThumbnailUrl } from './video-mapper';
+import { mapYoutubeiFullVideo, mapYoutubeiVideo, mapYoutubeiThumbnails } from './video-mapper';
 
 const logger = createContextLogger('FetchPlaylist');
 
@@ -58,7 +58,6 @@ function parseMixRendererToYouTubeVideo(renderer: MixPanelRenderer): YouTubeVide
     const durationText = renderer.lengthText?.simpleText ?? '0:00';
     const duration = durationText ? parseHmsDuration(durationText) : 0;
     const thumbs = renderer.thumbnail?.thumbnails ?? [];
-    const thumb = thumbs[thumbs.length - 1] ?? thumbs[0];
 
     return {
         id: renderer.videoId,
@@ -70,9 +69,10 @@ function parseMixRendererToYouTubeVideo(renderer: MixPanelRenderer): YouTubeVide
         uploadedAt: '',
         views: 0,
         channels: [{ name: channelNameFromMixRenderer(renderer), verified: false }],
-        thumbnail: {
-            url: thumb?.url ?? resolveYoutubeiThumbnailUrl(renderer.videoId),
-        },
+        thumbnails: mapYoutubeiThumbnails(
+            renderer.videoId,
+            thumbs as Parameters<typeof mapYoutubeiThumbnails>[1],
+        ),
         isLive: false,
     };
 }
@@ -110,7 +110,7 @@ function buildSeedYouTubeVideo(videoId: string): YouTubeVideo {
         uploadedAt: '',
         views: 0,
         channels: [{ name: 'Unknown', verified: false }],
-        thumbnail: { url: resolveYoutubeiThumbnailUrl(videoId) },
+        thumbnails: mapYoutubeiThumbnails(videoId),
         isLive: false,
     };
 }

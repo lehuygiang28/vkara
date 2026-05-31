@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { Pause, Play, SkipForward } from 'lucide-react';
 
+import { getYouTubeThumbnailUrl } from '@vkara/shared-utils';
 import { useScopedI18n } from '@/locales/client';
 import { prefetchPlayerControlsTabs } from '@/lib/layout-chunk-prefetch';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -54,7 +55,7 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
                 className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
             >
                 <NowPlayingArtwork
-                    src={playing.thumbnail.url}
+                    src={getYouTubeThumbnailUrl(playing.thumbnails, 'list', playing.id)}
                     title={playing.title}
                     isPlaying={Boolean(isPlaying)}
                     isLive={isLive}

@@ -13,6 +13,12 @@ export type YouTubeChannel = {
   verified: boolean;
 };
 
+export type YouTubeThumbnailVariant = {
+  url: string;
+  width?: number;
+  height?: number;
+};
+
 export type YouTubeVideo = {
   id: string;
   duration: number;
@@ -23,9 +29,8 @@ export type YouTubeVideo = {
   url: string;
   views: number;
   channels: YouTubeChannel[];
-  thumbnail: {
-    url: string;
-  };
+  /** Responsive thumbnail variants sorted ascending by pixel area. */
+  thumbnails: YouTubeThumbnailVariant[];
   /** Active YouTube livestream (no fixed duration). */
   isLive?: boolean;
 };

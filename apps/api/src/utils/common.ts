@@ -1,4 +1,5 @@
 import { normalizeVideoChannels, type Room, type YouTubeVideo } from '@vkara/shared-types';
+import { normalizeVideoThumbnails } from '@vkara/shared-utils';
 
 /**
  * Generates a random number with a specified number of digits.
@@ -64,6 +65,7 @@ export function sanitizeVideoForClient(video: VideoWithLegacyChannel): YouTubeVi
     return {
         ...rest,
         channels: normalizeVideoChannels(video),
+        thumbnails: normalizeVideoThumbnails(rest.thumbnails, rest.id),
     };
 }
 
@@ -82,5 +84,3 @@ export function cleanUpRoomField(room: Room): Omit<Room, 'clients'> {
         ),
     };
 }
-
-export { formatSeconds } from '@vkara/shared-utils';

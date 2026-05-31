@@ -1,5 +1,6 @@
 'use client';
 
+import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/shared-utils';
 import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';
@@ -32,7 +33,11 @@ export function ControlsNowPlayingMeta({ className }: ControlsNowPlayingMetaProp
             )}
             aria-label={t('nowPlaying')}
         >
-            <ControlsStageThumbnail src={playing.thumbnail.url} title={playing.title} />
+            <ControlsStageThumbnail
+                src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
+                srcSet={getYouTubeThumbnailSrcSet(playing.thumbnails, playing.id)}
+                title={playing.title}
+            />
 
             <div className="w-full max-w-md space-y-1 text-center">
                 <div className="flex min-w-0 items-start justify-center gap-2">

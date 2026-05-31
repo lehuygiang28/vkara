@@ -10,7 +10,7 @@ import { useIsRoomSessionReady } from '@/hooks/use-room-session-ready';
 import { useViewportWidth } from '@/hooks/use-viewport-layout';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore, initializeWebSocket } from '@/store/websocketStore';
-import { ErrorCode } from '@/types/server-errors.type';
+import { ErrorCode } from '@vkara/shared-types';
 
 interface EnhancedWebSocketState extends WebSocketState {
     ensureConnectedAndSend: WebSocketState['sendMessage'];

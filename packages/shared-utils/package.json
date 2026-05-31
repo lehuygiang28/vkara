@@ -8,5 +8,8 @@
         "./format": "./src/format.ts",
         "./room": "./src/room.ts",
         "./url": "./src/url.ts"
+    },
+    "dependencies": {
+        "@vkara/shared-types": "workspace:*"
     }
 }

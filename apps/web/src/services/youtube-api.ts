@@ -1,4 +1,4 @@
-import { YouTubeVideo } from '@/types/youtube.type';
+import type { YouTubeVideo } from '@vkara/shared-types';
 import { apiPost } from './client/api-client';
 
 export async function searchYoutube({

@@ -4,12 +4,12 @@ import Image from 'next/image';
 import { memo, type ReactNode } from 'react';
 import { VideoChannels } from '@/components/video-channels';
 import { LiveBadge } from '@/components/youtube-live-badge';
-import { coerceViewCount, formatViewCount } from '@vkara/shared-utils';
+import { coerceViewCount, formatViewCount, getYouTubeThumbnailUrl } from '@vkara/shared-utils';
 import { formatUploadedAt } from '@/lib/format-uploaded-at';
 import { isVideoLive } from '@/lib/youtube-video';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/locales/client';
-import type { YouTubeVideo } from '@/types/youtube.type';
+import type { YouTubeVideo } from '@vkara/shared-types';
 
 /** Base row: title (2 lines) + channels + views. */
 export const VIDEO_LIST_ROW_HEIGHT = 100;
@@ -86,7 +86,7 @@ export const VideoListItem = memo(function VideoListItem({
             >
                 <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-md sm:w-32">
                     <Image
-                        src={video.thumbnail?.url ?? ''}
+                        src={getYouTubeThumbnailUrl(video.thumbnails, 'list', video.id)}
                         alt=""
                         fill
                         sizes="(max-width: 640px) 96px, 128px"

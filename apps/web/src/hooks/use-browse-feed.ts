@@ -10,7 +10,7 @@ import {
     type PersonalizationProfile,
 } from '@vkara/shared-utils';
 
-import type { YouTubeVideo } from '@/types/youtube.type';
+import type { YouTubeVideo } from '@vkara/shared-types';
 import { getRelatedVideos, searchYoutube } from '@/services/youtube-api';
 
 type SourceCursor = {

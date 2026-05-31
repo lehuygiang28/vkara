@@ -7,11 +7,12 @@ import { cn } from '@/lib/utils';
 interface ControlsStageThumbnailProps {
     src: string;
     title: string;
+    srcSet?: string;
     className?: string;
 }
 
 /** Full 16:9 YouTube thumbnail for the controls stage (no square crop). */
-export function ControlsStageThumbnail({ src, title, className }: ControlsStageThumbnailProps) {
+export function ControlsStageThumbnail({ src, title, srcSet, className }: ControlsStageThumbnailProps) {
     return (
         <div
             className={cn(
@@ -28,6 +29,7 @@ export function ControlsStageThumbnail({ src, title, className }: ControlsStageT
                 className="object-cover"
                 unoptimized
                 priority
+                {...(srcSet ? { srcSet } : {})}
             />
         </div>
     );

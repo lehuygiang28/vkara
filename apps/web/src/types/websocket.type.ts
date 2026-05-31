@@ -5,15 +5,6 @@ import type {
     ServerMessage,
 } from '@vkara/shared-types';
 
-export type {
-    ClientMessage,
-    ConnectionStatus,
-    MessageBase,
-    RawClientMessage,
-    Room,
-    ServerMessage,
-} from '@vkara/shared-types';
-
 export interface WebSocketState {
     sendMessage: (message: RawClientMessage) => void;
     lastMessage: ServerMessage | null;

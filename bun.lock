@@ -110,6 +110,9 @@
     "packages/shared-utils": {
       "name": "@vkara/shared-utils",
       "version": "0.0.1",
+      "dependencies": {
+        "@vkara/shared-types": "workspace:*",
+      },
     },
   },
   "packages": {
