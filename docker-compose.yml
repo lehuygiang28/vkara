@@ -1,3 +1,8 @@
+# Profiles: api | web | bundle | aio
+# Examples:
+#   docker compose --profile api up
+#   docker compose --profile aio up
+
 services:
     vkara_api:
         container_name: vkara-api
@@ -5,11 +10,11 @@ services:
         profiles:
             - api
         build:
-            context: ../../
+            context: .
             dockerfile: ./apps/api/Dockerfile
         image: lehuygiang28/vkara-api:${COMPOSE_TAG:-latest}
         env_file:
-            - path: ./.env
+            - path: ./apps/api/.env
               required: false
         ports:
             - 8000:${PORT:-8000}
@@ -17,19 +22,19 @@ services:
             - vkara_net
         restart: unless-stopped
 
-    redis_bundle:
-        container_name: redis-bundle
-        hostname: redis-bundle
+    api_redis:
+        container_name: vkara-api-redis
+        hostname: vkara-api-redis
         profiles:
             - bundle
         build:
-            context: ../../
-            dockerfile: ./apps/api/containers/redis-bundle/Dockerfile
+            context: .
+            dockerfile: ./containers/api-redis/Dockerfile
         image: lehuygiang28/vkara-api-redis:${COMPOSE_TAG:-latest}
         env_file:
-            - path: ./containers/redis-bundle/.env
+            - path: ./containers/api-redis/.env
               required: false
-            - path: ./containers/redis-bundle/.env.example
+            - path: ./containers/api-redis/.env.example
               required: false
         ports:
             - ${BUNDLE_PORT:-8001}:${PORT:-8000}
@@ -44,11 +49,11 @@ services:
         profiles:
             - web
         build:
-            context: ../../
+            context: .
             dockerfile: ./apps/web/Dockerfile
         image: lehuygiang28/vkara-web:${COMPOSE_TAG:-latest}
         env_file:
-            - path: ../web/.env.local
+            - path: ./apps/web/.env.local
               required: false
         ports:
             - ${WEB_PORT:-3000}:3000
@@ -62,8 +67,8 @@ services:
         profiles:
             - aio
         build:
-            context: ../../
-            dockerfile: ./apps/api/containers/aio/Dockerfile
+            context: .
+            dockerfile: ./containers/aio/Dockerfile
         image: lehuygiang28/vkara-aio:${COMPOSE_TAG:-latest}
         env_file:
             - path: ./containers/aio/.env

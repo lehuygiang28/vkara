@@ -56,12 +56,12 @@ jobs:
                     - name: web
                       image: lehuygiang28/vkara-web
                       dockerfile: ./apps/web/Dockerfile
-                    - name: api-redis-bundle
+                    - name: api-redis
                       image: lehuygiang28/vkara-api-redis
-                      dockerfile: ./apps/api/containers/redis-bundle/Dockerfile
+                      dockerfile: ./containers/api-redis/Dockerfile
                     - name: aio
                       image: lehuygiang28/vkara-aio
-                      dockerfile: ./apps/api/containers/aio/Dockerfile
+                      dockerfile: ./containers/aio/Dockerfile
         steps:
             - name: Checkout code
               uses: actions/checkout@v6

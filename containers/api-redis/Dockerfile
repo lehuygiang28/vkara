@@ -37,8 +37,8 @@ RUN chmod +x /app/server && \
 RUN apk update && \
     apk add --no-cache supervisor redis
 
-COPY --chown=bun:bun ./apps/api/containers/redis-bundle/supervisord.conf ./supervisord.conf
-COPY --chown=bun:bun ./apps/api/containers/redis-bundle/entrypoint.sh ./entrypoint.sh
+COPY --chown=bun:bun ./containers/api-redis/supervisord.conf ./supervisord.conf
+COPY --chown=bun:bun ./containers/api-redis/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 
 RUN touch /app/supervisord.pid && \

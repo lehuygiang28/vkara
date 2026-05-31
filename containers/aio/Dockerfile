@@ -62,9 +62,9 @@ COPY --from=build-web /repo/apps/web/.next/standalone ./
 COPY --from=build-web /repo/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build-web /repo/apps/web/public ./apps/web/public
 
-COPY ./apps/api/containers/aio/Caddyfile ./Caddyfile
-COPY ./apps/api/containers/aio/supervisord.conf ./supervisord.conf
-COPY ./apps/api/containers/aio/entrypoint.sh ./entrypoint.sh
+COPY ./containers/aio/Caddyfile ./Caddyfile
+COPY ./containers/aio/supervisord.conf ./supervisord.conf
+COPY ./containers/aio/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 
 ENV NODE_ENV=production
