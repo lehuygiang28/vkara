@@ -50,7 +50,7 @@ export function ControlsNowPlayingMeta({ className }: ControlsNowPlayingMetaProp
                     video={playing}
                     tone="emphasis"
                     maxLines={2}
-                    className="justify-center text-sm text-muted-foreground [&_span]:line-clamp-1 [&_span]:text-sm"
+                    className="justify-center text-sm text-muted-foreground"
                 />
             </div>
         </section>
