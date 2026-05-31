@@ -1,7 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { memo } from 'react';
+import { memo, type ReactNode } from 'react';
 import { VideoChannels } from '@/components/video-channels';
 import { LiveBadge } from '@/components/youtube-live-badge';
 import { coerceViewCount, formatViewCount } from '@vkara/shared-utils';
@@ -11,13 +11,20 @@ import { cn } from '@/lib/utils';
 import { useI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@/types/youtube.type';
 
-/** Fits title (2 lines) + channels (2 lines) + views within virtualized rows. */
+/** Base row: title (2 lines) + channels + views. */
 export const VIDEO_LIST_ROW_HEIGHT = 100;
+/** Action chips row when a video is selected. */
+export const VIDEO_LIST_ROW_ACTIONS_HEIGHT = 52;
+
+export function getVideoListRowHeight(hasActions: boolean): number {
+    return hasActions ? VIDEO_LIST_ROW_HEIGHT + VIDEO_LIST_ROW_ACTIONS_HEIGHT : VIDEO_LIST_ROW_HEIGHT;
+}
 
 interface VideoListItemProps {
     video: YouTubeVideo;
     viewsLabel: string;
     isActive?: boolean;
+    actions?: ReactNode;
     onSelect?: (video: YouTubeVideo) => void;
 }
 
@@ -25,6 +32,7 @@ export const VideoListItem = memo(function VideoListItem({
     video,
     viewsLabel,
     isActive = false,
+    actions,
     onSelect,
 }: VideoListItemProps) {
     const t = useI18n();
@@ -56,50 +64,65 @@ export const VideoListItem = memo(function VideoListItem({
 
     return (
         <div
-            role="button"
-            tabIndex={0}
-            onClick={() => onSelect?.(video)}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                    e.preventDefault();
-                    onSelect?.(video);
-                }
-            }}
             className={cn(
-                'relative flex h-[100px] w-full cursor-pointer items-start gap-3 rounded-lg p-2 text-left text-sm',
-                'hover:bg-accent/50 active:bg-accent/60',
-                isActive && 'bg-accent/40 ring-1 ring-inset ring-primary/40',
+                'w-full overflow-hidden rounded-lg text-left text-sm',
+                isActive && 'bg-accent/30 ring-1 ring-inset ring-primary/40',
             )}
         >
-            <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-md sm:w-32">
-                <img
-                    src={video.thumbnail?.url}
-                    alt=""
-                    loading="lazy"
-                    decoding="async"
-                    className="absolute inset-0 h-full w-full object-cover"
-                />
-                {isLive ? (
-                    <div className="absolute bottom-1 right-1">
-                        <LiveBadge />
-                    </div>
-                ) : (
-                    video.duration_formatted && (
-                        <div className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-xs text-white">
-                            {video.duration_formatted}
-                        </div>
-                    )
+            <div
+                role="button"
+                tabIndex={0}
+                onClick={() => onSelect?.(video)}
+                onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        onSelect?.(video);
+                    }
+                }}
+                className={cn(
+                    'flex h-[100px] w-full cursor-pointer items-start gap-3 p-2',
+                    'hover:bg-accent/50 active:bg-accent/60',
                 )}
-            </div>
-            <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden">
-                <div className="line-clamp-2 break-words text-sm font-medium leading-snug">
-                    {video.title}
+            >
+                <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-md sm:w-32">
+                    <img
+                        src={video.thumbnail?.url}
+                        alt=""
+                        loading="lazy"
+                        decoding="async"
+                        className="absolute inset-0 h-full w-full object-cover"
+                    />
+                    {isLive ? (
+                        <div className="absolute bottom-1 right-1">
+                            <LiveBadge />
+                        </div>
+                    ) : (
+                        video.duration_formatted && (
+                            <div className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-xs text-white">
+                                {video.duration_formatted}
+                            </div>
+                        )
+                    )}
                 </div>
-                <VideoChannels video={video} tone="muted" maxLines={2} />
-                {metadataLine ? (
-                    <div className="line-clamp-1 text-xs text-muted-foreground">{metadataLine}</div>
-                ) : null}
+                <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden">
+                    <div className="line-clamp-2 break-words text-sm font-medium leading-snug">
+                        {video.title}
+                    </div>
+                    <VideoChannels video={video} tone="muted" maxLines={2} />
+                    {metadataLine ? (
+                        <div className="line-clamp-1 text-xs text-muted-foreground">{metadataLine}</div>
+                    ) : null}
+                </div>
             </div>
+            {actions ? (
+                <div
+                    className="border-t border-border/50 px-2 pb-2 pt-1.5"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                >
+                    {actions}
+                </div>
+            ) : null}
         </div>
     );
 });

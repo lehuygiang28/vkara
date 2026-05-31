@@ -9,8 +9,7 @@ import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel'
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { VideoSkeleton } from '@/components/video-skeleton';
 import { ScrollToTopListButton } from '@/components/scroll-to-top-list';
-import { VideoListItem, VIDEO_LIST_ROW_HEIGHT } from './VideoListItem';
-import { VideoListActionPopover } from './VideoListActionPopover';
+import { VideoListItem, VIDEO_LIST_ROW_HEIGHT, getVideoListRowHeight } from './VideoListItem';
 import { VideoListPullHeader } from './video-list-pull-indicator';
 
 const LOADING_ROW_COUNT = 3;
@@ -89,7 +88,10 @@ export const VideoList = memo(function VideoList({
     const virtualizer = useVirtualizer({
         count: videos.length,
         getScrollElement: () => scrollRef.current,
-        estimateSize: () => VIDEO_LIST_ROW_HEIGHT,
+        estimateSize: (index) => {
+            const video = videos[index];
+            return getVideoListRowHeight(Boolean(video && menuVideo?.id === video.id));
+        },
         overscan: 4,
         paddingEnd,
         getItemKey: (index) => videos[index]?.id ?? `row-${index}`,
@@ -108,12 +110,9 @@ export const VideoList = memo(function VideoList({
     }, []);
 
     const handleScroll = useCallback(() => {
-        if (menuVideo) {
-            setMenuVideo(null);
-        }
         const scrollTop = scrollRef.current?.scrollTop ?? 0;
         setShowScrollTop(scrollTop > 200);
-    }, [menuVideo]);
+    }, []);
 
     const scrollToTop = useCallback(() => {
         closeMenu();
@@ -130,7 +129,7 @@ export const VideoList = memo(function VideoList({
     const actionHelpers: VideoListActionHelpers = { closeMenu };
 
     return (
-        <div className="relative min-h-0 flex-1 overflow-hidden">
+        <div className="relative isolate min-h-0 flex-1 overflow-hidden">
             <div
                 ref={assignScrollRef}
                 onScroll={handleScroll}
@@ -161,6 +160,8 @@ export const VideoList = memo(function VideoList({
                             const video = videos[virtualRow.index];
                             if (!video) return null;
 
+                            const isMenuOpen = menuVideo?.id === video.id;
+
                             return (
                                 <div
                                     key={virtualRow.key}
@@ -173,7 +174,12 @@ export const VideoList = memo(function VideoList({
                                     <VideoListItem
                                         video={video}
                                         viewsLabel={viewsLabel}
-                                        isActive={menuVideo?.id === video.id}
+                                        isActive={isMenuOpen}
+                                        actions={
+                                            isMenuOpen
+                                                ? renderActions(video, actionHelpers)
+                                                : undefined
+                                        }
                                         onSelect={handleRowPress}
                                     />
                                 </div>
@@ -234,12 +240,6 @@ export const VideoList = memo(function VideoList({
                     className={cn(!isLoading && videos.length > 0 && 'shrink-0 pb-remote-scroll')}
                 />
             </div>
-
-            {menuVideo ? (
-                <VideoListActionPopover video={menuVideo} onClose={closeMenu}>
-                    {renderActions(menuVideo, actionHelpers)}
-                </VideoListActionPopover>
-            ) : null}
 
             <ScrollToTopListButton
                 show={showScrollTop && !menuVideo}
