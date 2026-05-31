@@ -37,8 +37,7 @@ services:
             - path: ./containers/api-redis/.env.example
               required: false
         ports:
-            - ${BUNDLE_PORT:-8001}:${PORT:-8000}
-            - ${REDIS_PORT:-6379}:6379
+            - ${BUNDLE_PORT:-8000}:${PORT:-8000}
         networks:
             - vkara_net
         restart: unless-stopped
