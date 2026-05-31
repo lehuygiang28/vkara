@@ -88,7 +88,7 @@ export function RemoteShell() {
                     </RemoteTabPanel>
                 </RemotePanelOverlayProvider>
                 <div className="mt-auto shrink-0">
-                    <NowPlayingBar onOpenQueue={() => setCurrentTab('queue')} />
+                    <NowPlayingBar onOpenControls={() => setCurrentTab('controls')} />
                     <MobileBottomNav />
                 </div>
             </div>

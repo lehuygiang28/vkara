@@ -3,6 +3,7 @@
 import { Clock3, ListVideo, MoreHorizontal, Search, Settings, SlidersVertical } from 'lucide-react';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
+import { prefetchPlayerControlsTabs } from '@/lib/layout-chunk-prefetch';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';
 
@@ -10,11 +11,10 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const PRIMARY_TABS = ['search', 'queue'] as const;
+const PRIMARY_TABS = ['search', 'queue', 'controls'] as const;
 
 type PrimaryTab = (typeof PRIMARY_TABS)[number];
 
@@ -59,12 +59,19 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
                 ariaLabel={tGlobal('youtubePage.queueBadgeLabel', { count: queueCount })}
                 onClick={() => setCurrentTab('queue')}
             />
+            <NavItem
+                active={activePrimary === 'controls'}
+                icon={<SlidersVertical className="h-6 w-6" />}
+                label={t('controls')}
+                onClick={() => setCurrentTab('controls')}
+                onPrefetch={prefetchPlayerControlsTabs}
+            />
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <button
                         type="button"
                         className={cn(
-                            'flex min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-2 text-[0.65rem] font-medium transition-colors',
+                            'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-2 text-[0.65rem] font-medium transition-colors',
                             !isPrimary(currentTab)
                                 ? 'text-primary'
                                 : 'text-muted-foreground hover:text-foreground',
@@ -79,11 +86,6 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
                         <Clock3 className="mr-2 h-4 w-4" />
                         {t('history')}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setCurrentTab('controls')}>
-                        <SlidersVertical className="mr-2 h-4 w-4" />
-                        {t('controls')}
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={() => setCurrentTab('settings')}>
                         <Settings className="mr-2 h-4 w-4" />
                         {t('settings')}
@@ -120,6 +122,7 @@ function NavItem({
     badge,
     ariaLabel,
     onClick,
+    onPrefetch,
 }: {
     active: boolean;
     icon: React.ReactNode;
@@ -127,13 +130,16 @@ function NavItem({
     badge?: number;
     ariaLabel?: string;
     onClick: () => void;
+    onPrefetch?: () => void;
 }) {
     return (
         <button
             type="button"
             onClick={onClick}
+            onPointerEnter={onPrefetch}
+            onFocus={onPrefetch}
             className={cn(
-                'flex min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-2 text-[0.65rem] font-medium transition-colors',
+                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-2 text-[0.65rem] font-medium transition-colors',
                 active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
             )}
             aria-current={active ? 'page' : undefined}
@@ -143,7 +149,7 @@ function NavItem({
                 {icon}
                 {badge != null ? <NavIconBadge count={badge} /> : null}
             </span>
-            <span className="max-w-[5.5rem] truncate px-0.5">{label}</span>
+            <span className="max-w-[4.5rem] truncate px-0.5">{label}</span>
         </button>
     );
 }

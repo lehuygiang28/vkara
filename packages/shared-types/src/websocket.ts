@@ -50,6 +50,7 @@ export type RawClientMessage = {
   | { type: "play" }
   | { type: "pause" }
   | { type: "seek"; time: number }
+  | { type: "syncPlaybackPosition"; time: number; force?: boolean }
   | { type: "videoFinished" }
   | { type: "skipUnplayableVideo"; videoId: string }
   | { type: "moveToTop"; videoId: string }

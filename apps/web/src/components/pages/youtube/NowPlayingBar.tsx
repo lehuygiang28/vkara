@@ -1,8 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Pause, Play, SkipForward } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
+import { prefetchPlayerControlsTabs } from '@/lib/layout-chunk-prefetch';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { cn } from '@/lib/utils';
@@ -15,10 +17,10 @@ import { isVideoLive } from '@/lib/youtube-video';
 
 interface NowPlayingBarProps {
     className?: string;
-    onOpenQueue?: () => void;
+    onOpenControls?: () => void;
 }
 
-export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
+export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps) {
     const t = useScopedI18n('youtubePage');
     const { room } = useYouTubeStore();
     const { handlePlayerPlay, handlePlayerPause, handlePlayNextVideo } = usePlayerAction();
@@ -26,6 +28,13 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
     const playing = room?.playingNow;
     const isPlaying = room?.isPlaying;
     const isLive = playing ? isVideoLive(playing) : false;
+    const playingId = playing?.id;
+
+    useEffect(() => {
+        if (playingId) {
+            prefetchPlayerControlsTabs();
+        }
+    }, [playingId]);
 
     if (!playing) {
         return null;
@@ -40,7 +49,7 @@ export function NowPlayingBar({ className, onOpenQueue }: NowPlayingBarProps) {
         >
             <button
                 type="button"
-                onClick={onOpenQueue}
+                onClick={onOpenControls}
                 aria-label={`${isPlaying ? t('nowPlaying') : t('pause')}: ${playing.title}`}
                 className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
             >

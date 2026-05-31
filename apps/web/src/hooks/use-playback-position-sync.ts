@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocket } from '@/providers/websocket-provider';
@@ -11,44 +11,71 @@ import {
     type PlaybackTimeSyncState,
 } from '@vkara/shared-types';
 
-/**
- * Optional low-frequency playback position reporter for the TV player.
- *
- * Disabled by default — VKara does not poll getCurrentTime() every second.
- * Enable only if drift correction is required; interval is intentionally coarse.
- */
-const ENABLE_PERIODIC_PLAYBACK_SYNC = false;
 const PERIODIC_SYNC_INTERVAL_MS = PLAYBACK_TIME_BROADCAST_MIN_INTERVAL_MS;
 
+function readPlayerSeconds(player: YT.Player): number {
+    return Math.max(0, Math.floor(player.getCurrentTime()));
+}
+
+/**
+ * TV / laptop player reports playback position to the room at a low rate.
+ * Uses syncPlaybackPosition (not seek) so remotes get anchors without re-seeking the TV.
+ */
 export function usePlaybackPositionSync(): void {
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
     const player = useYouTubeStore((s) => s.player);
-    const room = useYouTubeStore((s) => s.room);
+    const roomId = useYouTubeStore((s) => s.room?.id);
+    const playingNowId = useYouTubeStore((s) => s.room?.playingNow?.id);
+    const isPlaying = useYouTubeStore((s) => s.room?.isPlaying ?? false);
     const { ensureConnectedAndSend } = useWebSocket();
     const lastSentRef = useRef<PlaybackTimeSyncState | undefined>(undefined);
+    const prevIsPlayingRef = useRef<boolean | undefined>(undefined);
 
-    useEffect(() => {
-        if (!ENABLE_PERIODIC_PLAYBACK_SYNC) return;
-        if (effectiveLayoutMode === 'remote') return;
-        if (!player || !room?.id || !room.isPlaying) return;
+    const sendSync = useCallback(
+        (seconds: number, force = false) => {
+            if (!roomId) return;
 
-        const tick = () => {
-            const seconds = Math.floor(player.getCurrentTime());
             const previous = useYouTubeStore.getState().room?.currentTime ?? seconds;
-            if (!shouldBroadcastPlaybackTime(lastSentRef.current, seconds, previous)) {
+            if (
+                !force &&
+                !shouldBroadcastPlaybackTime(lastSentRef.current, seconds, previous)
+            ) {
                 return;
             }
+
             lastSentRef.current = { at: Date.now(), seconds };
-            ensureConnectedAndSend({ type: 'seek', time: seconds });
+            ensureConnectedAndSend({ type: 'syncPlaybackPosition', time: seconds, force });
+        },
+        [roomId, ensureConnectedAndSend],
+    );
+
+    useEffect(() => {
+        lastSentRef.current = undefined;
+        prevIsPlayingRef.current = undefined;
+    }, [playingNowId]);
+
+    useEffect(() => {
+        if (effectiveLayoutMode === 'remote') return;
+        if (!player || !roomId) return;
+
+        const wasPlaying = prevIsPlayingRef.current;
+        prevIsPlayingRef.current = isPlaying;
+
+        if (wasPlaying === true && !isPlaying) {
+            sendSync(readPlayerSeconds(player), true);
+        }
+    }, [effectiveLayoutMode, player, roomId, isPlaying, sendSync]);
+
+    useEffect(() => {
+        if (effectiveLayoutMode === 'remote') return;
+        if (!player || !roomId || !isPlaying) return;
+
+        const tick = () => {
+            sendSync(readPlayerSeconds(player));
         };
 
+        tick();
         const id = window.setInterval(tick, PERIODIC_SYNC_INTERVAL_MS);
         return () => window.clearInterval(id);
-    }, [
-        effectiveLayoutMode,
-        player,
-        room?.id,
-        room?.isPlaying,
-        ensureConnectedAndSend,
-    ]);
+    }, [effectiveLayoutMode, player, roomId, isPlaying, sendSync]);
 }

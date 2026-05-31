@@ -8,6 +8,10 @@ export function prefetchRemoteShell(): void {
     void import('@/components/pages/youtube/RemoteShell');
 }
 
+export function prefetchPlayerControlsTabs(): void {
+    void import('@/components/pages/youtube/PlayerControlsTabs');
+}
+
 export function prefetchLayoutChunksForMode(
     mode: 'remote' | 'player' | 'both',
 ): void {

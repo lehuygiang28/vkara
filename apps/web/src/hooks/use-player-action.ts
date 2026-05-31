@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { shouldBroadcastPlaybackTime, type PlaybackTimeSyncState } from '@vkara/shared-types';
 import { toast, toastFeedback } from '@/hooks/use-toast';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { YouTubeVideo } from '@/types/youtube.type';
@@ -41,11 +40,10 @@ export const usePlayerAction = (): PlayerAction => {
     const { room } = useYouTubeStore();
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
     const waitForRoomSession = useWaitForRoomSession();
-    const lastSeekSentRef = useRef<PlaybackTimeSyncState | undefined>(undefined);
     const actionCooldownRef = useRef<Map<string, number>>(new Map());
 
     useEffect(() => {
-        lastSeekSentRef.current = undefined;
+        actionCooldownRef.current.clear();
     }, [room?.playingNow?.id]);
 
     const isActionCoolingDown = useCallback((key: string) => {
@@ -203,19 +201,16 @@ export const usePlayerAction = (): PlayerAction => {
         async (seconds: number) => {
             if (!(await ensureRoomReady())) return;
 
-            const previousSeconds = useYouTubeStore.getState().room?.currentTime ?? seconds;
-            if (
-                !shouldBroadcastPlaybackTime(
-                    lastSeekSentRef.current,
-                    seconds,
-                    previousSeconds,
-                )
-            ) {
-                return;
-            }
+            const duration = useYouTubeStore.getState().room?.playingNow?.duration;
+            const clamped =
+                typeof duration === 'number' && duration > 0
+                    ? Math.min(duration, Math.max(0, Math.floor(seconds)))
+                    : Math.max(0, Math.floor(seconds));
 
-            lastSeekSentRef.current = { at: Date.now(), seconds };
-            ensureConnectedAndSend({ type: 'seek', time: seconds });
+            useYouTubeStore.setState((state) => ({
+                room: state.room ? { ...state.room, currentTime: clamped } : null,
+            }));
+            ensureConnectedAndSend({ type: 'seek', time: clamped });
         },
         [ensureRoomReady, ensureConnectedAndSend],
     );

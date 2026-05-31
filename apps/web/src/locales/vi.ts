@@ -79,7 +79,6 @@ export default {
     'youtubePage.layoutBoth': 'Laptop',
     'youtubePage.layoutBothDesc':
         'Video và bảng điều khiển cạnh nhau — xem và chọn bài trên cùng một máy.',
-    'youtubePage.seekTo': 'Nhảy tới',
     'youtubePage.controls': 'Điều khiển',
     'youtubePage.queue': 'Danh sách',
     'youtubePage.queueBadgeLabel': 'Hàng chờ, {count} bài',
@@ -92,6 +91,14 @@ export default {
     'youtubePage.more': 'Thêm',
     'youtubePage.mainNavigation': 'Điều hướng chính',
     'youtubePage.volume': 'Âm lượng',
+    'youtubePage.skipBack10': 'Lùi 10 giây',
+    'youtubePage.skipForward10': 'Tới 10 giây',
+    'youtubePage.controlsEmptyTitle': 'Chưa có bài nào đang phát',
+    'youtubePage.controlsEmptyDescription':
+        'Tìm video hoặc chọn từ danh sách chờ để bắt đầu phát trên TV.',
+    'youtubePage.openQueue': 'Mở danh sách',
+    'youtubePage.openSearch': 'Tìm kiếm bài',
+    'youtubePage.playbackProgress': 'Tiến độ phát',
     'youtubePage.liveNow': 'Đang phát trực tiếp',
     'youtubePage.watching': 'đang xem',
     'youtubePage.tvEmptyTitle': 'Kết nối điện thoại để chọn bài',
@@ -102,13 +109,6 @@ export default {
     'youtubePage.tvEmptyStep3': 'Chạm Phát để bắt đầu trên màn hình này',
     'youtubePage.tvRoomCode': 'Mã phòng',
     'youtubePage.tvEmptyQrAria': 'Mã QR phòng. Mở cài đặt phòng.',
-
-    'seekToInput.title': 'Nhảy đến thời gian cụ thể',
-    'seekToInput.description': 'Nhập thời gian dưới dạng giây, MM:SS, hoặc HH:MM:SS',
-    'seekToInput.label.time': 'Thời gian',
-    'seekToInput.placeholder': 'ví dụ: 120, 2:00, hoặc 1:02:00',
-    'seekToInput.error.invalidInput': 'Định dạng nhập không hợp lệ',
-    'seekToInput.button.seek': 'Nhảy',
 
     'voiceSearchSettings.title': 'Tìm kiếm bằng giọng nói',
     'voiceSearchSettings.descriptionWithBrowser':

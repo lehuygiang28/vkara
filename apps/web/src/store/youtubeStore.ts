@@ -10,6 +10,7 @@ import {
     isYoutubeExplicitlyPaused,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
+import { PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC } from '@vkara/shared-types';
 
 export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
 export type LayoutModeSource = 'auto' | 'url' | 'user';
@@ -178,7 +179,16 @@ export const useYouTubeStore = create(
                     case 'currentTimeChanged':
                         {
                             set((state) => {
-                                state?.player?.seekTo(message.currentTime, true);
+                                const player = state.player;
+                                if (player) {
+                                    const playerSeconds = Math.floor(player.getCurrentTime());
+                                    const drift = Math.abs(
+                                        playerSeconds - message.currentTime,
+                                    );
+                                    if (drift > PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC) {
+                                        player.seekTo(message.currentTime, true);
+                                    }
+                                }
                                 return {
                                     ...state,
                                     room: state.room

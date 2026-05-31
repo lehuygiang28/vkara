@@ -65,7 +65,6 @@ export default {
     'youtubePage.settings': 'Settings',
     'youtubePage.searchPlaceholder': 'Search and select a video to play',
     'youtubePage.failedToFetch': 'Failed to fetch search results. Please try again.',
-    'youtubePage.seekTo': 'Seek to',
     'youtubePage.controls': 'Controls',
     'youtubePage.queue': 'Queue',
     'youtubePage.queueBadgeLabel': 'Queue, {count} songs',
@@ -92,6 +91,14 @@ export default {
     'youtubePage.more': 'More',
     'youtubePage.mainNavigation': 'Main navigation',
     'youtubePage.volume': 'Volume',
+    'youtubePage.skipBack10': 'Back 10 seconds',
+    'youtubePage.skipForward10': 'Forward 10 seconds',
+    'youtubePage.controlsEmptyTitle': 'Nothing playing',
+    'youtubePage.controlsEmptyDescription':
+        'Search for a video or pick one from the queue to start playback on the TV.',
+    'youtubePage.openQueue': 'Open queue',
+    'youtubePage.openSearch': 'Search videos',
+    'youtubePage.playbackProgress': 'Playback progress',
     'youtubePage.liveNow': 'Live now',
     'youtubePage.watching': 'watching',
     'youtubePage.tvEmptyTitle': 'Connect your phone to pick songs',
@@ -102,13 +109,6 @@ export default {
     'youtubePage.tvEmptyStep3': 'Tap play and it starts on this screen',
     'youtubePage.tvRoomCode': 'Room code',
     'youtubePage.tvEmptyQrAria': 'Room QR code. Opens room settings.',
-
-    'seekToInput.title': 'Seek to specific time',
-    'seekToInput.description': 'Enter time in seconds, MM:SS, or HH:MM:SS format',
-    'seekToInput.label.time': 'Time',
-    'seekToInput.placeholder': 'e.g., 120, 2:00, or 1:02:00',
-    'seekToInput.error.invalidInput': 'Invalid input format',
-    'seekToInput.button.seek': 'Seek',
 
     'voiceSearchSettings.title': 'Voice search',
     'voiceSearchSettings.descriptionWithBrowser':

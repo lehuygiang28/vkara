@@ -4,10 +4,34 @@ export const PLAYBACK_TIME_BROADCAST_MIN_INTERVAL_MS = 15_000;
 /** Always broadcast when the position jumps by at least this many seconds. */
 export const PLAYBACK_TIME_BROADCAST_MIN_DELTA_SEC = 10;
 
+/** Skip seekTo on the TV player when echo drift is within this tolerance. */
+export const PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC = 2;
+
 export type PlaybackTimeSyncState = {
     at: number;
     seconds: number;
 };
+
+export type PlaybackDisplayAnchor = {
+    baseSeconds: number;
+    syncedAtMs: number;
+    isPlaying: boolean;
+    videoId: string | null;
+};
+
+/**
+ * Smooth UI position from last server anchor + local elapsed time while playing.
+ */
+export function computeExtrapolatedPlaybackSeconds(
+    anchor: PlaybackDisplayAnchor,
+    nowMs = Date.now(),
+): number {
+    if (!anchor.isPlaying) {
+        return Math.max(0, Math.floor(anchor.baseSeconds));
+    }
+    const elapsedSec = Math.max(0, (nowMs - anchor.syncedAtMs) / 1000);
+    return Math.max(0, Math.floor(anchor.baseSeconds + elapsedSec));
+}
 
 /**
  * Whether a playback position should be broadcast over WebSocket.

@@ -381,6 +381,17 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
     async function seek(ws: ElysiaWS, time: number) {
         const roomId = await validateClientInRoom(ws);
+
+        await mutateRoom(roomId, (room) => {
+            room.currentTime = time;
+        });
+
+        lastPlaybackBroadcastByRoom.set(roomId, { at: Date.now(), seconds: time });
+        publishToRoom(roomId, { type: 'currentTimeChanged', currentTime: time });
+    }
+
+    async function syncPlaybackPosition(ws: ElysiaWS, time: number, force = false) {
+        const roomId = await validateClientInRoom(ws);
         let previousTime = 0;
 
         await mutateRoom(roomId, (room) => {
@@ -389,7 +400,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         });
 
         const lastBroadcast = lastPlaybackBroadcastByRoom.get(roomId);
-        if (!shouldBroadcastPlaybackTime(lastBroadcast, time, previousTime)) {
+        if (!force && !shouldBroadcastPlaybackTime(lastBroadcast, time, previousTime)) {
             return;
         }
 
@@ -617,6 +628,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid time value');
                 }
                 await seek(ws, message.time);
+                break;
+            case 'syncPlaybackPosition':
+                if (typeof message.time !== 'number') {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid time value');
+                }
+                await syncPlaybackPosition(ws, message.time, message.force === true);
                 break;
             case 'videoFinished':
                 await nextVideo(ws);
