@@ -87,7 +87,7 @@ export const usePlayerAction = (): PlayerAction => {
 
         try {
             await Promise.race([
-                new Promise<void>((resolve, reject) => {
+                new Promise<void>((resolve) => {
                     const unsubscribe = useYouTubeStore.subscribe((state) => {
                         if (state.room?.id) {
                             unsubscribe();

@@ -1,8 +1,15 @@
 import type { NextConfig } from 'next';
 
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+    enabled: process.env.ANALYZE === 'true',
+});
+
 const nextConfig: NextConfig = {
     transpilePackages: ['@vkara/shared-types'],
     output: 'standalone',
+    experimental: {
+        optimizePackageImports: ['lucide-react', 'framer-motion'],
+    },
     async headers() {
         return [
             {
@@ -56,4 +63,4 @@ const nextConfig: NextConfig = {
     },
 };
 
-export default nextConfig;
+export default withBundleAnalyzer(nextConfig);

@@ -109,6 +109,26 @@ html[data-vkara-remote-chrome='full'] {
     }
 }
 
+.connection-status-toast {
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+    transition:
+        opacity 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+        transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.connection-status-toast[data-visible='true'] {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .connection-status-toast {
+        transition: none;
+    }
+}
+
 @layer utilities {
     .pt-safe {
         padding-top: var(--safe-top);

@@ -4,7 +4,6 @@ import { useScopedI18n } from '@/locales/client';
 import { useAppSettingsStore } from '@/store/appSettingsStore';
 import { useWhisperAvailable } from '@/hooks/use-whisper-available';
 import { isWebSpeechRecognitionSupported } from '@/lib/speech-recognition';
-import { SettingsRow } from '@/components/settings/settings-row';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 

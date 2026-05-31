@@ -7,7 +7,6 @@ import {
     SettingsGroup,
     SettingsSection,
 } from '@/components/settings/settings-section';
-import { SettingsRow } from '@/components/settings/settings-row';
 import { SearchHistorySettingsRow } from '@/components/settings/search-history-settings-row';
 import { VoiceSearchSettingsRow } from '@/components/settings/voice-search-settings-row';
 import { Label } from '@/components/ui/label';
