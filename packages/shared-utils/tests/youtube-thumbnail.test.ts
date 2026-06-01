@@ -1,11 +1,11 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it } from 'vitest';
 
 import {
-  buildYouTubeThumbnails,
-  getYouTubeThumbnailSrcSet,
-  getYouTubeThumbnailUrl,
-  normalizeVideoThumbnails,
-} from "./youtube-thumbnail";
+    buildYouTubeThumbnails,
+    getYouTubeThumbnailSrcSet,
+    getYouTubeThumbnailUrl,
+    normalizeVideoThumbnails,
+} from '@src/youtube-thumbnail';
 
 describe("buildYouTubeThumbnails", () => {
   it("merges youtubei hqdefault with canonical maxresdefault sizes", () => {

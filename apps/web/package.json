@@ -9,7 +9,8 @@
         "start": "next start",
         "lint": "next lint",
         "analyze": "ANALYZE=true bun run --bun next build",
-        "generate:pwa-icons": "bun scripts/generate-pwa-icons.mjs"
+        "generate:pwa-icons": "bun scripts/generate-pwa-icons.mjs",
+        "test": "vitest run --config ../../vitest.config.mts --project @vkara/web"
     },
     "dependencies": {
         "@next/third-parties": "15.5.18",

@@ -1,8 +1,7 @@
-import { describe, expect, it } from 'bun:test';
-
 import type { YouTubeVideo } from '@vkara/shared-types';
+import { describe, expect, it } from 'vitest';
 
-import { mergeQueueAfterAdvance } from './merge-queue-after-advance';
+import { mergeQueueAfterAdvance } from '@/modules/room/merge-queue-after-advance';
 
 function video(id: string): YouTubeVideo {
     const thumbUrl = `https://example.com/${id}.jpg`;

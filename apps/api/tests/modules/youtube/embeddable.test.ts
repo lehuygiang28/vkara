@@ -1,10 +1,10 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
 import {
     EMBED_BLOCKED_PATTERNS,
     isEmbedBlockedInHtml,
     parseEmbedPlayabilityPreview,
-} from './embeddable';
+} from '@/modules/youtube/embeddable';
 
 describe('parseEmbedPlayabilityPreview', () => {
     it('parses escaped JSON from embed HTML', () => {

@@ -1,12 +1,11 @@
-import { describe, expect, it } from 'bun:test';
-
 import { ErrorCode } from '@vkara/shared-types';
+import { describe, expect, it } from 'vitest';
 
 import {
     buildTvRecoveryCreateRoomMessage,
     captureTvRoomSnapshot,
     shouldRecoverTvRoom,
-} from './tv-room-recovery';
+} from '@/lib/tv-room-recovery';
 
 describe('tv-room-recovery', () => {
     it('captures snapshot with previous room id', () => {

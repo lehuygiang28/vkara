@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
-import { extractSeedVideoIdFromMixListId, parseYoutubePlaylistInput } from './youtube-playlist-url';
+import { extractSeedVideoIdFromMixListId, parseYoutubePlaylistInput } from '@src/youtube-playlist-url';
 
 describe('parseYoutubePlaylistInput', () => {
     it('normalizes mix watch URLs without start_radio or playnext', () => {

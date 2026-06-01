@@ -8,6 +8,9 @@
         "lint": {
             "dependsOn": ["^lint"]
         },
+        "test": {
+            "inputs": ["src/**", "tests/**", "../../vitest.config.mts"]
+        },
         "dev": {
             "cache": false,
             "persistent": true

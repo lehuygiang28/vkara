@@ -1,13 +1,13 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 import {
     buildBrowseFeedRankContext,
     buildBrowseFeedSessionKey,
     buildBrowseFeedSources,
     rankBrowseFeedBatch,
-} from './browse-feed';
-import { createEmptyProfile, recordSearch, recordVideoEngagement } from './profile';
-import type { PersonalizableVideo } from './types';
+} from '@src/personalization/browse-feed';
+import { createEmptyProfile, recordSearch, recordVideoEngagement } from '@src/personalization/profile';
+import type { PersonalizableVideo } from '@src/personalization/types';
 
 const video = (id: string, title: string, channel = 'Alpha Channel'): PersonalizableVideo => ({
     id,

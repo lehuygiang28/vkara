@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
-import { blendSuggestions } from './suggestions';
+import { blendSuggestions } from '@src/personalization/suggestions';
 
 describe('blendSuggestions', () => {
     test('prefers local history matches before remote suggestions', () => {

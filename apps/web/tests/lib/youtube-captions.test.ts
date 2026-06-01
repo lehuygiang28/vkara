@@ -1,11 +1,10 @@
-import { describe, expect, it } from 'bun:test';
-
 import { pickCaptionTrack, type CaptionTrack } from '@vkara/shared-types';
+import { describe, expect, it } from 'vitest';
 
 import {
     isCaptionsCapablePlayer,
     normalizeYoutubeCaptionTrack,
-} from './youtube-captions';
+} from '@/lib/youtube-captions';
 
 const SAMPLE_TRACKS: CaptionTrack[] = [
     { languageCode: 'en', displayName: 'English' },

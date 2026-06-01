@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
-import { mapYoutubeiThumbnails } from './video-mapper';
+import { mapYoutubeiThumbnails } from '@/modules/youtube/video-mapper';
 
 describe('mapYoutubeiThumbnails', () => {
     it('enriches sparse youtubei hqdefault data with canonical sizes', () => {

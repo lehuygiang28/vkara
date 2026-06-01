@@ -24,11 +24,14 @@
         "build": "turbo run build",
         "dev": "turbo run dev --filter='@vkara/web' --filter='@vkara/api'",
         "format": "prettier --write .",
-        "format:check": "prettier --check ."
+        "format:check": "prettier --check .",
+        "test": "vitest run --config vitest.config.mts",
+        "test:watch": "vitest --config vitest.config.mts"
     },
     "devDependencies": {
         "prettier": "^3.6.2",
         "turbo": "latest",
-        "typescript": "5.7.3"
+        "typescript": "5.7.3",
+        "vitest": "^3.2.4"
     }
 }

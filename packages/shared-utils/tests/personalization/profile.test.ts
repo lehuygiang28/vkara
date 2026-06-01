@@ -1,11 +1,11 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
 import {
     clearSearchHistory,
     createEmptyProfile,
     recordSearch,
     removeSearchHistoryEntry,
-} from './profile';
+} from '@src/personalization/profile';
 
 describe('search history mutations', () => {
     test('removeSearchHistoryEntry removes all case-insensitive matches', () => {

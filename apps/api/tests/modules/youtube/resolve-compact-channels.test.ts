@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'bun:test';
+import { describe, expect, it } from 'vitest';
 
-import { resolveCompactVideoChannels } from './resolve-compact-channels';
+import { resolveCompactVideoChannels } from '@/modules/youtube/resolve-compact-channels';
 
 describe('resolveCompactVideoChannels', () => {
     it('falls back to full video channels when compact search omits channel', async () => {

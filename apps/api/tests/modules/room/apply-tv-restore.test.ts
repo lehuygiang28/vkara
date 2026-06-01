@@ -1,8 +1,7 @@
-import { describe, expect, it } from 'bun:test';
-
 import type { Room, TvRoomRestoreState } from '@vkara/shared-types';
+import { describe, expect, it } from 'vitest';
 
-import { applyTvRestoreToRoom, clampRestoreState } from './apply-tv-restore';
+import { applyTvRestoreToRoom, clampRestoreState } from '@/modules/room/apply-tv-restore';
 
 describe('apply-tv-restore', () => {
     it('clamps queue length and volume', () => {

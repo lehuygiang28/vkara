@@ -1,8 +1,8 @@
-import { describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'vitest';
 
-import { recordSearch, recordVideoEngagement } from './profile';
-import { rankVideos } from './rank-videos';
-import type { PersonalizableVideo, PersonalizationProfile } from './types';
+import { recordSearch, recordVideoEngagement } from '@src/personalization/profile';
+import { rankVideos } from '@src/personalization/rank-videos';
+import type { PersonalizableVideo, PersonalizationProfile } from '@src/personalization/types';
 
 const baseVideo = (id: string, title: string, channel: string): PersonalizableVideo => ({
     id,
