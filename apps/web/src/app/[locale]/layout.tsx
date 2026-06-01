@@ -14,7 +14,7 @@ import { WebSocketProvider } from '@/providers/websocket-provider';
 import { I18nProvider } from '@/providers/i18n-provider';
 import { ActionFeedbackHost } from '@/components/action-feedback';
 import { Toaster } from '@/components/ui/toaster';
-import { PwaRegister } from '@/components/pwa-register';
+import { ServiceWorkerCleanup } from '@/components/service-worker-cleanup';
 import { JsonLd } from '@/components/seo/json-ld';
 import { isAppLocale, type AppLocale } from '@/lib/locale-path';
 import { buildPageMetadata } from '@/lib/seo/metadata';
@@ -98,7 +98,7 @@ export default async function RootLayout({
                 >
                     <I18nProvider locale={appLocale}>
                         <WebSocketProvider>
-                            <PwaRegister />
+                            <ServiceWorkerCleanup />
                             {children}
                             <ActionFeedbackHost />
                             <Toaster />

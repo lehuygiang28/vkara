@@ -60,6 +60,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        '/((?!api|static|.*\\..*|_next|favicon.ico|robots.txt|manifest.webmanifest|sw.js|icons).*)',
+        '/((?!api|static|.*\\..*|_next|favicon.ico|robots.txt|icons).*)',
     ],
 };

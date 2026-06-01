@@ -44,7 +44,6 @@ export function buildPageMetadata(locale: AppLocale, t: SeoTranslations): Metada
         description: t.description,
         keywords,
         applicationName: t.siteName,
-        manifest: '/manifest.webmanifest',
         icons: {
             icon: [
                 { url: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
@@ -52,11 +51,6 @@ export function buildPageMetadata(locale: AppLocale, t: SeoTranslations): Metada
                 { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
             ],
             apple: [{ url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
-        },
-        appleWebApp: {
-            capable: true,
-            statusBarStyle: 'black-translucent',
-            title: t.siteName,
         },
         formatDetection: {
             telephone: false,
