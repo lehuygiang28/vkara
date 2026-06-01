@@ -2,18 +2,13 @@ import { cn } from '@/lib/utils';
 
 type LiveBadgeProps = {
     className?: string;
-    /** Thumbnail overlay (default) or inline next to metadata. */
-    variant?: 'overlay' | 'inline';
 };
 
-export function LiveBadge({ className, variant = 'overlay' }: LiveBadgeProps) {
+export function LiveBadge({ className }: LiveBadgeProps) {
     return (
         <span
             className={cn(
-                'inline-flex items-center gap-1 rounded font-bold uppercase tracking-wide text-white',
-                variant === 'overlay'
-                    ? 'bg-red-600 px-1.5 py-0.5 text-[10px] leading-none'
-                    : 'bg-red-600/90 px-1.5 py-0.5 text-[10px] leading-none',
+                'inline-flex items-center gap-1 rounded bg-red-600 px-1.5 py-0.5 text-[10px] font-bold uppercase leading-none tracking-wide text-white',
                 className,
             )}
         >

@@ -2,17 +2,25 @@
 
 import Image from 'next/image';
 
+import { LiveBadge } from '@/components/youtube-live-badge';
 import { cn } from '@/lib/utils';
 
 interface ControlsStageThumbnailProps {
     src: string;
     title: string;
     srcSet?: string;
+    isLive?: boolean;
     className?: string;
 }
 
 /** Full 16:9 YouTube thumbnail for the controls stage (no square crop). */
-export function ControlsStageThumbnail({ src, title, srcSet, className }: ControlsStageThumbnailProps) {
+export function ControlsStageThumbnail({
+    src,
+    title,
+    srcSet,
+    isLive = false,
+    className,
+}: ControlsStageThumbnailProps) {
     return (
         <div
             className={cn(
@@ -31,6 +39,11 @@ export function ControlsStageThumbnail({ src, title, srcSet, className }: Contro
                 priority
                 {...(srcSet ? { srcSet } : {})}
             />
+            {isLive ? (
+                <div className="absolute bottom-1 right-1">
+                    <LiveBadge />
+                </div>
+            ) : null}
         </div>
     );
 }

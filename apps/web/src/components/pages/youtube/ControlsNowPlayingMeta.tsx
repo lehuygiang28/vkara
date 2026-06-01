@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils';
 
 import { ControlsStageThumbnail } from '@/components/pages/youtube/ControlsStageThumbnail';
 import { VideoChannels } from '@/components/video-channels';
-import { LiveBadge } from '@/components/youtube-live-badge';
 import { isVideoLive } from '@/lib/youtube-video';
 
 interface ControlsNowPlayingMetaProps {
@@ -37,15 +36,13 @@ export function ControlsNowPlayingMeta({ className }: ControlsNowPlayingMetaProp
                 src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
                 srcSet={getYouTubeThumbnailSrcSet(playing.thumbnails, playing.id)}
                 title={playing.title}
+                isLive={isLive}
             />
 
             <div className="w-full max-w-md space-y-1 text-center">
-                <div className="flex min-w-0 items-start justify-center gap-2">
-                    <h2 className="line-clamp-2 min-w-0 flex-1 break-words text-base font-semibold leading-snug">
-                        {playing.title}
-                    </h2>
-                    {isLive ? <LiveBadge variant="inline" className="mt-0.5 shrink-0" /> : null}
-                </div>
+                <h2 className="line-clamp-2 break-words text-base font-semibold leading-snug">
+                    {playing.title}
+                </h2>
                 <VideoChannels
                     video={playing}
                     tone="emphasis"
