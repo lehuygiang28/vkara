@@ -15,9 +15,11 @@ describe('apply-tv-restore', () => {
             currentTime: -5,
             volume: 150,
             showQRInPlayer: false,
+            captionsEnabled: true,
         };
 
         const clamped = clampRestoreState(restore);
+        expect(clamped.captionsEnabled).toBe(true);
         expect(clamped.videoQueue).toHaveLength(200);
         expect(clamped.volume).toBe(100);
         expect(clamped.currentTime).toBe(0);
@@ -31,6 +33,7 @@ describe('apply-tv-restore', () => {
             historyQueue: [{ id: 'old' } as Room['historyQueue'][0]],
             volume: 50,
             showQRInPlayer: true,
+            captionsEnabled: false,
             playingNow: null,
             lastActivity: 0,
             creatorId: 'c1',
@@ -45,6 +48,7 @@ describe('apply-tv-restore', () => {
             currentTime: 12,
             volume: 80,
             showQRInPlayer: false,
+            captionsEnabled: true,
         });
 
         expect(room.historyQueue).toEqual([]);
@@ -54,5 +58,6 @@ describe('apply-tv-restore', () => {
         expect(room.currentTime).toBe(12);
         expect(room.volume).toBe(80);
         expect(room.showQRInPlayer).toBe(false);
+        expect(room.captionsEnabled).toBe(true);
     });
 });

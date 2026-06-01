@@ -39,6 +39,7 @@ export function captureTvRoomSnapshot(room: Omit<Room, 'clients'> | null): TvRoo
             currentTime: room.currentTime,
             volume: room.volume,
             showQRInPlayer: room.showQRInPlayer,
+            captionsEnabled: room.captionsEnabled,
         },
     };
 }

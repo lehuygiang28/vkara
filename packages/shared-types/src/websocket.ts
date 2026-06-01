@@ -16,6 +16,8 @@ export interface Room {
     volume: number;
     /** Corner QR overlay on the TV player (synced across clients). */
     showQRInPlayer: boolean;
+    /** Closed captions on the TV/laptop player (synced across clients). */
+    captionsEnabled: boolean;
     playingNow: YouTubeVideo | null;
     lastActivity: number;
     /** Set when the last client leaves; used to release empty rooms after a grace period. */
@@ -38,6 +40,7 @@ export interface TvRoomRestoreState {
     currentTime: number;
     volume: number;
     showQRInPlayer: boolean;
+    captionsEnabled: boolean;
 }
 
 export type RawClientMessage = {
@@ -62,6 +65,7 @@ export type RawClientMessage = {
     | { type: 'nextVideo' }
     | { type: 'setVolume'; volume: number }
     | { type: 'setShowQRInPlayer'; show: boolean }
+    | { type: 'setCaptionsEnabled'; enabled: boolean }
     | { type: 'replay' }
     | { type: 'play' }
     | { type: 'pause' }

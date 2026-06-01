@@ -91,6 +91,8 @@ export default {
     'youtubePage.more': 'More',
     'youtubePage.mainNavigation': 'Main navigation',
     'youtubePage.volume': 'Volume',
+    'youtubePage.captionsOn': 'Turn on subtitles',
+    'youtubePage.captionsOff': 'Turn off subtitles',
     'youtubePage.skipBack10': 'Back 10 seconds',
     'youtubePage.skipForward10': 'Forward 10 seconds',
     'youtubePage.controlsEmptyTitle': 'Nothing playing',

@@ -17,6 +17,7 @@ describe('tv-room-recovery', () => {
             historyQueue: [{ id: 'h' } as never],
             volume: 70,
             showQRInPlayer: true,
+            captionsEnabled: false,
             playingNow: null,
             lastActivity: 0,
             creatorId: 'x',

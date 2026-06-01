@@ -39,6 +39,7 @@ const tvRoomRestoreSchema = t.Object({
     currentTime: t.Number(),
     volume: t.Number(),
     showQRInPlayer: t.Boolean(),
+    captionsEnabled: t.Boolean(),
 });
 
 const withBase = <T extends ReturnType<typeof t.Object>>(schema: T) =>
@@ -77,6 +78,7 @@ export const wsClientMessageSchema = t.Union([
     withBase(t.Object({ type: t.Literal('nextVideo') })),
     withBase(t.Object({ type: t.Literal('setVolume'), volume: t.Number() })),
     withBase(t.Object({ type: t.Literal('setShowQRInPlayer'), show: t.Boolean() })),
+    withBase(t.Object({ type: t.Literal('setCaptionsEnabled'), enabled: t.Boolean() })),
     withBase(t.Object({ type: t.Literal('replay') })),
     withBase(t.Object({ type: t.Literal('play') })),
     withBase(t.Object({ type: t.Literal('pause') })),

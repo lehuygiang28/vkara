@@ -10,6 +10,7 @@ export function clampRestoreState(restore: TvRoomRestoreState): TvRoomRestoreSta
         currentTime: Math.max(0, restore.currentTime),
         volume: Math.min(100, Math.max(0, restore.volume)),
         showQRInPlayer: restore.showQRInPlayer,
+        captionsEnabled: restore.captionsEnabled,
     };
 }
 
@@ -22,4 +23,5 @@ export function applyTvRestoreToRoom(room: Room, restore: TvRoomRestoreState): v
     room.currentTime = clamped.currentTime;
     room.volume = clamped.volume;
     room.showQRInPlayer = clamped.showQRInPlayer;
+    room.captionsEnabled = clamped.captionsEnabled;
 }

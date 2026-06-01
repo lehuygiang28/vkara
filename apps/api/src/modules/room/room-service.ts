@@ -172,6 +172,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             historyQueue: [],
             volume: 100,
             showQRInPlayer: true,
+            captionsEnabled: false,
             playingNow: null,
             lastActivity: Date.now(),
             creatorId: ws.id,
@@ -403,6 +404,16 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
         const room = await mutateRoom(roomId, (room) => {
             room.showQRInPlayer = show;
+        });
+
+        broadcastRoomState(roomId, room);
+    }
+
+    async function setCaptionsEnabled(ws: ElysiaWS, enabled: boolean): Promise<void> {
+        const roomId = await validateClientInRoom(ws);
+
+        const room = await mutateRoom(roomId, (room) => {
+            room.captionsEnabled = enabled;
         });
 
         broadcastRoomState(roomId, room);
@@ -665,6 +676,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid showQRInPlayer value');
                 }
                 await setShowQRInPlayer(ws, message.show);
+                break;
+            case 'setCaptionsEnabled':
+                if (typeof message.enabled !== 'boolean') {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid captionsEnabled value');
+                }
+                await setCaptionsEnabled(ws, message.enabled);
                 break;
             case 'replay':
                 await replay(ws);

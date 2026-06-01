@@ -91,6 +91,8 @@ export default {
     'youtubePage.more': 'Thêm',
     'youtubePage.mainNavigation': 'Điều hướng chính',
     'youtubePage.volume': 'Âm lượng',
+    'youtubePage.captionsOn': 'Bật phụ đề',
+    'youtubePage.captionsOff': 'Tắt phụ đề',
     'youtubePage.skipBack10': 'Lùi 10 giây',
     'youtubePage.skipForward10': 'Tới 10 giây',
     'youtubePage.controlsEmptyTitle': 'Chưa có bài nào đang phát',

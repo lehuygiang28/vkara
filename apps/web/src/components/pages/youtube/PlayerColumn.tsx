@@ -10,6 +10,7 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
+import { applyYoutubeCaptions } from '@/lib/youtube-captions';
 import {
     applyPreferredPlaybackQuality,
     isServerPlaybackEcho,
@@ -61,6 +62,7 @@ export function PlayerColumn({
     const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
     const isTvIdle = Boolean(isTvPlayerIdle && room?.id);
     const showQRInPlayer = room?.showQRInPlayer ?? true;
+    const captionsEnabled = room?.captionsEnabled ?? false;
     const showPlayerSettingsButton =
         effectiveLayoutMode === 'player' && !isTvPlayerIdle && hasFinePointer;
 
@@ -73,12 +75,25 @@ export function PlayerColumn({
         skippedUnplayableRef.current = null;
     }, [room?.playingNow?.id]);
 
+    useEffect(() => {
+        const player = useYouTubeStore.getState().player;
+        if (!player) {
+            return;
+        }
+        applyYoutubeCaptions(player, captionsEnabled, locale);
+    }, [captionsEnabled, locale]);
+
     const onPlayerReady = (event: YT.PlayerEvent) => {
         setPlayer(event.target);
         const { room: currentRoom, volume: storedVolume } = useYouTubeStore.getState();
         const targetVolume = Math.min(100, Math.max(0, currentRoom?.volume ?? storedVolume));
         event.target.setVolume(targetVolume);
         applyPreferredPlaybackQuality(event.target);
+        applyYoutubeCaptions(
+            event.target,
+            currentRoom?.captionsEnabled ?? false,
+            locale,
+        );
         if (targetVolume !== storedVolume) {
             setVolume(targetVolume);
         }
@@ -164,6 +179,7 @@ export function PlayerColumn({
                     <YoutubeTvEmbed
                         key={`${room.playingNow.id}-${effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}`}
                         videoId={room.playingNow.id}
+                        captionsEnabled={captionsEnabled}
                         onReadyAction={onPlayerReady}
                         onStateChangeAction={onPlayerStateChange}
                         onErrorAction={onPlayerError}

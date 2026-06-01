@@ -2,6 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import {
+    Captions,
+    CaptionsOff,
     FastForward,
     Pause,
     Play,
@@ -11,9 +13,11 @@ import {
     Volume2,
     VolumeX,
 } from 'lucide-react';
-import { useScopedI18n } from '@/locales/client';
+import { useI18n, useScopedI18n } from '@/locales/client';
 import { usePlaybackDisplayTime } from '@/hooks/use-playback-display-time';
 import { usePlayerAction } from '@/hooks/use-player-action';
+import { toastSessionNotReady } from '@/lib/session-toast';
+import { useWebSocket } from '@/providers/websocket-provider';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 import { Button } from '@/components/ui/button';
@@ -62,7 +66,10 @@ function SeekBySecondsButton({
 
 export function PlayerControls({ variant = 'bar', className }: PlayerControlsProps) {
     const t = useScopedI18n('youtubePage');
+    const tToast = useI18n();
+    const { ensureConnectedAndSend } = useWebSocket();
     const { volume, room, setVolume } = useYouTubeStore();
+    const captionsEnabled = room?.captionsEnabled ?? false;
     const {
         handlePlayerPlay,
         handlePlayerPause,
@@ -95,6 +102,21 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     const skipRelative = (delta: number) => {
         const next = Math.max(0, displayTime + delta);
         handleSeekToSeconds(next);
+    };
+
+    const toggleCaptions = () => {
+        if (!room?.id) {
+            toastSessionNotReady({
+                title: tToast('toast.sessionNotReady'),
+                description: tToast('toast.sessionNotReadyDescription'),
+            });
+            return;
+        }
+
+        ensureConnectedAndSend({
+            type: 'setCaptionsEnabled',
+            enabled: !captionsEnabled,
+        });
     };
 
     if (variant === 'panel') {
@@ -185,6 +207,22 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                         <span className="w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground">
                             {volume}
                         </span>
+                        <Button
+                            type="button"
+                            variant={captionsEnabled ? 'secondary' : 'ghost'}
+                            size="icon"
+                            className="h-11 w-11 shrink-0"
+                            onClick={toggleCaptions}
+                            disabled={disabled}
+                            aria-label={captionsEnabled ? t('captionsOff') : t('captionsOn')}
+                            aria-pressed={captionsEnabled}
+                        >
+                            {captionsEnabled ? (
+                                <Captions className="h-5 w-5" />
+                            ) : (
+                                <CaptionsOff className="h-5 w-5" />
+                            )}
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -260,6 +298,22 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     className="flex-1"
                     aria-label={t('volume')}
                 />
+                <Button
+                    type="button"
+                    variant={captionsEnabled ? 'secondary' : 'ghost'}
+                    size="icon"
+                    className="shrink-0"
+                    onClick={toggleCaptions}
+                    disabled={disabled}
+                    aria-label={captionsEnabled ? t('captionsOff') : t('captionsOn')}
+                    aria-pressed={captionsEnabled}
+                >
+                    {captionsEnabled ? (
+                        <Captions className="h-5 w-5" />
+                    ) : (
+                        <CaptionsOff className="h-5 w-5" />
+                    )}
+                </Button>
             </div>
         </div>
     );
