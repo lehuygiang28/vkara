@@ -1,12 +1,11 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 import { useCallback, useEffect, useRef } from 'react';
 import { Settings } from 'lucide-react';
 import { LayoutGroup } from 'framer-motion';
 
-import { getYouTubeThumbnailUrl } from '@vkara/shared-utils';
+import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/shared-utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
@@ -23,6 +22,7 @@ import { CountdownTimer } from '@/components/countdown-timer';
 import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import { ControlsStageThumbnail } from './ControlsStageThumbnail';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
 
 const YoutubeTvEmbed = dynamic(
@@ -200,21 +200,19 @@ export function PlayerColumn({
                 {room?.playingNow && shouldShowTimer && room.videoQueue.length > 0 && (
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/85 p-4 text-center">
                         <h3 className="mb-4 text-xl font-semibold">{t('nextUp')}</h3>
-                        <div className="flex max-w-md flex-col items-center gap-4">
-                            <div className="relative aspect-video w-48 overflow-hidden rounded-lg">
-                                <Image
-                                    src={getYouTubeThumbnailUrl(
-                                        room.videoQueue[0].thumbnails,
-                                        'list',
-                                        room.videoQueue[0].id,
-                                    )}
-                                    alt={room.videoQueue[0].title}
-                                    fill
-                                    sizes="192px"
-                                    className="object-cover"
-                                    unoptimized
-                                />
-                            </div>
+                        <div className="flex w-full max-w-lg flex-col items-center gap-4 px-2">
+                            <ControlsStageThumbnail
+                                src={getYouTubeThumbnailUrl(
+                                    room.videoQueue[0].thumbnails,
+                                    'large',
+                                    room.videoQueue[0].id,
+                                )}
+                                srcSet={getYouTubeThumbnailSrcSet(
+                                    room.videoQueue[0].thumbnails,
+                                    room.videoQueue[0].id,
+                                )}
+                                title={room.videoQueue[0].title}
+                            />
                             <div className="space-y-2">
                                 <p className="line-clamp-2 font-medium">
                                     {room.videoQueue[0].title}
