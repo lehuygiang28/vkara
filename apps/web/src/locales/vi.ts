@@ -116,6 +116,15 @@ export default {
     'youtubePage.tvEmptyStep3': 'Chạm Phát để bắt đầu trên màn hình này',
     'youtubePage.tvRoomCode': 'Mã phòng',
     'youtubePage.tvEmptyQrAria': 'Mã QR phòng. Mở cài đặt phòng.',
+    'youtubePage.tvLayoutGroupLabel': 'Chế độ màn hình',
+    'youtubePage.tvLayoutTv': 'TV',
+    'youtubePage.tvLayoutLaptop': 'Laptop',
+    'youtubePage.tvLayoutTvAria': 'Chế độ TV: dùng điện thoại quét mã để chọn bài',
+    'youtubePage.tvLayoutLaptopAria': 'Chế độ laptop: tìm và phát bài trên máy này',
+    'youtubePage.tvEmptyTitleLaptop': 'Phòng đang mở',
+    'youtubePage.tvEmptySubtitleLaptop':
+        'Tìm bài ở cột bên phải, hoặc mời mọi người quét mã để điều khiển từ điện thoại.',
+    'youtubePage.tvIdleLaptopInvite': 'Mã QR vẫn dùng được nếu bạn muốn remote từ điện thoại.',
 
     'voiceSearchSettings.title': 'Tìm kiếm bằng giọng nói',
     'voiceSearchSettings.descriptionWithBrowser':

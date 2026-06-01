@@ -29,6 +29,7 @@ import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ControlsStageThumbnail } from './ControlsStageThumbnail';
+import { TvIdleLayoutSwitch } from './TvIdleLayoutSwitch';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
 
 const YoutubeTvEmbed = dynamic(
@@ -67,6 +68,7 @@ export function PlayerColumn({
     const showsPlayer = effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
     const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
     const isTvIdle = Boolean(isTvPlayerIdle && room?.id);
+    const isLaptopIdleLayout = effectiveLayoutMode === 'both' && isTvIdle;
     const showQRInPlayer = room?.showQRInPlayer ?? true;
     const captionsEnabled = room?.captionsEnabled ?? false;
     const captionsLanguage = room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE;
@@ -246,12 +248,16 @@ export function PlayerColumn({
                         locale={locale}
                         showQR={showQRInPlayer}
                         isIdle
+                        compact={isLaptopIdleLayout}
                         onOpenSettingsAction={onOpenSettingsAction}
                     />
                 )}
 
                 {isTvPlayerIdle && (
-                    <div className="pointer-events-auto absolute right-safe-offset top-safe-offset z-[6]">
+                    <div className="pointer-events-auto absolute right-safe-offset top-safe-offset z-[6] flex items-center gap-3 sm:gap-4">
+                        {hasFinePointer ? (
+                            <TvIdleLayoutSwitch effectiveLayoutMode={effectiveLayoutMode} />
+                        ) : null}
                         <LanguageSwitcher variant="overlay" />
                     </div>
                 )}

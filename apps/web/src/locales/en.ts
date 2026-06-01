@@ -116,6 +116,15 @@ export default {
     'youtubePage.tvEmptyStep3': 'Tap play and it starts on this screen',
     'youtubePage.tvRoomCode': 'Room code',
     'youtubePage.tvEmptyQrAria': 'Room QR code. Opens room settings.',
+    'youtubePage.tvLayoutGroupLabel': 'Screen mode',
+    'youtubePage.tvLayoutTv': 'TV',
+    'youtubePage.tvLayoutLaptop': 'Laptop',
+    'youtubePage.tvLayoutTvAria': 'TV mode: use a phone to scan the code and pick songs',
+    'youtubePage.tvLayoutLaptopAria': 'Laptop mode: search and play on this device',
+    'youtubePage.tvEmptyTitleLaptop': 'Room is ready',
+    'youtubePage.tvEmptySubtitleLaptop':
+        'Search on the right, or share the code so others can control from their phones.',
+    'youtubePage.tvIdleLaptopInvite': 'The QR code still works if you want a phone remote.',
 
     'voiceSearchSettings.title': 'Voice search',
     'voiceSearchSettings.descriptionWithBrowser':

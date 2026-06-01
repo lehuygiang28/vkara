@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 
 const IDLE_QR_SIZE = 200;
 const IDLE_QR_SIZE_LG = 240;
+const IDLE_QR_SIZE_COMPACT = 152;
 const CORNER_QR_SIZE = 72;
 
 type TvPlayerQrZoneProps = {
@@ -18,6 +19,8 @@ type TvPlayerQrZoneProps = {
     locale: 'vi' | 'en';
     showQR: boolean;
     isIdle: boolean;
+    /** Side-by-side laptop layout: smaller QR, no phone-only steps. */
+    compact?: boolean;
     onOpenSettingsAction: () => void;
 };
 
@@ -42,6 +45,7 @@ export function TvPlayerQrZone({
     locale,
     showQR,
     isIdle,
+    compact = false,
     onOpenSettingsAction: onOpenSettings,
 }: TvPlayerQrZoneProps) {
     const t = useScopedI18n('youtubePage');
@@ -57,7 +61,11 @@ export function TvPlayerQrZone({
         ? { duration: 0 }
         : { type: 'spring' as const, stiffness: 260, damping: 30, mass: 0.9 };
 
-    const steps = [t('tvEmptyStep1'), t('tvEmptyStep2'), t('tvEmptyStep3')];
+    const steps = compact
+        ? []
+        : [t('tvEmptyStep1'), t('tvEmptyStep2'), t('tvEmptyStep3')];
+    const idleTitle = compact ? t('tvEmptyTitleLaptop') : t('tvEmptyTitle');
+    const idleSubtitle = compact ? t('tvEmptySubtitleLaptop') : t('tvEmptySubtitle');
 
     const qrShell = (
         <motion.div
@@ -72,14 +80,18 @@ export function TvPlayerQrZone({
         >
             {showQR ? (
                 isIdle ? (
-                    <>
-                        <div className="lg:hidden">
-                            <PlayerQrMark shareUrl={shareUrl} size={IDLE_QR_SIZE} />
-                        </div>
-                        <div className="hidden lg:block">
-                            <PlayerQrMark shareUrl={shareUrl} size={IDLE_QR_SIZE_LG} />
-                        </div>
-                    </>
+                    compact ? (
+                        <PlayerQrMark shareUrl={shareUrl} size={IDLE_QR_SIZE_COMPACT} />
+                    ) : (
+                        <>
+                            <div className="lg:hidden">
+                                <PlayerQrMark shareUrl={shareUrl} size={IDLE_QR_SIZE} />
+                            </div>
+                            <div className="hidden lg:block">
+                                <PlayerQrMark shareUrl={shareUrl} size={IDLE_QR_SIZE_LG} />
+                            </div>
+                        </>
+                    )
                 ) : (
                     <div style={{ width: CORNER_QR_SIZE }}>
                         <PlayerQrMark shareUrl={shareUrl} size={CORNER_QR_SIZE} />
@@ -89,7 +101,11 @@ export function TvPlayerQrZone({
                 <div
                     className={cn(
                         'flex items-center justify-center rounded-xl bg-zinc-100 font-mono font-semibold tabular-nums text-zinc-900',
-                        isIdle ? 'h-[240px] w-[240px] text-6xl sm:text-7xl' : 'h-[80px] w-[80px] text-2xl',
+                        isIdle
+                            ? compact
+                                ? 'h-[152px] w-[152px] text-5xl'
+                                : 'h-[240px] w-[240px] text-6xl sm:text-7xl'
+                            : 'h-[80px] w-[80px] text-2xl',
                     )}
                 >
                     {roomId}
@@ -103,7 +119,10 @@ export function TvPlayerQrZone({
             layout
             layoutId="tv-player-room-label"
             transition={layoutTransition}
-            className="mt-4 text-center text-3xl font-semibold tabular-nums text-white drop-shadow-sm sm:text-4xl"
+            className={cn(
+                'mt-4 text-center font-semibold tabular-nums text-white drop-shadow-sm',
+                compact ? 'text-2xl' : 'text-3xl sm:text-4xl',
+            )}
         >
             {`${t('tvRoomCode')}: ${roomId}`}
         </motion.span>
@@ -125,19 +144,46 @@ export function TvPlayerQrZone({
 
     if (isIdle) {
         return (
-            <div className="absolute inset-0 z-[5] flex items-center justify-center overflow-y-auto bg-zinc-950 px-4 py-6 sm:px-8 sm:py-8">
+            <div
+                className={cn(
+                    'absolute inset-0 z-[5] flex items-center justify-center overflow-y-auto bg-zinc-950 px-4 py-6 sm:px-8 sm:py-8',
+                    compact && 'lg:items-center lg:px-10 lg:py-10',
+                )}
+            >
                 <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
 
                 <motion.div
                     layout
-                    className="relative z-[1] flex w-full max-w-xl flex-col items-center text-center"
+                    className={cn(
+                        'relative z-[1] flex w-full flex-col items-center text-center',
+                        compact ? 'max-w-sm' : 'max-w-xl',
+                    )}
                 >
-                    <div className="mb-6 flex flex-col items-center gap-3 sm:mb-8 sm:gap-4">
-                        <h1 className="max-w-[16ch] text-balance text-3xl font-semibold leading-tight tracking-tight text-zinc-50 sm:max-w-none sm:text-4xl">
-                            {t('tvEmptyTitle')}
+                    <div
+                        className={cn(
+                            'flex flex-col items-center gap-3',
+                            compact ? 'mb-5' : 'mb-6 sm:mb-8 sm:gap-4',
+                        )}
+                    >
+                        <h1
+                            className={cn(
+                                'text-balance font-semibold leading-tight tracking-tight text-zinc-50',
+                                compact
+                                    ? 'max-w-[18ch] text-2xl lg:text-[1.65rem]'
+                                    : 'max-w-[16ch] text-3xl sm:max-w-none sm:text-4xl',
+                            )}
+                        >
+                            {idleTitle}
                         </h1>
-                        <p className="hidden max-w-md text-pretty text-base leading-relaxed text-zinc-400 sm:block sm:text-lg">
-                            {t('tvEmptySubtitle')}
+                        <p
+                            className={cn(
+                                'max-w-md text-pretty leading-relaxed text-zinc-400',
+                                compact
+                                    ? 'text-sm lg:text-[0.9375rem]'
+                                    : 'hidden text-base sm:block sm:text-lg',
+                            )}
+                        >
+                            {idleSubtitle}
                         </p>
                     </div>
 
@@ -154,18 +200,24 @@ export function TvPlayerQrZone({
                         {roomLabel}
                     </motion.button>
 
-                    <motion.ol className="mt-6 w-full max-w-md space-y-4 text-left sm:mt-10 sm:space-y-5">
-                        {steps.map((step, index) => (
-                            <li key={step} className="flex items-start gap-4">
-                                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-700/90 text-sm font-medium text-zinc-300">
-                                    {index + 1}
-                                </span>
-                                <span className="pt-1 text-sm leading-relaxed text-zinc-400 sm:text-base">
-                                    {step}
-                                </span>
-                            </li>
-                        ))}
-                    </motion.ol>
+                    {compact ? (
+                        <p className="mt-5 max-w-xs text-center text-xs leading-relaxed text-zinc-500">
+                            {t('tvIdleLaptopInvite')}
+                        </p>
+                    ) : (
+                        <motion.ol className="mt-6 w-full max-w-md space-y-4 text-left sm:mt-10 sm:space-y-5">
+                            {steps.map((step, index) => (
+                                <li key={step} className="flex items-start gap-4">
+                                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-700/90 text-sm font-medium text-zinc-300">
+                                        {index + 1}
+                                    </span>
+                                    <span className="pt-1 text-sm leading-relaxed text-zinc-400 sm:text-base">
+                                        {step}
+                                    </span>
+                                </li>
+                            ))}
+                        </motion.ol>
+                    )}
                 </motion.div>
             </div>
         );
