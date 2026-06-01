@@ -1,5 +1,17 @@
 import { isValidRoomId } from '@vkara/shared-utils';
-import { ErrorCode, RoomError, type Room } from '@vkara/shared-types';
+import { DEFAULT_CAPTION_LANGUAGE, ErrorCode, RoomError, type Room } from '@vkara/shared-types';
+
+function normalizeRoomCaptionFields(room: Room): void {
+    if (!room.captionsLanguage) {
+        room.captionsLanguage = DEFAULT_CAPTION_LANGUAGE;
+    }
+    if (!room.captionTracks) {
+        room.captionTracks = [];
+    }
+    if (room.captionTracksVideoId === undefined) {
+        room.captionTracksVideoId = null;
+    }
+}
 
 import { redis } from '@/redis';
 
@@ -29,7 +41,9 @@ export async function loadRoom(roomId: string): Promise<Room | null> {
     if (!roomData) return null;
 
     try {
-        return JSON.parse(roomData) as Room;
+        const room = JSON.parse(roomData) as Room;
+        normalizeRoomCaptionFields(room);
+        return room;
     } catch {
         throw new RoomError(ErrorCode.INTERNAL_ERROR, 'Failed to parse room data');
     }
@@ -89,7 +103,9 @@ export async function mutateRoom(
                 throw new RoomError(ErrorCode.INTERNAL_ERROR, 'Failed to parse room data');
             }
 
+            normalizeRoomCaptionFields(room);
             mutator(room);
+            normalizeRoomCaptionFields(room);
             room.lastActivity = Date.now();
 
             const execResult = await redis.multi().set(key, JSON.stringify(room)).exec();

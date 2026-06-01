@@ -6,7 +6,6 @@ import { cn } from '@/lib/utils';
 
 type YoutubeTvEmbedProps = {
     videoId: string;
-    captionsEnabled?: boolean;
     onReadyAction: (event: YT.PlayerEvent) => void;
     onStateChangeAction: (event: YT.PlayerEvent) => void;
     onErrorAction: (event: YT.OnErrorEvent) => void;
@@ -20,12 +19,13 @@ const BASE_PLAYER_VARS = {
     playsinline: 1,
     rel: 0,
     iv_load_policy: 3,
+    /** Always 0 — captions toggled at runtime via IFrame API (avoids iframe reset). */
+    cc_load_policy: 0,
 } as const;
 
 /** TV embed — must run client-only so `origin` matches the page hosting the iframe. */
 export function YoutubeTvEmbed({
     videoId,
-    captionsEnabled = false,
     onReadyAction,
     onStateChangeAction,
     onErrorAction,
@@ -48,7 +48,6 @@ export function YoutubeTvEmbed({
                         origin: playerOrigin,
                         autoplay: 1,
                         ...BASE_PLAYER_VARS,
-                        cc_load_policy: captionsEnabled ? 1 : 0,
                         controls: isLaptop ? 1 : 0,
                         disablekb: isLaptop ? 0 : 1,
                         fs: isLaptop ? 1 : 0,

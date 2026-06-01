@@ -32,6 +32,12 @@ const youTubeVideoSchema = t.Object({
     isLive: t.Optional(t.Boolean()),
 });
 
+const captionTrackSchema = t.Object({
+    languageCode: t.String(),
+    displayName: t.String(),
+    kind: t.Optional(t.String()),
+});
+
 const tvRoomRestoreSchema = t.Object({
     videoQueue: t.Array(youTubeVideoSchema),
     playingNow: t.Union([youTubeVideoSchema, t.Null()]),
@@ -40,6 +46,9 @@ const tvRoomRestoreSchema = t.Object({
     volume: t.Number(),
     showQRInPlayer: t.Boolean(),
     captionsEnabled: t.Boolean(),
+    captionsLanguage: t.String(),
+    captionTracks: t.Array(captionTrackSchema),
+    captionTracksVideoId: t.Union([t.String(), t.Null()]),
 });
 
 const withBase = <T extends ReturnType<typeof t.Object>>(schema: T) =>
@@ -79,6 +88,14 @@ export const wsClientMessageSchema = t.Union([
     withBase(t.Object({ type: t.Literal('setVolume'), volume: t.Number() })),
     withBase(t.Object({ type: t.Literal('setShowQRInPlayer'), show: t.Boolean() })),
     withBase(t.Object({ type: t.Literal('setCaptionsEnabled'), enabled: t.Boolean() })),
+    withBase(t.Object({ type: t.Literal('setCaptionsLanguage'), languageCode: t.String() })),
+    withBase(
+        t.Object({
+            type: t.Literal('syncCaptionTracks'),
+            videoId: t.String(),
+            tracks: t.Array(captionTrackSchema),
+        }),
+    ),
     withBase(t.Object({ type: t.Literal('replay') })),
     withBase(t.Object({ type: t.Literal('play') })),
     withBase(t.Object({ type: t.Literal('pause') })),

@@ -7,9 +7,11 @@ import {
 } from '@/utils/common';
 import { roomLogger, createContextLogger } from '@/utils/logger';
 import {
+    DEFAULT_CAPTION_LANGUAGE,
     ErrorCode,
     RoomError,
     shouldBroadcastPlaybackTime,
+    type CaptionTrack,
     type PlaybackTimeSyncState,
     type ClientInfo,
     type ClientMessage,
@@ -37,6 +39,21 @@ import {
 } from '@/utils/room-store';
 
 const serviceLogger = createContextLogger('RoomService');
+
+const MAX_CAPTION_TRACKS = 64;
+
+function markCaptionTracksPending(room: Room, videoId: string | null): void {
+    room.captionTracks = [];
+    room.captionTracksVideoId = videoId;
+}
+
+function clampCaptionTracks(tracks: CaptionTrack[]): CaptionTrack[] {
+    return tracks.slice(0, MAX_CAPTION_TRACKS).map((track) => ({
+        languageCode: track.languageCode.slice(0, 16),
+        displayName: track.displayName.slice(0, 120),
+        kind: track.kind?.slice(0, 16),
+    }));
+}
 
 export type RoomServiceDeps = {
     wsConnections: Map<string, ElysiaWS>;
@@ -173,6 +190,9 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             volume: 100,
             showQRInPlayer: true,
             captionsEnabled: false,
+            captionsLanguage: DEFAULT_CAPTION_LANGUAGE,
+            captionTracks: [],
+            captionTracksVideoId: null,
             playingNow: null,
             lastActivity: Date.now(),
             creatorId: ws.id,
@@ -263,6 +283,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     room.playingNow = video;
                     room.isPlaying = true;
                     room.currentTime = 0;
+                    markCaptionTracksPending(room, video.id);
                     lastPlaybackBroadcastByRoom.delete(roomId);
                 } else {
                     room.videoQueue = [...room.videoQueue, video];
@@ -323,6 +344,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             room.playingNow = video;
             room.isPlaying = true;
             room.currentTime = 0;
+            markCaptionTracksPending(room, video.id);
             lastPlaybackBroadcastByRoom.delete(roomId);
         });
 
@@ -373,10 +395,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     room.playingNow = nextPlayable;
                     room.isPlaying = true;
                     room.currentTime = 0;
+                    markCaptionTracksPending(room, nextPlayable.id);
                 } else {
                     room.playingNow = null;
                     room.isPlaying = false;
                     room.currentTime = 0;
+                    markCaptionTracksPending(room, null);
                 }
 
                 lastPlaybackBroadcastByRoom.delete(roomId);
@@ -442,6 +466,39 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
         const room = await mutateRoom(roomId, (room) => {
             room.captionsEnabled = enabled;
+        });
+
+        broadcastRoomState(roomId, room);
+    }
+
+    async function setCaptionsLanguage(ws: ElysiaWS, languageCode: string): Promise<void> {
+        const trimmed = languageCode.trim();
+        if (!trimmed) {
+            throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid captions language');
+        }
+
+        const roomId = await validateClientInRoom(ws);
+        const room = await mutateRoom(roomId, (room) => {
+            room.captionsLanguage = trimmed;
+        });
+
+        broadcastRoomState(roomId, room);
+    }
+
+    async function syncCaptionTracks(
+        ws: ElysiaWS,
+        videoId: string,
+        tracks: CaptionTrack[],
+    ): Promise<void> {
+        const roomId = await validateClientInRoom(ws);
+        const clamped = clampCaptionTracks(tracks);
+
+        const room = await mutateRoom(roomId, (room) => {
+            if (!room.playingNow || room.playingNow.id !== videoId) {
+                return;
+            }
+            room.captionTracks = clamped;
+            room.captionTracksVideoId = videoId;
         });
 
         broadcastRoomState(roomId, room);
@@ -698,6 +755,18 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid captionsEnabled value');
                 }
                 await setCaptionsEnabled(ws, message.enabled);
+                break;
+            case 'setCaptionsLanguage':
+                if (typeof message.languageCode !== 'string') {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid captions language');
+                }
+                await setCaptionsLanguage(ws, message.languageCode);
+                break;
+            case 'syncCaptionTracks':
+                if (typeof message.videoId !== 'string' || !Array.isArray(message.tracks)) {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid caption tracks payload');
+                }
+                await syncCaptionTracks(ws, message.videoId, message.tracks);
                 break;
             case 'replay':
                 await replay(ws);

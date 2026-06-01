@@ -40,6 +40,9 @@ export function captureTvRoomSnapshot(room: Omit<Room, 'clients'> | null): TvRoo
             volume: room.volume,
             showQRInPlayer: room.showQRInPlayer,
             captionsEnabled: room.captionsEnabled,
+            captionsLanguage: room.captionsLanguage,
+            captionTracks: [...room.captionTracks],
+            captionTracksVideoId: room.captionTracksVideoId,
         },
     };
 }

@@ -1,3 +1,4 @@
+import type { CaptionTrack } from './captions';
 import type { ErrorCode } from './errors';
 import type { YouTubeVideo } from './youtube';
 
@@ -18,6 +19,11 @@ export interface Room {
     showQRInPlayer: boolean;
     /** Closed captions on the TV/laptop player (synced across clients). */
     captionsEnabled: boolean;
+    /** Preferred caption track language (synced across clients). */
+    captionsLanguage: string;
+    /** Tracks reported by the TV player for `captionTracksVideoId` (empty = none). */
+    captionTracks: CaptionTrack[];
+    captionTracksVideoId: string | null;
     playingNow: YouTubeVideo | null;
     lastActivity: number;
     /** Set when the last client leaves; used to release empty rooms after a grace period. */
@@ -41,6 +47,9 @@ export interface TvRoomRestoreState {
     volume: number;
     showQRInPlayer: boolean;
     captionsEnabled: boolean;
+    captionsLanguage: string;
+    captionTracks: CaptionTrack[];
+    captionTracksVideoId: string | null;
 }
 
 export type RawClientMessage = {
@@ -66,6 +75,8 @@ export type RawClientMessage = {
     | { type: 'setVolume'; volume: number }
     | { type: 'setShowQRInPlayer'; show: boolean }
     | { type: 'setCaptionsEnabled'; enabled: boolean }
+    | { type: 'setCaptionsLanguage'; languageCode: string }
+    | { type: 'syncCaptionTracks'; videoId: string; tracks: CaptionTrack[] }
     | { type: 'replay' }
     | { type: 'play' }
     | { type: 'pause' }

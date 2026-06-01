@@ -16,10 +16,14 @@ describe('apply-tv-restore', () => {
             volume: 150,
             showQRInPlayer: false,
             captionsEnabled: true,
+            captionsLanguage: 'en',
+            captionTracks: [{ languageCode: 'en', displayName: 'English' }],
+            captionTracksVideoId: 'v1',
         };
 
         const clamped = clampRestoreState(restore);
         expect(clamped.captionsEnabled).toBe(true);
+        expect(clamped.captionTracks).toHaveLength(1);
         expect(clamped.videoQueue).toHaveLength(200);
         expect(clamped.volume).toBe(100);
         expect(clamped.currentTime).toBe(0);
@@ -34,6 +38,9 @@ describe('apply-tv-restore', () => {
             volume: 50,
             showQRInPlayer: true,
             captionsEnabled: false,
+            captionsLanguage: 'vi',
+            captionTracks: [],
+            captionTracksVideoId: null,
             playingNow: null,
             lastActivity: 0,
             creatorId: 'c1',
@@ -49,6 +56,9 @@ describe('apply-tv-restore', () => {
             volume: 80,
             showQRInPlayer: false,
             captionsEnabled: true,
+            captionsLanguage: 'en',
+            captionTracks: [],
+            captionTracksVideoId: 'now',
         });
 
         expect(room.historyQueue).toEqual([]);

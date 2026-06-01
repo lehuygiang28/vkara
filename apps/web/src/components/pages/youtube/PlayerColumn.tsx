@@ -7,10 +7,15 @@ import { LayoutGroup } from 'framer-motion';
 
 import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/shared-utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
+import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/shared-types';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
-import { applyYoutubeCaptions } from '@/lib/youtube-captions';
+import {
+    applyYoutubeCaptions,
+    listYoutubeCaptionTracks,
+    scheduleCaptionTrackSync,
+} from '@/lib/youtube-captions';
 import {
     applyPreferredPlaybackQuality,
     isServerPlaybackEcho,
@@ -57,12 +62,14 @@ export function PlayerColumn({
 
     const skippedUnplayableRef = useRef<string | null>(null);
     const endedForVideoIdRef = useRef<string | null>(null);
+    const captionSyncCleanupRef = useRef<(() => void) | null>(null);
 
     const showsPlayer = effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
     const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
     const isTvIdle = Boolean(isTvPlayerIdle && room?.id);
     const showQRInPlayer = room?.showQRInPlayer ?? true;
     const captionsEnabled = room?.captionsEnabled ?? false;
+    const captionsLanguage = room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE;
     const showPlayerSettingsButton =
         effectiveLayoutMode === 'player' && !isTvPlayerIdle && hasFinePointer;
 
@@ -73,15 +80,40 @@ export function PlayerColumn({
 
     useEffect(() => {
         skippedUnplayableRef.current = null;
+        captionSyncCleanupRef.current?.();
+        captionSyncCleanupRef.current = null;
     }, [room?.playingNow?.id]);
+
+    const syncCaptionTracksFromPlayer = useCallback(
+        (player: YT.Player) => {
+            const currentRoom = useYouTubeStore.getState().room;
+            const videoId = currentRoom?.playingNow?.id;
+            if (!currentRoom?.id || !videoId) {
+                return;
+            }
+
+            const tracks = listYoutubeCaptionTracks(player);
+            ensureConnectedAndSend({
+                type: 'syncCaptionTracks',
+                videoId,
+                tracks,
+            });
+        },
+        [ensureConnectedAndSend],
+    );
 
     useEffect(() => {
         const player = useYouTubeStore.getState().player;
+        const currentRoom = useYouTubeStore.getState().room;
         if (!player) {
             return;
         }
-        applyYoutubeCaptions(player, captionsEnabled, locale);
-    }, [captionsEnabled, locale]);
+        applyYoutubeCaptions(player, {
+            enabled: captionsEnabled,
+            languageCode: captionsLanguage,
+            tracks: currentRoom?.captionTracks ?? [],
+        });
+    }, [captionsEnabled, captionsLanguage, room?.captionTracks, room?.captionTracksVideoId]);
 
     const onPlayerReady = (event: YT.PlayerEvent) => {
         setPlayer(event.target);
@@ -89,10 +121,15 @@ export function PlayerColumn({
         const targetVolume = Math.min(100, Math.max(0, currentRoom?.volume ?? storedVolume));
         event.target.setVolume(targetVolume);
         applyPreferredPlaybackQuality(event.target);
-        applyYoutubeCaptions(
+        applyYoutubeCaptions(event.target, {
+            enabled: currentRoom?.captionsEnabled ?? false,
+            languageCode: currentRoom?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE,
+            tracks: currentRoom?.captionTracks ?? [],
+        });
+        captionSyncCleanupRef.current?.();
+        captionSyncCleanupRef.current = scheduleCaptionTrackSync(
             event.target,
-            currentRoom?.captionsEnabled ?? false,
-            locale,
+            syncCaptionTracksFromPlayer,
         );
         if (targetVolume !== storedVolume) {
             setVolume(targetVolume);
@@ -114,6 +151,13 @@ export function PlayerColumn({
                 ensureConnectedAndSend({ type: playing ? 'play' : 'pause' });
             }
             setIsPlaying(playing);
+        }
+
+        if (
+            playerState === YT.PlayerState.PLAYING ||
+            playerState === YT.PlayerState.CUED
+        ) {
+            syncCaptionTracksFromPlayer(event.target);
         }
 
         if (playerState === YT.PlayerState.PLAYING) {
@@ -179,7 +223,6 @@ export function PlayerColumn({
                     <YoutubeTvEmbed
                         key={`${room.playingNow.id}-${effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}`}
                         videoId={room.playingNow.id}
-                        captionsEnabled={captionsEnabled}
                         onReadyAction={onPlayerReady}
                         onStateChangeAction={onPlayerStateChange}
                         onErrorAction={onPlayerError}

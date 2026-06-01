@@ -2,8 +2,6 @@
 
 import { useEffect, useRef } from 'react';
 import {
-    Captions,
-    CaptionsOff,
     FastForward,
     Pause,
     Play,
@@ -13,13 +11,16 @@ import {
     Volume2,
     VolumeX,
 } from 'lucide-react';
+import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/shared-types';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { usePlaybackDisplayTime } from '@/hooks/use-playback-display-time';
 import { usePlayerAction } from '@/hooks/use-player-action';
+import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
+import { CaptionsMenu } from '@/components/pages/youtube/captions-menu';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
@@ -70,6 +71,15 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     const { ensureConnectedAndSend } = useWebSocket();
     const { volume, room, setVolume } = useYouTubeStore();
     const captionsEnabled = room?.captionsEnabled ?? false;
+    const captionsLanguage = room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE;
+    const captionTracks = room?.captionTracks ?? [];
+    const playingVideoId = room?.playingNow?.id;
+    const captionsTracksLoading =
+        Boolean(playingVideoId) && room?.captionTracksVideoId !== playingVideoId;
+    const captionsUnavailable =
+        Boolean(playingVideoId) &&
+        room?.captionTracksVideoId === playingVideoId &&
+        captionTracks.length === 0;
     const {
         handlePlayerPlay,
         handlePlayerPause,
@@ -104,7 +114,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
         handleSeekToSeconds(next);
     };
 
-    const toggleCaptions = () => {
+    const handleCaptionsSelect = (languageCode: string | null) => {
         if (!room?.id) {
             toastSessionNotReady({
                 title: tToast('toast.sessionNotReady'),
@@ -113,11 +123,43 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
             return;
         }
 
-        ensureConnectedAndSend({
-            type: 'setCaptionsEnabled',
-            enabled: !captionsEnabled,
-        });
+        if (languageCode === null) {
+            ensureConnectedAndSend({ type: 'setCaptionsEnabled', enabled: false });
+            return;
+        }
+
+        if (captionsUnavailable) {
+            toast({
+                id: 'captions-unavailable',
+                title: tToast('toast.captionsNoTracks'),
+                description: tToast('toast.captionsNoTracksDescription'),
+                variant: 'warning',
+            });
+            return;
+        }
+
+        ensureConnectedAndSend({ type: 'setCaptionsLanguage', languageCode });
+        if (!captionsEnabled) {
+            ensureConnectedAndSend({ type: 'setCaptionsEnabled', enabled: true });
+        }
     };
+
+    const captionsMenu = (
+        <CaptionsMenu
+            captionsEnabled={captionsEnabled}
+            captionsLanguage={captionsLanguage}
+            tracks={captionTracks}
+            loading={captionsTracksLoading}
+            unavailable={captionsUnavailable}
+            disabled={disabled}
+            loadingLabel={t('captionsTracksLoading')}
+            emptyLabel={t('captionsNoTracks')}
+            offLabel={t('captionsOffOption')}
+            menuLabel={t('captionsMenu')}
+            triggerClassName={variant === 'bar' ? 'h-10 w-10' : undefined}
+            onSelectAction={handleCaptionsSelect}
+        />
+    );
 
     if (variant === 'panel') {
         return (
@@ -207,22 +249,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                         <span className="w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground">
                             {volume}
                         </span>
-                        <Button
-                            type="button"
-                            variant={captionsEnabled ? 'secondary' : 'ghost'}
-                            size="icon"
-                            className="h-11 w-11 shrink-0"
-                            onClick={toggleCaptions}
-                            disabled={disabled}
-                            aria-label={captionsEnabled ? t('captionsOff') : t('captionsOn')}
-                            aria-pressed={captionsEnabled}
-                        >
-                            {captionsEnabled ? (
-                                <Captions className="h-5 w-5" />
-                            ) : (
-                                <CaptionsOff className="h-5 w-5" />
-                            )}
-                        </Button>
+                        {captionsMenu}
                     </div>
                 </div>
             </div>
@@ -298,22 +325,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     className="flex-1"
                     aria-label={t('volume')}
                 />
-                <Button
-                    type="button"
-                    variant={captionsEnabled ? 'secondary' : 'ghost'}
-                    size="icon"
-                    className="shrink-0"
-                    onClick={toggleCaptions}
-                    disabled={disabled}
-                    aria-label={captionsEnabled ? t('captionsOff') : t('captionsOn')}
-                    aria-pressed={captionsEnabled}
-                >
-                    {captionsEnabled ? (
-                        <Captions className="h-5 w-5" />
-                    ) : (
-                        <CaptionsOff className="h-5 w-5" />
-                    )}
-                </Button>
+                {captionsMenu}
             </div>
         </div>
     );
