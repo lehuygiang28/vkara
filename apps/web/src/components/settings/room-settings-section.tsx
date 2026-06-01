@@ -34,7 +34,8 @@ import { useJoinRoom } from '@/hooks/use-join-room';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { toast, toastCopied } from '@/hooks/use-toast';
+import { toast } from '@/hooks/use-toast';
+import { toastSessionNotReady } from '@/lib/session-toast';
 import { generateShareableUrl } from '@/lib/room-share';
 import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { resolveRoomPasswordForShare, ROOM_ID_LENGTH } from '@vkara/shared-utils';
@@ -82,11 +83,9 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
     const handleShowQRInPlayerChange = useCallback(
         (value: string) => {
             if (!room?.id) {
-                toast({
-                    id: 'session-not-ready',
+                toastSessionNotReady({
                     title: t('toast.sessionNotReady'),
                     description: t('toast.sessionNotReadyDescription'),
-                    variant: 'error',
                 });
                 return;
             }
@@ -179,7 +178,11 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                             size="icon"
                                             onClick={() => {
                                                 navigator.clipboard.writeText(room.password || '');
-                                                toastCopied(tRoom('copyPasswordSuccess'));
+                                                toast({
+                                                    title: tRoom('copyPasswordSuccess'),
+                                                    variant: 'success',
+                                                    duration: 1800,
+                                                });
                                             }}
                                             className="ml-2"
                                             aria-label="Copy password"
@@ -218,7 +221,11 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                         size="icon"
                                         onClick={() => {
                                             navigator.clipboard.writeText(shareableUrl);
-                                            toastCopied(tRoom('copyUrlSuccess'));
+                                            toast({
+                                                title: tRoom('copyUrlSuccess'),
+                                                variant: 'success',
+                                                duration: 1800,
+                                            });
                                         }}
                                         className="ml-2"
                                         aria-label="Copy URL"

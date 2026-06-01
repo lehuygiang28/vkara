@@ -1,8 +1,11 @@
 'use client';
 
+import { useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
+import { toast as sonner } from 'sonner';
 
 import { useConnectionStatusUi } from '@/hooks/use-connection-status-ui';
+import { SESSION_NOT_READY_TOAST_ID } from '@/lib/session-toast';
 import { useScopedI18n } from '@/locales/client';
 import { cn } from '@/lib/utils';
 
@@ -17,6 +20,12 @@ export function ConnectionStatusToast({ className }: ConnectionStatusToastProps)
     const t = useScopedI18n('connection');
     const { visible, isConnecting } = useConnectionStatusUi();
     const label = isConnecting ? t('connecting') : t('offline');
+
+    useEffect(() => {
+        if (visible) {
+            sonner.dismiss(SESSION_NOT_READY_TOAST_ID);
+        }
+    }, [visible]);
 
     return (
         <div

@@ -1,12 +1,18 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { toast, toastFeedback } from '@/hooks/use-toast';
-import { useI18n, useScopedI18n } from '@/locales/client';
-import type { YouTubeVideo } from '@vkara/shared-types';
-import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
-import { useYouTubeStore } from '@/store/youtubeStore';
-import { useWebSocket } from '@/providers/websocket-provider';
+
+import { toast } from '@/hooks/use-toast';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useWaitForRoomSession } from '@/hooks/use-room-session-ready';
+import { registerPendingQueueAdd } from '@/lib/queue-action-feedback';
+import { isVideoInRoom } from '@/lib/room-queue';
+import { toastSessionNotReady } from '@/lib/session-toast';
+import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
+import { useI18n, useScopedI18n } from '@/locales/client';
+import { useWebSocket } from '@/providers/websocket-provider';
+import { useYouTubeStore } from '@/store/youtubeStore';
+import type { YouTubeVideo } from '@vkara/shared-types';
+
+const ACTION_FEEDBACK_DURATION_MS = 2000;
 
 export type PlayerAction = {
     handlePlayerPlay: () => void;
@@ -57,11 +63,9 @@ export const usePlayerAction = (): PlayerAction => {
     }, []);
 
     const notifySessionNotReady = useCallback(() => {
-        toast({
-            id: 'session-not-ready',
+        toastSessionNotReady({
             title: t('toast.sessionNotReady'),
             description: t('toast.sessionNotReadyDescription'),
-            variant: 'error',
         });
     }, [t]);
 
@@ -122,11 +126,11 @@ export const usePlayerAction = (): PlayerAction => {
         async (video: YouTubeVideo) => {
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'playNow', video });
-            toastFeedback({
-                id: 'action-play-now',
+            toast({
                 title: t('toast.playNowHandler'),
                 description: truncateVideoTitle(video.title),
                 variant: 'info',
+                duration: ACTION_FEEDBACK_DURATION_MS,
             });
         },
         [ensureConnectedAndSend, ensureRoomReady, t],
@@ -138,13 +142,25 @@ export const usePlayerAction = (): PlayerAction => {
             if (isActionCoolingDown(cooldownKey)) return;
             if (!(await ensureRoomReady())) return;
 
+            const currentRoom = useYouTubeStore.getState().room;
+            if (isVideoInRoom(currentRoom, video.id)) {
+                toast({
+                    title: t('toast.alreadyInQueue'),
+                    description: t('toast.alreadyInQueueDescription'),
+                    variant: 'warning',
+                });
+                return;
+            }
+
             markActionCooldown(cooldownKey);
-            ensureConnectedAndSend({ type: 'addVideo', video });
-            toastFeedback({
-                id: 'action-add-queue',
+            registerPendingQueueAdd({
+                videoId: video.id,
                 title: t('toast.addVideoHandler'),
                 description: truncateVideoTitle(video.title),
+                variant: 'success',
+                duration: ACTION_FEEDBACK_DURATION_MS,
             });
+            ensureConnectedAndSend({ type: 'addVideo', video });
         },
         [ensureRoomReady, ensureConnectedAndSend, t, isActionCoolingDown, markActionCooldown],
     );
@@ -152,10 +168,10 @@ export const usePlayerAction = (): PlayerAction => {
     const handlePlayNextVideo = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'nextVideo' });
-        toastFeedback({
-            id: 'action-next-video',
+        toast({
             title: t('toast.nextVideoHandler'),
             variant: 'info',
+            duration: ACTION_FEEDBACK_DURATION_MS,
         });
     }, [ensureRoomReady, ensureConnectedAndSend, t]);
 
@@ -163,10 +179,10 @@ export const usePlayerAction = (): PlayerAction => {
         async (video: YouTubeVideo) => {
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'removeVideoFromQueue', videoId: video.id });
-            toastFeedback({
-                id: 'action-remove-queue',
+            toast({
                 title: t('toast.removeVideoHandler'),
                 description: truncateVideoTitle(video.title),
+                duration: ACTION_FEEDBACK_DURATION_MS,
             });
         },
         [ensureRoomReady, ensureConnectedAndSend, t],
@@ -221,10 +237,10 @@ export const usePlayerAction = (): PlayerAction => {
         async (video: YouTubeVideo) => {
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'moveToTop', videoId: video.id });
-            toastFeedback({
-                id: 'action-move-top',
+            toast({
                 title: t('toast.moveVideoToTopHandler'),
                 description: truncateVideoTitle(video.title),
+                duration: ACTION_FEEDBACK_DURATION_MS,
             });
         },
         [ensureRoomReady, ensureConnectedAndSend, t],
@@ -233,28 +249,28 @@ export const usePlayerAction = (): PlayerAction => {
     const handleShuffleQueue = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'shuffleQueue' });
-        toastFeedback({
-            id: 'action-shuffle',
+        toast({
             title: t('toast.shuffleQueueHandler'),
             variant: 'info',
+            duration: ACTION_FEEDBACK_DURATION_MS,
         });
     }, [ensureRoomReady, ensureConnectedAndSend, t]);
 
     const handleClearQueue = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'clearQueue' });
-        toastFeedback({
-            id: 'action-clear-queue',
+        toast({
             title: t('toast.clearQueueHandler'),
+            duration: ACTION_FEEDBACK_DURATION_MS,
         });
     }, [ensureRoomReady, ensureConnectedAndSend, t]);
 
     const handleClearHistory = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         ensureConnectedAndSend({ type: 'clearHistory' });
-        toastFeedback({
-            id: 'action-clear-history',
+        toast({
             title: t('toast.clearHistoryHandler'),
+            duration: ACTION_FEEDBACK_DURATION_MS,
         });
     }, [ensureRoomReady, ensureConnectedAndSend, t]);
 
@@ -266,10 +282,10 @@ export const usePlayerAction = (): PlayerAction => {
 
             markActionCooldown(cooldownKey);
             ensureConnectedAndSend({ type: 'addVideoAndMoveToTop', video });
-            toastFeedback({
-                id: 'action-add-next',
+            toast({
                 title: t('toast.addVideoAndMoveToTopHandler'),
                 description: truncateVideoTitle(video.title),
+                duration: ACTION_FEEDBACK_DURATION_MS,
             });
         },
         [ensureRoomReady, ensureConnectedAndSend, t, isActionCoolingDown, markActionCooldown],
@@ -279,10 +295,10 @@ export const usePlayerAction = (): PlayerAction => {
         async (playlistUrlOrId: string) => {
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'importPlaylist', playlistUrlOrId });
-            toastFeedback({
-                id: 'action-import-playlist',
+            toast({
                 title: t('toast.importPlaylistHandler'),
                 variant: 'info',
+                duration: ACTION_FEEDBACK_DURATION_MS,
             });
         },
         [ensureRoomReady, ensureConnectedAndSend, t],

@@ -12,6 +12,7 @@ import Locale from 'intl-locale-textinfo-polyfill';
 import { ThemeProvider } from '@/providers/theme-provider';
 import { WebSocketProvider } from '@/providers/websocket-provider';
 import { I18nProvider } from '@/providers/i18n-provider';
+import { ActionFeedbackHost } from '@/components/action-feedback';
 import { Toaster } from '@/components/ui/toaster';
 import { PwaRegister } from '@/components/pwa-register';
 import { JsonLd } from '@/components/seo/json-ld';
@@ -99,6 +100,7 @@ export default async function RootLayout({
                         <WebSocketProvider>
                             <PwaRegister />
                             {children}
+                            <ActionFeedbackHost />
                             <Toaster />
                         </WebSocketProvider>
                     </I18nProvider>

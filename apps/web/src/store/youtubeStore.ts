@@ -9,6 +9,7 @@ import {
 } from '@vkara/shared-types';
 import { toast } from '@/hooks/use-toast';
 import type { useScopedI18n } from '@/locales/client';
+import { cancelPendingQueueAdd, confirmPendingQueueAdd } from '@/lib/queue-action-feedback';
 import {
     isYoutubeActivelyPlaying,
     isYoutubeExplicitlyPaused,
@@ -162,7 +163,10 @@ export const useYouTubeStore = create(
                         break;
                     }
                     case 'roomUpdate':
-                        set({ room: message.room });
+                        set((state) => {
+                            confirmPendingQueueAdd(state.room, message.room);
+                            return { room: message.room };
+                        });
                         break;
                     case 'leftRoom':
                         set({ room: null });
@@ -286,12 +290,7 @@ export const useYouTubeStore = create(
                                     }
                                     break;
                                 case ErrorCode.NOT_IN_ROOM:
-                                    toast({
-                                        id: 'session-not-ready',
-                                        title: t('sessionNotReady'),
-                                        description: t('sessionNotReadyDescription'),
-                                        variant: 'error',
-                                    });
+                                    // Auto rejoin in WebSocketProvider — no toast (ConnectionStatusToast when WS is down).
                                     break;
                                 case ErrorCode.INCORRECT_PASSWORD:
                                     toast({
@@ -302,6 +301,7 @@ export const useYouTubeStore = create(
                                     });
                                     break;
                                 case ErrorCode.ALREADY_IN_QUEUE:
+                                    cancelPendingQueueAdd({ dismissVisible: true });
                                     toast({
                                         id: 'already-in-queue',
                                         title: t('alreadyInQueue'),
@@ -310,6 +310,7 @@ export const useYouTubeStore = create(
                                     });
                                     break;
                                 case ErrorCode.VIDEO_NOT_EMBEDDABLE:
+                                    cancelPendingQueueAdd({ dismissVisible: true });
                                     toast({
                                         id: 'video-not-embeddable',
                                         title: t('videoNotEmbeddable'),

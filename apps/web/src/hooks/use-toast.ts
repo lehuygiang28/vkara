@@ -3,6 +3,11 @@
 import type { ReactNode } from 'react';
 import { toast as sonner, type ExternalToast } from 'sonner';
 
+import {
+    useActionFeedbackStore,
+    type ActionFeedbackVariant,
+} from '@/store/action-feedback-store';
+
 export type ToastVariant = 'default' | 'destructive' | 'success' | 'warning' | 'info' | 'error';
 
 export interface ToastInput {
@@ -10,10 +15,8 @@ export interface ToastInput {
     description?: ReactNode;
     variant?: ToastVariant;
     duration?: number;
-    /** Stable id — replaces an existing toast with the same id (dedupe). */
+    /** Sonner only — dedupe by id. */
     id?: string;
-    /** Show dismiss control (default: errors/warnings only). */
-    closeButton?: boolean;
 }
 
 function defaultDuration(variant?: ToastVariant | null): number {
@@ -32,9 +35,19 @@ function defaultDuration(variant?: ToastVariant | null): number {
     }
 }
 
-function shouldShowCloseButton(variant?: ToastVariant | null, explicit?: boolean): boolean {
-    if (explicit != null) return explicit;
-    return variant === 'error' || variant === 'destructive' || variant === 'warning';
+function usesSonner(variant?: ToastVariant | null): boolean {
+    return variant === 'error' || variant === 'destructive';
+}
+
+function toActionFeedbackVariant(variant?: ToastVariant | null): ActionFeedbackVariant {
+    switch (variant) {
+        case 'info':
+            return 'info';
+        case 'warning':
+            return 'warning';
+        default:
+            return 'success';
+    }
 }
 
 function toSonnerOptions(input: ToastInput): ExternalToast {
@@ -47,48 +60,12 @@ function toSonnerOptions(input: ToastInput): ExternalToast {
         id: input.id,
         description,
         duration: input.duration ?? defaultDuration(input.variant),
-        closeButton: shouldShowCloseButton(input.variant, input.closeButton),
+        closeButton: true,
         dismissible: true,
     };
 }
 
-/** App toast API — Sonner-backed, deduped by id, no global dismiss. */
-function toast(input: ToastInput) {
-    const message = input.title != null ? String(input.title) : '';
-    const options = toSonnerOptions(input);
-
-    switch (input.variant) {
-        case 'success':
-            return sonner.success(message, options);
-        case 'error':
-        case 'destructive':
-            return sonner.error(message, options);
-        case 'warning':
-            return sonner.warning(message, options);
-        case 'info':
-            return sonner.info(message, options);
-        default:
-            return message ? sonner(message, options) : sonner(options.description ?? '', options);
-    }
-}
-
-/** Brief copy-to-clipboard feedback — no description, short duration. */
-function toastCopied(title: ReactNode) {
-    return toast({
-        title,
-        variant: 'success',
-        duration: 1800,
-        id: 'clipboard-copy',
-    });
-}
-
-/** Compact action feedback — short toast + light haptic on touch devices. */
-function toastFeedback(input: {
-    title: ReactNode;
-    description?: ReactNode;
-    variant?: 'success' | 'info';
-    id?: string;
-}) {
+function vibrateLight() {
     try {
         if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
             navigator.vibrate(12);
@@ -96,15 +73,37 @@ function toastFeedback(input: {
     } catch {
         // Vibration unavailable or blocked.
     }
+}
 
-    return toast({
-        title: input.title,
-        description: input.description,
-        variant: input.variant ?? 'success',
-        duration: 2000,
-        id: input.id ?? 'action-feedback',
-        closeButton: false,
+function showTransientFeedback(input: ToastInput) {
+    const title = input.title != null ? String(input.title) : '';
+    const description =
+        input.description != null && input.description !== ''
+            ? String(input.description)
+            : undefined;
+
+    if (!title && !description) {
+        return;
+    }
+
+    vibrateLight();
+    useActionFeedbackStore.getState().show({
+        title: title || description!,
+        description: title ? description : undefined,
+        variant: toActionFeedbackVariant(input.variant),
+        duration: input.duration ?? defaultDuration(input.variant),
     });
 }
 
-export { toast, toastCopied, toastFeedback };
+/** Success/info/warning → ActionFeedbackHost; errors → Sonner (top). */
+function toast(input: ToastInput) {
+    if (!usesSonner(input.variant)) {
+        showTransientFeedback(input);
+        return;
+    }
+
+    const message = input.title != null ? String(input.title) : '';
+    return sonner.error(message, toSonnerOptions(input));
+}
+
+export { toast };
