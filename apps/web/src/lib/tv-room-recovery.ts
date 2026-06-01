@@ -1,5 +1,6 @@
 import {
     ErrorCode,
+    normalizePersistedRoom,
     type ClientMessage,
     type Room,
     type TvRoomRestoreState,
@@ -27,22 +28,23 @@ export function shouldRecoverTvRoom(
 }
 
 export function captureTvRoomSnapshot(room: Omit<Room, 'clients'> | null): TvRoomSnapshot | null {
-    if (!room?.id) return null;
+    const normalized = normalizePersistedRoom(room);
+    if (!normalized) return null;
 
     return {
-        previousRoomId: room.id,
-        password: room.password,
+        previousRoomId: normalized.id,
+        password: normalized.password,
         restore: {
-            videoQueue: [...room.videoQueue],
-            playingNow: room.playingNow,
-            isPlaying: room.isPlaying,
-            currentTime: room.currentTime,
-            volume: room.volume,
-            showQRInPlayer: room.showQRInPlayer,
-            captionsEnabled: room.captionsEnabled,
-            captionsLanguage: room.captionsLanguage,
-            captionTracks: [...room.captionTracks],
-            captionTracksVideoId: room.captionTracksVideoId,
+            videoQueue: [...normalized.videoQueue],
+            playingNow: normalized.playingNow,
+            isPlaying: normalized.isPlaying,
+            currentTime: normalized.currentTime,
+            volume: normalized.volume,
+            showQRInPlayer: normalized.showQRInPlayer,
+            captionsEnabled: normalized.captionsEnabled,
+            captionsLanguage: normalized.captionsLanguage,
+            captionTracks: [...normalized.captionTracks],
+            captionTracksVideoId: normalized.captionTracksVideoId,
         },
     };
 }

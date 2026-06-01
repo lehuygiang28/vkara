@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
+import { createMigratingPersistStorage } from '@/lib/persisted-storage';
+
 import type { YouTubeVideo } from '@vkara/shared-types';
 import { blendSuggestions, rankVideos } from '@vkara/shared-utils';
 import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
@@ -260,7 +262,8 @@ export const useSearchStore = create(
         }),
         {
             name: 'search-store',
-            storage: createJSONStorage(() => localStorage),
+            version: 1,
+            storage: createJSONStorage(() => createMigratingPersistStorage()),
             /** Persist only preferences — never draft query/results (causes input lag). */
             partialize: (state) => ({ isKaraoke: state.isKaraoke }) as SearchState,
         },

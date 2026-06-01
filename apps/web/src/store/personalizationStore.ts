@@ -12,6 +12,8 @@ import {
 
 import type { YouTubeVideo } from '@vkara/shared-types';
 
+import { createMigratingPersistStorage } from '@/lib/persisted-storage';
+
 const toPersonalizableVideo = (video: YouTubeVideo): PersonalizableVideo => ({
     id: video.id,
     title: video.title,
@@ -102,7 +104,8 @@ export const usePersonalizationStore = create(
         }),
         {
             name: 'vkara-personalization',
-            storage: createJSONStorage(() => localStorage),
+            version: 1,
+            storage: createJSONStorage(() => createMigratingPersistStorage()),
             partialize: (state) =>
                 ({
                     searchHistory: state.searchHistory,

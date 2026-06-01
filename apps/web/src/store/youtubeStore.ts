@@ -2,11 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import {
     ErrorCode,
+    normalizePersistedRoom,
     PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC,
     type Room,
     type ServerMessage,
     type YouTubeVideo,
 } from '@vkara/shared-types';
+import { createMigratingPersistStorage } from '@/lib/persisted-storage';
 import { toast } from '@/hooks/use-toast';
 import type { useScopedI18n } from '@/locales/client';
 import { cancelPendingQueueAdd, confirmPendingQueueAdd } from '@/lib/queue-action-feedback';
@@ -70,7 +72,8 @@ export const useYouTubeStore = create(
             setPlayer: (player) => set({ player }),
             setVolume: (volume) => set({ volume }),
             setCurrentTab: (currentTab) => set({ currentTab }),
-            setRoom: (room) => set({ room }),
+            setRoom: (room) =>
+                set({ room: room ? normalizePersistedRoom(room) : null }),
             setIsLoading: (isLoading) => set({ isLoading }),
             setError: (error) => set({ error }),
             setLayoutMode: (layoutMode, source = 'user') => {
@@ -155,17 +158,26 @@ export const useYouTubeStore = create(
 
                 switch (message.type) {
                     case 'roomJoined': {
-                        const roomVolume = Math.min(100, Math.max(0, message.room.volume));
+                        const joinedRoom = normalizePersistedRoom(message.room);
+                        const roomVolume = Math.min(
+                            100,
+                            Math.max(0, joinedRoom?.volume ?? 100),
+                        );
                         set((state) => {
                             state?.player?.setVolume(roomVolume);
-                            return { room: message.room, wsId: message.yourId, volume: roomVolume };
+                            return {
+                                room: joinedRoom,
+                                wsId: message.yourId,
+                                volume: roomVolume,
+                            };
                         });
                         break;
                     }
                     case 'roomUpdate':
                         set((state) => {
-                            confirmPendingQueueAdd(state.room, message.room);
-                            return { room: message.room };
+                            const updatedRoom = normalizePersistedRoom(message.room);
+                            confirmPendingQueueAdd(state.room, updatedRoom);
+                            return { room: updatedRoom };
                         });
                         break;
                     case 'leftRoom':
@@ -340,7 +352,8 @@ export const useYouTubeStore = create(
         }),
         {
             name: 'youtube-storage',
-            storage: createJSONStorage(() => localStorage),
+            version: 1,
+            storage: createJSONStorage(() => createMigratingPersistStorage()),
             partialize: (state) => {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const { player, layoutMode, ...rest } = state;
@@ -351,16 +364,20 @@ export const useYouTubeStore = create(
                 return { ...rest, player: null, layoutMode };
             },
             merge: (persistedState, currentState) => {
-                const persisted = persistedState as YouTubeState;
-                if (persisted.layoutModeSource === 'auto') {
+                const persisted = persistedState as Partial<YouTubeState>;
+                const room = persisted.room
+                    ? normalizePersistedRoom(persisted.room)
+                    : null;
+                const layoutModeSource = persisted.layoutModeSource ?? 'auto';
+                const merged = { ...currentState, ...persisted, room, player: null, layoutModeSource };
+
+                if (layoutModeSource === 'auto') {
                     return {
-                        ...currentState,
-                        ...persisted,
-                        player: null,
+                        ...merged,
                         layoutMode: currentState.layoutMode,
                     };
                 }
-                return { ...currentState, ...persisted, player: null };
+                return merged;
             },
         },
     ),

@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { createMigratingPersistStorage } from '@/lib/persisted-storage';
+
 interface AppSettingsState {
     useWhisperVoiceSearch: boolean;
     setUseWhisperVoiceSearch: (enabled: boolean) => void;
@@ -14,7 +16,8 @@ export const useAppSettingsStore = create<AppSettingsState>()(
         }),
         {
             name: 'vkara-app-settings',
-            storage: createJSONStorage(() => localStorage),
+            version: 1,
+            storage: createJSONStorage(() => createMigratingPersistStorage()),
             partialize: (state) => ({ useWhisperVoiceSearch: state.useWhisperVoiceSearch }),
         },
     ),

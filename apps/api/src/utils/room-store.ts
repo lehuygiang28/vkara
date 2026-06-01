@@ -1,16 +1,12 @@
 import { isValidRoomId } from '@vkara/shared-utils';
-import { DEFAULT_CAPTION_LANGUAGE, ErrorCode, RoomError, type Room } from '@vkara/shared-types';
+import { ErrorCode, normalizePersistedRoom, RoomError, type Room } from '@vkara/shared-types';
 
 function normalizeRoomCaptionFields(room: Room): void {
-    if (!room.captionsLanguage) {
-        room.captionsLanguage = DEFAULT_CAPTION_LANGUAGE;
+    const normalized = normalizePersistedRoom(room);
+    if (!normalized) {
+        return;
     }
-    if (!room.captionTracks) {
-        room.captionTracks = [];
-    }
-    if (room.captionTracksVideoId === undefined) {
-        room.captionTracksVideoId = null;
-    }
+    Object.assign(room, normalized);
 }
 
 import { redis } from '@/redis';
