@@ -1,6 +1,7 @@
 import type Redis from 'ioredis';
 import type { SearchResult } from 'youtubei';
 
+import { recordMemoryCleanup } from '@/modules/stats/service-stats';
 import { createContextLogger } from '@/utils/logger';
 
 const youtubeiLogger = createContextLogger('Queue/Youtubei');
@@ -58,7 +59,7 @@ export async function storeContinuation(
         }
 
         const logPrefix = prefix === REDIS_KEY_PREFIXES.SEARCH ? 'Search' : 'Related';
-        youtubeiLogger.info(
+        youtubeiLogger.debug(
             `${logPrefix} cache limit reached. Removed ${keysToRemove.length} oldest entries.`,
         );
     }
@@ -84,7 +85,8 @@ export async function cleanupOldInstances() {
     }
 
     if (cleanedSearch > 0 || cleanedRelated > 0) {
-        youtubeiLogger.info(
+        recordMemoryCleanup(cleanedSearch, cleanedRelated);
+        youtubeiLogger.debug(
             `Memory cleanup: ${cleanedSearch} search instances, ${cleanedRelated} related instances`,
         );
     }
@@ -92,4 +94,6 @@ export async function cleanupOldInstances() {
     youtubeiLogger.debug(
         `Current cache size: ${searchInstances.size} search, ${relatedInstances.size} related`,
     );
+
+    return { cleanedSearch, cleanedRelated };
 }

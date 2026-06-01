@@ -1,0 +1,110 @@
+import { Redis } from 'ioredis';
+import { Queue, Worker } from 'bullmq';
+import type { Room } from '@vkara/shared-types';
+
+import { emitHourlyReport } from '@/modules/stats/service-stats';
+import { wsConnections } from '@/server';
+import { createContextLogger } from '@/utils/logger';
+import { scanRedisKeys } from '@/utils/room-store';
+
+const logger = createContextLogger('Queue/Report');
+
+/** Production default: top of each hour. Local test: `* * * * *` or `*\/1 * * * *` every minute. */
+const REPORT_CRON_PATTERN = process.env.SERVICE_REPORT_CRON ?? '0 * * * *';
+
+const connectionOptions = {
+    host: process.env.REDIS_HOST || 'localhost',
+    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
+    password: process.env.REDIS_PASSWORD,
+    maxRetriesPerRequest: null,
+};
+
+const connection = new Redis(connectionOptions);
+
+export const hourlyReportQueue = new Queue('service-hourly-report', {
+    connection: connectionOptions,
+    defaultJobOptions: {
+        removeOnComplete: true,
+        removeOnFail: true,
+        attempts: 3,
+        backoff: {
+            type: 'exponential',
+            delay: 1000,
+        },
+    },
+});
+
+const worker = new Worker(
+    'service-hourly-report',
+    async () => {
+        const snapshot = await collectServiceSnapshot();
+        emitHourlyReport(snapshot);
+    },
+    {
+        connection: connectionOptions,
+        concurrency: 1,
+    },
+);
+
+worker.on('completed', (job) => {
+    logger.debug(`Report job ${job.id} has completed`, { jobId: job.id });
+});
+
+worker.on('failed', (job, error) => {
+    logger.error(`Report job ${job?.id} has failed`, {
+        jobId: job?.id,
+        error: error.message,
+        stack: error.stack,
+    });
+});
+
+async function collectServiceSnapshot() {
+    const roomKeys = await scanRedisKeys('room:*');
+    let activeRooms = 0;
+
+    for (const key of roomKeys) {
+        const roomData = await connection.get(key);
+        if (!roomData) {
+            continue;
+        }
+
+        try {
+            const room: Room = JSON.parse(roomData);
+            const hasConnectedClient = (room.clients || []).some((clientId) =>
+                wsConnections.has(clientId),
+            );
+            if (hasConnectedClient) {
+                activeRooms++;
+            }
+        } catch {
+            // skip malformed room payloads
+        }
+    }
+
+    const clientKeys = await scanRedisKeys('client:*');
+
+    return {
+        totalRooms: roomKeys.length,
+        activeRooms,
+        totalClientRecords: clientKeys.length,
+        connectedClients: wsConnections.size,
+    };
+}
+
+export async function scheduleHourlyReportJob() {
+    try {
+        await hourlyReportQueue.add(
+            'hourly-report',
+            {},
+            {
+                repeat: {
+                    pattern: REPORT_CRON_PATTERN,
+                },
+            },
+        );
+        logger.info(`Scheduled service report (cron: ${REPORT_CRON_PATTERN})`);
+    } catch (error) {
+        logger.error('Failed to schedule hourly report job', { error });
+        throw error;
+    }
+}

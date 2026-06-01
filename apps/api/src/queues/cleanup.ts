@@ -2,6 +2,7 @@ import { Redis } from 'ioredis';
 import { Queue, Worker } from 'bullmq';
 import type { Room } from '@vkara/shared-types';
 
+import { recordOrphanedClientsRemoved, recordRoomReleased } from '@/modules/stats/service-stats';
 import { closeRoom, wsConnections } from '@/server';
 import { createContextLogger } from '@/utils/logger';
 import { scanRedisKeys } from '@/utils/room-store';
@@ -69,8 +70,7 @@ function getConnectedClientIds(room: Room): string[] {
 async function cleanupInactiveRooms() {
     const keys = await scanRedisKeys('room:*');
     const now = Date.now();
-
-    logger.info(`Starting cleanup check for ${keys.length} rooms`);
+    logger.debug(`Starting cleanup check for ${keys.length} rooms`);
     let cleanedRoomsCount = 0;
 
     for (const key of keys) {
@@ -129,7 +129,7 @@ async function cleanupInactiveRooms() {
                 continue;
             }
 
-            logger.info(`Cleaning up empty room`, {
+            logger.debug(`Cleaning up empty room`, {
                 roomId: room.id,
                 reason: 'no connected clients',
                 emptySince: new Date(emptySince).toISOString(),
@@ -138,14 +138,15 @@ async function cleanupInactiveRooms() {
 
             await closeRoom(room.id, 'Room has been closed because it had no connected clients');
             cleanedRoomsCount++;
+            recordRoomReleased();
         } catch (error) {
             logger.error(`Failed to process room ${key}`, { error });
         }
     }
 
-    await cleanupOrphanedClients();
+    const { orphanedClientsCount } = await cleanupOrphanedClients();
 
-    return { cleanedRoomsCount };
+    return { cleanedRoomsCount, orphanedClientsCount };
 }
 
 async function cleanupOrphanedClients() {
@@ -153,7 +154,7 @@ async function cleanupOrphanedClients() {
     let orphanedClientsCount = 0;
     const now = Date.now();
 
-    logger.info(`Checking ${clientKeys.length} clients for orphaned entries`);
+    logger.debug(`Checking ${clientKeys.length} clients for orphaned entries`);
 
     for (const key of clientKeys) {
         const clientData = await connection.hgetall(key);
@@ -177,7 +178,8 @@ async function cleanupOrphanedClients() {
     }
 
     if (orphanedClientsCount > 0) {
-        logger.info(`Cleaned up ${orphanedClientsCount} orphaned clients`);
+        recordOrphanedClientsRemoved(orphanedClientsCount);
+        logger.debug(`Cleaned up ${orphanedClientsCount} orphaned clients`);
     }
 
     return { orphanedClientsCount };

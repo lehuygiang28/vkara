@@ -9,6 +9,7 @@ import { bindRoomPublisher } from '@/modules/room/room-broadcast';
 import { createRoomService } from '@/modules/room/room-service';
 import { createRoomWsPlugin } from '@/plugins/room-ws.plugin';
 import { scheduleCleanupJobs } from '@/queues/cleanup';
+import { scheduleHourlyReportJob } from '@/queues/hourly-report';
 import { createContextLogger } from '@/utils/logger';
 import type { ServerMessage } from '@vkara/shared-types';
 
@@ -44,6 +45,9 @@ export const wsServer = new Elysia({
         serverLogger.info('Server started');
         scheduleCleanupJobs().catch((error) => {
             serverLogger.error('Failed to schedule cleanup jobs', { error });
+        });
+        scheduleHourlyReportJob().catch((error) => {
+            serverLogger.error('Failed to schedule hourly report job', { error });
         });
     })
     .on('stop', async () => {

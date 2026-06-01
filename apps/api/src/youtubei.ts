@@ -5,6 +5,7 @@ import { type VideoCompact, type SearchResult } from 'youtubei';
 import { fetchSearchSuggestions } from './modules/youtube/fetch-search-suggestions';
 import { createRedisOptions } from '@vkara/shared-infra';
 
+import { recordRelatedRequest, recordSearchRequest } from '@/modules/stats/service-stats';
 import { createContextLogger } from '@/utils/logger';
 import type { YouTubeVideo } from '@vkara/shared-types';
 import {
@@ -115,6 +116,7 @@ export const searchYoutubeiElysia = new Elysia({})
                 const activeSearchInstances = stateSearchInstances || searchInstances;
 
                 if (continuation) {
+                    recordSearchRequest(query, true);
                     logger.info(`Continuing search: "${query}"`);
                     const cachedResult = activeSearchInstances.get(continuation)?.instance;
 
@@ -131,6 +133,7 @@ export const searchYoutubeiElysia = new Elysia({})
                     activeSearchInstances.delete(continuation);
                     await redisClient.del(getRedisKey(prefix, continuation));
                 } else {
+                    recordSearchRequest(query, false);
                     logger.info(`New search: "${query}"`);
                     const page = await fetchSearchInitialPage(youtubeiClient, query);
                     newItems = collectUniqueNewItems(page.items, processedVideoIds);
@@ -216,6 +219,7 @@ export const searchYoutubeiElysia = new Elysia({})
                 const activeRelatedInstances = stateRelatedInstances || relatedInstances;
 
                 if (continuation) {
+                    recordRelatedRequest();
                     logger.info(`Continuing related videos for: "${videoId}"`);
                     const cachedShell = activeRelatedInstances.get(continuation)?.instance;
 
@@ -236,6 +240,7 @@ export const searchYoutubeiElysia = new Elysia({})
                     activeRelatedInstances.delete(continuation);
                     await redisClient.del(getRedisKey(prefix, continuation));
                 } else {
+                    recordRelatedRequest();
                     logger.info(`Getting related videos for: "${videoId}"`);
                     const { video, nextResponseData } = await loadVideoFromNextResponses(
                         youtubeiClient,
