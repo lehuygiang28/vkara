@@ -6,6 +6,7 @@ import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
 import { GoogleAnalytics } from '@next/third-parties/google';
+import { CloudflareWebAnalytics } from '@/components/analytics/cloudflare-web-analytics';
 import Locale from 'intl-locale-textinfo-polyfill';
 
 import { ThemeProvider } from '@/providers/theme-provider';
@@ -106,6 +107,7 @@ export default async function RootLayout({
                 {process.env?.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
                     <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
                 )}
+                <CloudflareWebAnalytics />
             </body>
         </html>
     );
