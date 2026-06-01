@@ -387,7 +387,7 @@ function SearchPageOverlayContent({
 
                     <div className="relative flex min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border/50 bg-muted/40 pl-4 pr-1 shadow-none focus-within:border-ring/60 focus-within:bg-muted/25 focus-within:ring-1 focus-within:ring-ring/40">
                         <input
-                            type="search"
+                            type="text"
                             role="combobox"
                             inputMode="search"
                             enterKeyHint="search"
