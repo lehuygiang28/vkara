@@ -104,7 +104,15 @@ export function getYouTubeThumbnailUrl(
     return variants[variants.length - 1]!.url;
   }
 
-  return variants[0]!.url;
+  const listVariant =
+    variants.find((variant) => youtubeThumbnailSlot(variant.url) === "mqdefault") ??
+    variants.find((variant) => {
+      const width = variant.width ?? 0;
+      const height = variant.height ?? 0;
+      return width > 0 && height > 0 && width / height >= 1.7;
+    });
+
+  return listVariant?.url ?? variants[0]!.url;
 }
 
 /** Build an HTML srcSet string from normalized thumbnail variants. */

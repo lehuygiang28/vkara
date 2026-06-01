@@ -40,7 +40,7 @@ describe("getYouTubeThumbnailUrl", () => {
   it("returns smallest for list and largest for controls", () => {
     const thumbnails = buildYouTubeThumbnails("abc123");
 
-    expect(getYouTubeThumbnailUrl(thumbnails, "list", "abc123")).toContain("/default.jpg");
+    expect(getYouTubeThumbnailUrl(thumbnails, "list", "abc123")).toContain("/mqdefault.jpg");
     expect(getYouTubeThumbnailUrl(thumbnails, "large", "abc123")).toContain("/maxresdefault.jpg");
   });
 
@@ -48,7 +48,7 @@ describe("getYouTubeThumbnailUrl", () => {
     const sparse = [{ url: "https://i.ytimg.com/vi/abc/hqdefault.jpg", width: 336, height: 188 }];
 
     expect(getYouTubeThumbnailUrl(sparse, "large", "abc")).toContain("/maxresdefault.jpg");
-    expect(getYouTubeThumbnailUrl(sparse, "list", "abc")).toContain("/default.jpg");
+    expect(getYouTubeThumbnailUrl(sparse, "list", "abc")).toContain("/mqdefault.jpg");
   });
 });
 
