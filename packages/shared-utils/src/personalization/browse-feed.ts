@@ -68,6 +68,15 @@ export const hasBrowseFeedSources = (
     room: BrowseRoomContext,
 ): boolean => buildBrowseFeedSources(profile, room).length > 0;
 
+/**
+ * Stable key for resetting the browse feed. Only search-history identity should
+ * invalidate the list; room/engagement changes update ranking via refs silently.
+ */
+export const buildBrowseFeedSessionKey = (profile: PersonalizationProfile): string =>
+    JSON.stringify({
+        searches: profile.searchHistory.map((entry) => `${entry.query}:${entry.isKaraoke}`),
+    });
+
 /** Dedupe against existing ids, rank a incoming batch for feed append. */
 export const rankBrowseFeedBatch = <T extends PersonalizableVideo>(
     incoming: T[],

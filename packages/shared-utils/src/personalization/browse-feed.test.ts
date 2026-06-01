@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 
 import {
     buildBrowseFeedRankContext,
+    buildBrowseFeedSessionKey,
     buildBrowseFeedSources,
     rankBrowseFeedBatch,
 } from './browse-feed';
@@ -44,6 +45,20 @@ describe('buildBrowseFeedSources', () => {
         expect(sources.some((source) => source.kind === 'search' && source.query === 'Kara King')).toBe(
             true,
         );
+    });
+});
+
+describe('buildBrowseFeedSessionKey', () => {
+    test('changes only when search history identity changes', () => {
+        let profile = createEmptyProfile();
+        profile = recordSearch(profile, 'karaoke', true);
+        const keyAfterSearch = buildBrowseFeedSessionKey(profile);
+
+        profile = recordVideoEngagement(profile, video('v1', 'A', 'Kara King'), 'queue');
+        expect(buildBrowseFeedSessionKey(profile)).toBe(keyAfterSearch);
+
+        profile = recordSearch(profile, 'another', false);
+        expect(buildBrowseFeedSessionKey(profile)).not.toBe(keyAfterSearch);
     });
 });
 

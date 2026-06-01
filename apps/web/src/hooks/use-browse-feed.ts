@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     buildBrowseFeedRankContext,
+    buildBrowseFeedSessionKey,
     buildBrowseFeedSources,
     rankBrowseFeedBatch,
     type BrowseFeedSource,
@@ -18,17 +19,6 @@ type SourceCursor = {
     /** undefined = first page; null = exhausted */
     nextToken: string | null | undefined;
 };
-
-const browseFeedKey = (profile: PersonalizationProfile, room: BrowseRoomContext): string =>
-    JSON.stringify({
-        playingNowId: room.playingNow?.id ?? null,
-        roomHistoryIds: room.historyQueue.map((video) => video.id),
-        searches: profile.searchHistory.map((entry) => `${entry.query}:${entry.isKaraoke}`),
-        recentVideoId: profile.recentVideos[0]?.id ?? null,
-        topChannels: Object.entries(profile.channelScores)
-            .sort(([, a], [, b]) => b - a)
-            .map(([key]) => key),
-    });
 
 const fetchSourcePage = async (
     source: BrowseFeedSource,
@@ -56,7 +46,7 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
     const [hasMore, setHasMore] = useState(false);
     const [loadError, setLoadError] = useState(false);
 
-    const feedKey = useMemo(() => browseFeedKey(profile, room), [profile, room]);
+    const feedKey = useMemo(() => buildBrowseFeedSessionKey(profile), [profile.searchHistory]);
 
     const profileRef = useRef(profile);
     const roomRef = useRef(room);
@@ -198,10 +188,12 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
     );
 
     const runLoad = useCallback(
-        async (initial: boolean) => {
+        async (initial: boolean, options?: { replaceExisting?: boolean }) => {
             if (loadingRef.current || cursorsRef.current.length === 0) {
                 return;
             }
+
+            const replaceExisting = options?.replaceExisting ?? false;
 
             loadingRef.current = true;
             setIsLoading(initial);
@@ -237,7 +229,9 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
                 }
 
                 if (batch.length > 0) {
-                    videosRef.current = [...videosRef.current, ...batch];
+                    videosRef.current = replaceExisting
+                        ? batch
+                        : [...videosRef.current, ...batch];
                     setVideos(videosRef.current);
                     setLoadError(false);
                     setHasMore(computeHasMore());
@@ -307,10 +301,9 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
 
         generationRef.current += 1;
         resetPager(sources);
-        setVideos([]);
         setLoadError(false);
         setHasMore(true);
-        await runLoad(true);
+        await runLoad(true, { replaceExisting: true });
     }, [resetPager, runLoad]);
 
     return {
