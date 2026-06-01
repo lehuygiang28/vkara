@@ -45,7 +45,7 @@ export function TvIdleLayoutSwitch({ effectiveLayoutMode, className }: TvIdleLay
 
     const options: { value: IdleLayoutChoice; label: string; aria: string }[] = [
         { value: 'player', label: t('tvLayoutTv'), aria: t('tvLayoutTvAria') },
-        { value: 'both', label: t('tvLayoutLaptop'), aria: t('tvLayoutLaptopAria') },
+        { value: 'both', label: t('layoutBoth'), aria: t('layoutBothAria') },
     ];
 
     return (

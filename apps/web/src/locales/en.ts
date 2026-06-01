@@ -82,9 +82,11 @@ export default {
     'youtubePage.layoutPlayer': 'TV',
     'youtubePage.layoutPlayerDesc':
         'Full-screen video. Use another phone as the remote to pick songs.',
-    'youtubePage.layoutBoth': 'Laptop',
+    'youtubePage.layoutBoth': 'This device',
     'youtubePage.layoutBothDesc':
-        'Video and controls side by side — watch and pick songs on one device.',
+        'Video and controls side by side — watch and pick songs on the same screen.',
+    'youtubePage.layoutBothAria':
+        'This device: search and play on the screen in front of you, no phone remote required.',
     'youtubePage.nextUp': 'Next Up',
     'youtubePage.startingIn': 'Starting in',
     'youtubePage.exitFullscreen': 'Exit Fullscreen',
@@ -118,13 +120,11 @@ export default {
     'youtubePage.tvEmptyQrAria': 'Room QR code. Opens room settings.',
     'youtubePage.tvLayoutGroupLabel': 'Screen mode',
     'youtubePage.tvLayoutTv': 'TV',
-    'youtubePage.tvLayoutLaptop': 'Laptop',
     'youtubePage.tvLayoutTvAria': 'TV mode: use a phone to scan the code and pick songs',
-    'youtubePage.tvLayoutLaptopAria': 'Laptop mode: search and play on this device',
-    'youtubePage.tvEmptyTitleLaptop': 'Room is ready',
-    'youtubePage.tvEmptySubtitleLaptop':
+    'youtubePage.tvEmptyTitleBoth': 'Room is ready',
+    'youtubePage.tvEmptySubtitleBoth':
         'Search on the right, or share the code so others can control from their phones.',
-    'youtubePage.tvIdleLaptopInvite': 'The QR code still works if you want a phone remote.',
+    'youtubePage.tvIdleBothInvite': 'The QR code still works if you want a phone remote.',
 
     'voiceSearchSettings.title': 'Voice search',
     'voiceSearchSettings.descriptionWithBrowser':

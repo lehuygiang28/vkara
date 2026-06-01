@@ -78,9 +78,11 @@ export default {
     'youtubePage.layoutPlayer': 'TV',
     'youtubePage.layoutPlayerDesc':
         'Video full màn hình. Dùng điện thoại khác làm remote để chọn bài.',
-    'youtubePage.layoutBoth': 'Laptop',
+    'youtubePage.layoutBoth': 'Máy tính',
     'youtubePage.layoutBothDesc':
-        'Video và bảng điều khiển cạnh nhau — xem và chọn bài trên cùng một máy.',
+        'Video và bảng điều khiển cạnh nhau — xem và chọn bài trên cùng một màn hình.',
+    'youtubePage.layoutBothAria':
+        'Máy này: tìm và phát bài trên màn hình đang mở, không cần điện thoại remote.',
     'youtubePage.controls': 'Điều khiển',
     'youtubePage.queue': 'Danh sách',
     'youtubePage.queueBadgeLabel': 'Hàng chờ, {count} bài',
@@ -118,13 +120,11 @@ export default {
     'youtubePage.tvEmptyQrAria': 'Mã QR phòng. Mở cài đặt phòng.',
     'youtubePage.tvLayoutGroupLabel': 'Chế độ màn hình',
     'youtubePage.tvLayoutTv': 'TV',
-    'youtubePage.tvLayoutLaptop': 'Laptop',
     'youtubePage.tvLayoutTvAria': 'Chế độ TV: dùng điện thoại quét mã để chọn bài',
-    'youtubePage.tvLayoutLaptopAria': 'Chế độ laptop: tìm và phát bài trên máy này',
-    'youtubePage.tvEmptyTitleLaptop': 'Phòng đang mở',
-    'youtubePage.tvEmptySubtitleLaptop':
+    'youtubePage.tvEmptyTitleBoth': 'Phòng đang mở',
+    'youtubePage.tvEmptySubtitleBoth':
         'Tìm bài ở cột bên phải, hoặc mời mọi người quét mã để điều khiển từ điện thoại.',
-    'youtubePage.tvIdleLaptopInvite': 'Mã QR vẫn dùng được nếu bạn muốn remote từ điện thoại.',
+    'youtubePage.tvIdleBothInvite': 'Mã QR vẫn dùng được nếu bạn muốn remote từ điện thoại.',
 
     'voiceSearchSettings.title': 'Tìm kiếm bằng giọng nói',
     'voiceSearchSettings.descriptionWithBrowser':

@@ -19,7 +19,7 @@ type TvPlayerQrZoneProps = {
     locale: 'vi' | 'en';
     showQR: boolean;
     isIdle: boolean;
-    /** Side-by-side laptop layout: smaller QR, no phone-only steps. */
+    /** Side-by-side “this device” layout: smaller QR, no phone-only steps. */
     compact?: boolean;
     onOpenSettingsAction: () => void;
 };
@@ -64,8 +64,8 @@ export function TvPlayerQrZone({
     const steps = compact
         ? []
         : [t('tvEmptyStep1'), t('tvEmptyStep2'), t('tvEmptyStep3')];
-    const idleTitle = compact ? t('tvEmptyTitleLaptop') : t('tvEmptyTitle');
-    const idleSubtitle = compact ? t('tvEmptySubtitleLaptop') : t('tvEmptySubtitle');
+    const idleTitle = compact ? t('tvEmptyTitleBoth') : t('tvEmptyTitle');
+    const idleSubtitle = compact ? t('tvEmptySubtitleBoth') : t('tvEmptySubtitle');
 
     const qrShell = (
         <motion.div
@@ -202,7 +202,7 @@ export function TvPlayerQrZone({
 
                     {compact ? (
                         <p className="mt-5 max-w-xs text-center text-xs leading-relaxed text-zinc-500">
-                            {t('tvIdleLaptopInvite')}
+                            {t('tvIdleBothInvite')}
                         </p>
                     ) : (
                         <motion.ol className="mt-6 w-full max-w-md space-y-4 text-left sm:mt-10 sm:space-y-5">
