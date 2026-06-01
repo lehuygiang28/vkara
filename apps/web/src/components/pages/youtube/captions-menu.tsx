@@ -1,8 +1,8 @@
 'use client';
 
 import type { CaptionTrack } from '@vkara/shared-types';
+import { Subtitles } from 'lucide-react';
 
-import { YoutubeCcIcon } from '@/components/icons/youtube-cc-icon';
 import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
@@ -69,7 +69,10 @@ export function CaptionsMenu({
                     aria-label={menuLabel}
                     aria-haspopup="menu"
                 >
-                    <YoutubeCcIcon active={captionsEnabled} />
+                    <Subtitles
+                        className={cn('h-5 w-5', !captionsEnabled && 'opacity-50')}
+                        aria-hidden
+                    />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="max-h-64 w-56 overflow-y-auto">
