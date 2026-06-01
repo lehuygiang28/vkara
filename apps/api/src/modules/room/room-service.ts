@@ -277,6 +277,22 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         }
     }
 
+    async function restartPlayingNow(ws: ElysiaWS): Promise<void> {
+        const roomId = await validateClientInRoom(ws);
+
+        const room = await mutateRoom(roomId, (room) => {
+            if (!room.playingNow) {
+                throw new RoomError(ErrorCode.INVALID_MESSAGE, 'No video is currently playing');
+            }
+            room.currentTime = 0;
+            room.isPlaying = true;
+            lastPlaybackBroadcastByRoom.delete(roomId);
+        });
+
+        broadcastRoomState(roomId, room);
+        publishToRoom(roomId, { type: 'replay' });
+    }
+
     async function playVideoNow(ws: ElysiaWS, video: YouTubeVideo) {
         const roomId = await validateClientInRoom(ws);
 
@@ -284,7 +300,16 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
         }
 
+        let restartedSameVideo = false;
         const room = await mutateRoom(roomId, (room) => {
+            if (room.playingNow?.id === video.id) {
+                restartedSameVideo = true;
+                room.isPlaying = true;
+                room.currentTime = 0;
+                lastPlaybackBroadcastByRoom.delete(roomId);
+                return;
+            }
+
             room.historyQueue = room.historyQueue.filter((v) => v.id !== video.id);
             room.videoQueue = room.videoQueue.filter((v) => v.id !== video.id);
 
@@ -302,6 +327,9 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         });
 
         broadcastRoomState(roomId, room);
+        if (restartedSameVideo) {
+            publishToRoom(roomId, { type: 'replay' });
+        }
     }
 
     async function advanceToNextPlayable(
@@ -467,19 +495,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     }
 
     async function replay(ws: ElysiaWS) {
-        const roomId = await validateClientInRoom(ws);
-
-        const room = await mutateRoom(roomId, (room) => {
-            if (!room.playingNow) {
-                throw new RoomError(ErrorCode.INVALID_MESSAGE, 'No video is currently playing');
-            }
-            room.currentTime = 0;
-            room.isPlaying = true;
-            lastPlaybackBroadcastByRoom.delete(roomId);
-        });
-
-        broadcastRoomState(roomId, room);
-        publishToRoom(roomId, { type: 'replay' });
+        await restartPlayingNow(ws);
     }
 
     async function moveVideoToTop(ws: ElysiaWS, videoId: string) {

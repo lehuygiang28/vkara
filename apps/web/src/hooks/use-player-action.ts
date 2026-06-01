@@ -4,7 +4,7 @@ import { toast } from '@/hooks/use-toast';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useWaitForRoomSession } from '@/hooks/use-room-session-ready';
 import { registerPendingQueueAdd } from '@/lib/queue-action-feedback';
-import { isVideoInRoom } from '@/lib/room-queue';
+import { isCurrentlyPlaying, isVideoInRoom } from '@/lib/room-queue';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
 import { useI18n, useScopedI18n } from '@/locales/client';
@@ -125,6 +125,19 @@ export const usePlayerAction = (): PlayerAction => {
     const handlePlayVideoNow = useCallback(
         async (video: YouTubeVideo) => {
             if (!(await ensureRoomReady())) return;
+
+            const currentRoom = useYouTubeStore.getState().room;
+            if (isCurrentlyPlaying(currentRoom, video.id)) {
+                ensureConnectedAndSend({ type: 'replay' });
+                toast({
+                    title: t('toast.playNowHandler'),
+                    description: truncateVideoTitle(video.title),
+                    variant: 'info',
+                    duration: ACTION_FEEDBACK_DURATION_MS,
+                });
+                return;
+            }
+
             ensureConnectedAndSend({ type: 'playNow', video });
             toast({
                 title: t('toast.playNowHandler'),

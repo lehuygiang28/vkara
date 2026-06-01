@@ -10,3 +10,7 @@ export function isVideoInRoom(room: RoomQueueSlice, videoId: string): boolean {
     if (!room) return false;
     return room.playingNow?.id === videoId || room.videoQueue.some((v) => v.id === videoId);
 }
+
+export function isCurrentlyPlaying(room: RoomQueueSlice, videoId: string): boolean {
+    return room?.playingNow?.id === videoId;
+}
