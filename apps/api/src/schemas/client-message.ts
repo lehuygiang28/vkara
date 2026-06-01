@@ -32,12 +32,28 @@ const youTubeVideoSchema = t.Object({
     isLive: t.Optional(t.Boolean()),
 });
 
+const tvRoomRestoreSchema = t.Object({
+    videoQueue: t.Array(youTubeVideoSchema),
+    playingNow: t.Union([youTubeVideoSchema, t.Null()]),
+    isPlaying: t.Boolean(),
+    currentTime: t.Number(),
+    volume: t.Number(),
+    showQRInPlayer: t.Boolean(),
+});
+
 const withBase = <T extends ReturnType<typeof t.Object>>(schema: T) =>
     t.Intersect([messageBaseSchema, schema]);
 
 export const wsClientMessageSchema = t.Union([
     withBase(t.Object({ type: t.Literal('ping') })),
-    withBase(t.Object({ type: t.Literal('createRoom'), password: t.Optional(t.String()) })),
+    withBase(
+        t.Object({
+            type: t.Literal('createRoom'),
+            password: t.Optional(t.String()),
+            preferredRoomId: t.Optional(t.String()),
+            restore: t.Optional(tvRoomRestoreSchema),
+        }),
+    ),
     withBase(
         t.Object({
             type: t.Literal('joinRoom'),

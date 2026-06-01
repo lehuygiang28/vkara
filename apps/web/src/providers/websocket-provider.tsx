@@ -4,13 +4,14 @@ import React, { createContext, useContext, useEffect, useRef, useCallback } from
 import { useSearchParams } from 'next/navigation';
 
 import { isValidRoomId, resolveUrl } from '@vkara/shared-utils';
+import { ErrorCode } from '@vkara/shared-types';
 import type { WebSocketState } from '@/types/websocket.type';
 import { getEffectiveLayoutMode } from '@/lib/layout-mode';
+import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
 import { useIsRoomSessionReady } from '@/hooks/use-room-session-ready';
 import { useViewportWidth } from '@/hooks/use-viewport-layout';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocketStore, initializeWebSocket } from '@/store/websocketStore';
-import { ErrorCode } from '@vkara/shared-types';
 
 interface EnhancedWebSocketState extends WebSocketState {
     ensureConnectedAndSend: WebSocketState['sendMessage'];
@@ -52,6 +53,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const connect = useWebSocketStore((s) => s.connect);
     const disconnect = useWebSocketStore((s) => s.disconnect);
     const forceReconnect = useWebSocketStore((s) => s.forceReconnect);
+    const clearRoomScopedMessages = useWebSocketStore((s) => s.clearRoomScopedMessages);
+    const clearPendingMessages = useWebSocketStore((s) => s.clearPendingMessages);
     const isMessagePending = useWebSocketStore((s) => s.isMessagePending);
     const getPendingMessages = useWebSocketStore((s) => s.getPendingMessages);
 
@@ -60,6 +63,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const wsInitialized = useRef(false);
     const lastSyncedEpoch = useRef(-1);
+    const recoveryInFlight = useRef(false);
+    const abandonedRoomIdRef = useRef<string | null>(null);
 
     const roomIdParam = searchParams.get('roomId');
     const passwordParam = searchParams.get('password');
@@ -75,21 +80,44 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const isRoomSessionReady = useIsRoomSessionReady();
 
+    const ensureConnectedAndSend: WebSocketState['sendMessage'] = useCallback(
+        (messageData) => {
+            if (connectionStatus !== 'OPEN') {
+                connect();
+            }
+            return sendMessage(messageData);
+        },
+        [connectionStatus, connect, sendMessage],
+    );
+
+    const beginTvRecovery = useCallback(
+        (snapshotRoom = useYouTubeStore.getState().room) => {
+            if (!isTvLayout || recoveryInFlight.current) return false;
+
+            recoveryInFlight.current = true;
+            const snapshot = captureTvRoomSnapshot(snapshotRoom);
+            if (snapshot) {
+                abandonedRoomIdRef.current = snapshot.previousRoomId;
+            }
+
+            lastSyncedEpoch.current = -1;
+            clearRoomScopedMessages();
+            recoverTvRoom(ensureConnectedAndSend, snapshot);
+            return true;
+        },
+        [isTvLayout, clearRoomScopedMessages, ensureConnectedAndSend],
+    );
+
     useEffect(() => {
         if (
             lastMessage?.type === 'roomJoined' ||
             lastMessage?.type === 'roomCreated'
         ) {
+            recoveryInFlight.current = false;
+            abandonedRoomIdRef.current = null;
             useWebSocketStore.setState({ roomSessionEpoch: connectionEpoch });
         }
     }, [lastMessage, connectionEpoch]);
-
-    useEffect(() => {
-        if (connectionStatus !== 'OPEN') return;
-        if (!room?.id && isTvLayout) {
-            useWebSocketStore.setState({ roomSessionEpoch: connectionEpoch });
-        }
-    }, [connectionStatus, connectionEpoch, room?.id, isTvLayout]);
 
     useEffect(() => {
         lastSyncedEpoch.current = -1;
@@ -112,19 +140,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return cleanup;
     }, []);
 
-    const ensureConnectedAndSend: WebSocketState['sendMessage'] = useCallback(
-        (messageData) => {
-            if (connectionStatus !== 'OPEN') {
-                connect();
-            }
-            return sendMessage(messageData);
-        },
-        [connectionStatus, connect, sendMessage],
-    );
-
     const syncRoomSession = useCallback(() => {
         if (connectionStatus !== 'OPEN') return;
         if (lastSyncedEpoch.current === connectionEpoch) return;
+        if (recoveryInFlight.current) return;
         lastSyncedEpoch.current = connectionEpoch;
 
         if (hasInviteInUrl && roomIdParam) {
@@ -211,11 +230,23 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }, [room?.id]);
 
     useEffect(() => {
+        if (lastMessage?.type === 'roomClosed') {
+            if (isTvLayout) {
+                beginTvRecovery(useYouTubeStore.getState().room);
+            } else {
+                setRoom(null);
+            }
+            return;
+        }
+
         if (
             lastMessage?.type === 'errorWithCode' &&
             lastMessage.code === ErrorCode.NOT_IN_ROOM &&
             room?.id
         ) {
+            if (recoveryInFlight.current) return;
+            if (abandonedRoomIdRef.current === room.id) return;
+
             lastSyncedEpoch.current = -1;
             ensureConnectedAndSend({
                 type: 'reJoinRoom',
@@ -230,12 +261,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             lastMessage.code === ErrorCode.REJOIN_ROOM_NOT_FOUND
         ) {
             lastSyncedEpoch.current = -1;
-            setRoom(null);
             if (isTvLayout) {
-                ensureConnectedAndSend({ type: 'createRoom' });
+                beginTvRecovery(useYouTubeStore.getState().room);
+            } else {
+                setRoom(null);
             }
         }
-    }, [lastMessage, ensureConnectedAndSend, isTvLayout, setRoom, room?.id, room?.password]);
+    }, [
+        lastMessage,
+        ensureConnectedAndSend,
+        isTvLayout,
+        setRoom,
+        room?.id,
+        room?.password,
+        beginTvRecovery,
+    ]);
 
     const enhancedWebSocketStore: EnhancedWebSocketState = {
         sendMessage,
@@ -248,6 +288,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         forceReconnect,
         isMessagePending,
         getPendingMessages,
+        clearPendingMessages,
+        clearRoomScopedMessages,
         ensureConnectedAndSend,
         isRoomSessionReady,
     };

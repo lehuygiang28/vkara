@@ -15,9 +15,11 @@ import {
     type ClientMessage,
     type Room,
     type ServerMessage,
+    type TvRoomRestoreState,
     type YouTubeVideo,
 } from '@vkara/shared-types';
-import { ROOM_ID_LENGTH } from '@vkara/shared-utils';
+import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/shared-utils';
+import { applyTvRestoreToRoom } from '@/modules/room/apply-tv-restore';
 import { publishToRoom } from '@/modules/room/room-broadcast';
 import { checkEmbeddable } from '@/modules/youtube/embeddable';
 import { fetchYoutubePlaylistVideos } from '@/modules/youtube/fetch-playlist-videos';
@@ -110,7 +112,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         sendToClient(ws, { type: 'roomJoined', yourId: ws.id, room: cleanUpRoomField(room) });
     }
 
-    async function createRoom(ws: ElysiaWS, password?: string) {
+    async function generateAvailableRoomId(): Promise<string> {
         let roomId: string;
         let roomExists: boolean;
 
@@ -119,7 +121,48 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             roomExists = await roomIdExists(roomId);
         } while (roomExists);
 
-        roomLogger.info(`Creating new room`, { roomId, creatorId: ws.id });
+        return roomId;
+    }
+
+    async function resolveCreateRoomId(
+        preferredRoomId?: string,
+        restore?: TvRoomRestoreState,
+    ): Promise<string> {
+        if (
+            restore &&
+            preferredRoomId &&
+            isValidRoomId(preferredRoomId) &&
+            !(await roomIdExists(preferredRoomId))
+        ) {
+            return preferredRoomId;
+        }
+
+        if (restore && preferredRoomId && (await roomIdExists(preferredRoomId))) {
+            roomLogger.debug('Preferred room id taken during TV recovery, using random id', {
+                preferredRoomId,
+            });
+        }
+
+        return generateAvailableRoomId();
+    }
+
+    async function createRoom(
+        ws: ElysiaWS,
+        password?: string,
+        preferredRoomId?: string,
+        restore?: TvRoomRestoreState,
+    ) {
+        const roomId = await resolveCreateRoomId(
+            restore ? preferredRoomId : undefined,
+            restore,
+        );
+
+        roomLogger.info(`Creating new room`, {
+            roomId,
+            creatorId: ws.id,
+            tvRecovery: Boolean(restore),
+            preferredRoomId: restore ? preferredRoomId : undefined,
+        });
 
         const room: Room = {
             id: roomId,
@@ -135,6 +178,10 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             isPlaying: false,
             currentTime: 0,
         };
+
+        if (restore) {
+            applyTvRestoreToRoom(room, restore);
+        }
 
         await writeRoom(roomId, room);
         await joinRoomInternal(ws, roomId);
@@ -564,7 +611,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 sendToClient(ws, { type: 'pong' });
                 break;
             case 'createRoom':
-                await createRoom(ws, message.password);
+                await createRoom(
+                    ws,
+                    message.password,
+                    message.preferredRoomId,
+                    message.restore,
+                );
                 break;
             case 'joinRoom':
                 await joinRoom(ws, message.roomId, message.password);

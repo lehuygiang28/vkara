@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { toast, toastFeedback } from '@/hooks/use-toast';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@vkara/shared-types';
+import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
@@ -77,7 +78,8 @@ export const usePlayerAction = (): PlayerAction => {
             return false;
         }
 
-        ensureConnectedAndSend({ type: 'createRoom' });
+        const snapshot = captureTvRoomSnapshot(useYouTubeStore.getState().room);
+        recoverTvRoom(ensureConnectedAndSend, snapshot);
 
         if (useYouTubeStore.getState().room?.id) {
             return true;

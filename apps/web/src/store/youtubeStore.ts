@@ -45,7 +45,11 @@ interface YouTubeState {
     playNow: (video: YouTubeVideo) => void;
     nextVideo: () => void;
     setIsPlaying: (isPlaying: boolean) => void;
-    handleServerMessage: (message: ServerMessage, t: ReturnType<typeof useScopedI18n>) => void;
+    handleServerMessage: (
+        message: ServerMessage,
+        t: ReturnType<typeof useScopedI18n>,
+        options?: { isTvLayout?: boolean },
+    ) => void;
 }
 
 export const useYouTubeStore = create(
@@ -145,7 +149,9 @@ export const useYouTubeStore = create(
                     room: state.room ? { ...state.room, isPlaying } : null,
                 })),
 
-            handleServerMessage: (message, t) => {
+            handleServerMessage: (message, t, options) => {
+                const isTvLayout = options?.isTvLayout ?? false;
+
                 switch (message.type) {
                     case 'roomJoined': {
                         const roomVolume = Math.min(100, Math.max(0, message.room.volume));
@@ -162,22 +168,25 @@ export const useYouTubeStore = create(
                         set({ room: null });
                         break;
                     case 'roomClosed':
-                        set({ room: null });
-                        toast({
-                            id: 'room-closed',
-                            title: t('roomClosed'),
-                            description: t('roomClosedDescription'),
-                            variant: 'error',
-                        });
+                        if (!isTvLayout) {
+                            toast({
+                                id: 'room-closed',
+                                title: t('roomClosed'),
+                                description: t('roomClosedDescription'),
+                                variant: 'error',
+                            });
+                        }
                         break;
                     case 'roomNotFound':
                         set({ room: null });
-                        toast({
-                            id: 'room-not-found',
-                            title: t('roomNotFound'),
-                            description: t('roomNotFoundDescription'),
-                            variant: 'error',
-                        });
+                        if (!isTvLayout) {
+                            toast({
+                                id: 'room-not-found',
+                                title: t('roomNotFound'),
+                                description: t('roomNotFoundDescription'),
+                                variant: 'error',
+                            });
+                        }
                         break;
                     case 'currentTimeChanged':
                         {
@@ -185,9 +194,7 @@ export const useYouTubeStore = create(
                                 const player = state.player;
                                 if (player) {
                                     const playerSeconds = Math.floor(player.getCurrentTime());
-                                    const drift = Math.abs(
-                                        playerSeconds - message.currentTime,
-                                    );
+                                    const drift = Math.abs(playerSeconds - message.currentTime);
                                     if (drift > PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC) {
                                         player.seekTo(message.currentTime, true);
                                     }
@@ -259,9 +266,7 @@ export const useYouTubeStore = create(
                                 }
                                 return {
                                     ...state,
-                                    room: state.room
-                                        ? { ...state.room, isPlaying: false }
-                                        : null,
+                                    room: state.room ? { ...state.room, isPlaying: false } : null,
                                 };
                             });
                         }
@@ -271,12 +276,14 @@ export const useYouTubeStore = create(
                             switch (message.code) {
                                 case ErrorCode.ROOM_NOT_FOUND:
                                     set({ room: null });
-                                    toast({
-                                        id: 'room-not-found',
-                                        title: t('roomNotFound'),
-                                        description: t('roomNotFoundDescription'),
-                                        variant: 'error',
-                                    });
+                                    if (!isTvLayout) {
+                                        toast({
+                                            id: 'room-not-found',
+                                            title: t('roomNotFound'),
+                                            description: t('roomNotFoundDescription'),
+                                            variant: 'error',
+                                        });
+                                    }
                                     break;
                                 case ErrorCode.NOT_IN_ROOM:
                                     toast({
@@ -309,6 +316,16 @@ export const useYouTubeStore = create(
                                         description: t('videoNotEmbeddableDescription'),
                                         variant: 'error',
                                     });
+                                    break;
+                                case ErrorCode.REJOIN_ROOM_NOT_FOUND:
+                                    if (!isTvLayout) {
+                                        toast({
+                                            id: 'room-not-found',
+                                            title: t('roomNotFound'),
+                                            description: t('roomNotFoundDescription'),
+                                            variant: 'error',
+                                        });
+                                    }
                                     break;
                                 default:
                                     break;

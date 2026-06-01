@@ -16,6 +16,8 @@ export interface WebSocketState {
     forceReconnect: () => void;
     isMessagePending: (messageId: string) => boolean;
     getPendingMessages: () => ClientMessage[];
+    clearPendingMessages: () => void;
+    clearRoomScopedMessages: () => void;
 }
 
 export interface WebSocketConfig {

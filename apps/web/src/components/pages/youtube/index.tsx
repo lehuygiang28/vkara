@@ -58,12 +58,14 @@ export default function YoutubePlayerPage() {
     const { lastMessage } = useWebSocket();
     usePlaybackPositionSync();
 
+    const isTvLayout = effectiveLayoutMode !== 'remote';
+
     useEffect(() => {
         if (lastMessage) {
-            handleServerMessage(lastMessage, t_Toast);
+            handleServerMessage(lastMessage, t_Toast, { isTvLayout });
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastMessage, handleServerMessage]);
+    }, [lastMessage, handleServerMessage, isTvLayout]);
 
     useEffect(() => {
         if (effectiveLayoutMode === 'remote' && prevLayoutMode.current !== 'remote') {

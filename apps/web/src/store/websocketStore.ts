@@ -131,12 +131,7 @@ class WebSocketManager {
         this.lastConnectionTime = Date.now();
         this.setStatus('OPEN');
         this.bumpConnectionEpoch();
-
-        for (const { message } of this.messageQueue.values()) {
-            if (message.type !== 'ping') {
-                this.sendMessageToServer(message);
-            }
-        }
+        this.clearPendingMessages();
         this.startHeartbeat();
     };
 
@@ -317,6 +312,26 @@ class WebSocketManager {
         return Array.from(this.messageQueue.values()).map(({ message }) => message);
     };
 
+    clearPendingMessages = () => {
+        this.messageQueue.clear();
+    };
+
+    clearRoomScopedMessages = () => {
+        const sessionTypes = new Set<ClientMessage['type']>([
+            'ping',
+            'createRoom',
+            'joinRoom',
+            'reJoinRoom',
+            'leaveRoom',
+        ]);
+
+        for (const [messageId, { message }] of this.messageQueue) {
+            if (!sessionTypes.has(message.type)) {
+                this.messageQueue.delete(messageId);
+            }
+        }
+    };
+
     forceReconnect = () => {
         this.intentionalClose = false;
         this.reconnecting = false;
@@ -388,6 +403,12 @@ export const useWebSocketStore = create<WebSocketState>(() => ({
     },
     isMessagePending: () => false,
     getPendingMessages: () => [],
+    clearPendingMessages: () => {
+        console.error('WebSocket not initialized');
+    },
+    clearRoomScopedMessages: () => {
+        console.error('WebSocket not initialized');
+    },
 }));
 
 export const initializeWebSocket = (config: WebSocketConfig) => {
@@ -400,6 +421,8 @@ export const initializeWebSocket = (config: WebSocketConfig) => {
         forceReconnect: wsManager.forceReconnect,
         isMessagePending: wsManager.isMessagePending,
         getPendingMessages: wsManager.getPendingMessages,
+        clearPendingMessages: wsManager.clearPendingMessages,
+        clearRoomScopedMessages: wsManager.clearRoomScopedMessages,
     });
 
     wsManager.connect();
