@@ -109,7 +109,7 @@ function ActionFeedbackCard({ className }: { className?: string }) {
 }
 
 const hostTransition = cn(
-    'transition-[opacity,transform] duration-200 ease-[cubic-bezier(0.16,1,0.3,1)]',
+    'transition-[opacity,transform] duration-200 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]',
     'motion-reduce:transition-none motion-reduce:transform-none',
 );
 
