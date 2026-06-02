@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils';
 const MIN_ICON_SIZE = 20;
 const MAX_ICON_SIZE = 44;
 const MIN_GAP_FOR_ICON = 16;
+const ICON_VERTICAL_PADDING = 4;
 
 type VideoListPullHeaderProps = {
     pullPosition: number;
@@ -31,14 +32,15 @@ function displayGap(
 
 function iconSizeForGap(gap: number, refreshThreshold: number): number {
     if (gap < MIN_GAP_FOR_ICON) return 0;
+    const maxFit = Math.max(0, gap - ICON_VERTICAL_PADDING);
     const ratio = Math.min(1, gap / Math.max(refreshThreshold, 1));
-    return Math.round(MIN_ICON_SIZE + ratio * (MAX_ICON_SIZE - MIN_ICON_SIZE));
+    const target = Math.round(MIN_ICON_SIZE + ratio * (MAX_ICON_SIZE - MIN_ICON_SIZE));
+    return Math.min(target, maxFit);
 }
 
-function loaderTransform(pullPosition: number, isRefreshing: boolean): string {
-    const center = 'translate(-50%, -50%)';
-    if (isRefreshing || pullPosition <= 0) return center;
-    return `${center} rotate(${Math.min(pullPosition * 2, 360)}deg)`;
+function pullRotationDeg(pullPosition: number, refreshThreshold: number): number {
+    const progress = Math.min(1, pullPosition / Math.max(refreshThreshold, 1));
+    return Math.round(progress * 300);
 }
 
 /** Reserves space above the list; spinner scales and stays centered in the pull gap. */
@@ -55,11 +57,13 @@ export function VideoListPullHeader({
     const isDragging = pullPosition > 0 && !isRefreshing;
     const iconSize = iconSizeForGap(gap, refreshThreshold);
     const showIcon = iconSize > 0;
+    const pullRotation =
+        isDragging && pullPosition > 0 ? pullRotationDeg(pullPosition, refreshThreshold) : 0;
 
     return (
         <div
             className={cn(
-                'relative shrink-0 overflow-hidden',
+                'relative flex shrink-0 items-center justify-center overflow-hidden',
                 !isDragging &&
                     'transition-[height] duration-200 ease-out motion-reduce:transition-none',
             )}
@@ -69,20 +73,27 @@ export function VideoListPullHeader({
             aria-label={isRefreshing ? 'Refreshing' : undefined}
         >
             {showIcon ? (
-                <Loader2
+                <div
                     className={cn(
-                        'absolute left-1/2 top-1/2 text-muted-foreground',
-                        isRefreshing && 'animate-spin motion-reduce:animate-none',
+                        'flex shrink-0 items-center justify-center',
                         !isDragging &&
                             'transition-[width,height] duration-200 ease-out motion-reduce:transition-none',
                     )}
                     style={{
                         width: iconSize,
                         height: iconSize,
-                        transform: loaderTransform(pullPosition, isRefreshing),
+                        transform:
+                            pullRotation > 0 ? `rotate(${pullRotation}deg)` : undefined,
                     }}
-                    aria-hidden
-                />
+                >
+                    <Loader2
+                        className={cn(
+                            'size-full text-muted-foreground',
+                            isRefreshing && 'animate-spin motion-reduce:animate-none',
+                        )}
+                        aria-hidden
+                    />
+                </div>
             ) : null}
         </div>
     );

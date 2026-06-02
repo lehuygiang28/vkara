@@ -66,7 +66,7 @@ export function usePullToRefresh({
             const touch = event.targetTouches[0];
             if (!touch) return;
 
-            pullStartYRef.current = touch.screenY;
+            pullStartYRef.current = touch.clientY;
         },
         [elementRef],
     );
@@ -87,7 +87,9 @@ export function usePullToRefresh({
             }
 
             const rawPullLength =
-                touch.screenY > pullStartYRef.current ? touch.screenY - pullStartYRef.current : 0;
+                touch.clientY > pullStartYRef.current
+                    ? touch.clientY - pullStartYRef.current
+                    : 0;
 
             let nextPullLength = rawPullLength;
             if (enableResistance && rawPullLength > 0) {
@@ -107,11 +109,16 @@ export function usePullToRefresh({
         }
 
         const finalPullPosition = pullPositionRef.current;
-        resetPull();
+        pullStartYRef.current = 0;
 
-        if (finalPullPosition < refreshThreshold || !onRefresh) return;
+        if (finalPullPosition < refreshThreshold || !onRefresh) {
+            resetPull();
+            return;
+        }
 
         setIsRefreshing(true);
+        pullPositionRef.current = 0;
+        setPullPosition(0);
 
         try {
             const result = onRefresh();
