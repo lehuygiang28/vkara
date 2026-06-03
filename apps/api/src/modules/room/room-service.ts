@@ -12,6 +12,7 @@ import {
     RoomError,
     shouldBroadcastPlaybackTime,
     type CaptionTrack,
+    acceptSyncPlaybackPositionTime,
     type PlaybackTimeSyncState,
     type ClientInfo,
     type ClientMessage,
@@ -536,19 +537,30 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     async function syncPlaybackPosition(ws: ElysiaWS, time: number, force = false) {
         const roomId = await validateClientInRoom(ws);
         let previousTime = 0;
+        let acceptedTime: number | null = null;
 
         await mutateRoom(roomId, (room) => {
             previousTime = room.currentTime;
-            room.currentTime = time;
+            acceptedTime = acceptSyncPlaybackPositionTime(room.currentTime, time);
+            if (acceptedTime !== null) {
+                room.currentTime = acceptedTime;
+            }
         });
 
-        const lastBroadcast = lastPlaybackBroadcastByRoom.get(roomId);
-        if (!force && !shouldBroadcastPlaybackTime(lastBroadcast, time, previousTime)) {
+        if (acceptedTime === null) {
             return;
         }
 
-        lastPlaybackBroadcastByRoom.set(roomId, { at: Date.now(), seconds: time });
-        publishToRoom(roomId, { type: 'currentTimeChanged', currentTime: time });
+        const lastBroadcast = lastPlaybackBroadcastByRoom.get(roomId);
+        if (
+            !force &&
+            !shouldBroadcastPlaybackTime(lastBroadcast, acceptedTime, previousTime)
+        ) {
+            return;
+        }
+
+        lastPlaybackBroadcastByRoom.set(roomId, { at: Date.now(), seconds: acceptedTime });
+        publishToRoom(roomId, { type: 'currentTimeChanged', currentTime: acceptedTime });
     }
 
     async function replay(ws: ElysiaWS) {

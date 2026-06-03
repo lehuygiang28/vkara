@@ -7,7 +7,10 @@ import { LayoutGroup } from 'framer-motion';
 
 import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/shared-utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/shared-types';
+import {
+    DEFAULT_CAPTION_LANGUAGE,
+    needsPlaybackSeekCorrection,
+} from '@vkara/shared-types';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
@@ -20,6 +23,7 @@ import {
     applyPreferredPlaybackQuality,
     isServerPlaybackEcho,
     isYoutubePlaybackIntentState,
+    markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
 import { isVideoLive } from '@/lib/youtube-video';
 import type { YouTubeStoreLayoutMode } from '@/store/youtubeStore';
@@ -135,6 +139,16 @@ export function PlayerColumn({
         );
         if (targetVolume !== storedVolume) {
             setVolume(targetVolume);
+        }
+
+        const serverTime = currentRoom?.currentTime ?? 0;
+        if (
+            currentRoom?.playingNow &&
+            serverTime > 0 &&
+            needsPlaybackSeekCorrection(event.target.getCurrentTime(), serverTime)
+        ) {
+            markServerPlaybackCommand();
+            event.target.seekTo(serverTime, true);
         }
     };
 

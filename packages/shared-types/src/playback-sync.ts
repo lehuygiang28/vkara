@@ -37,6 +37,31 @@ export function computeExtrapolatedPlaybackSeconds(
  * Whether a playback position should be broadcast over WebSocket.
  * User-initiated large seeks should pass; high-frequency small updates should not.
  */
+/**
+ * Periodic position sync must not move the room backward (late join / reconnect at t≈0).
+ * User seeks use the `seek` message instead.
+ */
+export function acceptSyncPlaybackPositionTime(
+    serverSeconds: number,
+    proposedSeconds: number,
+): number | null {
+    const server = Math.max(0, Math.floor(serverSeconds));
+    const proposed = Math.max(0, Math.floor(proposedSeconds));
+    if (proposed < server) {
+        return null;
+    }
+    return proposed;
+}
+
+export function needsPlaybackSeekCorrection(
+    playerSeconds: number,
+    targetSeconds: number,
+): boolean {
+    const player = Math.floor(playerSeconds);
+    const target = Math.floor(targetSeconds);
+    return Math.abs(player - target) > PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC;
+}
+
 export function shouldBroadcastPlaybackTime(
     last: PlaybackTimeSyncState | undefined,
     nextSeconds: number,

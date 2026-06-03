@@ -6,10 +6,12 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import {
+    acceptSyncPlaybackPositionTime,
     PLAYBACK_TIME_BROADCAST_MIN_INTERVAL_MS,
     shouldBroadcastPlaybackTime,
     type PlaybackTimeSyncState,
 } from '@vkara/shared-types';
+import { useIsRoomSessionReady } from '@/hooks/use-room-session-ready';
 
 const PERIODIC_SYNC_INTERVAL_MS = PLAYBACK_TIME_BROADCAST_MIN_INTERVAL_MS;
 
@@ -28,25 +30,32 @@ export function usePlaybackPositionSync(): void {
     const playingNowId = useYouTubeStore((s) => s.room?.playingNow?.id);
     const isPlaying = useYouTubeStore((s) => s.room?.isPlaying ?? false);
     const { ensureConnectedAndSend } = useWebSocket();
+    const isRoomSessionReady = useIsRoomSessionReady();
     const lastSentRef = useRef<PlaybackTimeSyncState | undefined>(undefined);
     const prevIsPlayingRef = useRef<boolean | undefined>(undefined);
 
     const sendSync = useCallback(
         (seconds: number, force = false) => {
-            if (!roomId) return;
+            if (!roomId || !isRoomSessionReady) return;
 
-            const previous = useYouTubeStore.getState().room?.currentTime ?? seconds;
+            const serverTime = useYouTubeStore.getState().room?.currentTime ?? 0;
+            const accepted = acceptSyncPlaybackPositionTime(serverTime, seconds);
+            if (accepted === null) {
+                return;
+            }
+
+            const previous = serverTime;
             if (
                 !force &&
-                !shouldBroadcastPlaybackTime(lastSentRef.current, seconds, previous)
+                !shouldBroadcastPlaybackTime(lastSentRef.current, accepted, previous)
             ) {
                 return;
             }
 
-            lastSentRef.current = { at: Date.now(), seconds };
-            ensureConnectedAndSend({ type: 'syncPlaybackPosition', time: seconds, force });
+            lastSentRef.current = { at: Date.now(), seconds: accepted };
+            ensureConnectedAndSend({ type: 'syncPlaybackPosition', time: accepted, force });
         },
-        [roomId, ensureConnectedAndSend],
+        [roomId, isRoomSessionReady, ensureConnectedAndSend],
     );
 
     useEffect(() => {

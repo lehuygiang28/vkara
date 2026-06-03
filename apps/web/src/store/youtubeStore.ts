@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import {
     ErrorCode,
     normalizePersistedRoom,
-    PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC,
+    needsPlaybackSeekCorrection,
     type Room,
     type ServerMessage,
     type YouTubeVideo,
@@ -208,12 +208,15 @@ export const useYouTubeStore = create(
                         {
                             set((state) => {
                                 const player = state.player;
-                                if (player) {
-                                    const playerSeconds = Math.floor(player.getCurrentTime());
-                                    const drift = Math.abs(playerSeconds - message.currentTime);
-                                    if (drift > PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC) {
-                                        player.seekTo(message.currentTime, true);
-                                    }
+                                if (
+                                    player &&
+                                    needsPlaybackSeekCorrection(
+                                        player.getCurrentTime(),
+                                        message.currentTime,
+                                    )
+                                ) {
+                                    markServerPlaybackCommand();
+                                    player.seekTo(message.currentTime, true);
                                 }
                                 return {
                                     ...state,
