@@ -28,13 +28,18 @@ export function ControlsThumbDeck({ className }: { className?: string }) {
 
     return (
         <section
-            className={cn(
-                'shrink-0 border-t border-border/50 bg-background/90 pb-2 pt-3 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80',
-                className,
-            )}
+            className={cn('shrink-0 px-3 pb-3 pt-2', className)}
             aria-label="Playback controls"
         >
-            <div className="mx-auto flex w-full max-w-md flex-col gap-3">
+            <div
+                className={cn(
+                    'mx-auto flex w-full max-w-md flex-col gap-4',
+                    'rounded-xl border border-border/60 bg-card/95 p-4',
+                    'shadow-[0_10px_40px_-12px_rgb(0_0_0/0.55),0_4px_12px_-4px_rgb(0_0_0/0.35)]',
+                    'ring-1 ring-inset ring-white/[0.06]',
+                    'backdrop-blur-md supports-[backdrop-filter]:bg-card/80',
+                )}
+            >
                 {!isLive && duration > 0 ? (
                     <PlaybackScrubber
                         displayTime={displayTime}

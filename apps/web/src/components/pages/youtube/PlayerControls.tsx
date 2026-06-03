@@ -221,7 +221,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     />
                 </div>
 
-                <div className="rounded-xl border bg-muted/30 p-2.5">
+                <div className="rounded-xl border border-border/60 bg-muted/30 p-2.5 shadow-sm ring-1 ring-inset ring-white/[0.04]">
                     <div className="flex items-center gap-3">
                         <Button
                             type="button"
