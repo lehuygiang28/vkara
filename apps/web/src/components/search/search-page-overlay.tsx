@@ -2,11 +2,17 @@
 
 import { memo, useCallback, useEffect, useId, useRef, useState } from 'react';
 import * as ReactDOM from 'react-dom';
-import { ArrowUpLeft, ChevronLeft, Clock, Loader2, Mic, Search, X } from 'lucide-react';
+import { ArrowUpLeft, Clock, Loader2, Search, X } from 'lucide-react';
 import { useDebouncedCallback } from 'use-debounce';
 
-import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
+import {
+    SearchFieldChrome,
+    SearchFieldClearButton,
+    SearchFieldModeActions,
+    SearchHeaderBackButton,
+    SearchHeaderRow,
+} from '@/components/search/search-header';
 import { VoiceSearchOverlay } from '@/components/search/voice-search-overlay';
 import { useOverlayPortal } from '@/components/pages/youtube/remote-panel-overlay-root';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
@@ -19,6 +25,7 @@ export type SearchPageOverlayProps = {
     open: boolean;
     initialQuery?: string;
     committedQuery: string;
+    isKaraoke: boolean;
     suggestions: readonly string[];
     isSearching: boolean;
     isLoadingSuggestions: boolean;
@@ -27,6 +34,7 @@ export type SearchPageOverlayProps = {
     onDebouncedQueryAction: (query: string) => void;
     onClearSuggestionsAction: () => void;
     onRemoveLocalSuggestionAction?: (query: string) => void;
+    onKaraokeChangeAction: (isKaraoke: boolean, queryOverride?: string) => void;
     onSearchAction: (query: string) => void;
 };
 
@@ -173,6 +181,7 @@ type SearchPageOverlayContentProps = Omit<SearchPageOverlayProps, 'open'>;
 function SearchPageOverlayContent({
     initialQuery,
     committedQuery,
+    isKaraoke,
     suggestions,
     isSearching,
     isLoadingSuggestions,
@@ -181,6 +190,7 @@ function SearchPageOverlayContent({
     onDebouncedQueryAction: onDebouncedQuery,
     onClearSuggestionsAction: onClearSuggestions,
     onRemoveLocalSuggestionAction: onRemoveLocalSuggestion,
+    onKaraokeChangeAction: onKaraokeChange,
     onSearchAction: onSearch,
 }: SearchPageOverlayContentProps) {
     const t = useScopedI18n('videoSearch');
@@ -214,6 +224,18 @@ function SearchPageOverlayContent({
             onSearch(trimmed);
         },
         [debouncedNotify, onSearch],
+    );
+
+    const handleKaraokeChange = useCallback(
+        (value: boolean) => {
+            const activeQuery = draft.trim() || committedQuery.trim();
+            onKaraokeChange(value, activeQuery || undefined);
+            if (draft.trim()) {
+                debouncedNotify.cancel();
+                onCloseAction();
+            }
+        },
+        [committedQuery, draft, debouncedNotify, onCloseAction, onKaraokeChange],
     );
 
     const handleChange = useCallback(
@@ -375,17 +397,9 @@ function SearchPageOverlayContent({
                 aria-modal="true"
                 aria-label={t('search')}
             >
-                <header className="flex shrink-0 items-center gap-1 px-safe-offset pt-safe-offset sm:gap-2">
-                    <button
-                        type="button"
-                        onClick={onCloseAction}
-                        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-foreground/90 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        aria-label={t('back')}
-                    >
-                        <ChevronLeft className="h-7 w-7" strokeWidth={1.75} />
-                    </button>
-
-                    <div className="relative flex min-w-0 flex-1 items-center overflow-hidden rounded-full border border-border/50 bg-muted/40 pl-4 pr-1 shadow-none focus-within:border-ring/60 focus-within:bg-muted/25 focus-within:ring-1 focus-within:ring-ring/40">
+                <SearchHeaderRow className="shrink-0 pb-0">
+                    <SearchHeaderBackButton onClickAction={onCloseAction} />
+                    <SearchFieldChrome variant="overlay">
                         <input
                             type="text"
                             role="combobox"
@@ -398,7 +412,7 @@ function SearchPageOverlayContent({
                             autoFocus
                             placeholder={t('searchPlaceholder')}
                             value={draft}
-                            className="search-overlay-input min-h-11 min-w-0 flex-1 border-0 bg-transparent py-2.5 text-base outline-none placeholder:text-muted-foreground"
+                            className="search-overlay-input min-w-0 flex-1 border-0 bg-transparent py-2.5 text-base outline-none placeholder:text-muted-foreground"
                             aria-autocomplete="list"
                             aria-controls={listId}
                             aria-expanded={suggestions.length > 0}
@@ -417,34 +431,16 @@ function SearchPageOverlayContent({
                                 }
                             }}
                         />
-                        {draft ? (
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-9 w-9 shrink-0 rounded-full"
-                                onClick={handleClear}
-                                aria-label={t('clearSearch')}
-                            >
-                                <X className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                        ) : null}
-                    </div>
-
-                    {isVoiceSupported ? (
-                        <button
-                            type="button"
-                            onClick={startVoiceSession}
-                            disabled={isSearching}
-                            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-foreground/90 transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
-                            aria-label={t('voiceSearch')}
-                        >
-                            <Mic className="h-6 w-6" strokeWidth={1.75} />
-                        </button>
-                    ) : (
-                        <div className="w-3 shrink-0 sm:w-1" aria-hidden />
-                    )}
-                </header>
+                        {draft ? <SearchFieldClearButton onClickAction={handleClear} /> : null}
+                        <SearchFieldModeActions
+                            isKaraoke={isKaraoke}
+                            onKaraokeChangeAction={handleKaraokeChange}
+                            isVoiceSupported={isVoiceSupported}
+                            onOpenVoiceAction={startVoiceSession}
+                            voiceDisabled={isSearching}
+                        />
+                    </SearchFieldChrome>
+                </SearchHeaderRow>
 
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-safe-offset">
                     <MemoSuggestionPanel

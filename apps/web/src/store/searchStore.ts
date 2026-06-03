@@ -47,7 +47,7 @@ interface SearchState {
     searchOverlayRequestId: number;
 
     setSearchQuery: (query: string) => void;
-    setIsKaraoke: (isKaraoke: boolean) => void;
+    setIsKaraoke: (isKaraoke: boolean, queryOverride?: string) => void;
     performSearch: (query: string, token?: string | null) => Promise<void>;
     loadMore: () => Promise<void>;
     retryLoadMore: () => Promise<void>;
@@ -80,11 +80,11 @@ export const useSearchStore = create(
 
             setSearchQuery: (query) => set({ searchQuery: query }),
 
-            setIsKaraoke: (isKaraoke) => {
+            setIsKaraoke: (isKaraoke, queryOverride) => {
                 set({ isKaraoke });
-                const { searchQuery, performSearch } = get();
-                if (searchQuery.trim()) {
-                    void performSearch(searchQuery.trim());
+                const query = (queryOverride ?? get().searchQuery).trim();
+                if (query) {
+                    void get().performSearch(query);
                 }
             },
 
@@ -237,7 +237,10 @@ export const useSearchStore = create(
                 set({ isLoadingSuggestions: true });
 
                 try {
-                    const fetchedSuggestions = await getYoutubeSuggestions(trimmed, controller.signal);
+                    const fetchedSuggestions = await getYoutubeSuggestions(
+                        trimmed,
+                        controller.signal,
+                    );
 
                     if (generation !== suggestionsGeneration) return;
 
@@ -258,7 +261,6 @@ export const useSearchStore = create(
 
             requestSearchOverlay: () =>
                 set((state) => ({ searchOverlayRequestId: state.searchOverlayRequestId + 1 })),
-
         }),
         {
             name: 'search-store',

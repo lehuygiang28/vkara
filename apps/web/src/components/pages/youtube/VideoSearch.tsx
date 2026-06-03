@@ -249,6 +249,7 @@ export function VideoSearch() {
                 open={searchOverlayOpen}
                 initialQuery={overlayInitialQuery}
                 committedQuery={searchQuery}
+                isKaraoke={isKaraoke}
                 suggestions={suggestions}
                 isSearching={isLoading}
                 isLoadingSuggestions={isLoadingSuggestions}
@@ -257,6 +258,7 @@ export function VideoSearch() {
                 onDebouncedQueryAction={handleDebouncedQuery}
                 onClearSuggestionsAction={clearSuggestions}
                 onRemoveLocalSuggestionAction={handleRemoveLocalSuggestion}
+                onKaraokeChangeAction={setIsKaraoke}
                 onSearchAction={handleSearch}
             />
 
