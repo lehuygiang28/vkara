@@ -7,10 +7,7 @@ import { LayoutGroup } from 'framer-motion';
 
 import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/shared-utils';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import {
-    DEFAULT_CAPTION_LANGUAGE,
-    needsPlaybackSeekCorrection,
-} from '@vkara/shared-types';
+import { DEFAULT_CAPTION_LANGUAGE, needsPlaybackSeekCorrection } from '@vkara/shared-types';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
@@ -21,6 +18,8 @@ import {
 } from '@/lib/youtube-captions';
 import {
     applyPreferredPlaybackQuality,
+    applyRoomPlaybackToPlayer,
+    isPlayerActuallyPlaying,
     isServerPlaybackEcho,
     isYoutubePlaybackIntentState,
     markServerPlaybackCommand,
@@ -90,6 +89,21 @@ export function PlayerColumn({
         captionSyncCleanupRef.current = null;
     }, [room?.playingNow?.id]);
 
+    const playingNowId = room?.playingNow?.id;
+    const roomIsPlaying = room?.isPlaying ?? false;
+    const roomId = room?.id;
+
+    useEffect(() => {
+        if (effectiveLayoutMode === 'remote' || !roomId || !playingNowId) {
+            return;
+        }
+        const player = useYouTubeStore.getState().player;
+        if (!player) {
+            return;
+        }
+        applyRoomPlaybackToPlayer(player, roomIsPlaying);
+    }, [effectiveLayoutMode, roomId, playingNowId, roomIsPlaying]);
+
     const syncCaptionTracksFromPlayer = useCallback(
         (player: YT.Player) => {
             const currentRoom = useYouTubeStore.getState().room;
@@ -150,29 +164,36 @@ export function PlayerColumn({
             markServerPlaybackCommand();
             event.target.seekTo(serverTime, true);
         }
+
+        if (currentRoom?.playingNow) {
+            applyRoomPlaybackToPlayer(event.target, currentRoom.isPlaying ?? false);
+        }
     };
 
     const onPlayerStateChange = (event: YT.PlayerEvent) => {
         const playerState = event.target.getPlayerState();
 
-        if (
-            effectiveLayoutMode !== 'remote' &&
-            room?.id &&
-            isYoutubePlaybackIntentState(playerState) &&
-            !isServerPlaybackEcho()
-        ) {
-            const playing = playerState === YT.PlayerState.PLAYING;
-            const serverPlaying = useYouTubeStore.getState().room?.isPlaying;
-            if (serverPlaying !== undefined && serverPlaying !== playing) {
-                ensureConnectedAndSend({ type: playing ? 'play' : 'pause' });
+        if (effectiveLayoutMode !== 'remote' && room?.id && !isServerPlaybackEcho()) {
+            const serverPlaying = useYouTubeStore.getState().room?.isPlaying ?? false;
+
+            if (isYoutubePlaybackIntentState(playerState)) {
+                const playing = playerState === YT.PlayerState.PLAYING;
+                if (serverPlaying !== playing) {
+                    ensureConnectedAndSend({ type: playing ? 'play' : 'pause' });
+                }
+                setIsPlaying(playing);
+            } else if (isPlayerActuallyPlaying(event.target) !== serverPlaying) {
+                const playing = isPlayerActuallyPlaying(event.target);
+                if (playing) {
+                    ensureConnectedAndSend({ type: 'play' });
+                } else {
+                    ensureConnectedAndSend({ type: 'pause' });
+                }
+                setIsPlaying(playing);
             }
-            setIsPlaying(playing);
         }
 
-        if (
-            playerState === YT.PlayerState.PLAYING ||
-            playerState === YT.PlayerState.CUED
-        ) {
+        if (playerState === YT.PlayerState.PLAYING || playerState === YT.PlayerState.CUED) {
             syncCaptionTracksFromPlayer(event.target);
         }
 
@@ -239,6 +260,7 @@ export function PlayerColumn({
                     <YoutubeTvEmbed
                         key={`${room.playingNow.id}-${effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}`}
                         videoId={room.playingNow.id}
+                        autoplay={room.isPlaying ?? false}
                         onReadyAction={onPlayerReady}
                         onStateChangeAction={onPlayerStateChange}
                         onErrorAction={onPlayerError}

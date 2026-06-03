@@ -46,3 +46,27 @@ export function markServerPlaybackCommand(): void {
 export function isServerPlaybackEcho(): boolean {
     return Date.now() < serverPlaybackCommandUntil;
 }
+
+/** Align the YouTube iframe with room `isPlaying` (marks server echo to avoid WS feedback). */
+export function applyRoomPlaybackToPlayer(player: YT.Player, shouldPlay: boolean): void {
+    const playerState = player.getPlayerState();
+
+    if (shouldPlay) {
+        if (playerState === undefined || !isYoutubeActivelyPlaying(playerState)) {
+            markServerPlaybackCommand();
+            player.playVideo();
+        }
+        return;
+    }
+
+    if (playerState === undefined || !isYoutubeExplicitlyPaused(playerState)) {
+        markServerPlaybackCommand();
+        player.pauseVideo();
+    }
+}
+
+/** Read whether the embed is actively playing (includes buffering). */
+export function isPlayerActuallyPlaying(player: YT.Player): boolean {
+    const state = player.getPlayerState();
+    return state !== undefined && isYoutubeActivelyPlaying(state);
+}

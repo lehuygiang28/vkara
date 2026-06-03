@@ -215,11 +215,13 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handlePlayerPlay = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
+        useYouTubeStore.getState().setIsPlaying(true);
         ensureConnectedAndSend({ type: 'play' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 
     const handlePlayerPause = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
+        useYouTubeStore.getState().setIsPlaying(false);
         ensureConnectedAndSend({ type: 'pause' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 

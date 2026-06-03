@@ -6,6 +6,8 @@ import { cn } from '@/lib/utils';
 
 type YoutubeTvEmbedProps = {
     videoId: string;
+    /** Match room `isPlaying` so a paused room does not autoplay on load. */
+    autoplay?: boolean;
     onReadyAction: (event: YT.PlayerEvent) => void;
     onStateChangeAction: (event: YT.PlayerEvent) => void;
     onErrorAction: (event: YT.OnErrorEvent) => void;
@@ -26,6 +28,7 @@ const BASE_PLAYER_VARS = {
 /** TV embed — must run client-only so `origin` matches the page hosting the iframe. */
 export function YoutubeTvEmbed({
     videoId,
+    autoplay = true,
     onReadyAction,
     onStateChangeAction,
     onErrorAction,
@@ -46,7 +49,7 @@ export function YoutubeTvEmbed({
                     host: 'https://www.youtube-nocookie.com',
                     playerVars: {
                         origin: playerOrigin,
-                        autoplay: 1,
+                        autoplay: autoplay ? 1 : 0,
                         ...BASE_PLAYER_VARS,
                         controls: isLaptop ? 1 : 0,
                         disablekb: isLaptop ? 0 : 1,

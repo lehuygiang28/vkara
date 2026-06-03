@@ -13,8 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import type { useScopedI18n } from '@/locales/client';
 import { cancelPendingQueueAdd, confirmPendingQueueAdd } from '@/lib/queue-action-feedback';
 import {
-    isYoutubeActivelyPlaying,
-    isYoutubeExplicitlyPaused,
+    applyRoomPlaybackToPlayer,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
 
@@ -165,6 +164,12 @@ export const useYouTubeStore = create(
                         );
                         set((state) => {
                             state?.player?.setVolume(roomVolume);
+                            if (state.player && joinedRoom?.playingNow) {
+                                applyRoomPlaybackToPlayer(
+                                    state.player,
+                                    joinedRoom.isPlaying ?? false,
+                                );
+                            }
                             return {
                                 room: joinedRoom,
                                 wsId: message.yourId,
@@ -176,6 +181,18 @@ export const useYouTubeStore = create(
                     case 'roomUpdate':
                         set((state) => {
                             const updatedRoom = normalizePersistedRoom(message.room);
+                            const prevPlaying = state.room?.isPlaying;
+                            const nextPlaying = updatedRoom?.isPlaying;
+                            if (
+                                state.player &&
+                                updatedRoom?.playingNow &&
+                                prevPlaying !== nextPlaying
+                            ) {
+                                applyRoomPlaybackToPlayer(
+                                    state.player,
+                                    nextPlaying ?? false,
+                                );
+                            }
                             confirmPendingQueueAdd(state.room, updatedRoom);
                             return { room: updatedRoom };
                         });
@@ -257,13 +274,8 @@ export const useYouTubeStore = create(
                     case 'play':
                         {
                             set((state) => {
-                                const playerState = state.player?.getPlayerState();
-                                if (
-                                    playerState === undefined ||
-                                    !isYoutubeActivelyPlaying(playerState)
-                                ) {
-                                    markServerPlaybackCommand();
-                                    state.player?.playVideo();
+                                if (state.player) {
+                                    applyRoomPlaybackToPlayer(state.player, true);
                                 }
                                 return {
                                     ...state,
@@ -275,13 +287,8 @@ export const useYouTubeStore = create(
                     case 'pause':
                         {
                             set((state) => {
-                                const playerState = state.player?.getPlayerState();
-                                if (
-                                    playerState === undefined ||
-                                    !isYoutubeExplicitlyPaused(playerState)
-                                ) {
-                                    markServerPlaybackCommand();
-                                    state.player?.pauseVideo();
+                                if (state.player) {
+                                    applyRoomPlaybackToPlayer(state.player, false);
                                 }
                                 return {
                                     ...state,
