@@ -123,7 +123,7 @@ docker pull lehuygiang28/vkara-aio:latest
 docker run --rm -p 3000:3000 lehuygiang28/vkara-aio:latest
 ```
 
-CI builds and pushes all four images on push to `main` / `develop` (see `.github/workflows/build-push-docker.yml`). Commit with `[skip docker]` to skip the workflow.
+CI builds and pushes all four images on push to `main` / `dev` (see `.github/workflows/build-push-docker.yml`). Commit with `[skip docker]` to skip the workflow.
 
 ---
 
