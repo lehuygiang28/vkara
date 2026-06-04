@@ -29,7 +29,7 @@ export const tvRoomRestoreSchema = z.object({
 
 const withBase = <T extends z.ZodRawShape>(shape: T) => messageBaseSchema.extend(shape);
 
-export const wsClientMessageSchema = z.union([
+export const wsClientMessageSchema = z.discriminatedUnion('type', [
     withBase({ type: z.literal('ping') }),
     withBase({
         type: z.literal('createRoom'),

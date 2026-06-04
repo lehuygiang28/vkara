@@ -12,18 +12,25 @@ export interface CachedChannel {
 }
 
 const channelJsonCache = createRedisJsonCache<CachedChannel>((parsed) => {
-    if (
-        typeof parsed === 'object' &&
-        parsed !== null &&
-        'id' in parsed &&
-        'name' in parsed &&
-        'verified' in parsed
-    ) {
-        const candidate = parsed as CachedChannel;
-        if (candidate.id && candidate.name && typeof candidate.verified === 'boolean') {
-            return candidate;
-        }
+    if (typeof parsed !== 'object' || parsed === null) {
+        return undefined;
     }
+
+    const candidate = parsed as Record<string, unknown>;
+    if (
+        typeof candidate.id === 'string' &&
+        candidate.id !== '' &&
+        typeof candidate.name === 'string' &&
+        candidate.name !== '' &&
+        typeof candidate.verified === 'boolean'
+    ) {
+        return {
+            id: candidate.id,
+            name: candidate.name,
+            verified: candidate.verified,
+        };
+    }
+
     return undefined;
 });
 

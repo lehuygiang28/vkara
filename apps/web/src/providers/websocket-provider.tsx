@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { isValidRoomId, resolveUrl } from '@vkara/room';
+import { isValidRoomId, resolveWebSocketEndpoint } from '@vkara/room';
 
 import { env } from '@/env';
 import { ErrorCode } from '@vkara/room';
@@ -25,7 +25,7 @@ const WebSocketContext = createContext<EnhancedWebSocketState | undefined>(undef
 function getWebSocketUrl(): string {
     const wsEnv = env.NEXT_PUBLIC_WS_URL?.trim();
     if (wsEnv) {
-        return `${resolveUrl(wsEnv, true)}/ws`;
+        return resolveWebSocketEndpoint(wsEnv);
     }
 
     const apiEnv = env.NEXT_PUBLIC_API_URL?.trim();
@@ -34,7 +34,7 @@ function getWebSocketUrl(): string {
         return `${protocol}://${window.location.host}/ws`;
     }
 
-    return `${resolveUrl('ws://localhost:8000', true)}/ws`;
+    return resolveWebSocketEndpoint('ws://localhost:8000');
 }
 
 export const useWebSocket = (): EnhancedWebSocketState => {

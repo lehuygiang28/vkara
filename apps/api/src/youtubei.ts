@@ -184,7 +184,14 @@ export const searchYoutubeiElysia = new Elysia({})
     )
     .post(
         '/suggestions',
-        async ({ body: { query } }): Promise<string[]> => fetchSearchSuggestions(query),
+        async ({ body: { query } }) => {
+            try {
+                return await fetchSearchSuggestions(query);
+            } catch (error) {
+                logger.error('Failed to get search suggestions', { error, query });
+                return status(502, { error: 'youtube_upstream_failed' });
+            }
+        },
         {
             body: youtubeSearchSuggestionsBodySchema,
         },
