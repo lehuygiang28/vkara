@@ -30,4 +30,24 @@ describe('room-queue', () => {
         expect(isVideoInRoom(room, 'abc')).toBe(true);
         expect(isCurrentlyPlaying(room, 'other')).toBe(false);
     });
+
+    it('returns false when room is null', () => {
+        expect(isVideoInRoom(null, 'abc')).toBe(false);
+        expect(isCurrentlyPlaying(null, 'abc')).toBe(false);
+    });
+
+    it('detects queue-only membership', () => {
+        const room = {
+            playingNow: video('now'),
+            videoQueue: [video('queued')],
+        };
+
+        expect(isVideoInRoom(room, 'queued')).toBe(true);
+        expect(isCurrentlyPlaying(room, 'queued')).toBe(false);
+    });
+
+    it('returns false for empty video id', () => {
+        const room = { playingNow: null, videoQueue: [] };
+        expect(isVideoInRoom(room, '')).toBe(false);
+    });
 });

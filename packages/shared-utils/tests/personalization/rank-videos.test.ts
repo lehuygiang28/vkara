@@ -66,4 +66,27 @@ describe('rankVideos', () => {
         expect(profile.channelScores['favorite channel']).toBe(3);
         expect(profile.recentVideos[0]?.id).toBe('v1');
     });
+
+    test('returns empty array for empty input', () => {
+        const profile: PersonalizationProfile = {
+            searchHistory: [],
+            channelScores: {},
+            recentVideos: [],
+        };
+        expect(rankVideos([], profile, { query: 'x', isKaraoke: false })).toEqual([]);
+    });
+
+    test('preserves stable order when scores tie', () => {
+        const profile: PersonalizationProfile = {
+            searchHistory: [],
+            channelScores: {},
+            recentVideos: [],
+        };
+        const videos = [
+            baseVideo('1', 'First', 'Ch'),
+            baseVideo('2', 'Second', 'Ch'),
+        ];
+        const ranked = rankVideos(videos, profile, { query: 'unrelated', isKaraoke: false });
+        expect(ranked.map((v) => v.id)).toEqual(['1', '2']);
+    });
 });

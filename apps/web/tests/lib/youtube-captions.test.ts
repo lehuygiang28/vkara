@@ -28,6 +28,20 @@ describe('normalizeYoutubeCaptionTrack', () => {
 
     it('returns null without languageCode', () => {
         expect(normalizeYoutubeCaptionTrack({ displayName: 'X' })).toBeNull();
+        expect(normalizeYoutubeCaptionTrack({ languageCode: '   ' })).toBeNull();
+    });
+
+    it('falls back display name through languageName and name', () => {
+        expect(
+            normalizeYoutubeCaptionTrack({
+                languageCode: 'vi',
+                languageName: 'Vietnamese',
+            }),
+        ).toEqual({
+            languageCode: 'vi',
+            displayName: 'Vietnamese',
+            kind: undefined,
+        });
     });
 });
 

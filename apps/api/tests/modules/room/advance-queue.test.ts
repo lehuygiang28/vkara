@@ -57,4 +57,25 @@ describe('mergeQueueAfterAdvance', () => {
             video('e'),
         ]);
     });
+
+    it('returns only remaining queue when current has no new ids', () => {
+        const snapshot = [video('a'), video('b')];
+        const remaining = [video('b')];
+        const current = [video('b')];
+
+        expect(mergeQueueAfterAdvance(snapshot, remaining, current)).toEqual(remaining);
+    });
+
+    it('handles empty snapshot and empty remaining with concurrent adds', () => {
+        const current = [video('new')];
+        expect(mergeQueueAfterAdvance([], [], current)).toEqual([video('new')]);
+    });
+
+    it('ignores concurrent ids that were already in snapshot', () => {
+        const snapshot = [video('a'), video('b')];
+        const remaining: YouTubeVideo[] = [];
+        const current = [video('a'), video('c')];
+
+        expect(mergeQueueAfterAdvance(snapshot, remaining, current)).toEqual([video('c')]);
+    });
 });

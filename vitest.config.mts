@@ -15,9 +15,16 @@ export default defineConfig({
                     environment: 'node',
                 },
                 resolve: {
-                    alias: {
-                        '@': path.join(repoRoot, 'apps/api/src'),
-                    },
+                    alias: [
+                        {
+                            find: '@/redis',
+                            replacement: path.join(repoRoot, 'apps/api/tests/mocks/redis.ts'),
+                        },
+                        {
+                            find: '@',
+                            replacement: path.join(repoRoot, 'apps/api/src'),
+                        },
+                    ],
                 },
             },
             {
@@ -44,6 +51,14 @@ export default defineConfig({
                     alias: {
                         '@src': path.join(repoRoot, 'packages/shared-utils/src'),
                     },
+                },
+            },
+            {
+                test: {
+                    name: '@vkara/shared-types',
+                    root: path.join(repoRoot, 'packages/shared-types'),
+                    include: ['tests/**/*.test.ts'],
+                    environment: 'node',
                 },
             },
         ],

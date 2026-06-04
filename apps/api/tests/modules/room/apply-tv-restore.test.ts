@@ -69,4 +69,51 @@ describe('apply-tv-restore', () => {
         expect(room.showQRInPlayer).toBe(false);
         expect(room.captionsEnabled).toBe(true);
     });
+
+    it('clamps caption track list length', () => {
+        const tracks = Array.from({ length: 80 }, (_, i) => ({
+            languageCode: `l${i}`,
+            displayName: `Lang ${i}`,
+        }));
+        const clamped = clampRestoreState({
+            videoQueue: [],
+            playingNow: null,
+            isPlaying: false,
+            currentTime: 0,
+            volume: 50,
+            showQRInPlayer: true,
+            captionsEnabled: false,
+            captionsLanguage: 'vi',
+            captionTracks: tracks,
+            captionTracksVideoId: null,
+        });
+
+        expect(clamped.captionTracks).toHaveLength(64);
+        expect(clamped.captionTracks[0]?.languageCode).toBe('l0');
+    });
+
+    it('clamps hostile restore numbers without throwing', () => {
+        const clamped = clampRestoreState({
+            videoQueue: [],
+            playingNow: null,
+            isPlaying: true,
+            currentTime: Number.NaN,
+            volume: Number.POSITIVE_INFINITY,
+            showQRInPlayer: true,
+            captionsEnabled: true,
+            captionsLanguage: '  vi  ',
+            captionTracks: [
+                {
+                    languageCode: 'x'.repeat(200),
+                    displayName: 'y'.repeat(500),
+                },
+            ],
+            captionTracksVideoId: null,
+        });
+
+        expect(Number.isNaN(clamped.currentTime)).toBe(true);
+        expect(clamped.volume).toBe(100);
+        expect(clamped.captionTracks).toHaveLength(1);
+        expect(clamped.captionTracks[0]?.languageCode.length).toBeGreaterThan(64);
+    });
 });

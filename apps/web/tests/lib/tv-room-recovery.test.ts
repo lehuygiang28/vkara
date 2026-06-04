@@ -4,6 +4,7 @@ import { describe, expect, it } from 'vitest';
 import {
     buildTvRecoveryCreateRoomMessage,
     captureTvRoomSnapshot,
+    isTvLayoutMode,
     shouldRecoverTvRoom,
 } from '@/lib/tv-room-recovery';
 
@@ -40,5 +41,22 @@ describe('tv-room-recovery', () => {
             shouldRecoverTvRoom('errorWithCode', ErrorCode.REJOIN_ROOM_NOT_FOUND, false),
         ).toBe(false);
         expect(shouldRecoverTvRoom('roomClosed', undefined, true)).toBe(true);
+    });
+
+    it('does not recover for unrelated error codes on TV', () => {
+        expect(
+            shouldRecoverTvRoom('errorWithCode', ErrorCode.INCORRECT_PASSWORD, true),
+        ).toBe(false);
+        expect(shouldRecoverTvRoom('roomUpdate', undefined, true)).toBe(false);
+    });
+
+    it('returns null snapshot for invalid room', () => {
+        expect(captureTvRoomSnapshot(null)).toBeNull();
+        expect(captureTvRoomSnapshot({ id: '' } as never)).toBeNull();
+    });
+
+    it('isTvLayoutMode treats non-remote as TV', () => {
+        expect(isTvLayoutMode('player')).toBe(true);
+        expect(isTvLayoutMode('remote')).toBe(false);
     });
 });

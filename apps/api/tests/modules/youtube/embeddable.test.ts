@@ -36,4 +36,22 @@ describe('isEmbedBlockedInHtml', () => {
         const html = 'previewPlayabilityStatus\\":{\\"status\\":\\"ERROR\\",\\"reason\\":\\"x\\"}';
         expect(isEmbedBlockedInHtml(html)).toBe(true);
     });
+
+    it('allows LIVE_STREAM preview status', () => {
+        const html = 'previewPlayabilityStatus\\":{\\"status\\":\\"LIVE_STREAM\\"}';
+        expect(isEmbedBlockedInHtml(html)).toBe(false);
+    });
+
+    it('blocks when preview marker is missing', () => {
+        expect(isEmbedBlockedInHtml('<html></html>')).toBe(true);
+    });
+
+    it('blocks UNPLAYABLE preview status', () => {
+        const html = 'previewPlayabilityStatus\\":{\\"status\\":\\"UNPLAYABLE\\"}';
+        expect(isEmbedBlockedInHtml(html)).toBe(true);
+    });
+
+    it('returns null preview when marker absent', () => {
+        expect(parseEmbedPlayabilityPreview('no data here')).toBeNull();
+    });
 });

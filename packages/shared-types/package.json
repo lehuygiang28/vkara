@@ -3,6 +3,9 @@
   "version": "0.0.1",
   "private": true,
   "type": "module",
+  "scripts": {
+    "test": "vitest run --config ../../vitest.config.mts --project @vkara/shared-types"
+  },
   "exports": {
     ".": "./src/index.ts",
     "./errors": "./src/errors.ts",

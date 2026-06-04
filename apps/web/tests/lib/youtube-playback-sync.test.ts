@@ -1,8 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
+    applyPreferredPlaybackQuality,
     applyRoomPlaybackToPlayer,
+    isPlayerActuallyPlaying,
     isServerPlaybackEcho,
+    isYoutubeActivelyPlaying,
+    isYoutubeExplicitlyPaused,
+    isYoutubePlaybackIntentState,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
 
@@ -73,5 +78,71 @@ describe('markServerPlaybackEcho', () => {
         vi.advanceTimersByTime(801);
         expect(isServerPlaybackEcho()).toBe(false);
         vi.useRealTimers();
+    });
+});
+
+describe('youtube player state helpers', () => {
+    beforeEach(() => {
+        vi.stubGlobal('YT', {
+            PlayerState: {
+                UNSTARTED: -1,
+                ENDED: 0,
+                PLAYING: 1,
+                PAUSED: 2,
+                BUFFERING: 3,
+                CUED: 5,
+            },
+        });
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+    });
+
+    it('classifies active, paused, and intent states', () => {
+        expect(isYoutubeActivelyPlaying(YT.PlayerState.PLAYING)).toBe(true);
+        expect(isYoutubeActivelyPlaying(YT.PlayerState.BUFFERING)).toBe(true);
+        expect(isYoutubeActivelyPlaying(YT.PlayerState.PAUSED)).toBe(false);
+
+        expect(isYoutubeExplicitlyPaused(YT.PlayerState.PAUSED)).toBe(true);
+        expect(isYoutubeExplicitlyPaused(YT.PlayerState.PLAYING)).toBe(false);
+
+        expect(isYoutubePlaybackIntentState(YT.PlayerState.PLAYING)).toBe(true);
+        expect(isYoutubePlaybackIntentState(YT.PlayerState.BUFFERING)).toBe(false);
+    });
+
+    it('isPlayerActuallyPlaying reflects playing and buffering', () => {
+        const playing = mockPlayer(YT.PlayerState.PLAYING);
+        const paused = mockPlayer(YT.PlayerState.PAUSED);
+
+        expect(isPlayerActuallyPlaying(playing)).toBe(true);
+        expect(isPlayerActuallyPlaying(paused)).toBe(false);
+    });
+});
+
+describe('applyPreferredPlaybackQuality', () => {
+    it('no-ops when setPlaybackQuality is missing', () => {
+        const player = {} as YT.Player;
+        expect(() => applyPreferredPlaybackQuality(player)).not.toThrow();
+    });
+
+    it('prefers highres when available', () => {
+        const player = {
+            getAvailableQualityLevels: () => ['medium', 'highres'],
+            setPlaybackQuality: vi.fn(),
+        } as unknown as YT.Player;
+
+        applyPreferredPlaybackQuality(player);
+        expect(player.setPlaybackQuality).toHaveBeenCalledWith('highres');
+    });
+
+    it('falls back to hd1080 when highres is unavailable', () => {
+        const player = {
+            getAvailableQualityLevels: () => ['medium', 'hd1080'],
+            setPlaybackQuality: vi.fn(),
+        } as unknown as YT.Player;
+
+        applyPreferredPlaybackQuality(player);
+        expect(player.setPlaybackQuality).toHaveBeenCalledWith('hd1080');
     });
 });

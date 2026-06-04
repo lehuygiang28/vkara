@@ -36,4 +36,27 @@ describe('extractSeedVideoIdFromMixListId', () => {
     it('extracts video id from RDMM list id', () => {
         expect(extractSeedVideoIdFromMixListId('RDMMF8kxL8y5hHw')).toBe('F8kxL8y5hHw');
     });
+
+    it('returns null for invalid or short list ids', () => {
+        expect(extractSeedVideoIdFromMixListId('RDMMshort')).toBeNull();
+        expect(extractSeedVideoIdFromMixListId('PLnotamixlist')).toBeNull();
+        expect(extractSeedVideoIdFromMixListId('')).toBeNull();
+    });
+});
+
+describe('parseYoutubePlaylistInput errors', () => {
+    it('throws when input is empty', () => {
+        expect(() => parseYoutubePlaylistInput('')).toThrow('Playlist URL or ID is required');
+        expect(() => parseYoutubePlaylistInput('   ')).toThrow('Playlist URL or ID is required');
+    });
+
+    it('throws for bare invalid ids', () => {
+        expect(() => parseYoutubePlaylistInput('not-a-playlist')).toThrow('Invalid playlist ID');
+    });
+
+    it('throws for URLs without list id', () => {
+        expect(() =>
+            parseYoutubePlaylistInput('https://www.youtube.com/watch?v=dQw4w9WgXcQ'),
+        ).toThrow('Invalid playlist URL');
+    });
 });

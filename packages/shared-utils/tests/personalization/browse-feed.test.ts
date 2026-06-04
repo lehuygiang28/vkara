@@ -4,6 +4,7 @@ import {
     buildBrowseFeedRankContext,
     buildBrowseFeedSessionKey,
     buildBrowseFeedSources,
+    hasBrowseFeedSources,
     rankBrowseFeedBatch,
 } from '@src/personalization/browse-feed';
 import { createEmptyProfile, recordSearch, recordVideoEngagement } from '@src/personalization/profile';
@@ -80,5 +81,30 @@ describe('rankBrowseFeedBatch', () => {
         );
 
         expect(ranked.map((item) => item.id)).toEqual(['a2']);
+    });
+
+    test('returns empty when all candidates are filtered as duplicates', () => {
+        const profile = createEmptyProfile();
+        const ctx = buildBrowseFeedRankContext(profile, { historyQueue: [] });
+        const existing = new Set(['only']);
+
+        expect(
+            rankBrowseFeedBatch([video('only', 'Dup')], existing, profile, ctx),
+        ).toEqual([]);
+    });
+});
+
+describe('hasBrowseFeedSources', () => {
+    test('is false for empty profile and room', () => {
+        expect(hasBrowseFeedSources(createEmptyProfile(), { historyQueue: [] })).toBe(false);
+    });
+
+    test('is true when room has playingNow', () => {
+        expect(
+            hasBrowseFeedSources(createEmptyProfile(), {
+                playingNow: video('live', 'Live'),
+                historyQueue: [],
+            }),
+        ).toBe(true);
     });
 });

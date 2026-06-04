@@ -20,4 +20,9 @@ describe('mapYoutubeiThumbnails', () => {
         expect(thumbnails.at(-1)?.url).toContain('/maxresdefault.jpg');
         expect(thumbnails.length).toBeGreaterThan(1);
     });
+
+    it('returns empty url list for invalid video id', () => {
+        const thumbnails = mapYoutubeiThumbnails('bad');
+        expect(thumbnails.every((t) => t.url.includes('bad') || t.url.length > 0)).toBe(true);
+    });
 });

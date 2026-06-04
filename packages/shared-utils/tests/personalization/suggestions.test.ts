@@ -34,4 +34,19 @@ describe('blendSuggestions', () => {
 
         expect(blended).toEqual(['Karaoke Son Tung', 'karaoke beat']);
     });
+
+    test('skips blank local and remote suggestions', () => {
+        expect(blendSuggestions(['   ', 'valid'], ['  ', 'valid two'], 'val')).toEqual([
+            'valid',
+            'valid two',
+        ]);
+    });
+
+    test('returns empty when prefix matches nothing', () => {
+        expect(blendSuggestions(['other song'], ['another'], 'zzz')).toEqual([]);
+    });
+
+    test('is case-insensitive for prefix matching', () => {
+        expect(blendSuggestions(['KARAOKE mix'], [], 'kara')).toEqual(['KARAOKE mix']);
+    });
 });
