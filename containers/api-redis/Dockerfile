@@ -70,6 +70,7 @@ RUN mkdir -p ./log && \
 RUN chown bun:bun /app
 
 ENV NODE_ENV=production
+ENV PUBLIC_APP_URL=http://localhost:3000
 
 USER bun
 

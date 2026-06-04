@@ -87,6 +87,7 @@ RUN chmod +x ./entrypoint.sh
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV VKARA_AIO=1
+ENV PUBLIC_APP_URL=http://localhost:3000
 
 EXPOSE 3000
 
