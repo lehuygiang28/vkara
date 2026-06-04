@@ -26,7 +26,8 @@
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "test": "vitest run --config vitest.config.mts",
-        "test:watch": "vitest --config vitest.config.mts"
+        "test:watch": "vitest --config vitest.config.mts",
+        "ci": "bun run test && bun run build"
     },
     "devDependencies": {
         "prettier": "^3.6.2",

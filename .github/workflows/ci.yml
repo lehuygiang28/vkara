@@ -1,0 +1,53 @@
+name: CI
+
+on:
+    pull_request:
+    push:
+        branches:
+            - main
+            - dev
+
+concurrency:
+    group: ci-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: 1.3.13
+
+            - name: Install dependencies
+              run: bun install --frozen-lockfile
+
+            - name: Run unit tests
+              run: bun run test
+
+    build:
+        needs: test
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v6
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: 1.3.13
+
+            - name: Install dependencies
+              run: bun install --frozen-lockfile
+
+            - name: Build apps
+              run: bun run build
+              env:
+                  NODE_ENV: production
+                  NEXT_PUBLIC_APP_URL: https://example.com
+                  NEXT_PUBLIC_WS_URL: wss://api.example.com
+                  NEXT_PUBLIC_API_URL: https://api.example.com
