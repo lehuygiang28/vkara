@@ -15,7 +15,6 @@ import { cancelPendingQueueAdd, confirmPendingQueueAdd } from '@/lib/queue-actio
 import {
     applyRoomPlaybackToPlayer,
     isServerPlaybackEcho,
-    markServerPlaybackCommand,
     markServerPlaybackSeek,
     STALE_PLAYBACK_FORWARD_JUMP_SEC,
 } from '@/lib/youtube-playback-sync';

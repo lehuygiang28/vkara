@@ -1,9 +1,27 @@
 import { describe, expect, it } from 'vitest';
 
 import { resolveCuratedPlaylistThumbnail } from '@/lib/curated-playlist-thumbnail';
-import type { PlaylistDetailsResponse } from '@vkara/shared-types';
+import type { PlaylistDetailsResponse, YouTubeVideo } from '@vkara/shared-types';
 
 const PLAYLIST_ID = 'PLRH1bes7ddmVMYRkmPNJY4lFZsGlAAXbC';
+
+function makeVideo(
+    id: string,
+    thumbnails: YouTubeVideo['thumbnails'],
+): YouTubeVideo {
+    return {
+        id,
+        title: 'First song',
+        duration: 0,
+        duration_formatted: '0:00',
+        type: 'video',
+        uploadedAt: '',
+        url: `https://www.youtube.com/watch?v=${id}`,
+        views: 0,
+        channels: [],
+        thumbnails,
+    };
+}
 
 function makeDetails(overrides: Partial<PlaylistDetailsResponse> = {}): PlaylistDetailsResponse {
     return {
@@ -43,13 +61,7 @@ describe('resolveCuratedPlaylistThumbnail', () => {
                 videoCount: 1,
                 thumbnails: [{ url: bogus, width: 320, height: 180 }],
             },
-            videos: [
-                {
-                    id: 'dQw4w9WgXcQ',
-                    title: 'First song',
-                    thumbnails: [{ url: videoUrl, width: 320, height: 180 }],
-                },
-            ],
+            videos: [makeVideo('dQw4w9WgXcQ', [{ url: videoUrl, width: 320, height: 180 }])],
         });
 
         expect(resolveCuratedPlaylistThumbnail(details, PLAYLIST_ID)).toBe(videoUrl);

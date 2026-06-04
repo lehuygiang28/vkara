@@ -48,7 +48,7 @@ describe('createMigratingPersistStorage', () => {
         vi.unstubAllGlobals();
     });
 
-    it('migrates legacy youtube-storage and rewrites version', () => {
+    it('migrates legacy youtube-storage and rewrites version', async () => {
         const legacyEnvelope = {
             state: {
                 room: {
@@ -68,10 +68,15 @@ describe('createMigratingPersistStorage', () => {
         storage.setItem(PERSIST_STORE_KEYS.youtube, JSON.stringify(legacyEnvelope));
 
         const persistStorage = createMigratingPersistStorage();
-        const raw = persistStorage.getItem(PERSIST_STORE_KEYS.youtube);
+        const raw = await Promise.resolve(
+            persistStorage.getItem(PERSIST_STORE_KEYS.youtube),
+        );
         expect(raw).not.toBeNull();
 
-        const parsed = JSON.parse(raw!) as { state: { room: Record<string, unknown> }; version: number };
+        const parsed = JSON.parse(raw as string) as {
+            state: { room: Record<string, unknown> };
+            version: number;
+        };
         expect(parsed.version).toBe(1);
         expect(parsed.state.room.captionTracks).toEqual([]);
         expect(parsed.state.room.captionsLanguage).toBe(DEFAULT_CAPTION_LANGUAGE);

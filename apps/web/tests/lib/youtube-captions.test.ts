@@ -62,7 +62,7 @@ describe('isCaptionsCapablePlayer', () => {
             isCaptionsCapablePlayer({
                 getOption: () => [],
                 setOption: () => undefined,
-            } as YT.Player),
+            } as unknown as YT.Player),
         ).toBe(true);
     });
 });
