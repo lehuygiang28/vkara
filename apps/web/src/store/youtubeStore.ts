@@ -14,7 +14,9 @@ import type { useScopedI18n } from '@/locales/client';
 import { cancelPendingQueueAdd, confirmPendingQueueAdd } from '@/lib/queue-action-feedback';
 import {
     applyRoomPlaybackToPlayer,
+    isServerPlaybackEcho,
     markServerPlaybackCommand,
+    markServerPlaybackSeek,
 } from '@/lib/youtube-playback-sync';
 
 export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
@@ -224,6 +226,14 @@ export const useYouTubeStore = create(
                     case 'currentTimeChanged':
                         {
                             set((state) => {
+                                const roomTime = state.room?.currentTime ?? 0;
+                                if (
+                                    isServerPlaybackEcho() &&
+                                    message.currentTime > roomTime + 5
+                                ) {
+                                    return state;
+                                }
+
                                 const player = state.player;
                                 if (
                                     player &&
@@ -232,7 +242,7 @@ export const useYouTubeStore = create(
                                         message.currentTime,
                                     )
                                 ) {
-                                    markServerPlaybackCommand();
+                                    markServerPlaybackSeek();
                                     player.seekTo(message.currentTime, true);
                                 }
                                 return {
@@ -257,6 +267,7 @@ export const useYouTubeStore = create(
                     case 'replay':
                         {
                             set((state) => {
+                                markServerPlaybackSeek();
                                 state?.player?.seekTo(0, true);
                                 return {
                                     ...state,

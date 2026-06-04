@@ -36,11 +36,20 @@ export function isYoutubePlaybackIntentState(state: number): boolean {
 }
 
 const SERVER_PLAYBACK_ECHO_MS = 800;
+/** After replay/seek, ignore stale TV position sync and rogue forward time updates. */
+export const SERVER_PLAYBACK_SEEK_ECHO_MS = 2_500;
 let serverPlaybackCommandUntil = 0;
 
 /** Call before applying a remote play/pause to the iframe (avoids echoing back to the server). */
-export function markServerPlaybackCommand(): void {
-    serverPlaybackCommandUntil = Date.now() + SERVER_PLAYBACK_ECHO_MS;
+export function markServerPlaybackCommand(
+    graceMs: number = SERVER_PLAYBACK_ECHO_MS,
+): void {
+    serverPlaybackCommandUntil = Date.now() + graceMs;
+}
+
+/** Call before replay/seek so the TV does not broadcast the pre-seek position. */
+export function markServerPlaybackSeek(): void {
+    markServerPlaybackCommand(SERVER_PLAYBACK_SEEK_ECHO_MS);
 }
 
 export function isServerPlaybackEcho(): boolean {

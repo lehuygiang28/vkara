@@ -9,6 +9,7 @@ import { toastSessionNotReady } from '@/lib/session-toast';
 import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useWebSocket } from '@/providers/websocket-provider';
+import { markServerPlaybackSeek } from '@/lib/youtube-playback-sync';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import type { YouTubeVideo } from '@vkara/shared-types';
 
@@ -227,6 +228,12 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handleReplayVideo = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
+        markServerPlaybackSeek();
+        useYouTubeStore.setState((state) => ({
+            room: state.room
+                ? { ...state.room, currentTime: 0, isPlaying: true }
+                : null,
+        }));
         ensureConnectedAndSend({ type: 'replay' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 
@@ -240,6 +247,7 @@ export const usePlayerAction = (): PlayerAction => {
                     ? Math.min(duration, Math.max(0, Math.floor(seconds)))
                     : Math.max(0, Math.floor(seconds));
 
+            markServerPlaybackSeek();
             useYouTubeStore.setState((state) => ({
                 room: state.room ? { ...state.room, currentTime: clamped } : null,
             }));

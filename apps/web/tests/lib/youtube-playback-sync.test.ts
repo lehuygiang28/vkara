@@ -9,6 +9,8 @@ import {
     isYoutubeExplicitlyPaused,
     isYoutubePlaybackIntentState,
     markServerPlaybackCommand,
+    markServerPlaybackSeek,
+    SERVER_PLAYBACK_SEEK_ECHO_MS,
 } from '@/lib/youtube-playback-sync';
 
 function mockPlayer(state: number): YT.Player {
@@ -76,6 +78,17 @@ describe('markServerPlaybackEcho', () => {
         markServerPlaybackCommand();
         expect(isServerPlaybackEcho()).toBe(true);
         vi.advanceTimersByTime(801);
+        expect(isServerPlaybackEcho()).toBe(false);
+        vi.useRealTimers();
+    });
+
+    it('extends the echo window after replay/seek', () => {
+        vi.useFakeTimers();
+        markServerPlaybackSeek();
+        expect(isServerPlaybackEcho()).toBe(true);
+        vi.advanceTimersByTime(SERVER_PLAYBACK_SEEK_ECHO_MS - 1);
+        expect(isServerPlaybackEcho()).toBe(true);
+        vi.advanceTimersByTime(2);
         expect(isServerPlaybackEcho()).toBe(false);
         vi.useRealTimers();
     });
