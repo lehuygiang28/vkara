@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     buildBrowseFeedRankContext,
-    buildBrowseFeedSessionKey,
+    buildBrowseFeedSessionKeyFromSearchHistory,
     buildBrowseFeedSources,
     rankBrowseFeedBatch,
     type BrowseFeedSource,
@@ -46,7 +46,11 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
     const [hasMore, setHasMore] = useState(false);
     const [loadError, setLoadError] = useState(false);
 
-    const feedKey = useMemo(() => buildBrowseFeedSessionKey(profile), [profile]);
+    const searchHistory = profile.searchHistory;
+    const feedKey = useMemo(
+        () => buildBrowseFeedSessionKeyFromSearchHistory(searchHistory),
+        [searchHistory],
+    );
 
     const profileRef = useRef(profile);
     const roomRef = useRef(room);

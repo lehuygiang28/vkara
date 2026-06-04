@@ -3,7 +3,9 @@ import type { YouTubeVideo } from '@vkara/youtube';
 
 import { mgetEmbeddability, setEmbeddabilityMany } from './embed-playability-cache';
 import { fetchEmbeddableFromYoutube } from './embeddable';
-import { isEmbedPrefilterAtListEnabled } from '@vkara/env/embed';
+import { type EmbedEnvValues, isEmbedPrefilterAtListEnabled } from '@vkara/env/embed';
+
+import { env } from '@/env';
 import { createInFlightDedup } from './in-flight-dedup';
 import { mapWithConcurrency } from './map-with-concurrency';
 
@@ -103,8 +105,9 @@ export async function filterYouTubeVideosByEmbeddability(
 export async function filterVideosForListPrefilter(
     redisClient: Redis,
     videos: YouTubeVideo[],
+    embed: EmbedEnvValues = env,
 ): Promise<YouTubeVideo[]> {
-    if (!isEmbedPrefilterAtListEnabled()) {
+    if (!isEmbedPrefilterAtListEnabled(embed)) {
         return videos;
     }
 

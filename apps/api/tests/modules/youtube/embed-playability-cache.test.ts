@@ -1,8 +1,7 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type Redis from 'ioredis';
 
-import { VkaraEmbedEnv } from '@vkara/env/flags';
-import { getEmbedCacheTtlSeconds } from '@vkara/env/embed';
+import { DEFAULT_EMBED_CACHE_TTL_SECONDS, getEmbedCacheTtlSeconds } from '@vkara/env/embed';
 import {
     getEmbedCacheKey,
     mgetEmbeddability,
@@ -10,27 +9,16 @@ import {
 } from '@/modules/youtube/embed-playability-cache';
 
 describe('embed-playability-cache', () => {
-    const previousTtl = process.env[VkaraEmbedEnv.CACHE_TTL_SECONDS];
-
-    afterEach(() => {
-        if (previousTtl === undefined) {
-            delete process.env[VkaraEmbedEnv.CACHE_TTL_SECONDS];
-        } else {
-            process.env[VkaraEmbedEnv.CACHE_TTL_SECONDS] = previousTtl;
-        }
-    });
-
     it('builds stable cache keys', () => {
         expect(getEmbedCacheKey('abc123')).toBe('youtube-embed:abc123');
     });
 
     it('defaults TTL to 30 days', () => {
-        expect(getEmbedCacheTtlSeconds()).toBe(30 * 24 * 3600);
+        expect(getEmbedCacheTtlSeconds({})).toBe(DEFAULT_EMBED_CACHE_TTL_SECONDS);
     });
 
-    it('reads VKARA_EMBED_CACHE_TTL_SECONDS from env', () => {
-        process.env[VkaraEmbedEnv.CACHE_TTL_SECONDS] = '3600';
-        expect(getEmbedCacheTtlSeconds()).toBe(3600);
+    it('parses TTL from embed env values', () => {
+        expect(getEmbedCacheTtlSeconds({ VKARA_EMBED_CACHE_TTL_SECONDS: '3600' })).toBe(3600);
     });
 
     it('maps MGET values to booleans', async () => {
@@ -54,15 +42,20 @@ describe('embed-playability-cache', () => {
         const exec = vi.fn().mockResolvedValue([]);
         const pipeline = vi.fn(() => ({ setex, exec }));
         const redis = { pipeline } as unknown as Redis;
+        const embed = { VKARA_EMBED_CACHE_TTL_SECONDS: '3600' };
 
-        await setEmbeddabilityMany(redis, [
-            { videoId: 'v1', canEmbed: true },
-            { videoId: 'v2', canEmbed: false },
-        ]);
+        await setEmbeddabilityMany(
+            redis,
+            [
+                { videoId: 'v1', canEmbed: true },
+                { videoId: 'v2', canEmbed: false },
+            ],
+            embed,
+        );
 
         expect(pipeline).toHaveBeenCalled();
-        expect(setex).toHaveBeenCalledWith('youtube-embed:v1', getEmbedCacheTtlSeconds(), '1');
-        expect(setex).toHaveBeenCalledWith('youtube-embed:v2', getEmbedCacheTtlSeconds(), '0');
+        expect(setex).toHaveBeenCalledWith('youtube-embed:v1', 3600, '1');
+        expect(setex).toHaveBeenCalledWith('youtube-embed:v2', 3600, '0');
         expect(exec).toHaveBeenCalled();
     });
 });

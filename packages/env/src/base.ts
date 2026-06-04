@@ -20,16 +20,15 @@ export function parseEnvFlagValue(raw: string | undefined, defaultValue = false)
     return defaultValue;
 }
 
-export function parseEnvFlag(name: string, defaultValue = false): boolean {
-    return parseEnvFlagValue(process.env[name], defaultValue);
-}
-
-export function parseEnvPositiveInt(name: string, defaultValue: number): number {
-    const raw = process.env[name]?.trim();
-    if (!raw) {
+export function parseEnvPositiveIntValue(
+    raw: string | undefined,
+    defaultValue: number,
+): number {
+    const trimmed = raw?.trim();
+    if (!trimmed) {
         return defaultValue;
     }
-    const parsed = Number.parseInt(raw, 10);
+    const parsed = Number.parseInt(trimmed, 10);
     if (!Number.isFinite(parsed) || parsed <= 0) {
         return defaultValue;
     }

@@ -1,7 +1,9 @@
 import type Redis from 'ioredis';
 
 import { createRedisBoolCache } from '@vkara/cache-redis';
-import { getEmbedCacheTtlSeconds } from '@vkara/env/embed';
+import { type EmbedEnvValues, getEmbedCacheTtlSeconds } from '@vkara/env/embed';
+
+import { env } from '@/env';
 
 export const EMBED_CACHE_PREFIX = 'youtube-embed:';
 
@@ -37,6 +39,7 @@ export async function mgetEmbeddability(
 export async function setEmbeddabilityMany(
     redisClient: Redis,
     entries: { videoId: string; canEmbed: boolean }[],
+    embed: EmbedEnvValues = env,
 ): Promise<void> {
     if (entries.length === 0) {
         return;
@@ -48,6 +51,6 @@ export async function setEmbeddabilityMany(
             key: getEmbedCacheKey(videoId),
             value: canEmbed,
         })),
-        getEmbedCacheTtlSeconds(),
+        getEmbedCacheTtlSeconds(embed),
     );
 }

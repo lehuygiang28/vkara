@@ -29,7 +29,7 @@ Product feature toggles MUST use the `VKARA_` prefix and be defined in `@vkara/e
 
 ### Requirement: Flag access through env or typed helpers
 
-API code MUST obtain flag values from `embedEnv()` / `apps/api/src/env.ts` or thin helpers that delegate to validated env — not duplicate `parseEnvFlag` calls with raw env key strings in feature modules.
+API code MUST obtain flag values from `embedEnv()` / `apps/api/src/env.ts` or thin helpers that delegate to validated env — not duplicate `parseEnvFlagValue` / `parseEnvPositiveIntValue` calls with `process.env` key lookups in feature modules.
 
 #### Scenario: Prepare videos reads prefilter from env layer
 

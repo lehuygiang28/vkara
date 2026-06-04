@@ -17,6 +17,13 @@ export const FLAG_DOCS = [
             'When enabled, filter non-embeddable videos from search/related/playlist preview lists.',
     },
     {
+        name: 'VKARA_EMBED_CACHE_TTL_SECONDS',
+        default: 2_592_000,
+        scope: 'api',
+        description:
+            'Redis TTL (seconds) for youtube-embed:{videoId} playability cache entries (default 30 days).',
+    },
+    {
         name: 'VKARA_AIO',
         default: false,
         scope: 'web',

@@ -1,54 +1,36 @@
-import { afterEach, describe, expect, it } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-import { parseEnvFlag, parseEnvPositiveInt } from '../src/base';
+import { parseEnvFlagValue, parseEnvPositiveIntValue } from '../src/base';
 
-describe('parseEnvFlag', () => {
-    const key = 'TEST_VKARA_FLAG';
-
-    afterEach(() => {
-        delete process.env[key];
-    });
-
+describe('parseEnvFlagValue', () => {
     it('defaults when unset', () => {
-        expect(parseEnvFlag(key, false)).toBe(false);
-        expect(parseEnvFlag(key, true)).toBe(true);
+        expect(parseEnvFlagValue(undefined, false)).toBe(false);
+        expect(parseEnvFlagValue(undefined, true)).toBe(true);
     });
 
     it('parses canonical true/false values', () => {
         for (const value of ['true', 'TRUE', '1', 'yes', 'on']) {
-            process.env[key] = value;
-            expect(parseEnvFlag(key)).toBe(true);
+            expect(parseEnvFlagValue(value)).toBe(true);
         }
 
         for (const value of ['false', 'FALSE', '0', 'no', 'off']) {
-            process.env[key] = value;
-            expect(parseEnvFlag(key)).toBe(false);
+            expect(parseEnvFlagValue(value)).toBe(false);
         }
     });
 
     it('returns default for unknown values', () => {
-        process.env[key] = 'maybe';
-        expect(parseEnvFlag(key, false)).toBe(false);
+        expect(parseEnvFlagValue('maybe', false)).toBe(false);
     });
 });
 
-describe('parseEnvPositiveInt', () => {
-    const key = 'TEST_VKARA_INT';
-
-    afterEach(() => {
-        delete process.env[key];
-    });
-
+describe('parseEnvPositiveIntValue', () => {
     it('defaults when unset or invalid', () => {
-        expect(parseEnvPositiveInt(key, 99)).toBe(99);
-        process.env[key] = 'nope';
-        expect(parseEnvPositiveInt(key, 99)).toBe(99);
-        process.env[key] = '0';
-        expect(parseEnvPositiveInt(key, 99)).toBe(99);
+        expect(parseEnvPositiveIntValue(undefined, 99)).toBe(99);
+        expect(parseEnvPositiveIntValue('nope', 99)).toBe(99);
+        expect(parseEnvPositiveIntValue('0', 99)).toBe(99);
     });
 
     it('parses positive integers', () => {
-        process.env[key] = '3600';
-        expect(parseEnvPositiveInt(key, 99)).toBe(3600);
+        expect(parseEnvPositiveIntValue('3600', 99)).toBe(3600);
     });
 });

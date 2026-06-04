@@ -1,6 +1,11 @@
 import { getTopChannels } from './profile';
 import { rankVideos } from './rank-videos';
-import type { PersonalizableVideo, PersonalizationProfile, RankContext } from './types';
+import type {
+    PersonalizableVideo,
+    PersonalizationProfile,
+    RankContext,
+    SearchHistoryEntry,
+} from './types';
 import { PERSONALIZATION_LIMITS } from './types';
 
 export type BrowseFeedSource =
@@ -72,10 +77,15 @@ export const hasBrowseFeedSources = (
  * Stable key for resetting the browse feed. Only search-history identity should
  * invalidate the list; room/engagement changes update ranking via refs silently.
  */
-export const buildBrowseFeedSessionKey = (profile: PersonalizationProfile): string =>
+export const buildBrowseFeedSessionKeyFromSearchHistory = (
+    searchHistory: readonly SearchHistoryEntry[],
+): string =>
     JSON.stringify({
-        searches: profile.searchHistory.map((entry) => `${entry.query}:${entry.isKaraoke}`),
+        searches: searchHistory.map((entry) => `${entry.query}:${entry.isKaraoke}`),
     });
+
+export const buildBrowseFeedSessionKey = (profile: PersonalizationProfile): string =>
+    buildBrowseFeedSessionKeyFromSearchHistory(profile.searchHistory);
 
 /** Dedupe against existing ids, rank a incoming batch for feed append. */
 export const rankBrowseFeedBatch = <T extends PersonalizableVideo>(

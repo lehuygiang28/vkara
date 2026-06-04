@@ -38,17 +38,17 @@ The monorepo MUST provide an `@vkara/env` package that validates environment var
 
 ### Requirement: Canonical env parsers
 
-Base parsers `parseEnvFlag` and `parseEnvPositiveInt` MUST live in `@vkara/env` and preserve existing semantics: flags accept `true`/`false`/`1`/`0`/`yes`/`no`/`on`/`off` (case-insensitive); invalid flag values fall back to the provided default; positive integers must be finite and > 0 or fall back to default.
+Base parsers `parseEnvFlagValue` and `parseEnvPositiveIntValue` MUST live in `@vkara/env` and preserve existing semantics: flags accept `true`/`false`/`1`/`0`/`yes`/`no`/`on`/`off` (case-insensitive); invalid flag values fall back to the provided default; positive integers must be finite and > 0 or fall back to default. Application code MUST pass raw strings from validated env objects, not env var names.
 
 #### Scenario: Flag parser backward compatibility
 
 - **WHEN** `VKARA_EMBED_PREFILTER_AT_LIST` is set to `on`
-- **THEN** `parseEnvFlag` MUST return true
+- **THEN** `parseEnvFlagValue('on')` MUST return true
 
 #### Scenario: Invalid flag uses default
 
 - **WHEN** a flag env var is set to an unrecognized string
-- **THEN** `parseEnvFlag` MUST return the declared default value
+- **THEN** `parseEnvFlagValue` MUST return the declared default value
 
 ### Requirement: No ad-hoc process.env in application code
 
