@@ -2,7 +2,7 @@ import { getRecentSearchQueries, getTopChannels, normalizeChannelKey } from './p
 import type { PersonalizableVideo, PersonalizationProfile, RankContext } from './types';
 import { PERSONALIZATION_LIMITS } from './types';
 
-const KARAOKE_TITLE_PATTERN = /karaoke|beat|instrumental|kara|cover/i;
+const KARAOKE_TITLE_PATTERN = /karaoke|kara|karaok|beat|instrumental|tone/i;
 
 const SCORE = {
     channelAffinity: 3,
@@ -20,7 +20,10 @@ const tokenize = (text: string): string[] =>
 const buildQueryTokens = (profile: PersonalizationProfile, currentQuery: string): Set<string> => {
     const tokens = new Set<string>(tokenize(currentQuery));
 
-    for (const query of getRecentSearchQueries(profile, PERSONALIZATION_LIMITS.recentSearchBoostCount)) {
+    for (const query of getRecentSearchQueries(
+        profile,
+        PERSONALIZATION_LIMITS.recentSearchBoostCount,
+    )) {
         for (const token of tokenize(query)) {
             tokens.add(token);
         }
