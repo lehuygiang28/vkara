@@ -87,5 +87,6 @@ export function useOverlayPortal(active: boolean) {
     return {
         portalTarget,
         positionClass: containOverlays ? ('absolute' as const) : ('fixed' as const),
+        containOverlays,
     };
 }

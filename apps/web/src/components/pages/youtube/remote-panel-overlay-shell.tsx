@@ -19,7 +19,7 @@ type RemotePanelOverlayShellProps = {
     bodyMode?: RemotePanelOverlayBodyMode;
 };
 
-/** Full-screen overlay in the remote column — same layout contract as queue/search tabs. */
+/** Overlay scoped above bottom nav / now playing — same layout contract as queue/search tabs. */
 export function RemotePanelOverlayShell({
     active,
     ariaLabel,
@@ -27,7 +27,7 @@ export function RemotePanelOverlayShell({
     children,
     bodyMode = 'scroll',
 }: RemotePanelOverlayShellProps) {
-    const { portalTarget, positionClass } = useOverlayPortal(active);
+    const { portalTarget, positionClass, containOverlays } = useOverlayPortal(active);
 
     if (!active || !portalTarget) {
         return null;
@@ -44,7 +44,12 @@ export function RemotePanelOverlayShell({
             {bodyMode === 'list' ? (
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
             ) : (
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-safe-offset pb-remote-scroll">
+                <div
+                    className={cn(
+                        'min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-safe-offset',
+                        containOverlays ? 'pb-4' : 'pb-remote-scroll',
+                    )}
+                >
                     {children}
                 </div>
             )}

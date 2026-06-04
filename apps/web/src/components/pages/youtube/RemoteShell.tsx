@@ -46,7 +46,6 @@ export function RemoteShell() {
     useRemoteBottomChrome(Boolean(room?.playingNow));
 
     const showJoinLobby = effectiveLayoutMode === 'remote' && !room;
-    const containOverlays = effectiveLayoutMode !== 'remote';
 
     useEffect(() => {
         if (currentTab === 'related') {
@@ -79,7 +78,7 @@ export function RemoteShell() {
     return (
         <TooltipProvider delayDuration={400}>
             <div className="flex h-full min-h-0 flex-col">
-                <RemotePanelOverlayProvider containOverlays={containOverlays}>
+                <RemotePanelOverlayProvider containOverlays>
                     <RemoteTabPanel>
                         {currentTab === 'search' && <VideoSearch />}
                         {currentTab === 'queue' && <VideoQueue />}
