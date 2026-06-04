@@ -10,6 +10,7 @@ COPY apps/web/package.json ./apps/web/package.json
 COPY packages/shared-types/package.json ./packages/shared-types/package.json
 COPY packages/shared-infra/package.json ./packages/shared-infra/package.json
 COPY packages/shared-utils/package.json ./packages/shared-utils/package.json
+COPY packages/curated-playlists/package.json ./packages/curated-playlists/package.json
 
 # Aio workspaces only (+ typescript for next build; lives in root devDeps today).
 FROM base AS deps
@@ -19,6 +20,7 @@ RUN bun install --frozen-lockfile \
     --filter '@vkara/shared-types' \
     --filter '@vkara/shared-infra' \
     --filter '@vkara/shared-utils' \
+    --filter '@vkara/curated-playlists' \
     && bun add --dev typescript@5.7.3
 
 FROM deps AS build-api
@@ -34,6 +36,7 @@ FROM deps AS build-web
 COPY apps/web ./apps/web
 COPY packages/shared-types ./packages/shared-types
 COPY packages/shared-utils ./packages/shared-utils
+COPY packages/curated-playlists ./packages/curated-playlists
 
 ENV VKARA_AIO=1
 ENV NEXT_PUBLIC_API_URL=/api/vkara

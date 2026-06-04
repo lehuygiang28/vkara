@@ -8,6 +8,7 @@ COPY apps/web/package.json ./apps/web/package.json
 COPY packages/shared-types/package.json ./packages/shared-types/package.json
 COPY packages/shared-infra/package.json ./packages/shared-infra/package.json
 COPY packages/shared-utils/package.json ./packages/shared-utils/package.json
+COPY packages/curated-playlists/package.json ./packages/curated-playlists/package.json
 
 RUN bun install --frozen-lockfile
 
