@@ -1,4 +1,5 @@
-import type { Room, TvRoomRestoreState } from '@vkara/shared-types';
+import type { Room } from '@vkara/room';
+import type { TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 import { describe, expect, it } from 'vitest';
 
 import { applyTvRestoreToRoom, clampRestoreState } from '@/modules/room/apply-tv-restore';

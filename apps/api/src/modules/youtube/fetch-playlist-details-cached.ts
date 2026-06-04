@@ -1,6 +1,6 @@
 import type Redis from 'ioredis';
-import type { PlaylistDetailsResponse } from '@vkara/shared-types';
-import { parseYoutubePlaylistInput } from '@vkara/shared-utils';
+import type { PlaylistDetailsResponse } from '@vkara/youtube';
+import { parseYoutubePlaylistInput } from '@vkara/youtube';
 
 import { createInFlightDedup } from './in-flight-dedup';
 import { fetchYoutubePlaylistDetails } from './fetch-playlist-details';

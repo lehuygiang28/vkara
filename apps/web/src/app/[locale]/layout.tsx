@@ -1,6 +1,6 @@
 import '../globals.css';
 
-import { ReactNode } from 'react';
+import { ReactNode, Suspense } from 'react';
 import { notFound } from 'next/navigation';
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
@@ -17,6 +17,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { ServiceWorkerCleanup } from '@/components/service-worker-cleanup';
 import { JsonLd } from '@/components/seo/json-ld';
 import { isAppLocale, type AppLocale } from '@/lib/locale-path';
+import { env } from '@/env';
 import { buildPageMetadata } from '@/lib/seo/metadata';
 import { getI18n, getStaticParams, setStaticParamsLocale } from '@/locales/server';
 
@@ -97,17 +98,19 @@ export default async function RootLayout({
                     disableTransitionOnChange
                 >
                     <I18nProvider locale={appLocale}>
-                        <WebSocketProvider>
-                            <ServiceWorkerCleanup />
-                            {children}
-                            <ActionFeedbackHost />
-                            <Toaster />
-                        </WebSocketProvider>
+                        <Suspense fallback={null}>
+                            <WebSocketProvider>
+                                <ServiceWorkerCleanup />
+                                {children}
+                                <ActionFeedbackHost />
+                                <Toaster />
+                            </WebSocketProvider>
+                        </Suspense>
                     </I18nProvider>
                 </ThemeProvider>
                 <Analytics />
-                {process.env?.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
-                    <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
+                {env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID && (
+                    <GoogleAnalytics gaId={env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID} />
                 )}
                 <CloudflareWebAnalytics />
             </body>

@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState, memo, type ReactNode } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { cn } from '@/lib/utils';
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 import { useScopedI18n } from '@/locales/client';
 import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';

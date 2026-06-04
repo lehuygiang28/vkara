@@ -1,6 +1,8 @@
-import { resolveUrl } from '@vkara/shared-utils';
+import { resolveUrl } from '@vkara/room';
 
-const API_URL = resolveUrl(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000');
+import { env } from '@/env';
+
+const API_URL = resolveUrl(env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000');
 
 function buildApiUrl(path: string): string {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;

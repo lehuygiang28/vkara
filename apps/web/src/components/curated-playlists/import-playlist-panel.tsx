@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Link2, ListMusic } from 'lucide-react';
-import { parseYoutubePlaylistInput } from '@vkara/shared-utils';
+import { parseYoutubePlaylistInput } from '@vkara/youtube';
 
 import {
     RemotePanelOverlayHeader,

@@ -1,0 +1,20 @@
+{
+    "name": "@vkara/room",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix",
+        "test": "vitest run --config ../../vitest.config.mts --project @vkara/room"
+    },
+    "exports": {
+        ".": "./src/index.ts",
+        "./errors": "./src/errors.ts",
+        "./websocket": "./src/websocket.ts"
+    },
+    "dependencies": {
+        "@vkara/validators": "workspace:*",
+        "@vkara/youtube": "workspace:*"
+    }
+}

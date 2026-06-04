@@ -11,7 +11,7 @@ import {
     Volume2,
     VolumeX,
 } from 'lucide-react';
-import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/shared-types';
+import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { usePlaybackDisplayTime } from '@/hooks/use-playback-display-time';
 import { usePlayerAction } from '@/hooks/use-player-action';

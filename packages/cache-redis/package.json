@@ -1,0 +1,19 @@
+{
+    "name": "@vkara/cache-redis",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix",
+        "test": "vitest run --config ../../vitest.config.mts --project @vkara/cache-redis"
+    },
+    "exports": {
+        ".": "./src/index.ts",
+        "./bool": "./src/bool-cache.ts",
+        "./json": "./src/json-cache.ts"
+    },
+    "dependencies": {
+        "ioredis": "^5.4.2"
+    }
+}

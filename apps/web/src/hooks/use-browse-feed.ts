@@ -3,15 +3,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     buildBrowseFeedRankContext,
-    buildBrowseFeedSessionKey,
+    buildBrowseFeedSessionKeyFromSearchHistory,
     buildBrowseFeedSources,
     rankBrowseFeedBatch,
     type BrowseFeedSource,
     type BrowseRoomContext,
     type PersonalizationProfile,
-} from '@vkara/shared-utils';
+} from '@vkara/personalization';
 
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 import { getRelatedVideos, searchYoutube } from '@/services/youtube-api';
 
 type SourceCursor = {
@@ -46,7 +46,11 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
     const [hasMore, setHasMore] = useState(false);
     const [loadError, setLoadError] = useState(false);
 
-    const feedKey = useMemo(() => buildBrowseFeedSessionKey(profile), [profile.searchHistory]);
+    const searchHistory = profile.searchHistory;
+    const feedKey = useMemo(
+        () => buildBrowseFeedSessionKeyFromSearchHistory(searchHistory),
+        [searchHistory],
+    );
 
     const profileRef = useRef(profile);
     const roomRef = useRef(room);

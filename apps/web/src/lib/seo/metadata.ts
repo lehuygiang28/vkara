@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 
+import { env } from '@/env';
 import {
     APP_LOCALES,
     DEFAULT_APP_LOCALE,
@@ -93,8 +94,8 @@ export function buildPageMetadata(locale: AppLocale, t: SeoTranslations): Metada
                 'max-snippet': -1,
             },
         },
-        ...(process.env.GOOGLE_SITE_VERIFICATION
-            ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+        ...(env.GOOGLE_SITE_VERIFICATION
+            ? { verification: { google: env.GOOGLE_SITE_VERIFICATION } }
             : {}),
     };
 }

@@ -1,4 +1,5 @@
-import { DEFAULT_CAPTION_LANGUAGE, normalizePersistedRoom } from '@vkara/shared-types';
+import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
+import { normalizePersistedRoom } from '@vkara/room';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {

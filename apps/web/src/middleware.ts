@@ -1,6 +1,7 @@
 import { createI18nMiddleware } from 'next-international/middleware';
 import { NextRequest, NextResponse } from 'next/server';
 
+import { env } from '@/env';
 import { APP_LOCALES, DEFAULT_APP_LOCALE, LOCALE_COOKIE_NAME } from '@/lib/locale-path';
 
 const I18nMiddleware = createI18nMiddleware({
@@ -25,7 +26,7 @@ export function middleware(request: NextRequest) {
         request.headers.has('x-middleware-subrequest');
 
     if (
-        process.env.VKARA_AIO !== '1' &&
+        env.VKARA_AIO !== '1' &&
         !isInternalSubrequest &&
         (pathname === '/vi' || pathname.startsWith('/vi/'))
     ) {

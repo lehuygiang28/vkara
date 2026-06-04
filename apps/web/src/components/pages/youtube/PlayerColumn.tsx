@@ -5,9 +5,10 @@ import { useCallback, useEffect, useRef } from 'react';
 import { Settings } from 'lucide-react';
 import { LayoutGroup } from 'framer-motion';
 
-import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/shared-utils';
+import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/youtube';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { DEFAULT_CAPTION_LANGUAGE, needsPlaybackSeekCorrection } from '@vkara/shared-types';
+import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
+import { needsPlaybackSeekCorrection } from '@vkara/room';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';

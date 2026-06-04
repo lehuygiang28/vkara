@@ -1,11 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuid } from 'uuid';
-import type {
-    ClientMessage,
-    ConnectionStatus,
-    MessageBase,
-    ServerMessage,
-} from '@vkara/shared-types';
+import type { ConnectionStatus, MessageBase, ServerMessage } from '@vkara/room';
+import type { ClientMessage } from '@vkara/validators/ws/client-message';
 import type { WebSocketConfig, WebSocketState } from '@/types/websocket.type';
 
 class WebSocketManager {

@@ -1,7 +1,7 @@
 import type { VideoCompact } from 'youtubei';
 
-import type { YouTubeVideo } from '@vkara/shared-types';
-import { isValidYoutubeVideoId } from '@vkara/shared-utils';
+import type { YouTubeVideo } from '@vkara/youtube';
+import { isValidYoutubeVideoId } from '@vkara/youtube';
 
 type SearchResultCandidate = Pick<VideoCompact, 'id' | 'title'>;
 

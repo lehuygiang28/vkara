@@ -1,7 +1,7 @@
 import type { Client, VideoCompact } from 'youtubei';
 import type Redis from 'ioredis';
 
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 
 import { getCachedChannel } from './channel-cache';
 import { resolveChannelVerified, type ChannelWithId } from './channel-verified';

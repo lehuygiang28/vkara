@@ -1,4 +1,4 @@
-import { isValidRoomId } from '@vkara/shared-utils';
+import { isValidRoomId } from '@vkara/room';
 
 const VKARA_PREFIX = 'vkara:';
 

@@ -4,7 +4,7 @@ import {
     acceptSyncPlaybackPositionTime,
     needsPlaybackSeekCorrection,
     PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC,
-} from '@vkara/shared-types';
+} from '@vkara/room';
 
 describe('acceptSyncPlaybackPositionTime', () => {
     it('rejects backward position sync', () => {

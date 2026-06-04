@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import type Redis from 'ioredis';
 
 import { buildSingKingStyleSearchPage, SING_KING_CHANNEL_NAME } from '../../fixtures/sing-king-search';
@@ -32,32 +32,21 @@ function allNonEmbeddable(page: ReturnType<typeof buildSingKingStyleSearchPage>)
  * These tests use Redis cache fixtures (no YouTube HTTP) and document current behavior:
  * one search page filtered to zero rows does not auto-fetch the next Innertube page on the server.
  */
+const prefilterOn = { VKARA_EMBED_PREFILTER_AT_LIST: 'true' };
+const prefilterOff = {};
+
 describe('Sing King search embed prefilter', () => {
-    const previousPrefilter = process.env.VKARA_EMBED_PREFILTER_AT_LIST;
-
-    afterEach(() => {
-        if (previousPrefilter === undefined) {
-            delete process.env.VKARA_EMBED_PREFILTER_AT_LIST;
-        } else {
-            process.env.VKARA_EMBED_PREFILTER_AT_LIST = previousPrefilter;
-        }
-    });
-
     it('returns an empty list when every Sing King row is cached as non-embeddable', async () => {
-        process.env.VKARA_EMBED_PREFILTER_AT_LIST = 'true';
-
         const page = buildSingKingStyleSearchPage(12);
         const redis = redisWithEmbeddability(allNonEmbeddable(page));
 
-        const filtered = await filterVideosForListPrefilter(redis, page);
+        const filtered = await filterVideosForListPrefilter(redis, page, prefilterOn);
 
         expect(filtered).toEqual([]);
         expect(page.every((video) => video.channels[0]?.name === SING_KING_CHANNEL_NAME)).toBe(true);
     });
 
     it('keeps only embeddable rows when one Sing King result is allowed', async () => {
-        process.env.VKARA_EMBED_PREFILTER_AT_LIST = 'true';
-
         const page = buildSingKingStyleSearchPage(5);
         const redis = redisWithEmbeddability({
             [page[0]!.id]: '0',
@@ -67,19 +56,17 @@ describe('Sing King search embed prefilter', () => {
             [page[4]!.id]: '0',
         });
 
-        const filtered = await filterVideosForListPrefilter(redis, page);
+        const filtered = await filterVideosForListPrefilter(redis, page, prefilterOn);
 
         expect(filtered).toHaveLength(1);
         expect(filtered[0]?.id).toBe(page[2]?.id);
     });
 
     it('does not filter when prefilter flag is off (current default)', async () => {
-        delete process.env.VKARA_EMBED_PREFILTER_AT_LIST;
-
         const page = buildSingKingStyleSearchPage(8);
         const redis = redisWithEmbeddability(allNonEmbeddable(page));
 
-        const filtered = await filterVideosForListPrefilter(redis, page);
+        const filtered = await filterVideosForListPrefilter(redis, page, prefilterOff);
 
         expect(filtered).toHaveLength(8);
     });

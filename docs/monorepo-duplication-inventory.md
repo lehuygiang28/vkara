@@ -1,9 +1,11 @@
 # Monorepo Duplication Inventory
 
-## Scope
+> **Historical (pre–platform-env-t3-monorepo).** `shared-types`, `shared-utils`, and `shared-infra` were removed. Current layout: `@vkara/env`, `@vkara/redis`, `@vkara/validators`, `@vkara/youtube`, `@vkara/room`, `@vkara/personalization`, `@vkara/cache-redis`. See [monorepo-architecture.md](./monorepo-architecture.md).
+
+## Scope (original audit)
 - `apps/api`
 - `apps/web`
-- `packages/shared-types`
+- `packages/shared-types` *(deleted)*
 
 ## Duplication Matrix
 

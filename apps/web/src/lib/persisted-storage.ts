@@ -1,5 +1,6 @@
-import type { YouTubeVideo } from '@vkara/shared-types';
-import { normalizePersistedRoom, normalizeVideoChannels } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
+import { normalizeVideoChannels } from '@vkara/youtube';
+import { normalizePersistedRoom } from '@vkara/room';
 import type { StateStorage } from 'zustand/middleware';
 
 /** Zustand persist blob shape. */

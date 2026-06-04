@@ -4,15 +4,23 @@
     "scripts": {
         "dev": "bun run --watch ./src/index.ts",
         "build": "bun build --compile --minify-whitespace --minify-syntax --target bun --outfile dist/server ./src/index.ts",
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix",
         "test": "vitest run --config ../../vitest.config.mts --project @vkara/api"
     },
     "dependencies": {
         "@elysiajs/cors": "^1.4.2",
+        "@elysiajs/openapi": "^1.4.2",
         "@elysiajs/server-timing": "^1.4.1",
-        "@elysiajs/swagger": "^1.3.1",
-        "@vkara/shared-infra": "workspace:*",
-        "@vkara/shared-types": "workspace:*",
-        "@vkara/shared-utils": "workspace:*",
+        "@t3-oss/env-core": "^0.13.10",
+        "@vkara/cache-redis": "workspace:*",
+        "@vkara/env": "workspace:*",
+        "@vkara/redis": "workspace:*",
+        "@vkara/room": "workspace:*",
+        "@vkara/validators": "workspace:*",
+        "@vkara/youtube": "workspace:*",
+        "zod": "^3.24.0",
+        "zod-to-json-schema": "^3.24.5",
         "bullmq": "^5.34.8",
         "chalk": "^5.4.1",
         "elysia": "^1.4.28",
@@ -25,8 +33,8 @@
         "youtubei": "^1.8.9"
     },
     "devDependencies": {
-        "@sinclair/typebox": "^0.34.49",
         "@types/locate-chrome": "^0.1.2",
+        "@types/node-fetch": "^2.6.12",
         "bun-types": "^1.1.43"
     },
     "module": "src/index.js"

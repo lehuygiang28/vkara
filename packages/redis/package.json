@@ -1,0 +1,17 @@
+{
+    "name": "@vkara/redis",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix"
+    },
+    "exports": {
+        ".": "./src/index.ts",
+        "./redis": "./src/redis.ts"
+    },
+    "dependencies": {
+        "ioredis": "^5.4.2"
+    }
+}

@@ -1,3 +1,6 @@
+import { env } from '@/env';
+import { resolvePublicAppUrl } from '@vkara/env/embed';
+
 /** Status values YouTube returns when the embed iframe can play. */
 const EMBED_PLAYABLE_STATUSES = new Set(['OK', 'LIVE_STREAM']);
 
@@ -30,12 +33,7 @@ function nextEmbedCheckBaseUrl(): string {
 
 /** Origin must match the site that embeds YouTube (see IFrame API `origin` param). */
 export function getEmbedCheckOrigin(): string {
-    const raw =
-        process.env.PUBLIC_APP_URL ||
-        process.env.APP_PUBLIC_URL ||
-        process.env.WEB_ORIGIN ||
-        'http://localhost:3000';
-
+    const raw = resolvePublicAppUrl(env) ?? 'http://localhost:3000';
     return raw.replace(/\/$/, '');
 }
 
@@ -46,10 +44,10 @@ export function parseEmbedPlayabilityPreview(html: string): EmbedPlayabilityPrev
 
     const chunk = html.slice(idx, idx + 2000);
     const status =
-        chunk.match(/status\\\":\\\"([A-Z_]+)/)?.[1] ??
+        chunk.match(/status\\":\\"([A-Z_]+)/)?.[1] ??
         chunk.match(/"status":"([A-Z_]+)"/)?.[1];
     const reason =
-        chunk.match(/reason\\\":\\\"([^\\"]+)/)?.[1] ??
+        chunk.match(/reason\\":\\"([^\\"]+)/)?.[1] ??
         chunk.match(/"reason":"([^"]+)"/)?.[1];
 
     return { status, reason };

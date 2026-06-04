@@ -1,6 +1,6 @@
 import type { Client, VideoCompact } from 'youtubei';
 
-import { coerceViewCount, resolveYoutubeLiveFlag } from '@vkara/shared-utils';
+import { coerceViewCount, resolveYoutubeLiveFlag } from '@vkara/youtube';
 
 import { createContextLogger } from '@/utils/logger';
 

@@ -1,5 +1,5 @@
-import { isValidRoomId } from '@vkara/shared-utils';
-import { ErrorCode, normalizePersistedRoom, RoomError, type Room } from '@vkara/shared-types';
+import { isValidRoomId } from '@vkara/room';
+import { ErrorCode, normalizePersistedRoom, RoomError, type Room } from '@vkara/room';
 
 function normalizeRoomCaptionFields(room: Room): void {
     const normalized = normalizePersistedRoom(room);

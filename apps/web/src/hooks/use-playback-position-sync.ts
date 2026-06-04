@@ -11,7 +11,7 @@ import {
     PLAYBACK_TIME_BROADCAST_MIN_INTERVAL_MS,
     shouldBroadcastPlaybackTime,
     type PlaybackTimeSyncState,
-} from '@vkara/shared-types';
+} from '@vkara/room';
 import { useIsRoomSessionReady } from '@/hooks/use-room-session-ready';
 
 const PERIODIC_SYNC_INTERVAL_MS = PLAYBACK_TIME_BROADCAST_MIN_INTERVAL_MS;

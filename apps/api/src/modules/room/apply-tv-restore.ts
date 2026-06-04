@@ -1,4 +1,5 @@
-import type { Room, TvRoomRestoreState } from '@vkara/shared-types';
+import type { Room } from '@vkara/room';
+import type { TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 
 const MAX_RESTORE_QUEUE_LENGTH = 200;
 const MAX_RESTORE_CAPTION_TRACKS = 64;

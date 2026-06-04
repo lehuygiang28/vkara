@@ -11,7 +11,7 @@ import { useI18n, useScopedI18n } from '@/locales/client';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { markServerPlaybackSeek } from '@/lib/youtube-playback-sync';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 
 const ACTION_FEEDBACK_DURATION_MS = 2000;
 

@@ -1,0 +1,4 @@
+{
+    "extends": "../../tooling/typescript/library.json",
+    "include": ["src"]
+}

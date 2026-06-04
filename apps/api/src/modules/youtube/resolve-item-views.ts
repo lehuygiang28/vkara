@@ -1,6 +1,6 @@
 import type { Client, VideoCompact } from 'youtubei';
 
-import { resolveViewCount, resolveYoutubeLiveFlag } from '@vkara/shared-utils';
+import { resolveViewCount, resolveYoutubeLiveFlag } from '@vkara/youtube';
 
 import { fetchLiveViewerCount } from './live-viewers';
 import type { RendererMetadataMaps } from './renderer-metadata';

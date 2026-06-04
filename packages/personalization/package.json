@@ -1,0 +1,17 @@
+{
+    "name": "@vkara/personalization",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix",
+        "test": "vitest run --config ../../vitest.config.mts --project @vkara/personalization"
+    },
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "dependencies": {
+        "@vkara/youtube": "workspace:*"
+    }
+}

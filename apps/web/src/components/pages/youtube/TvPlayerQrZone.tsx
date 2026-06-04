@@ -4,7 +4,7 @@ import { QRCode } from 'react-qrcode-logo';
 import { motion, useReducedMotion } from 'framer-motion';
 
 import { generateShareableUrl } from '@/lib/room-share';
-import { resolveRoomPasswordForShare } from '@vkara/shared-utils';
+import { resolveRoomPasswordForShare } from '@vkara/room';
 import { useScopedI18n } from '@/locales/client';
 import { cn } from '@/lib/utils';
 

@@ -3,12 +3,12 @@
 import { memo, type ReactNode } from 'react';
 import { VideoChannels } from '@/components/video-channels';
 import { LiveBadge } from '@/components/youtube-live-badge';
-import { coerceViewCount, formatViewCount, getYouTubeThumbnailUrl } from '@vkara/shared-utils';
+import { coerceViewCount, formatViewCount, getYouTubeThumbnailUrl } from '@vkara/youtube';
 import { formatUploadedAt } from '@/lib/format-uploaded-at';
 import { isVideoLive } from '@/lib/youtube-video';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/locales/client';
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 
 import { VideoListThumbnail } from './video-list-thumbnail';
 

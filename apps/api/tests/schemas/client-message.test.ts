@@ -1,7 +1,6 @@
-import { Value } from '@sinclair/typebox/value';
 import { describe, expect, it } from 'vitest';
 
-import { wsClientMessageSchema } from '@/schemas/client-message';
+import { wsClientMessageSchema } from '@vkara/validators/ws/client-message';
 
 const base = { id: 'client-msg-1', timestamp: 1_700_000_000_000 };
 
@@ -20,12 +19,16 @@ function validVideo() {
     };
 }
 
+function check(payload: unknown): boolean {
+    return wsClientMessageSchema.safeParse(payload).success;
+}
+
 describe('wsClientMessageSchema', () => {
     it('accepts minimal valid control messages', () => {
-        expect(Value.Check(wsClientMessageSchema, { ...base, type: 'ping' })).toBe(true);
-        expect(Value.Check(wsClientMessageSchema, { ...base, type: 'nextVideo' })).toBe(true);
+        expect(check({ ...base, type: 'ping' })).toBe(true);
+        expect(check({ ...base, type: 'nextVideo' })).toBe(true);
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'joinRoom',
                 roomId: '1234',
@@ -34,28 +37,24 @@ describe('wsClientMessageSchema', () => {
     });
 
     it('rejects missing base fields', () => {
-        expect(Value.Check(wsClientMessageSchema, { type: 'ping' })).toBe(false);
-        expect(Value.Check(wsClientMessageSchema, { ...base, type: 'ping', id: 1 })).toBe(false);
-        expect(
-            Value.Check(wsClientMessageSchema, { ...base, type: 'ping', timestamp: 'now' }),
-        ).toBe(false);
+        expect(check({ type: 'ping' })).toBe(false);
+        expect(check({ ...base, type: 'ping', id: 1 })).toBe(false);
+        expect(check({ ...base, type: 'ping', timestamp: 'now' })).toBe(false);
     });
 
     it('rejects unknown message types', () => {
-        expect(Value.Check(wsClientMessageSchema, { ...base, type: 'hackRoom' })).toBe(false);
-        expect(Value.Check(wsClientMessageSchema, { ...base, type: '' })).toBe(false);
+        expect(check({ ...base, type: 'hackRoom' })).toBe(false);
+        expect(check({ ...base, type: '' })).toBe(false);
     });
 
     it('rejects joinRoom without roomId', () => {
-        expect(Value.Check(wsClientMessageSchema, { ...base, type: 'joinRoom' })).toBe(false);
-        expect(
-            Value.Check(wsClientMessageSchema, { ...base, type: 'joinRoom', roomId: 1234 }),
-        ).toBe(false);
+        expect(check({ ...base, type: 'joinRoom' })).toBe(false);
+        expect(check({ ...base, type: 'joinRoom', roomId: 1234 })).toBe(false);
     });
 
     it('rejects addVideo with invalid video shape', () => {
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'addVideo',
                 video: { id: 'dQw4w9WgXcQ' },
@@ -63,7 +62,7 @@ describe('wsClientMessageSchema', () => {
         ).toBe(false);
 
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'addVideo',
                 video: {
@@ -74,7 +73,7 @@ describe('wsClientMessageSchema', () => {
         ).toBe(false);
 
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'addVideo',
                 video: {
@@ -85,7 +84,7 @@ describe('wsClientMessageSchema', () => {
         ).toBe(false);
 
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'addVideo',
                 video: {
@@ -98,21 +97,21 @@ describe('wsClientMessageSchema', () => {
 
     it('rejects playback messages with wrong field types', () => {
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'setVolume',
                 volume: 'loud',
             }),
         ).toBe(false);
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'seek',
                 time: '12',
             }),
         ).toBe(false);
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'setShowQRInPlayer',
                 show: 1,
@@ -122,7 +121,7 @@ describe('wsClientMessageSchema', () => {
 
     it('rejects syncCaptionTracks without tracks array', () => {
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'syncCaptionTracks',
                 videoId: 'dQw4w9WgXcQ',
@@ -133,7 +132,7 @@ describe('wsClientMessageSchema', () => {
 
     it('accepts well-formed addVideo payload', () => {
         expect(
-            Value.Check(wsClientMessageSchema, {
+            check({
                 ...base,
                 type: 'addVideo',
                 video: validVideo(),

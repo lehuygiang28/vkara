@@ -1,4 +1,4 @@
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 import { describe, expect, it } from 'vitest';
 
 import { mergeQueueAfterAdvance } from '@/modules/room/merge-queue-after-advance';

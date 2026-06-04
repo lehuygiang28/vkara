@@ -2,9 +2,12 @@ import chalk from 'chalk';
 import winston from 'winston';
 import * as Transport from 'winston-transport';
 
-const LOG_TO_FILES = process.env.LOG_TO_FILES === 'true';
-const ERROR_LOG_PATH = process.env.ERROR_LOG_PATH || 'logs/error.log';
-const COMBINED_LOG_PATH = process.env.COMBINED_LOG_PATH || 'logs/combined.log';
+import { env } from '@/env';
+import { parseEnvFlagValue } from '@vkara/env/base';
+
+const LOG_TO_FILES = parseEnvFlagValue(env.LOG_TO_FILES, false);
+const ERROR_LOG_PATH = env.ERROR_LOG_PATH;
+const COMBINED_LOG_PATH = env.COMBINED_LOG_PATH;
 
 // Custom log format
 const customFormat = winston.format.printf(({ level, message, timestamp, context }) => {
@@ -57,19 +60,18 @@ if (LOG_TO_FILES) {
 }
 
 const logger = winston.createLogger({
-    level: process.env.LOG_LEVEL || 'info',
+    level: env.LOG_LEVEL,
     format: winston.format.combine(
         winston.format.timestamp({
             format: 'YYYY-MM-DD HH:mm:ss',
         }),
         winston.format.errors({ stack: true }),
-        process.env.NODE_ENV === 'production' ? winston.format.json() : customFormat,
+        env.NODE_ENV === 'production' ? winston.format.json() : customFormat,
     ),
     defaultMeta: { service: 'video-room' },
     transports,
 });
 
-// Create contextual loggers
 export const createContextLogger = (context: string) => {
     return {
         error: (message: string, meta: object = {}) => {
@@ -87,7 +89,6 @@ export const createContextLogger = (context: string) => {
     };
 };
 
-// Create specific loggers for different contexts
 export const roomLogger = createContextLogger('Room');
 export const wsLogger = createContextLogger('WebSocket');
 export const cleanupLogger = createContextLogger('Cleanup');

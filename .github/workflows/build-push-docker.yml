@@ -37,11 +37,8 @@ jobs:
             - name: Install dependencies
               run: bun install --frozen-lockfile
 
-            - name: Run unit tests
-              run: bun run test
-
-            - name: Build apps
-              run: bun run build
+            - name: Run CI (test, typecheck, lint, build)
+              run: bun run ci
               env:
                   NODE_ENV: production
                   NEXT_PUBLIC_APP_URL: https://example.com
@@ -74,14 +71,12 @@ jobs:
         runs-on: ubuntu-latest
         strategy:
             fail-fast: false
+            # Web image omitted: NEXT_PUBLIC_* must be set at next build per domain (Vercel or manual docker build).
             matrix:
                 app:
                     - name: api
                       image: lehuygiang28/vkara-api
                       dockerfile: ./apps/api/Dockerfile
-                    - name: web
-                      image: lehuygiang28/vkara-web
-                      dockerfile: ./apps/web/Dockerfile
                     - name: api-redis
                       image: lehuygiang28/vkara-api-redis
                       dockerfile: ./containers/api-redis/Dockerfile

@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
     computeExtrapolatedPlaybackSeconds,
     type PlaybackDisplayAnchor,
-} from '@vkara/shared-types';
+} from '@vkara/room';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 const TICK_MS = 1_000;

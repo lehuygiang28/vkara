@@ -1,13 +1,21 @@
-import { Elysia, t } from 'elysia';
+import { Elysia, status } from 'elysia';
+import {
+    youtubeCheckEmbeddableBodySchema,
+    youtubePlaylistDetailsBodySchema,
+    youtubeRelatedBodySchema,
+    youtubeSearchBodySchema,
+    youtubeSearchSuggestionsBodySchema,
+} from '@vkara/validators/youtube/http';
 import Redis from 'ioredis';
 import { Queue, Worker } from 'bullmq';
 import { type VideoCompact, type SearchResult } from 'youtubei';
 import { fetchSearchSuggestions } from './modules/youtube/fetch-search-suggestions';
-import { createRedisOptions } from '@vkara/shared-infra';
+import { createRedisOptions } from '@vkara/redis';
+
+import { env } from './env';
 
 import { recordRelatedRequest, recordSearchRequest } from '@/modules/stats/service-stats';
 import { createContextLogger } from '@/utils/logger';
-import type { YouTubeVideo } from '@vkara/shared-types';
 import {
     cleanupOldInstances,
     getRedisKey,
@@ -36,7 +44,11 @@ const youtubeiLogger = createContextLogger('Queue/Youtubei');
 
 const youtubei = getYoutubeiClient();
 
-const redisConnectionOptions = createRedisOptions(process.env);
+const redisConnectionOptions = createRedisOptions({
+    REDIS_HOST: env.REDIS_HOST,
+    REDIS_PORT: String(env.REDIS_PORT),
+    REDIS_PASSWORD: env.REDIS_PASSWORD,
+});
 const redis = new Redis(redisConnectionOptions);
 
 const cleanupQueue = new Queue('search-instance-cleanup', { connection: redisConnectionOptions });
@@ -103,10 +115,7 @@ export const searchYoutubeiElysia = new Elysia({})
                 searchInstances: stateSearchInstances,
                 redisKeyPrefixes,
             },
-        }): Promise<{
-            items: YouTubeVideo[];
-            continuation?: string | null;
-        }> => {
+        }) => {
             try {
                 let results: SearchResult<'video'> | undefined;
                 let newItems: VideoCompact[] = [];
@@ -166,23 +175,25 @@ export const searchYoutubeiElysia = new Elysia({})
                 };
             } catch (error) {
                 logger.error('Failed to search YouTube', { error, query, continuation });
-                return { items: [], continuation: null };
+                return status(502, { error: 'youtube_upstream_failed' });
             }
         },
         {
-            body: t.Object({
-                query: t.String(),
-                continuation: t.Optional(t.String()),
-            }),
+            body: youtubeSearchBodySchema,
         },
     )
     .post(
         '/suggestions',
-        async ({ body: { query } }): Promise<string[]> => fetchSearchSuggestions(query),
+        async ({ body: { query } }) => {
+            try {
+                return await fetchSearchSuggestions(query);
+            } catch (error) {
+                logger.error('Failed to get search suggestions', { error, query });
+                return status(502, { error: 'youtube_upstream_failed' });
+            }
+        },
         {
-            body: t.Object({
-                query: t.String(),
-            }),
+            body: youtubeSearchSuggestionsBodySchema,
         },
     )
     .post(
@@ -196,11 +207,7 @@ export const searchYoutubeiElysia = new Elysia({})
                 fetchAll,
             }),
         {
-            body: t.Object({
-                playlistUrlOrId: t.String(),
-                videoLimit: t.Optional(t.Number()),
-                fetchAll: t.Optional(t.Boolean()),
-            }),
+            body: youtubePlaylistDetailsBodySchema,
         },
     )
     .post(
@@ -213,10 +220,7 @@ export const searchYoutubeiElysia = new Elysia({})
                 relatedInstances: stateRelatedInstances,
                 redisKeyPrefixes,
             },
-        }): Promise<{
-            items: YouTubeVideo[];
-            continuation?: string | null;
-        }> => {
+        }) => {
             try {
                 let results: SearchResult<'video'> | undefined;
                 let newItems: VideoCompact[] = [];
@@ -295,14 +299,11 @@ export const searchYoutubeiElysia = new Elysia({})
                 };
             } catch (error) {
                 logger.error('Failed to get related videos', { error });
-                return { items: [], continuation: null };
+                return status(502, { error: 'youtube_upstream_failed' });
             }
         },
         {
-            body: t.Object({
-                videoId: t.String(),
-                continuation: t.Optional(t.String()),
-            }),
+            body: youtubeRelatedBodySchema,
         },
     )
     .post(
@@ -313,8 +314,6 @@ export const searchYoutubeiElysia = new Elysia({})
         }): Promise<{ videoId: string; canEmbed: boolean }[]> =>
             checkEmbeddableMany(redisClient, videoIds),
         {
-            body: t.Object({
-                videoIds: t.Array(t.String()),
-            }),
+            body: youtubeCheckEmbeddableBodySchema,
         },
     );

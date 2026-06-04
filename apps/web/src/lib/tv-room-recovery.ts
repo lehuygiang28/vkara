@@ -1,10 +1,5 @@
-import {
-    ErrorCode,
-    normalizePersistedRoom,
-    type ClientMessage,
-    type Room,
-    type TvRoomRestoreState,
-} from '@vkara/shared-types';
+import { ErrorCode, normalizePersistedRoom, type Room } from '@vkara/room';
+import type { ClientMessage, TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 import type { WebSocketState } from '@/types/websocket.type';
 
 export type TvRoomSnapshot = {

@@ -1,6 +1,6 @@
 'use client';
 
-import type { CaptionTrack } from '@vkara/shared-types';
+import type { CaptionTrack } from '@vkara/youtube';
 import { Subtitles } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';

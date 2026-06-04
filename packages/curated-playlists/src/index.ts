@@ -1,4 +1,4 @@
-import { parseYoutubePlaylistInput } from '@vkara/shared-utils';
+import { parseYoutubePlaylistInput } from '@vkara/youtube';
 
 import playlistsJson from '../playlists.json';
 import type { CuratedCatalog, CuratedPlaylistsFile, UiLocale } from './schema';

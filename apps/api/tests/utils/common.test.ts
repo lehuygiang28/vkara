@@ -1,4 +1,5 @@
-import type { Room, YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
+import type { Room } from '@vkara/room';
 import { describe, expect, it, vi } from 'vitest';
 
 import {

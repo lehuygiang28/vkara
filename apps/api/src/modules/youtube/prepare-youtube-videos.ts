@@ -1,7 +1,7 @@
 import type { Client, VideoCompact } from 'youtubei';
 import type Redis from 'ioredis';
 
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 import { createContextLogger } from '@/utils/logger';
 
 import { setCachedChannel } from './channel-cache';

@@ -1,5 +1,5 @@
-import type { PlaylistDetailsResponse } from '@vkara/shared-types';
-import { getYouTubeThumbnailUrl } from '@vkara/shared-utils';
+import type { PlaylistDetailsResponse } from '@vkara/youtube';
+import { getYouTubeThumbnailUrl } from '@vkara/youtube';
 
 /** True when URL was synthesized with a playlist list id as a video id (invalid image). */
 function isSyntheticPlaylistThumb(url: string, playlistId: string): boolean {

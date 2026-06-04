@@ -1,7 +1,7 @@
 'use client';
 
 import type { CuratedCatalog } from '@vkara/curated-playlists';
-import { parseYoutubePlaylistInput } from '@vkara/shared-utils';
+import { parseYoutubePlaylistInput } from '@vkara/youtube';
 
 import { getCuratedCatalogLabel } from '@/lib/curated-catalog-label';
 import { useScopedI18n } from '@/locales/client';

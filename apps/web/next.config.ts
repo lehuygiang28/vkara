@@ -6,7 +6,14 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 });
 
 const nextConfig: NextConfig = {
-    transpilePackages: ['@vkara/shared-types'],
+    transpilePackages: [
+        '@vkara/env',
+        '@vkara/validators',
+        '@vkara/youtube',
+        '@vkara/room',
+        '@vkara/personalization',
+        '@vkara/curated-playlists',
+    ],
     output: 'standalone',
     // Trace deps from monorepo root — avoids bloated standalone node_modules.
     outputFileTracingRoot: path.join(__dirname, '../..'),

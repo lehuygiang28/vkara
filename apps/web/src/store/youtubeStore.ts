@@ -1,13 +1,13 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import type { YouTubeVideo } from '@vkara/youtube';
 import {
     ErrorCode,
     normalizePersistedRoom,
     needsPlaybackSeekCorrection,
     type Room,
     type ServerMessage,
-    type YouTubeVideo,
-} from '@vkara/shared-types';
+} from '@vkara/room';
 import { createMigratingPersistStorage } from '@/lib/persisted-storage';
 import { toast } from '@/hooks/use-toast';
 import type { useScopedI18n } from '@/locales/client';

@@ -1,4 +1,4 @@
-import type { ServerMessage } from '@vkara/shared-types';
+import type { ServerMessage } from '@vkara/room';
 
 type PublishFn = (topic: string, payload: string) => void;
 

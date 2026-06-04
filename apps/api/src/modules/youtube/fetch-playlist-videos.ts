@@ -1,9 +1,9 @@
 import type { MixPlaylist, Playlist, VideoCompact } from 'youtubei';
-import type { YouTubeVideo } from '@vkara/shared-types';
-import { parseYoutubePlaylistInput, type YoutubePlaylistInput } from '@vkara/shared-utils';
+import type { YouTubeVideo } from '@vkara/youtube';
+import { parseYoutubePlaylistInput, type YoutubePlaylistInput } from '@vkara/youtube';
 
 import { createContextLogger } from '@/utils/logger';
-import { formatSeconds } from '@vkara/shared-utils';
+import { formatSeconds } from '@vkara/youtube';
 
 import { postInnertube } from './innertube-post';
 import { getYoutubeiClient } from './youtubei-client';

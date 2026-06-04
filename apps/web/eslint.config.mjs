@@ -1,32 +1,34 @@
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
-import { FlatCompat } from '@eslint/eslintrc';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+import nextPlugin from '@next/eslint-plugin-next';
 
-const compat = new FlatCompat({
-    baseDirectory: __dirname,
-});
+import { createWebEslintConfigs } from '../../eslint.config.mjs';
 
-const eslintConfig = [
-    ...compat.extends('next/core-web-vitals', 'next/typescript'),
+const webRoot = path.dirname(fileURLToPath(import.meta.url));
+
+// Next build checks this file for `@next/next`; sources use createWebEslintConfigs (ts/tsx only).
+const webEslintConfig = [
     {
-        files: ['src/**/*.{ts,tsx}'],
-        rules: {
-            'no-restricted-imports': [
-                'error',
-                {
-                    patterns: [
-                        {
-                            group: ['../../api/**', '../api/**', '@/../api/**'],
-                            message: 'Do not import from apps/api. Move shared code to packages/*.',
-                        },
-                    ],
-                },
-            ],
+        files: ['eslint.config.mjs'],
+        plugins: {
+            '@next/next': nextPlugin,
+        },
+        // Next build iterates `rules` when detecting the plugin; must be an object.
+        rules: {},
+    },
+    {
+        ignores: ['.next/**', 'next-env.d.ts', 'node_modules/**'],
+    },
+    ...createWebEslintConfigs(''),
+    {
+        files: ['**/*.{ts,tsx}'],
+        settings: {
+            next: {
+                rootDir: webRoot,
+            },
         },
     },
 ];
 
-export default eslintConfig;
+export default webEslintConfig;

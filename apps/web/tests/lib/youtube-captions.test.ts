@@ -1,4 +1,4 @@
-import { pickCaptionTrack, type CaptionTrack } from '@vkara/shared-types';
+import { pickCaptionTrack, type CaptionTrack } from '@vkara/youtube';
 import { describe, expect, it } from 'vitest';
 
 import {
