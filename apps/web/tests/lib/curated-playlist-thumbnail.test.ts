@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { resolveCuratedPlaylistThumbnail } from '@/lib/curated-playlist-thumbnail';
-import type { PlaylistDetailsResponse, YouTubeVideo } from '@vkara/shared-types';
+import type { PlaylistDetailsResponse, YouTubeVideo } from '@vkara/youtube';
 
 const PLAYLIST_ID = 'PLRH1bes7ddmVMYRkmPNJY4lFZsGlAAXbC';
 

@@ -38,7 +38,7 @@ import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import { generateShareableUrl } from '@/lib/room-share';
 import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } from '@/lib/room-field-autofill';
-import { resolveRoomPasswordForShare, ROOM_ID_LENGTH } from '@vkara/shared-utils';
+import { resolveRoomPasswordForShare, ROOM_ID_LENGTH } from '@vkara/room';
 
 type RoomSettingsSectionProps = {
     isRemoteLayout: boolean;

@@ -1,6 +1,6 @@
 import type { Playlist } from 'youtubei';
-import type { PlaylistDetailsResponse, YouTubeThumbnailVariant, YouTubeVideo } from '@vkara/shared-types';
-import { buildYouTubeThumbnails, parseYoutubePlaylistInput } from '@vkara/shared-utils';
+import type { PlaylistDetailsResponse, YouTubeThumbnailVariant, YouTubeVideo } from '@vkara/youtube';
+import { buildYouTubeThumbnails, parseYoutubePlaylistInput } from '@vkara/youtube';
 
 import { createContextLogger } from '@/utils/logger';
 

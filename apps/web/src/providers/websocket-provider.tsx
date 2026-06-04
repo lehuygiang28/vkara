@@ -3,8 +3,10 @@
 import React, { createContext, useContext, useEffect, useRef, useCallback } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { isValidRoomId, resolveUrl } from '@vkara/shared-utils';
-import { ErrorCode } from '@vkara/shared-types';
+import { isValidRoomId, resolveUrl } from '@vkara/room';
+
+import { env } from '@/env';
+import { ErrorCode } from '@vkara/room';
 import type { WebSocketState } from '@/types/websocket.type';
 import { getEffectiveLayoutMode } from '@/lib/layout-mode';
 import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
@@ -21,12 +23,12 @@ interface EnhancedWebSocketState extends WebSocketState {
 const WebSocketContext = createContext<EnhancedWebSocketState | undefined>(undefined);
 
 function getWebSocketUrl(): string {
-    const wsEnv = process.env.NEXT_PUBLIC_WS_URL?.trim();
+    const wsEnv = env.NEXT_PUBLIC_WS_URL?.trim();
     if (wsEnv) {
         return `${resolveUrl(wsEnv, true)}/ws`;
     }
 
-    const apiEnv = process.env.NEXT_PUBLIC_API_URL?.trim();
+    const apiEnv = env.NEXT_PUBLIC_API_URL?.trim();
     if (apiEnv?.startsWith('/')) {
         const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
         return `${protocol}://${window.location.host}/ws`;

@@ -2,8 +2,8 @@ import { Elysia } from 'elysia';
 import type { ElysiaWS } from 'elysia/ws';
 
 import { createRoomService, type RoomService } from '@/modules/room/room-service';
-import { wsClientMessageSchema } from '@/schemas/client-message';
-import { RoomError, type ClientMessage, type ServerMessage } from '@vkara/shared-types';
+import { RoomError, type ServerMessage } from '@vkara/room';
+import { wsClientMessageSchema } from '@vkara/validators/ws/client-message';
 import { wsLogger, createContextLogger } from '@/utils/logger';
 
 const pluginLogger = createContextLogger('RoomWsPlugin');
@@ -62,7 +62,7 @@ export const createRoomWsPlugin = ({
         },
         async message(ws, message) {
             try {
-                await roomService.handleMessage(ws, message as ClientMessage);
+                await roomService.handleMessage(ws, message);
             } catch (error) {
                 handleWsError(ws, sendToClient, error);
             }

@@ -1,4 +1,12 @@
 import Redis from 'ioredis';
-import { createRedisOptions } from '@vkara/shared-infra';
+import { createRedisOptions } from '@vkara/redis';
 
-export const redis = new Redis(createRedisOptions(process.env));
+import { env } from './env';
+
+export const redis = new Redis(
+    createRedisOptions({
+        REDIS_HOST: env.REDIS_HOST,
+        REDIS_PORT: String(env.REDIS_PORT),
+        REDIS_PASSWORD: env.REDIS_PASSWORD,
+    }),
+);

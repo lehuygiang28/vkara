@@ -213,7 +213,13 @@ vkara/
 │   ├── web/                 frontend
 │   └── api/                 backend
 ├── packages/
-│   └── shared-types/        shared API & realtime types
+│   ├── env/                 t3-env + feature flags
+│   ├── validators/          zod WS + HTTP schemas
+│   ├── youtube/             YouTube types + utils
+│   ├── room/                room / WS server types
+│   ├── personalization/     browse ranking profile
+│   ├── redis/               Redis options factory
+│   └── cache-redis/         Redis cache helpers
 ├── containers/
 │   ├── aio/                 all-in-one Docker image
 │   ├── api-redis/           API + Redis bundle
@@ -221,9 +227,9 @@ vkara/
 └── docker-compose.yml
 ```
 
-Protocol types live in `packages/shared-types` - update there before changing web/API contracts.
+Realtime message shapes live in `packages/validators` (zod); room/YouTube domain types in `packages/room` and `packages/youtube`. Update validators first when changing WS or HTTP contracts.
 
-**Scripts:** `bun run dev` · `bun run build` · `bun run format`
+**Scripts:** `bun run dev` · `bun run test` · `bun run typecheck` · `bun run lint` · `bun run build` · `bun run format`
 
 **Docs:** [Monorepo architecture](docs/monorepo-architecture.md)
 
@@ -231,7 +237,7 @@ Protocol types live in `packages/shared-types` - update there before changing we
 
 ## Contributing
 
-Issues and pull requests welcome. Change `packages/shared-types` first when altering API or realtime message shapes.
+Issues and pull requests welcome. Change `packages/validators` (and related domain packages) when altering API or realtime message shapes.
 
 ## Thanks
 

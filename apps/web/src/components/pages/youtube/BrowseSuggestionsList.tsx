@@ -3,7 +3,7 @@
 import { useMemo } from 'react';
 import { Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
-import { hasBrowseFeedSources } from '@vkara/shared-utils';
+import { hasBrowseFeedSources } from '@vkara/personalization';
 
 import { CuratedPlaylistsPanel } from '@/components/curated-playlists/curated-playlists-panel';
 import { useScopedI18n } from '@/locales/client';

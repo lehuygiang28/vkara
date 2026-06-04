@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
+import { VkaraEmbedEnv } from '@vkara/env/flags';
 import {
     DEFAULT_EMBED_CACHE_TTL_SECONDS,
     getEmbedCacheTtlSeconds,
     isEmbedPrefilterAtListEnabled,
-    VkaraEmbedEnv,
-} from '@/config/embed-playability-env';
+} from '@vkara/env/embed';
 
 describe('embed playability env', () => {
     const previousPrefilter = process.env[VkaraEmbedEnv.PREFILTER_AT_LIST];

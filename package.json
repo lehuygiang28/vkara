@@ -20,19 +20,30 @@
         "dev:api": "turbo run dev --filter='@vkara/api'",
         "build:web": "turbo run build --filter='@vkara/web'",
         "build:api": "turbo run build --filter='@vkara/api'",
-        "lint:web": "turbo run lint --filter='@vkara/web'",
+        "lint": "turbo run lint",
+        "lint:fix": "turbo run lint:fix",
         "build": "turbo run build",
         "dev": "turbo run dev --filter='@vkara/web' --filter='@vkara/api'",
         "format": "prettier --write .",
         "format:check": "prettier --check .",
         "test": "vitest run --config vitest.config.mts",
         "test:watch": "vitest --config vitest.config.mts",
-        "ci": "bun run test && bun run build"
+        "typecheck": "bun run typecheck:api && bun run typecheck:web",
+        "typecheck:api": "cd apps/api && bunx tsc --noEmit",
+        "typecheck:web": "cd apps/web && bunx tsc --noEmit",
+        "ci": "bun run test && bun run typecheck && bun run lint && bun run build"
     },
     "devDependencies": {
+        "@eslint/eslintrc": "^3.3.1",
+        "@eslint/js": "^9.28.0",
+        "@next/eslint-plugin-next": "15.5.18",
+        "eslint": "^9.28.0",
+        "eslint-config-next": "15.5.18",
+        "eslint-plugin-react-hooks": "^5.2.0",
         "prettier": "^3.6.2",
         "turbo": "latest",
         "typescript": "5.7.3",
+        "typescript-eslint": "^8.33.0",
         "vitest": "^3.2.4"
     }
 }

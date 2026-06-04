@@ -2,7 +2,7 @@
 
 import { Search, SlidersVertical } from 'lucide-react';
 
-import { getYouTubeThumbnailUrl } from '@vkara/shared-utils';
+import { getYouTubeThumbnailUrl } from '@vkara/youtube';
 import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 

@@ -1,4 +1,4 @@
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 
 /** Representative Sing King–style row (channel often disables embedding on third-party sites). */
 export const SING_KING_CHANNEL_NAME = 'Sing King';

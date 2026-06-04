@@ -1,4 +1,4 @@
-import { ErrorCode } from '@vkara/shared-types';
+import { ErrorCode } from '@vkara/room';
 import { describe, expect, it } from 'vitest';
 
 import {

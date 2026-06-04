@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { Play, ListVideo, MoveUp, X, Search, History } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 

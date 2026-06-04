@@ -100,10 +100,22 @@
 
         /* Completeness */
         // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
-        "skipLibCheck": false /* Skip type checking all .d.ts files. */,
+        "skipLibCheck": true /* Skip type checking all .d.ts files. */,
         "baseUrl": "./",
         "paths": {
-            "@/*": ["./src/*"]
+            "@/*": ["./src/*"],
+            "@vkara/cache-redis": ["../../packages/cache-redis/src/index.ts"],
+            "@vkara/cache-redis/*": ["../../packages/cache-redis/src/*"],
+            "@vkara/env": ["../../packages/env/src/index.ts"],
+            "@vkara/env/*": ["../../packages/env/src/*"],
+            "@vkara/redis": ["../../packages/redis/src/index.ts"],
+            "@vkara/redis/*": ["../../packages/redis/src/*"],
+            "@vkara/room": ["../../packages/room/src/index.ts"],
+            "@vkara/room/*": ["../../packages/room/src/*"],
+            "@vkara/validators": ["../../packages/validators/src/index.ts"],
+            "@vkara/validators/*": ["../../packages/validators/src/*"],
+            "@vkara/youtube": ["../../packages/youtube/src/index.ts"],
+            "@vkara/youtube/*": ["../../packages/youtube/src/*"]
         }
     }
 }

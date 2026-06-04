@@ -1,8 +1,11 @@
 import type Redis from 'ioredis';
 
-import { getEmbedCacheTtlSeconds } from '@/config/embed-playability-env';
+import { createRedisBoolCache } from '@vkara/cache-redis';
+import { getEmbedCacheTtlSeconds } from '@vkara/env/embed';
 
 export const EMBED_CACHE_PREFIX = 'youtube-embed:';
+
+const embedBoolCache = createRedisBoolCache();
 
 export function getEmbedCacheKey(videoId: string): string {
     return `${EMBED_CACHE_PREFIX}${videoId}`;
@@ -21,27 +24,12 @@ export async function mgetEmbeddability(
         return result;
     }
 
-    let values: (string | null)[];
-    try {
-        const keys = uniqueIds.map(getEmbedCacheKey);
-        values = await redisClient.mget(...keys);
-    } catch {
-        for (const id of uniqueIds) {
-            result.set(id, undefined);
-        }
-        return result;
-    }
+    const keys = uniqueIds.map(getEmbedCacheKey);
+    const byKey = await embedBoolCache.mget(redisClient, keys);
 
-    uniqueIds.forEach((id, index) => {
-        const value = values[index];
-        if (value === '1') {
-            result.set(id, true);
-        } else if (value === '0') {
-            result.set(id, false);
-        } else {
-            result.set(id, undefined);
-        }
-    });
+    for (const id of uniqueIds) {
+        result.set(id, byKey.get(getEmbedCacheKey(id)));
+    }
 
     return result;
 }
@@ -54,15 +42,12 @@ export async function setEmbeddabilityMany(
         return;
     }
 
-    const ttlSeconds = getEmbedCacheTtlSeconds();
-
-    try {
-        const pipeline = redisClient.pipeline();
-        for (const { videoId, canEmbed } of entries) {
-            pipeline.setex(getEmbedCacheKey(videoId), ttlSeconds, canEmbed ? '1' : '0');
-        }
-        await pipeline.exec();
-    } catch {
-        // Fetch-through remains valid when Redis is unavailable.
-    }
+    await embedBoolCache.setMany(
+        redisClient,
+        entries.map(({ videoId, canEmbed }) => ({
+            key: getEmbedCacheKey(videoId),
+            value: canEmbed,
+        })),
+        getEmbedCacheTtlSeconds(),
+    );
 }

@@ -1,4 +1,4 @@
-import { parseYoutubeRelativeUpload, type RelativeUploadUnit } from '@vkara/shared-utils';
+import { parseYoutubeRelativeUpload, type RelativeUploadUnit } from '@vkara/youtube';
 
 import type { useI18n } from '@/locales/client';
 

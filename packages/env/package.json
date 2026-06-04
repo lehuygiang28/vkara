@@ -1,0 +1,26 @@
+{
+    "name": "@vkara/env",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix",
+        "test": "vitest run --config ../../vitest.config.mts --project @vkara/env"
+    },
+    "exports": {
+        ".": "./src/index.ts",
+        "./base": "./src/base.ts",
+        "./embed": "./src/embed.ts",
+        "./redis": "./src/redis.ts",
+        "./server": "./src/server.ts",
+        "./logger": "./src/logger.ts",
+        "./web-public": "./src/web-public.ts",
+        "./web-server": "./src/web-server.ts",
+        "./flags": "./src/flags.ts"
+    },
+    "dependencies": {
+        "@t3-oss/env-core": "^0.13.10",
+        "zod": "^3.24.0"
+    }
+}

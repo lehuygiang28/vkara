@@ -1,4 +1,4 @@
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 
 export type RoomQueueSlice = {
     playingNow?: YouTubeVideo | null;

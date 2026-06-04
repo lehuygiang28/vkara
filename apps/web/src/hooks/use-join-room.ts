@@ -2,7 +2,7 @@
 
 import { useCallback } from 'react';
 
-import { isValidRoomId } from '@vkara/shared-utils';
+import { isValidRoomId } from '@vkara/room';
 
 import { parseRoomFromScan } from '@/lib/room-payload';
 import { useScopedI18n } from '@/locales/client';

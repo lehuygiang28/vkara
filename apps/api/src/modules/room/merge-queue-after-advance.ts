@@ -1,4 +1,4 @@
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 
 /** Preserves queue items added while advance was resolving embeddability. */
 export function mergeQueueAfterAdvance(

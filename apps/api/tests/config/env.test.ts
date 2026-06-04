@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { parseEnvFlag, parseEnvPositiveInt } from '@/config/env';
+import { parseEnvFlag, parseEnvPositiveInt } from '@vkara/env/base';
 
 describe('parseEnvFlag', () => {
     const key = 'TEST_VKARA_FLAG';

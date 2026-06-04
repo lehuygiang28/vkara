@@ -42,21 +42,63 @@ export default defineConfig({
             },
             {
                 test: {
-                    name: '@vkara/shared-utils',
-                    root: path.join(repoRoot, 'packages/shared-utils'),
+                    name: '@vkara/youtube',
+                    root: path.join(repoRoot, 'packages/youtube'),
                     include: ['tests/**/*.test.ts'],
                     environment: 'node',
                 },
                 resolve: {
                     alias: {
-                        '@src': path.join(repoRoot, 'packages/shared-utils/src'),
+                        '@src': path.join(repoRoot, 'packages/youtube/src'),
                     },
                 },
             },
             {
                 test: {
-                    name: '@vkara/shared-types',
-                    root: path.join(repoRoot, 'packages/shared-types'),
+                    name: '@vkara/room',
+                    root: path.join(repoRoot, 'packages/room'),
+                    include: ['tests/**/*.test.ts'],
+                    environment: 'node',
+                },
+                resolve: {
+                    alias: {
+                        '@src': path.join(repoRoot, 'packages/room/src'),
+                    },
+                },
+            },
+            {
+                test: {
+                    name: '@vkara/personalization',
+                    root: path.join(repoRoot, 'packages/personalization'),
+                    include: ['tests/**/*.test.ts'],
+                    environment: 'node',
+                },
+                resolve: {
+                    alias: {
+                        '@src': path.join(repoRoot, 'packages/personalization/src'),
+                    },
+                },
+            },
+            {
+                test: {
+                    name: '@vkara/validators',
+                    root: path.join(repoRoot, 'packages/validators'),
+                    include: ['tests/**/*.test.ts'],
+                    environment: 'node',
+                },
+            },
+            {
+                test: {
+                    name: '@vkara/env',
+                    root: path.join(repoRoot, 'packages/env'),
+                    include: ['tests/**/*.test.ts'],
+                    environment: 'node',
+                },
+            },
+            {
+                test: {
+                    name: '@vkara/cache-redis',
+                    root: path.join(repoRoot, 'packages/cache-redis'),
                     include: ['tests/**/*.test.ts'],
                     environment: 'node',
                 },

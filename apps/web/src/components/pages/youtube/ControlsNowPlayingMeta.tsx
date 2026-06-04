@@ -1,6 +1,6 @@
 'use client';
 
-import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/shared-utils';
+import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/youtube';
 import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';

@@ -1,9 +1,5 @@
-import type {
-    ClientMessage,
-    ConnectionStatus,
-    RawClientMessage,
-    ServerMessage,
-} from '@vkara/shared-types';
+import type { ConnectionStatus, RawClientMessage, ServerMessage } from '@vkara/room';
+import type { ClientMessage } from '@vkara/validators/ws/client-message';
 
 export interface WebSocketState {
     sendMessage: (message: RawClientMessage) => void;

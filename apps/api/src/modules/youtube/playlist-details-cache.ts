@@ -1,10 +1,27 @@
 import type Redis from 'ioredis';
-import type { PlaylistDetailsResponse } from '@vkara/shared-types';
+import type { PlaylistDetailsResponse } from '@vkara/youtube';
+
+import { createRedisJsonCache } from '@vkara/cache-redis';
 
 /** Curated / browse previews — balance freshness vs YouTube rate limits. */
 export const PLAYLIST_DETAILS_CACHE_TTL_SECONDS = 60 * 60;
 
 const PLAYLIST_DETAILS_CACHE_PREFIX = 'youtube-playlist-details:';
+
+const playlistDetailsJsonCache = createRedisJsonCache<PlaylistDetailsResponse>((parsed) => {
+    if (
+        typeof parsed === 'object' &&
+        parsed !== null &&
+        'playlist' in parsed &&
+        'videos' in parsed
+    ) {
+        const candidate = parsed as PlaylistDetailsResponse;
+        if (candidate.playlist?.id && Array.isArray(candidate.videos)) {
+            return candidate;
+        }
+    }
+    return undefined;
+});
 
 export type PlaylistDetailsCacheOptions = {
     videoLimit: number;
@@ -23,20 +40,7 @@ export async function getCachedPlaylistDetails(
     redisClient: Redis,
     cacheKey: string,
 ): Promise<PlaylistDetailsResponse | undefined> {
-    const payload = await redisClient.get(cacheKey);
-    if (!payload) {
-        return undefined;
-    }
-
-    try {
-        const parsed = JSON.parse(payload) as PlaylistDetailsResponse;
-        if (!parsed?.playlist?.id || !Array.isArray(parsed.videos)) {
-            return undefined;
-        }
-        return parsed;
-    } catch {
-        return undefined;
-    }
+    return playlistDetailsJsonCache.get(redisClient, cacheKey);
 }
 
 export async function setCachedPlaylistDetails(
@@ -44,10 +48,10 @@ export async function setCachedPlaylistDetails(
     cacheKey: string,
     details: PlaylistDetailsResponse,
 ): Promise<void> {
-    await redisClient.set(
+    await playlistDetailsJsonCache.set(
+        redisClient,
         cacheKey,
-        JSON.stringify(details),
-        'EX',
+        details,
         PLAYLIST_DETAILS_CACHE_TTL_SECONDS,
     );
 }

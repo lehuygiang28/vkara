@@ -8,9 +8,9 @@ import {
     type EngagementKind,
     type PersonalizableVideo,
     type PersonalizationProfile,
-} from '@vkara/shared-utils';
+} from '@vkara/personalization';
 
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 
 import { createMigratingPersistStorage } from '@/lib/persisted-storage';
 

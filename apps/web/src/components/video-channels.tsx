@@ -4,7 +4,7 @@ import { BadgeCheck } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { useScopedI18n } from '@/locales/client';
-import { normalizeVideoChannels, type YouTubeChannel, type YouTubeVideo } from '@vkara/shared-types';
+import { normalizeVideoChannels, type YouTubeChannel, type YouTubeVideo } from '@vkara/youtube';
 
 export type VideoChannelsTone = 'muted' | 'emphasis' | 'inverse';
 

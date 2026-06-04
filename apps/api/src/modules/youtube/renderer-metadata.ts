@@ -1,4 +1,4 @@
-import { parseYoutubeViewCountText } from '@vkara/shared-utils';
+import { parseYoutubeViewCountText } from '@vkara/youtube';
 
 const AUDIENCE_COUNT_PATTERN =
     /([\d.,]+)\s*([KMBkmb])?\s*(?:watching|viewers?|đang xem|người xem|người đang xem)/i;

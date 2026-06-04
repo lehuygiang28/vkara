@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+import { env } from '@/env';
+
 const MAX_AUDIO_BYTES = 12 * 1024 * 1024;
 
 function whisperTranscribeUrl(baseUrl: string): string {
@@ -11,7 +13,7 @@ function whisperTranscribeUrl(baseUrl: string): string {
 }
 
 export async function POST(request: Request) {
-    const whisperUrl = process.env.WHISPER_URL?.trim();
+    const whisperUrl = env.WHISPER_URL?.trim();
     if (!whisperUrl) {
         return NextResponse.json({ error: 'Whisper is not configured' }, { status: 503 });
     }
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
     }
 
     const headers = new Headers();
-    const hfToken = process.env.HF_TOKEN?.trim();
+    const hfToken = env.HF_TOKEN?.trim();
     if (hfToken) {
         headers.set('Authorization', `Bearer ${hfToken}`);
     }

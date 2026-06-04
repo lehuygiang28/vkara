@@ -1,4 +1,4 @@
-import { buildShareableRoomUrl } from '@vkara/shared-utils';
+import { buildShareableRoomUrl } from '@vkara/room';
 
 import { buildLocaleSharePath, type AppLocale } from '@/lib/locale-path';
 

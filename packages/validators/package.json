@@ -1,0 +1,19 @@
+{
+    "name": "@vkara/validators",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix"
+    },
+    "exports": {
+        ".": "./src/index.ts",
+        "./ws/client-message": "./src/ws/client-message.ts",
+        "./youtube/http": "./src/youtube/http.ts",
+        "./youtube/video": "./src/youtube/video.ts"
+    },
+    "dependencies": {
+        "zod": "^3.24.0"
+    }
+}

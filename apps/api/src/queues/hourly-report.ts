@@ -1,7 +1,10 @@
 import { Redis } from 'ioredis';
 import { Queue, Worker } from 'bullmq';
-import type { Room } from '@vkara/shared-types';
+import type { Room } from '@vkara/room';
 
+import { createRedisOptions } from '@vkara/redis';
+
+import { env } from '@/env';
 import { emitHourlyReport } from '@/modules/stats/service-stats';
 import { wsConnections } from '@/server';
 import { createContextLogger } from '@/utils/logger';
@@ -9,15 +12,13 @@ import { scanRedisKeys } from '@/utils/room-store';
 
 const logger = createContextLogger('Queue/Report');
 
-/** Production default: top of each hour. Local test: `* * * * *` or `*\/1 * * * *` every minute. */
-const REPORT_CRON_PATTERN = process.env.SERVICE_REPORT_CRON ?? '0 * * * *';
+const REPORT_CRON_PATTERN = env.SERVICE_REPORT_CRON;
 
-const connectionOptions = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null,
-};
+const connectionOptions = createRedisOptions({
+    REDIS_HOST: env.REDIS_HOST,
+    REDIS_PORT: String(env.REDIS_PORT),
+    REDIS_PASSWORD: env.REDIS_PASSWORD,
+});
 
 const connection = new Redis(connectionOptions);
 

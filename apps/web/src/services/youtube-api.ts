@@ -1,4 +1,4 @@
-import type { PlaylistDetailsResponse, YouTubeVideo } from '@vkara/shared-types';
+import type { PlaylistDetailsResponse, YouTubeVideo } from '@vkara/youtube';
 import { apiPost } from './client/api-client';
 
 export async function fetchPlaylistDetails(

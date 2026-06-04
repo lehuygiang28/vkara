@@ -1,6 +1,6 @@
 'use client';
 
-import { hasBrowseFeedSources } from '@vkara/shared-utils';
+import { hasBrowseFeedSources } from '@vkara/personalization';
 
 import { useCuratedStore } from '@/store/curatedStore';
 

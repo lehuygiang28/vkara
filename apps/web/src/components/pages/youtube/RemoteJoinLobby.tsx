@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
-import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/shared-utils';
+import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
 import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useScopedI18n } from '@/locales/client';

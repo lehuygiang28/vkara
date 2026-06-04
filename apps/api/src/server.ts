@@ -1,7 +1,9 @@
 import { Elysia } from 'elysia';
 import type { ElysiaWS } from 'elysia/ws';
 import cors from '@elysiajs/cors';
-import swagger from '@elysiajs/swagger';
+import { openapi } from '@elysiajs/openapi';
+import type { ZodType } from 'zod';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 import serverTiming from '@elysiajs/server-timing';
 import { rateLimit } from 'elysia-rate-limit';
 
@@ -11,8 +13,9 @@ import { createRoomWsPlugin } from '@/plugins/room-ws.plugin';
 import { scheduleCleanupJobs } from '@/queues/cleanup';
 import { scheduleHourlyReportJob } from '@/queues/hourly-report';
 import { createContextLogger } from '@/utils/logger';
-import type { ServerMessage } from '@vkara/shared-types';
+import type { ServerMessage } from '@vkara/room';
 
+import { env } from './env';
 import { redis } from './redis';
 import { searchYoutubeiElysia } from './youtubei';
 
@@ -69,7 +72,13 @@ export const wsServer = new Elysia({
         }),
     )
     .use(cors())
-    .use(swagger())
+    .use(
+        openapi({
+            mapJsonSchema: {
+                zod: (schema: ZodType) => zodToJsonSchema(schema),
+            },
+        }),
+    )
     .use(serverTiming())
     .use(
         rateLimit({
@@ -88,7 +97,7 @@ export const wsServer = new Elysia({
         memoryUsage: process.memoryUsage(),
         cpuUsage: process.cpuUsage(),
     }))
-    .listen(process.env.PORT || 8000);
+    .listen(env.PORT);
 
 process.on('beforeExit', async () => {
     serverLogger.info('Server stopping due to beforeExit event');

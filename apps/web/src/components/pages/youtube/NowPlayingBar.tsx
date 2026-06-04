@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Pause, Play, SkipForward } from 'lucide-react';
 
-import { getYouTubeThumbnailUrl } from '@vkara/shared-utils';
+import { getYouTubeThumbnailUrl } from '@vkara/youtube';
 import { useScopedI18n } from '@/locales/client';
 import { prefetchPlayerControlsTabs } from '@/lib/layout-chunk-prefetch';
 import { useYouTubeStore } from '@/store/youtubeStore';

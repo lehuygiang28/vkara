@@ -9,9 +9,9 @@ import {
     type BrowseFeedSource,
     type BrowseRoomContext,
     type PersonalizationProfile,
-} from '@vkara/shared-utils';
+} from '@vkara/personalization';
 
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 import { getRelatedVideos, searchYoutube } from '@/services/youtube-api';
 
 type SourceCursor = {
@@ -46,7 +46,7 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
     const [hasMore, setHasMore] = useState(false);
     const [loadError, setLoadError] = useState(false);
 
-    const feedKey = useMemo(() => buildBrowseFeedSessionKey(profile), [profile.searchHistory]);
+    const feedKey = useMemo(() => buildBrowseFeedSessionKey(profile), [profile]);
 
     const profileRef = useRef(profile);
     const roomRef = useRef(room);

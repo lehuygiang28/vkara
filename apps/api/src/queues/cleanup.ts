@@ -1,25 +1,25 @@
 import { Redis } from 'ioredis';
 import { Queue, Worker } from 'bullmq';
-import type { Room } from '@vkara/shared-types';
+import type { Room } from '@vkara/room';
 
+import { createRedisOptions } from '@vkara/redis';
+
+import { env } from '@/env';
 import { recordOrphanedClientsRemoved, recordRoomReleased } from '@/modules/stats/service-stats';
 import { closeRoom, wsConnections } from '@/server';
 import { createContextLogger } from '@/utils/logger';
 import { scanRedisKeys } from '@/utils/room-store';
 
-const ONE_HOUR_IN_SECONDS = 60 * 60;
-const EMPTY_ROOM_TIMEOUT =
-    parseInt(process.env.EMPTY_ROOM_TIMEOUT || String(ONE_HOUR_IN_SECONDS), 10) * 1000; // default 1 hour
+const EMPTY_ROOM_TIMEOUT = env.EMPTY_ROOM_TIMEOUT * 1000;
 const ORPHANED_CLIENT_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours
 
 const logger = createContextLogger('Queue/Cleanup');
 
-const connectionOptions = {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: process.env.REDIS_PORT ? parseInt(process.env.REDIS_PORT) : 6379,
-    password: process.env.REDIS_PASSWORD,
-    maxRetriesPerRequest: null,
-};
+const connectionOptions = createRedisOptions({
+    REDIS_HOST: env.REDIS_HOST,
+    REDIS_PORT: String(env.REDIS_PORT),
+    REDIS_PASSWORD: env.REDIS_PASSWORD,
+});
 const connection = new Redis(connectionOptions);
 
 // Create the cleanup queue

@@ -1,8 +1,10 @@
 import Script from 'next/script';
 
+import { env } from '@/env';
+
 /** Manual Cloudflare Web Analytics beacon (sites not using CF automatic injection). */
 export function CloudflareWebAnalytics() {
-    const token = process.env.NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
+    const token = env.NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN;
     if (!token) {
         return null;
     }

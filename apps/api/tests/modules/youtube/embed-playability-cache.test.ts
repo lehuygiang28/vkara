@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type Redis from 'ioredis';
 
-import { getEmbedCacheTtlSeconds, VkaraEmbedEnv } from '@/config/embed-playability-env';
+import { VkaraEmbedEnv } from '@vkara/env/flags';
+import { getEmbedCacheTtlSeconds } from '@vkara/env/embed';
 import {
     getEmbedCacheKey,
     mgetEmbeddability,

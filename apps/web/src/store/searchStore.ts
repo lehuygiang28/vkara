@@ -3,8 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 
 import { createMigratingPersistStorage } from '@/lib/persisted-storage';
 
-import type { YouTubeVideo } from '@vkara/shared-types';
-import { blendSuggestions, rankVideos } from '@vkara/shared-utils';
+import type { YouTubeVideo } from '@vkara/youtube';
+import { blendSuggestions, rankVideos } from '@vkara/personalization';
 import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
 import { getPersonalizationProfile, usePersonalizationStore } from '@/store/personalizationStore';
 import { useCuratedStore } from '@/store/curatedStore';

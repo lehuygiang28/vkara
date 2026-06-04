@@ -219,7 +219,9 @@ vkara/
 │   ├── web/                 frontend
 │   └── api/                 backend
 ├── packages/
-│   └── shared-types/        shared API & realtime types
+│   ├── validators/          zod WS + HTTP schemas
+│   ├── youtube/             YouTube types + utils
+│   └── room/                room / realtime server types
 ├── containers/
 │   ├── aio/                 all-in-one Docker image
 │   ├── api-redis/           API + Redis bundle
@@ -227,7 +229,7 @@ vkara/
 └── docker-compose.yml
 ```
 
-Các type dùng chung cho API và realtime nằm trong `packages/shared-types`. Khi đổi contract giữa web và API, nên cập nhật ở đây trước.
+Contract realtime nằm trong `packages/validators` (zod). Khi đổi message WS hoặc HTTP body, cập nhật validators trước.
 
 **Scripts:** `bun run dev` · `bun run build` · `bun run format`
 
@@ -239,7 +241,7 @@ Các type dùng chung cho API và realtime nằm trong `packages/shared-types`. 
 
 Issue và pull request đều được chào đón.
 
-Nếu thay đổi contract API hoặc realtime message, hãy cập nhật `packages/shared-types` trước.
+Nếu thay đổi contract API hoặc realtime message, hãy cập nhật `packages/validators` trước.
 
 ## Cảm ơn
 

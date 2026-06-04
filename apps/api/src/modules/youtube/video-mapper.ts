@@ -1,7 +1,7 @@
 import type { LiveVideo, Video, VideoCompact } from 'youtubei';
 
-import type { YouTubeThumbnailVariant, YouTubeVideo } from '@vkara/shared-types';
-import { buildYouTubeThumbnails, formatSeconds, resolveYoutubeLiveFlag } from '@vkara/shared-utils';
+import type { YouTubeThumbnailVariant, YouTubeVideo } from '@vkara/youtube';
+import { buildYouTubeThumbnails, formatSeconds, resolveYoutubeLiveFlag } from '@vkara/youtube';
 
 type VideoChannel = YouTubeVideo['channels'][number];
 

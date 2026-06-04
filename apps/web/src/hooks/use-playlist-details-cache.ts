@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from 'react';
-import type { PlaylistDetailsResponse } from '@vkara/shared-types';
+import type { PlaylistDetailsResponse } from '@vkara/youtube';
 
 import { fetchPlaylistDetails } from '@/services/youtube-api';
 

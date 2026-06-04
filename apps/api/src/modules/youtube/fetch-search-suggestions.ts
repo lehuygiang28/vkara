@@ -10,6 +10,6 @@ export async function fetchSearchSuggestions(query: string): Promise<string[]> {
         return await youtube.getSuggestions(query);
     } catch (error) {
         logger.error('Failed to get search suggestions', { error, query });
-        return [];
+        throw error;
     }
 }

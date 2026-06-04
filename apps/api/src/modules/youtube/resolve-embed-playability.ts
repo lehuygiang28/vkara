@@ -1,9 +1,9 @@
 import type Redis from 'ioredis';
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { YouTubeVideo } from '@vkara/youtube';
 
 import { mgetEmbeddability, setEmbeddabilityMany } from './embed-playability-cache';
 import { fetchEmbeddableFromYoutube } from './embeddable';
-import { isEmbedPrefilterAtListEnabled } from '@/config/embed-playability-env';
+import { isEmbedPrefilterAtListEnabled } from '@vkara/env/embed';
 import { createInFlightDedup } from './in-flight-dedup';
 import { mapWithConcurrency } from './map-with-concurrency';
 

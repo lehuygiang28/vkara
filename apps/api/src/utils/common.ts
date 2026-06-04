@@ -1,5 +1,9 @@
-import { normalizeVideoChannels, type Room, type YouTubeVideo } from '@vkara/shared-types';
-import { normalizeVideoThumbnails } from '@vkara/shared-utils';
+import {
+    normalizeVideoChannels,
+    normalizeVideoThumbnails,
+    type YouTubeVideo,
+} from '@vkara/youtube';
+import { type Room } from '@vkara/room';
 
 /**
  * Generates a random number with a specified number of digits.
@@ -61,7 +65,8 @@ type VideoWithLegacyChannel = YouTubeVideo & {
 };
 
 export function sanitizeVideoForClient(video: VideoWithLegacyChannel): YouTubeVideo {
-    const { channel: _legacyChannel, ...rest } = video;
+    const { channel: legacyChannel, ...rest } = video;
+    void legacyChannel;
     return {
         ...rest,
         channels: normalizeVideoChannels(video),
@@ -70,7 +75,8 @@ export function sanitizeVideoForClient(video: VideoWithLegacyChannel): YouTubeVi
 }
 
 export function cleanUpRoomField(room: Room): Omit<Room, 'clients'> {
-    const { clients, ...cleanedRoom } = room;
+    const { clients: roomClients, ...cleanedRoom } = room;
+    void roomClients;
     return {
         ...cleanedRoom,
         playingNow: cleanedRoom.playingNow

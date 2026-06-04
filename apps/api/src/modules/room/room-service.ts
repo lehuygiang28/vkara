@@ -6,22 +6,19 @@ import {
     shuffleArray,
 } from '@/utils/common';
 import { roomLogger, createContextLogger } from '@/utils/logger';
+import { DEFAULT_CAPTION_LANGUAGE, type CaptionTrack, type YouTubeVideo } from '@vkara/youtube';
 import {
-    DEFAULT_CAPTION_LANGUAGE,
     ErrorCode,
     RoomError,
     shouldBroadcastPlaybackTime,
-    type CaptionTrack,
     acceptSyncPlaybackPositionTime,
     type PlaybackTimeSyncState,
     type ClientInfo,
-    type ClientMessage,
     type Room,
     type ServerMessage,
-    type TvRoomRestoreState,
-    type YouTubeVideo,
-} from '@vkara/shared-types';
-import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/shared-utils';
+} from '@vkara/room';
+import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
+import type { ClientMessage, TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 import { applyTvRestoreToRoom } from '@/modules/room/apply-tv-restore';
 import { publishToRoom } from '@/modules/room/room-broadcast';
 import { fetchYoutubePlaylistVideos } from '@/modules/youtube/fetch-playlist-videos';
