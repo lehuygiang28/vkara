@@ -1,12 +1,12 @@
 import { z } from 'zod';
 
-export const youTubeThumbnailVariantSchema = z.object({
+export const youtubeThumbnailVariantSchema = z.object({
     url: z.string(),
     width: z.number().optional(),
     height: z.number().optional(),
 });
 
-export const youTubeVideoSchema = z.object({
+export const youtubeVideoSchema = z.object({
     id: z.string(),
     duration: z.number(),
     duration_formatted: z.string(),
@@ -23,8 +23,8 @@ export const youTubeVideoSchema = z.object({
             }),
         )
         .min(1),
-    thumbnails: z.array(youTubeThumbnailVariantSchema),
+    thumbnails: z.array(youtubeThumbnailVariantSchema),
     isLive: z.boolean().optional(),
 });
 
-export type YouTubeVideoInput = z.infer<typeof youTubeVideoSchema>;
+export type YouTubeVideoInput = z.infer<typeof youtubeVideoSchema>;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { youTubeVideoSchema } from '../youtube/video';
+import { youtubeVideoSchema } from '../youtube/video';
 
 const messageBaseSchema = z.object({
     id: z.string(),
@@ -15,8 +15,8 @@ const captionTrackSchema = z.object({
 });
 
 export const tvRoomRestoreSchema = z.object({
-    videoQueue: z.array(youTubeVideoSchema),
-    playingNow: youTubeVideoSchema.nullable(),
+    videoQueue: z.array(youtubeVideoSchema),
+    playingNow: youtubeVideoSchema.nullable(),
     isPlaying: z.boolean(),
     currentTime: z.number(),
     volume: z.number(),
@@ -50,9 +50,9 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
     withBase({ type: z.literal('leaveRoom') }),
     withBase({ type: z.literal('closeRoom') }),
     withBase({ type: z.literal('sendMessage'), message: z.string() }),
-    withBase({ type: z.literal('addVideo'), video: youTubeVideoSchema }),
+    withBase({ type: z.literal('addVideo'), video: youtubeVideoSchema }),
     withBase({ type: z.literal('removeVideoFromQueue'), videoId: z.string() }),
-    withBase({ type: z.literal('playNow'), video: youTubeVideoSchema }),
+    withBase({ type: z.literal('playNow'), video: youtubeVideoSchema }),
     withBase({ type: z.literal('nextVideo') }),
     withBase({ type: z.literal('setVolume'), volume: z.number() }),
     withBase({ type: z.literal('setShowQRInPlayer'), show: z.boolean() }),
@@ -78,7 +78,7 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
     withBase({ type: z.literal('shuffleQueue') }),
     withBase({ type: z.literal('clearQueue') }),
     withBase({ type: z.literal('clearHistory') }),
-    withBase({ type: z.literal('addVideoAndMoveToTop'), video: youTubeVideoSchema }),
+    withBase({ type: z.literal('addVideoAndMoveToTop'), video: youtubeVideoSchema }),
     withBase({ type: z.literal('importPlaylist'), playlistUrlOrId: z.string() }),
 ]);
 
