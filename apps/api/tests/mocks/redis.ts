@@ -7,6 +7,7 @@ import type Redis from 'ioredis';
  */
 export const redis = {
     get: vi.fn<Redis['get']>().mockResolvedValue(null),
+    mget: vi.fn<Redis['mget']>().mockResolvedValue([]),
     set: vi.fn<Redis['set']>().mockResolvedValue('OK'),
     del: vi.fn<Redis['del']>().mockResolvedValue(1),
     exists: vi.fn<Redis['exists']>().mockResolvedValue(0),

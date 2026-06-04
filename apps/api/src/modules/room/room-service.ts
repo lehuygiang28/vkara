@@ -24,12 +24,12 @@ import {
 import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/shared-utils';
 import { applyTvRestoreToRoom } from '@/modules/room/apply-tv-restore';
 import { publishToRoom } from '@/modules/room/room-broadcast';
-import { checkEmbeddable } from '@/modules/youtube/embeddable';
 import { fetchYoutubePlaylistVideos } from '@/modules/youtube/fetch-playlist-videos';
 import {
-    filterEmbeddableVideos,
-    resolveNextEmbeddableFromQueue,
-} from '@/modules/youtube/resolve-embeddable-queue';
+    checkEmbeddable,
+    filterYouTubeVideosByEmbeddability,
+} from '@/modules/youtube/resolve-embed-playability';
+import { resolveNextEmbeddableFromQueue } from '@/modules/youtube/resolve-embeddable-queue';
 import { mergeQueueAfterAdvance } from '@/modules/room/merge-queue-after-advance';
 import { redis } from '@/redis';
 import {
@@ -271,7 +271,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         const roomId = await validateClientInRoom(ws);
 
         try {
-            if (!(await checkEmbeddable(video.id))) {
+            if (!(await checkEmbeddable(redis, video.id))) {
                 throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
             }
 
@@ -318,7 +318,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     async function playVideoNow(ws: ElysiaWS, video: YouTubeVideo) {
         const roomId = await validateClientInRoom(ws);
 
-        if (!(await checkEmbeddable(video.id))) {
+        if (!(await checkEmbeddable(redis, video.id))) {
             throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
         }
 
@@ -375,6 +375,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
             const snapshotQueue = snapshot.videoQueue;
             const { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
+                redis,
                 snapshotQueue,
             );
 
@@ -617,7 +618,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     async function addVideoAndMoveToTop(ws: ElysiaWS, video: YouTubeVideo) {
         const roomId = await validateClientInRoom(ws);
 
-        if (!(await checkEmbeddable(video.id))) {
+        if (!(await checkEmbeddable(redis, video.id))) {
             throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
         }
 
@@ -669,7 +670,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             );
         }
 
-        const embeddableVideos = await filterEmbeddableVideos(videos);
+        const embeddableVideos = await filterYouTubeVideosByEmbeddability(redis, videos);
 
         if (embeddableVideos.length === 0) {
             throw new RoomError(

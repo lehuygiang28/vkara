@@ -13,6 +13,7 @@ import {
 } from './resolve-compact-channels';
 import { resolveItemViews } from './resolve-item-views';
 import type { RendererMetadataMaps } from './renderer-metadata';
+import { filterVideosForListPrefilter } from './resolve-embed-playability';
 import { mapYoutubeiVideo } from './video-mapper';
 import { isPlayableYoutubeVideo, isSearchResultVideo } from './video-validation';
 
@@ -74,12 +75,10 @@ async function cacheResolvedChannels(
 
 /**
  * Shared pipeline for /search and /related:
- * validate → prefetch channels/live → map.
- * Embeddable is checked lazily on add/play (WebSocket), not per search row.
+ * validate → prefetch channels/live → map → optional embed prefilter (feature flag).
+ * WebSocket add/play always re-checks embeddability (Redis-backed).
  *
- * TODO(phase-2): Wire playlist import + /playlist preview through here (or a slim
- * variant) so queue rows get view counts and verified channels. Not enabled yet —
- * batch channel/video lookups on large playlists may hit Innertube rate limits.
+ * TODO(phase-2): Wire playlist import through here for views/verified (rate-limit research).
  */
 export async function prepareYoutubeVideos(
     client: Client,
@@ -122,5 +121,6 @@ export async function prepareYoutubeVideos(
         }),
     );
 
-    return prepared.filter((video) => isPlayableYoutubeVideo(video));
+    const playable = prepared.filter((video) => isPlayableYoutubeVideo(video));
+    return filterVideosForListPrefilter(redisClient, playable);
 }

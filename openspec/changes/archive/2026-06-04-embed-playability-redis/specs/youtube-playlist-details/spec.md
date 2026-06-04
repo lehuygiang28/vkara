@@ -1,4 +1,4 @@
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Playlist endpoint returns metadata and videos
 
@@ -28,23 +28,3 @@ The API `POST /playlist` endpoint MUST return both playlist metadata and a video
 - **WHEN** `VKARA_EMBED_PREFILTER_AT_LIST` is not enabled
 - **AND** the client requests playlist details
 - **THEN** the `videos` array MUST include all videos returned from the YouTube fetch path (subject only to existing video limit parameters)
-
-### Requirement: Optional video limit for preview
-
-The endpoint MUST support limiting the number of videos returned for preview use cases via request parameters (e.g. `videoLimit` or existing `fetchAll` semantics documented in design).
-
-#### Scenario: Preview requests limited videos
-
-- **WHEN** the client requests a playlist with a video limit for preview
-- **THEN** the response videos array length MUST NOT exceed that limit
-- **AND** playlist metadata still reflects full playlist where YouTube provides total count
-
-### Requirement: Full import unchanged on server
-
-Full playlist import for the room queue MUST continue to use the WebSocket `importPlaylist` handler with existing append, embed filtering, deduplication, and auto-play-first-when-idle behavior. This requirement MUST NOT change server import semantics.
-
-#### Scenario: Import entire playlist from preview
-
-- **WHEN** the user confirms import entire playlist
-- **THEN** the client sends `importPlaylist` over the existing WebSocket
-- **AND** server queue mutation behavior matches pre-change import behavior

@@ -16,7 +16,7 @@ import {
     searchInstances,
     storeContinuation,
 } from './modules/youtube/cache';
-import { checkEmbeddableMany } from './modules/youtube/embeddable';
+import { checkEmbeddableMany } from './modules/youtube/resolve-embed-playability';
 import { extractRendererMetadata } from './modules/youtube/renderer-metadata';
 import {
     createRelatedContinuationCache,
@@ -28,7 +28,7 @@ import {
 } from './modules/youtube/fetch-search-page';
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
 import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
-import { fetchYoutubePlaylistDetails } from './modules/youtube/fetch-playlist-details';
+import { fetchYoutubePlaylistDetailsCached } from './modules/youtube/fetch-playlist-details-cached';
 import { getYoutubeiClient } from './modules/youtube/youtubei-client';
 
 const logger = createContextLogger('Search-Youtubei');
@@ -187,8 +187,11 @@ export const searchYoutubeiElysia = new Elysia({})
     )
     .post(
         '/playlist',
-        async ({ body: { playlistUrlOrId, videoLimit, fetchAll } }) =>
-            fetchYoutubePlaylistDetails(playlistUrlOrId, {
+        async ({
+            body: { playlistUrlOrId, videoLimit, fetchAll },
+            store: { redisClient },
+        }) =>
+            fetchYoutubePlaylistDetailsCached(redisClient, playlistUrlOrId, {
                 videoLimit,
                 fetchAll,
             }),
@@ -304,8 +307,11 @@ export const searchYoutubeiElysia = new Elysia({})
     )
     .post(
         '/check-embeddable',
-        async ({ body: { videoIds } }): Promise<{ videoId: string; canEmbed: boolean }[]> =>
-            checkEmbeddableMany(videoIds),
+        async ({
+            body: { videoIds },
+            store: { redisClient },
+        }): Promise<{ videoId: string; canEmbed: boolean }[]> =>
+            checkEmbeddableMany(redisClient, videoIds),
         {
             body: t.Object({
                 videoIds: t.Array(t.String()),
