@@ -39,7 +39,7 @@ const SCRUB_SLIDER_CLASS = cn(
     '[&>span:first-child]:after:absolute [&>span:first-child]:after:left-0 [&>span:first-child]:after:right-0',
     '[&>span:first-child]:after:top-1/2 [&>span:first-child]:after:h-1 [&>span:first-child]:after:-translate-y-1/2',
     '[&>span:first-child]:after:rounded-full',
-    '[&>span:first-child]:after:bg-[linear-gradient(to_right,hsl(var(--primary))_var(--scrub-fill-stop,0%),hsl(var(--primary)/0.2)_var(--scrub-fill-stop,0%))]',
+    '[&>span:first-child]:after:bg-[linear-gradient(to_right,hsl(var(--primary))_var(--scrub-position,0%),hsl(var(--primary)/0.2)_var(--scrub-position,0%))]',
     '[&>span:first-child]:after:origin-center [&>span:first-child]:after:transition-transform',
     '[&>span:first-child]:after:duration-150 [&>span:first-child]:after:ease-out',
     '[&>span:first-child]:after:content-[""] motion-reduce:[&>span:first-child]:after:transition-none',
@@ -95,8 +95,7 @@ export function PlaybackScrubber({
     const scrubRatio = shownTime / max;
     const isAtStart = shownTime <= 0;
     const isAtEnd = shownTime >= max;
-    const scrubFillStop = isAtStart ? '0%' : isAtEnd ? '100%' : getScrubThumbCenter(scrubRatio);
-    const scrubThumbCenter = isAtStart ? '0%' : isAtEnd ? '100%' : getScrubThumbCenter(scrubRatio);
+    const scrubPosition = isAtStart ? '0%' : isAtEnd ? '100%' : getScrubThumbCenter(scrubRatio);
     const isTrackExpanded = isScrubbing || isTrackPressed;
 
     const handleValueChange = (value: number[]) => {
@@ -125,17 +124,12 @@ export function PlaybackScrubber({
     return (
         <div
             className={cn('relative w-full select-none', className)}
-            style={
-                {
-                    '--scrub-fill-stop': scrubFillStop,
-                    '--scrub-thumb-center': scrubThumbCenter,
-                } as CSSProperties
-            }
+            style={{ '--scrub-position': scrubPosition } as CSSProperties}
         >
             {isScrubbing ? (
                 <div
                     className="pointer-events-none absolute -top-9 z-10 -translate-x-1/2 rounded-md bg-foreground px-2 py-1 text-xs font-medium tabular-nums text-background shadow-md"
-                    style={{ left: 'var(--scrub-thumb-center)' }}
+                    style={{ left: 'var(--scrub-position)' }}
                     aria-hidden
                 >
                     {formatPlaybackSeconds(scrubTime)}

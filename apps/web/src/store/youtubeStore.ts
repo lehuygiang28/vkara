@@ -17,6 +17,7 @@ import {
     isServerPlaybackEcho,
     markServerPlaybackCommand,
     markServerPlaybackSeek,
+    STALE_PLAYBACK_FORWARD_JUMP_SEC,
 } from '@/lib/youtube-playback-sync';
 
 export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
@@ -229,7 +230,8 @@ export const useYouTubeStore = create(
                                 const roomTime = state.room?.currentTime ?? 0;
                                 if (
                                     isServerPlaybackEcho() &&
-                                    message.currentTime > roomTime + 5
+                                    message.currentTime >
+                                        roomTime + STALE_PLAYBACK_FORWARD_JUMP_SEC
                                 ) {
                                     return state;
                                 }

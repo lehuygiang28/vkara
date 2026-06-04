@@ -1,11 +1,11 @@
 import { parseYoutubePlaylistInput } from '@vkara/shared-utils';
 
 import playlistsJson from '../playlists.json';
-import type { CuratedCatalog, CuratedCatalogEntry, CuratedPlaylistsFile, UiLocale } from './schema';
+import type { CuratedCatalog, CuratedPlaylistsFile, UiLocale } from './schema';
 
 const playlistsFile = playlistsJson as CuratedPlaylistsFile;
 
-export type { CuratedCatalog, CuratedCatalogEntry, CuratedPlaylistsFile, UiLocale } from './schema';
+export type { CuratedCatalog, CuratedPlaylistsFile, UiLocale } from './schema';
 
 function isUiLocale(value: string): value is UiLocale {
     return value === 'vi' || value === 'en';
@@ -50,11 +50,6 @@ function localePriority(catalog: CuratedCatalog, locale: UiLocale): number {
     return catalog.suggestLocales.indexOf(locale);
 }
 
-/** Stable key for a catalog row (unique across duplicate ids in JSON). */
-export function getCatalogInstanceKey(catalog: CuratedCatalog): string {
-    return `${catalog.id}:${catalog.suggestLocales.join(',')}`;
-}
-
 function mergeCatalogRowsById(rows: CuratedCatalog[]): CuratedCatalog[] {
     const merged: CuratedCatalog[] = [];
     const indexById = new Map<string, number>();
@@ -89,8 +84,10 @@ export function filterCatalogsByLocale(
 ): CuratedCatalog[] {
     const sorted = catalogs
         .map((catalog, fileIndex) => ({ catalog, fileIndex }))
-        .filter(({ catalog }) => catalog.suggestLocales.includes(locale))
-        .filter(({ catalog }) => catalog.playlists.length > 0)
+        .filter(
+            ({ catalog }) =>
+                catalog.suggestLocales.includes(locale) && catalog.playlists.length > 0,
+        )
         .sort((a, b) => {
             const priorityDiff =
                 localePriority(a.catalog, locale) - localePriority(b.catalog, locale);
@@ -105,23 +102,6 @@ export function filterCatalogsByLocale(
         }));
 
     return mergeCatalogRowsById(sorted);
-}
-
-export function flattenCatalogEntries(catalogs: CuratedCatalog[]): CuratedCatalogEntry[] {
-    const entries: CuratedCatalogEntry[] = [];
-
-    for (const catalog of catalogs) {
-        for (const playlistUrl of catalog.playlists) {
-            const parsed = parseYoutubePlaylistInput(playlistUrl);
-            entries.push({
-                catalogId: catalog.id,
-                listId: parsed.listId,
-                playlistUrl,
-            });
-        }
-    }
-
-    return entries;
 }
 
 export function getCuratedCatalogsForLocale(locale: UiLocale): CuratedCatalog[] {

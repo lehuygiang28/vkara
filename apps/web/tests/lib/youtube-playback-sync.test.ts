@@ -10,7 +10,6 @@ import {
     isYoutubePlaybackIntentState,
     markServerPlaybackCommand,
     markServerPlaybackSeek,
-    SERVER_PLAYBACK_SEEK_ECHO_MS,
 } from '@/lib/youtube-playback-sync';
 
 function mockPlayer(state: number): YT.Player {
@@ -86,7 +85,7 @@ describe('markServerPlaybackEcho', () => {
         vi.useFakeTimers();
         markServerPlaybackSeek();
         expect(isServerPlaybackEcho()).toBe(true);
-        vi.advanceTimersByTime(SERVER_PLAYBACK_SEEK_ECHO_MS - 1);
+        vi.advanceTimersByTime(2_499);
         expect(isServerPlaybackEcho()).toBe(true);
         vi.advanceTimersByTime(2);
         expect(isServerPlaybackEcho()).toBe(false);

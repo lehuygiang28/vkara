@@ -9,10 +9,4 @@ export type CuratedPlaylistsFile = {
 
 export type CuratedCatalog = CuratedPlaylistsFile['catalogs'][number];
 
-export type CuratedCatalogEntry = {
-    catalogId: string;
-    listId: string;
-    playlistUrl: string;
-};
-
 export type UiLocale = 'vi' | 'en';
