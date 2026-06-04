@@ -104,7 +104,7 @@ export const recordVideoEngagement = (
 
 export const getTopChannels = (
     profile: PersonalizationProfile,
-    limit = PERSONALIZATION_LIMITS.topChannelCount,
+    limit: number = PERSONALIZATION_LIMITS.topChannelCount,
 ): string[] => {
     const channelNames = new Map<string, string>();
 
@@ -123,6 +123,6 @@ export const getTopChannels = (
 
 export const getRecentSearchQueries = (
     profile: PersonalizationProfile,
-    limit = PERSONALIZATION_LIMITS.recentSearchBoostCount,
+    limit: number = PERSONALIZATION_LIMITS.recentSearchBoostCount,
 ): string[] =>
     profile.searchHistory.slice(0, limit).map((entry) => entry.query);
