@@ -12,7 +12,7 @@ const compat = new FlatCompat({
     baseDirectory: webRoot,
 });
 
-const sharedLegacyImports = {
+export const sharedLegacyImports = {
     paths: [
         {
             name: '@vkara/shared-types',
@@ -34,6 +34,43 @@ const sharedLegacyImports = {
         },
     ],
 };
+
+/** @param {string} [fileRoot] Path prefix for globs (`apps/web` from repo root, `` from apps/web). */
+export function createWebEslintConfigs(fileRoot = 'apps/web') {
+    const prefix = fileRoot ? `${fileRoot.replace(/\/$/, '')}/` : '';
+
+    return [
+        ...compat.extends('next/core-web-vitals', 'next/typescript').map((config) => ({
+            ...config,
+            files: [`${prefix}**/*.{ts,tsx}`],
+        })),
+        {
+            files: [`${prefix}next.config.ts`],
+            rules: {
+                '@typescript-eslint/no-require-imports': 'off',
+            },
+        },
+        {
+            files: [`${prefix}**/*.{ts,tsx}`],
+            rules: {
+                'no-restricted-imports': [
+                    'error',
+                    {
+                        ...sharedLegacyImports,
+                        patterns: [
+                            ...sharedLegacyImports.patterns,
+                            {
+                                group: ['../../api/**', '../api/**', '@/../api/**'],
+                                message:
+                                    'Do not import from apps/api. Move shared code to packages/*.',
+                            },
+                        ],
+                    },
+                ],
+            },
+        },
+    ];
+}
 
 export default tseslint.config(
     {
@@ -78,32 +115,5 @@ export default tseslint.config(
             ],
         },
     },
-    ...compat.extends('next/core-web-vitals', 'next/typescript').map((config) => ({
-        ...config,
-        files: ['apps/web/**/*.{ts,tsx,mjs}'],
-    })),
-    {
-        files: ['apps/web/next.config.ts'],
-        rules: {
-            '@typescript-eslint/no-require-imports': 'off',
-        },
-    },
-    {
-        files: ['apps/web/**/*.{ts,tsx}'],
-        rules: {
-            'no-restricted-imports': [
-                'error',
-                {
-                    ...sharedLegacyImports,
-                    patterns: [
-                        ...sharedLegacyImports.patterns,
-                        {
-                            group: ['../../api/**', '../api/**', '@/../api/**'],
-                            message: 'Do not import from apps/api. Move shared code to packages/*.',
-                        },
-                    ],
-                },
-            ],
-        },
-    },
+    ...createWebEslintConfigs('apps/web'),
 );
