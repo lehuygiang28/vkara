@@ -27,6 +27,7 @@
         "@radix-ui/react-tooltip": "^1.1.6",
         "@tanstack/react-virtual": "^3.13.26",
         "@vercel/analytics": "^1.4.1",
+        "@vkara/curated-playlists": "workspace:*",
         "@vkara/shared-types": "workspace:*",
         "@vkara/shared-utils": "workspace:*",
         "class-variance-authority": "^0.7.1",

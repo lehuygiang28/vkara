@@ -648,6 +648,8 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
         let videos: YouTubeVideo[];
         try {
+            // TODO(phase-2): Enrich via prepareYoutubeVideos after rate-limit/UX research
+            // (view counts, channel verified). See fetch-playlist-videos.ts module note.
             videos = await fetchYoutubePlaylistVideos(playlistUrlOrId, {
                 fetchAll: true,
                 limit: 200,

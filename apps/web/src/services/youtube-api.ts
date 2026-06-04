@@ -1,5 +1,21 @@
-import type { YouTubeVideo } from '@vkara/shared-types';
+import type { PlaylistDetailsResponse, YouTubeVideo } from '@vkara/shared-types';
 import { apiPost } from './client/api-client';
+
+export async function fetchPlaylistDetails(
+    playlistUrlOrId: string,
+    options?: { videoLimit?: number; fetchAll?: boolean },
+    signal?: AbortSignal,
+) {
+    return apiPost<PlaylistDetailsResponse>(
+        '/playlist',
+        {
+            playlistUrlOrId,
+            ...(options?.videoLimit !== undefined ? { videoLimit: options.videoLimit } : {}),
+            ...(options?.fetchAll !== undefined ? { fetchAll: options.fetchAll } : {}),
+        },
+        signal,
+    );
+}
 
 export async function searchYoutube({
     query,

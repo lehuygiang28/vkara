@@ -12,6 +12,14 @@ import { mapYoutubeiFullVideo, mapYoutubeiVideo, mapYoutubeiThumbnails } from '.
 
 const logger = createContextLogger('FetchPlaylist');
 
+/**
+ * TODO(phase-2): Enrich playlist rows with view counts and channel verified badges.
+ * Search/related use `prepareYoutubeVideos` (renderer metadata + channel prefetch).
+ * Playlist import maps `VideoCompact` directly, so views/verified are often 0/false
+ * (mix/HTML paths hardcode them). Reuse or extend that pipeline only after research:
+ * large playlists mean many Innertube/Redis calls and risk YouTube rate limits.
+ */
+
 type MixPanelRenderer = {
     videoId?: string;
     title?: { simpleText?: string; runs?: { text?: string }[] };
@@ -115,6 +123,7 @@ function buildSeedYouTubeVideo(videoId: string): YouTubeVideo {
     };
 }
 
+/** Maps playlist compacts without `prepareYoutubeVideos` — see module TODO(phase-2). */
 function mapCompactsToYouTubeVideos(compacts: VideoCompact[], limit: number): YouTubeVideo[] {
     return compacts.slice(0, limit).map((compact) => mapYoutubeiVideo(compact));
 }

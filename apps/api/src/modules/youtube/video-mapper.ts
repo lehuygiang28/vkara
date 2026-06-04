@@ -68,6 +68,7 @@ export const mapYoutubeiFullVideo = (video: Video | LiveVideo): YouTubeVideo => 
     };
 };
 
+/** Default mapper; playlist import uses this without prepareYoutubeVideos — TODO(phase-2). */
 export const mapYoutubeiVideo = (
     video: VideoCompact,
     options: MapYoutubeiVideoOptions = {},

@@ -56,6 +56,7 @@
         "@radix-ui/react-tooltip": "^1.1.6",
         "@tanstack/react-virtual": "^3.13.26",
         "@vercel/analytics": "^1.4.1",
+        "@vkara/curated-playlists": "workspace:*",
         "@vkara/shared-types": "workspace:*",
         "@vkara/shared-utils": "workspace:*",
         "class-variance-authority": "^0.7.1",
@@ -93,6 +94,13 @@
         "postcss": "^8",
         "sharp": "^0.34.5",
         "tailwindcss": "^3.4.1",
+      },
+    },
+    "packages/curated-playlists": {
+      "name": "@vkara/curated-playlists",
+      "version": "0.0.1",
+      "dependencies": {
+        "@vkara/shared-utils": "workspace:*",
       },
     },
     "packages/shared-infra": {
@@ -627,6 +635,8 @@
     "@vitest/utils": ["@vitest/utils@3.2.6", "", { "dependencies": { "@vitest/pretty-format": "3.2.6", "loupe": "^3.1.4", "tinyrainbow": "^2.0.0" } }, "sha512-lI23nIs4bnT3T8NIoh+vFaz5s2/DdP0Jgt2jxwgWljvwn82cLJtyi/If+fjFyoLMGIOz0U/fKvWE0d4jsNQEfg=="],
 
     "@vkara/api": ["@vkara/api@workspace:apps/api"],
+
+    "@vkara/curated-playlists": ["@vkara/curated-playlists@workspace:packages/curated-playlists"],
 
     "@vkara/shared-infra": ["@vkara/shared-infra@workspace:packages/shared-infra"],
 

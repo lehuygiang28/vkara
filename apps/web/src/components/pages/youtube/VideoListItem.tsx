@@ -1,6 +1,5 @@
 'use client';
 
-import Image from 'next/image';
 import { memo, type ReactNode } from 'react';
 import { VideoChannels } from '@/components/video-channels';
 import { LiveBadge } from '@/components/youtube-live-badge';
@@ -10,6 +9,8 @@ import { isVideoLive } from '@/lib/youtube-video';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@vkara/shared-types';
+
+import { VideoListThumbnail } from './video-list-thumbnail';
 
 /** Base row: title (2 lines) + channels + views. */
 export const VIDEO_LIST_ROW_HEIGHT = 100;
@@ -84,27 +85,20 @@ export const VideoListItem = memo(function VideoListItem({
                     'hover:bg-accent/50 active:bg-accent/60',
                 )}
             >
-                <div className="relative aspect-video w-24 shrink-0 overflow-hidden rounded-md sm:w-32">
-                    <Image
-                        src={getYouTubeThumbnailUrl(video.thumbnails, 'list', video.id)}
-                        alt=""
-                        fill
-                        sizes="(max-width: 640px) 96px, 128px"
-                        className="object-cover"
-                        unoptimized
-                    />
-                    {isLive ? (
-                        <div className="absolute bottom-1 right-1">
-                            <LiveBadge />
-                        </div>
-                    ) : (
-                        video.duration_formatted && (
+                <VideoListThumbnail
+                    src={getYouTubeThumbnailUrl(video.thumbnails, 'list', video.id)}
+                    overlay={
+                        isLive ? (
+                            <div className="absolute bottom-1 right-1">
+                                <LiveBadge />
+                            </div>
+                        ) : video.duration_formatted ? (
                             <div className="absolute bottom-1 right-1 rounded bg-black/80 px-1 text-xs text-white">
                                 {video.duration_formatted}
                             </div>
-                        )
-                    )}
-                </div>
+                        ) : null
+                    }
+                />
                 <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden">
                     <div className="line-clamp-2 break-words text-sm font-medium leading-snug">
                         {video.title}

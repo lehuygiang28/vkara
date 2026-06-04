@@ -5,14 +5,19 @@ import type { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 
 type VideoListToolbarProps = {
-    children: ReactNode;
-    /** Icon-only or secondary action pinned to the right (e.g. import playlist). */
+    /** Primary actions (e.g. import, shuffle) — aligned start. */
+    leading?: ReactNode;
+    /** Secondary/destructive actions (e.g. clear) — aligned end. */
     trailing?: ReactNode;
+    /** @deprecated Prefer `leading` — treated as leading when `leading` is omitted. */
+    children?: ReactNode;
     className?: string;
 };
 
-/** Queue/history header: primary actions on the left, optional trailing control on the right. */
-export function VideoListToolbar({ children, trailing, className }: VideoListToolbarProps) {
+/** Queue/history header: start actions vs end actions on opposite sides. */
+export function VideoListToolbar({ leading, trailing, children, className }: VideoListToolbarProps) {
+    const start = leading ?? children;
+
     return (
         <div
             className={cn(
@@ -20,9 +25,17 @@ export function VideoListToolbar({ children, trailing, className }: VideoListToo
                 className,
             )}
         >
-            <div className="flex items-center gap-2">
-                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">{children}</div>
-                {trailing ? <div className="shrink-0">{trailing}</div> : null}
+            <div className="flex items-center justify-between gap-2">
+                {start ? (
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">{start}</div>
+                ) : (
+                    <div className="min-w-0 flex-1" />
+                )}
+                {trailing ? (
+                    <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
+                        {trailing}
+                    </div>
+                ) : null}
             </div>
         </div>
     );

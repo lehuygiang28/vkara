@@ -76,6 +76,10 @@ async function cacheResolvedChannels(
  * Shared pipeline for /search and /related:
  * validate → prefetch channels/live → map.
  * Embeddable is checked lazily on add/play (WebSocket), not per search row.
+ *
+ * TODO(phase-2): Wire playlist import + /playlist preview through here (or a slim
+ * variant) so queue rows get view counts and verified channels. Not enabled yet —
+ * batch channel/video lookups on large playlists may hit Innertube rate limits.
  */
 export async function prepareYoutubeVideos(
     client: Client,

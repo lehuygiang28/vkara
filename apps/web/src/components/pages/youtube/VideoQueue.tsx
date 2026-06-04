@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
 import { Trash2, MoveUp, Shuffle, ListMusic, Search, ListVideo } from 'lucide-react';
 
 import { useScopedI18n } from '@/locales/client';
@@ -8,12 +8,13 @@ import type { YouTubeVideo } from '@vkara/shared-types';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 
+import { CuratedPlaylistsPanel } from '@/components/curated-playlists/curated-playlists-panel';
 import { TooltipButton } from '@/components/tooltip-button';
+import { useCuratedStore } from '@/store/curatedStore';
 import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 import { VideoListToolbar } from './video-list-toolbar';
 import { VideoListEmptyState } from './video-list-empty-state';
-import { Input } from '@/components/ui/input';
 
 export function VideoQueue() {
     const { room, setCurrentTab } = useYouTubeStore();
@@ -22,15 +23,9 @@ export function VideoQueue() {
         handleMoveVideoToTop,
         handleShuffleQueue,
         handleClearQueue,
-        handleImportPlaylist,
     } = usePlayerAction();
     const t = useScopedI18n('videoQueue');
-    const [importPlaylistValue, setImportPlaylistValue] = useState('');
-
-    const handlerConfirmImportPlaylist = () => {
-        handleImportPlaylist(importPlaylistValue);
-        setImportPlaylistValue('');
-    };
+    const setImportPlaylistPanelOpen = useCuratedStore((state) => state.setImportPlaylistPanelOpen);
 
     const renderActions = useCallback(
         (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers) => (
@@ -67,76 +62,58 @@ export function VideoQueue() {
     return (
         <div className="flex h-full min-h-0 flex-col">
             <VideoListToolbar
-                trailing={
-                    <TooltipButton
-                        tooltipContent={t('importPlaylist')}
-                        buttonText={t('importPlaylist')}
-                        icon={<ListMusic />}
-                        iconOnly
-                        onConfirm={handlerConfirmImportPlaylist}
-                        confirmMode
-                        confirmContent={
-                            <>
-                                <div className="space-y-2">
-                                    <h4 className="font-medium leading-none">{t('importPlaylist')}</h4>
-                                    <p className="text-sm text-muted-foreground">
-                                        {t('importPlaylistDescription')}
-                                    </p>
-                                </div>
-                                <div className="flex">
-                                    <Input
-                                        id="playlist-import"
-                                        value={importPlaylistValue}
-                                        onChange={(e) => setImportPlaylistValue(e.target.value)}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter') handlerConfirmImportPlaylist();
-                                        }}
-                                        className="col-span-2 h-8"
-                                        placeholder={t('importPlaylistPlaceholder')}
-                                    />
-                                </div>
-                            </>
-                        }
-                        variant="outline"
-                    />
+                leading={
+                    <>
+                        <TooltipButton
+                            tooltipContent={t('importPlaylistDescription')}
+                            buttonText={t('importPlaylist')}
+                            icon={<ListMusic />}
+                            onConfirm={() => setImportPlaylistPanelOpen(true)}
+                        />
+                        {(room?.videoQueue?.length || 0) > 2 ? (
+                            <TooltipButton
+                                tooltipContent={t('shuffle')}
+                                buttonText={t('shuffle')}
+                                icon={<Shuffle />}
+                                onConfirm={handleShuffleQueue}
+                            />
+                        ) : null}
+                    </>
                 }
-            >
-                {(room?.videoQueue?.length || 0) > 2 ? (
-                    <TooltipButton
-                        tooltipContent={t('shuffle')}
-                        buttonText={t('shuffle')}
-                        icon={<Shuffle />}
-                        onConfirm={handleShuffleQueue}
-                    />
-                ) : null}
-                {(room?.videoQueue?.length || 0) > 0 ? (
-                    <TooltipButton
-                        tooltipContent={t('clearQueue')}
-                        buttonText={t('clearQueue')}
-                        icon={<Trash2 />}
-                        onConfirm={handleClearQueue}
-                        confirmMode
-                        confirmContent={t('clearQueueConfirm')}
-                        variant="destructive"
-                    />
-                ) : null}
-            </VideoListToolbar>
+                trailing={
+                    (room?.videoQueue?.length || 0) > 0 ? (
+                        <TooltipButton
+                            tooltipContent={t('clearQueue')}
+                            buttonText={t('clearQueue')}
+                            icon={<Trash2 />}
+                            onConfirm={handleClearQueue}
+                            confirmMode
+                            confirmContent={t('clearQueueConfirm')}
+                            variant="destructive"
+                        />
+                    ) : null
+                }
+            />
             <VideoList
                 keyPrefix="queue-list"
                 videos={room?.videoQueue || []}
                 emptyState={
-                    <VideoListEmptyState
-                        icon={<ListVideo className="h-7 w-7 text-muted-foreground" />}
-                        title={t('noVideos')}
-                        description={t('noVideosHint')}
-                        actions={[
-                            {
-                                label: t('searchCta'),
-                                icon: <Search />,
-                                onClick: () => setCurrentTab('search'),
-                            },
-                        ]}
-                    />
+                    <div className="flex w-full flex-col items-center">
+                        <VideoListEmptyState
+                            icon={<ListVideo className="h-7 w-7 text-muted-foreground" />}
+                            title={t('noVideos')}
+                            description={t('noVideosHint')}
+                            actions={[
+                                {
+                                    label: t('searchCta'),
+                                    icon: <Search />,
+                                    onClick: () => setCurrentTab('search'),
+                                },
+                            ]}
+                            className="flex-none"
+                        />
+                        <CuratedPlaylistsPanel variant="compact" showHeading />
+                    </div>
                 }
                 renderActions={renderActions}
             />

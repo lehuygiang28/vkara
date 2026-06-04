@@ -190,7 +190,7 @@ export default {
     'videoQueue.shuffle': 'Shuffle',
     'videoQueue.clearQueue': 'Clear All Queue',
     'videoQueue.clearQueueConfirm': 'Are you sure you want to clear the queue?',
-    'videoQueue.importPlaylist': 'Import Playlist',
+    'videoQueue.importPlaylist': 'Import playlist',
     'videoQueue.importPlaylistDescription':
         'Import a playlist from YouTube to the queue by providing the ID or URL',
     'videoQueue.importPlaylistPlaceholder': 'Playlist ID/URL',
@@ -251,6 +251,22 @@ export default {
     'videoSearch.deleteSearch': 'Delete',
     'videoSearch.back': 'Back',
     'videoSearch.refillSearch': 'Fill search field',
+
+    'curatedPlaylists.sectionHint': 'Starter playlists to get the party going',
+    'curatedPlaylists.catalogs.karaoke': 'Karaoke',
+    'curatedPlaylists.catalogs.music': 'Music',
+    'curatedPlaylists.videoCount': '{count} songs',
+    'curatedPlaylists.untitledPlaylist': 'YouTube playlist',
+    'curatedPlaylists.cardLoadError': 'Could not load playlist',
+    'curatedPlaylists.previewTitle': 'Playlist',
+    'curatedPlaylists.previewLoadError': 'Could not load songs. Check your connection and try again.',
+    'curatedPlaylists.addAll': 'Add all',
+    'curatedPlaylists.close': 'Close preview',
+    'curatedPlaylists.importQuickPick': 'Starter playlists',
+    'curatedPlaylists.importQuickPickHint': 'Preview songs, add one track, or import the full list.',
+    'curatedPlaylists.pastePlaylistLink': 'Paste a YouTube playlist link',
+    'curatedPlaylists.importFromUrl': 'Import playlist',
+    'curatedPlaylists.invalidPlaylistUrl': 'Enter a valid YouTube playlist ID or URL',
 
     'searchHistorySettings.title': 'Search history',
     'searchHistorySettings.description':

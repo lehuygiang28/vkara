@@ -61,6 +61,19 @@ export default defineConfig({
                     environment: 'node',
                 },
             },
+            {
+                test: {
+                    name: '@vkara/curated-playlists',
+                    root: path.join(repoRoot, 'packages/curated-playlists'),
+                    include: ['tests/**/*.test.ts'],
+                    environment: 'node',
+                },
+                resolve: {
+                    alias: {
+                        '@src': path.join(repoRoot, 'packages/curated-playlists/src'),
+                    },
+                },
+            },
         ],
     },
 });

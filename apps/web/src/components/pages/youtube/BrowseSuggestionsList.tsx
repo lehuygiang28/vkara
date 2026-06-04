@@ -5,8 +5,10 @@ import { Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { hasBrowseFeedSources } from '@vkara/shared-utils';
 
+import { CuratedPlaylistsPanel } from '@/components/curated-playlists/curated-playlists-panel';
 import { useScopedI18n } from '@/locales/client';
 import { useBrowseFeed } from '@/hooks/use-browse-feed';
+import { useShowCuratedStarters } from '@/hooks/use-curated-starter-visibility';
 import { usePersonalizationStore } from '@/store/personalizationStore';
 import { useSearchStore } from '@/store/searchStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -61,10 +63,36 @@ export function BrowseSuggestionsList() {
         [playingNow, historyQueue],
     );
 
+    const showCuratedStarters = useShowCuratedStarters(profile, room);
+    const hasFeedSources = hasBrowseFeedSources(profile, room);
+
     const { videos, isLoading, isLoadingMore, hasMore, loadError, loadMore, refresh } =
         useBrowseFeed(profile, room);
 
-    if (!hasBrowseFeedSources(profile, room)) {
+    if (showCuratedStarters) {
+        return (
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-remote-scroll">
+                {!hasFeedSources ? (
+                    <VideoListEmptyState
+                        icon={<Search className="h-7 w-7 text-muted-foreground" />}
+                        title={t('browseEmptyTitle')}
+                        description={t('browseEmptyHint')}
+                        actions={[
+                            {
+                                label: t('browseEmptyCta'),
+                                icon: <Search />,
+                                onClick: requestSearchOverlay,
+                            },
+                        ]}
+                        className="flex-none"
+                    />
+                ) : null}
+                <CuratedPlaylistsPanel variant="browse" />
+            </div>
+        );
+    }
+
+    if (!hasFeedSources) {
         return (
             <VideoListEmptyState
                 icon={<Search className="h-7 w-7 text-muted-foreground" />}

@@ -251,6 +251,23 @@ export default {
     'videoSearch.back': 'Quay lại',
     'videoSearch.refillSearch': 'Điền vào ô tìm kiếm',
 
+    'curatedPlaylists.sectionHint': 'Danh sách gợi ý để bắt đầu phát',
+    'curatedPlaylists.catalogs.karaoke': 'Karaoke',
+    'curatedPlaylists.catalogs.music': 'Nhạc',
+    'curatedPlaylists.videoCount': '{count} bài',
+    'curatedPlaylists.untitledPlaylist': 'Danh sách YouTube',
+    'curatedPlaylists.cardLoadError': 'Không tải được danh sách',
+    'curatedPlaylists.previewTitle': 'Danh sách phát',
+    'curatedPlaylists.previewLoadError': 'Không tải được danh sách bài. Kiểm tra mạng và thử lại.',
+    'curatedPlaylists.addAll': 'Thêm tất cả',
+    'curatedPlaylists.close': 'Đóng xem trước',
+    'curatedPlaylists.importQuickPick': 'Danh sách gợi ý',
+    'curatedPlaylists.importQuickPickHint':
+        'Xem trước bài hát, thêm từng bài, hoặc nhập cả danh sách.',
+    'curatedPlaylists.pastePlaylistLink': 'Dán link danh sách phát YouTube',
+    'curatedPlaylists.importFromUrl': 'Nhập danh sách',
+    'curatedPlaylists.invalidPlaylistUrl': 'Nhập đúng ID hoặc URL danh sách phát YouTube',
+
     'searchHistorySettings.title': 'Lịch sử tìm kiếm',
     'searchHistorySettings.description':
         'Các tìm kiếm gần đây được lưu trên thiết bị này để cải thiện gợi ý.',

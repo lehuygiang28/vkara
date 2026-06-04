@@ -69,17 +69,19 @@ export function VideoHistory() {
     return (
         <div className={cn('flex h-full min-h-0 flex-col', !hasHistory && 'pt-safe-offset')}>
             {hasHistory ? (
-                <VideoListToolbar>
-                    <TooltipButton
-                        tooltipContent={t('clearHistory')}
-                        buttonText={t('clearHistory')}
-                        icon={<X />}
-                        onConfirm={handleClearHistory}
-                        confirmMode
-                        confirmContent={t('clearHistoryConfirm')}
-                        variant="destructive"
-                    />
-                </VideoListToolbar>
+                <VideoListToolbar
+                    trailing={
+                        <TooltipButton
+                            tooltipContent={t('clearHistory')}
+                            buttonText={t('clearHistory')}
+                            icon={<X />}
+                            onConfirm={handleClearHistory}
+                            confirmMode
+                            confirmContent={t('clearHistoryConfirm')}
+                            variant="destructive"
+                        />
+                    }
+                />
             ) : null}
             <VideoList
                 keyPrefix="history-list"

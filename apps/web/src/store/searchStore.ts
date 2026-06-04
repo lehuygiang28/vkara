@@ -7,6 +7,7 @@ import type { YouTubeVideo } from '@vkara/shared-types';
 import { blendSuggestions, rankVideos } from '@vkara/shared-utils';
 import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
 import { getPersonalizationProfile, usePersonalizationStore } from '@/store/personalizationStore';
+import { useCuratedStore } from '@/store/curatedStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 const MIN_SUGGESTION_QUERY_LENGTH = 2;
@@ -114,6 +115,7 @@ export const useSearchStore = create(
                 }
 
                 set({ searchQuery: trimmed });
+                useCuratedStore.getState().dismissCuratedStarters();
 
                 if (!token) {
                     searchAbort?.abort();

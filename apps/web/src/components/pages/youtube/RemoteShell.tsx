@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { NowPlayingBar } from './NowPlayingBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { RemoteTabPanel } from './RemoteTabPanel';
+import { CuratedRemoteOverlays } from '@/components/curated-playlists/curated-remote-overlays';
 import { RemotePanelOverlayProvider } from './remote-panel-overlay-root';
 import { RemoteShellSkeleton } from './layout-skeletons';
 import { useRemoteBottomChrome } from '@/hooks/use-remote-bottom-chrome';
@@ -86,6 +87,7 @@ export function RemoteShell() {
                         {currentTab === 'controls' && <PlayerControlsTabs />}
                         {currentTab === 'settings' && <RoomSettings />}
                     </RemoteTabPanel>
+                    <CuratedRemoteOverlays />
                 </RemotePanelOverlayProvider>
                 <div className="mt-auto shrink-0">
                     <NowPlayingBar onOpenControls={() => setCurrentTab('controls')} />

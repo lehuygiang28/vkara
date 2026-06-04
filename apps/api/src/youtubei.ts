@@ -28,7 +28,7 @@ import {
 } from './modules/youtube/fetch-search-page';
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
 import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
-import { fetchYoutubePlaylistVideos } from './modules/youtube/fetch-playlist-videos';
+import { fetchYoutubePlaylistDetails } from './modules/youtube/fetch-playlist-details';
 import { getYoutubeiClient } from './modules/youtube/youtubei-client';
 
 const logger = createContextLogger('Search-Youtubei');
@@ -187,12 +187,16 @@ export const searchYoutubeiElysia = new Elysia({})
     )
     .post(
         '/playlist',
-        async ({ body: { playlistUrlOrId } }): Promise<YouTubeVideo[]> => {
-            return fetchYoutubePlaylistVideos(playlistUrlOrId, { fetchAll: true });
-        },
+        async ({ body: { playlistUrlOrId, videoLimit, fetchAll } }) =>
+            fetchYoutubePlaylistDetails(playlistUrlOrId, {
+                videoLimit,
+                fetchAll,
+            }),
         {
             body: t.Object({
                 playlistUrlOrId: t.String(),
+                videoLimit: t.Optional(t.Number()),
+                fetchAll: t.Optional(t.Boolean()),
             }),
         },
     )

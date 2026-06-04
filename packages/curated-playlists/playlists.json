@@ -1,0 +1,21 @@
+{
+    "version": 1,
+    "catalogs": [
+        {
+            "id": "music",
+            "suggestLocales": ["vi", "en"],
+            "playlists": [
+                "https://www.youtube.com/watch?v=HX3UcwUYMjM&list=PLRH1bes7ddmWZCJsf02s3WLhtMV2dXbWO"
+            ]
+        },
+        {
+            "id": "karaoke",
+            "suggestLocales": ["vi", "en"],
+            "playlists": [
+                "https://www.youtube.com/watch?v=B4_ooSM3HDw&list=PLRH1bes7ddmVMYRkmPNJY4lFZsGlAAXbC",
+                "https://www.youtube.com/watch?v=sT49aWnNDpA&list=PLRH1bes7ddmVp0Cpe2OWJxK6zqA2h8CrD",
+                "https://www.youtube.com/watch?v=EmE4Fc67IIM&list=PLRH1bes7ddmWyHL0CVqETM7p3mVwdFXFx"
+            ]
+        }
+    ]
+}
