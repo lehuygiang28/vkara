@@ -46,17 +46,65 @@ export function loadCatalogs(file: CuratedPlaylistsFile = playlistsFile): Curate
     return file.catalogs;
 }
 
+function localePriority(catalog: CuratedCatalog, locale: UiLocale): number {
+    return catalog.suggestLocales.indexOf(locale);
+}
+
+/** Stable key for a catalog row (unique across duplicate ids in JSON). */
+export function getCatalogInstanceKey(catalog: CuratedCatalog): string {
+    return `${catalog.id}:${catalog.suggestLocales.join(',')}`;
+}
+
+function mergeCatalogRowsById(rows: CuratedCatalog[]): CuratedCatalog[] {
+    const merged: CuratedCatalog[] = [];
+    const indexById = new Map<string, number>();
+
+    for (const row of rows) {
+        const existingIndex = indexById.get(row.id);
+        if (existingIndex === undefined) {
+            indexById.set(row.id, merged.length);
+            merged.push(row);
+            continue;
+        }
+
+        const existing = merged[existingIndex]!;
+        merged[existingIndex] = {
+            ...existing,
+            playlists: [...existing.playlists, ...row.playlists],
+        };
+    }
+
+    return merged;
+}
+
+/**
+ * Include every catalog row whose `suggestLocales` contains the UI locale.
+ * Rows tagged with only `vi` or only `en` are excluded on the other locale.
+ * Matching rows with the same `id` are merged into one section; playlists are
+ * concatenated after sorting rows by locale priority, then file order.
+ */
 export function filterCatalogsByLocale(
     catalogs: CuratedCatalog[],
     locale: UiLocale,
 ): CuratedCatalog[] {
-    return catalogs
-        .filter((catalog) => catalog.suggestLocales.includes(locale))
-        .map((catalog) => ({
+    const sorted = catalogs
+        .map((catalog, fileIndex) => ({ catalog, fileIndex }))
+        .filter(({ catalog }) => catalog.suggestLocales.includes(locale))
+        .filter(({ catalog }) => catalog.playlists.length > 0)
+        .sort((a, b) => {
+            const priorityDiff =
+                localePriority(a.catalog, locale) - localePriority(b.catalog, locale);
+            if (priorityDiff !== 0) {
+                return priorityDiff;
+            }
+            return a.fileIndex - b.fileIndex;
+        })
+        .map(({ catalog }) => ({
             ...catalog,
             playlists: [...catalog.playlists],
-        }))
-        .filter((catalog) => catalog.playlists.length > 0);
+        }));
+
+    return mergeCatalogRowsById(sorted);
 }
 
 export function flattenCatalogEntries(catalogs: CuratedCatalog[]): CuratedCatalogEntry[] {

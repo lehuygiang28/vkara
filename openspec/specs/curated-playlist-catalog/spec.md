@@ -2,7 +2,7 @@
 
 ### Requirement: Catalog file defines nested playlists
 
-The system MUST load starter playlists from a versioned JSON file in `packages/curated-playlists/` containing a `catalogs` array. Each catalog MUST have a stable `id` (e.g. `karaoke`, `music`), a `suggestLocales` string array, and a `playlists` array of YouTube playlist URLs. The order of catalogs in the file MUST define catalog display order. The order of URLs within a catalog MUST define playlist display order within that catalog.
+The system MUST load starter playlists from a versioned JSON file in `packages/curated-playlists/` containing a `catalogs` array. Each catalog row MUST have an `id` (e.g. `karaoke`, `music`), a `suggestLocales` string array, and a `playlists` array of YouTube playlist URLs. Multiple rows MAY share the same `id` with different `suggestLocales` ordering and playlist sets. The order of URLs within a row MUST define playlist display order within that section.
 
 #### Scenario: Valid catalog loads
 
@@ -17,7 +17,7 @@ The system MUST load starter playlists from a versioned JSON file in `packages/c
 
 ### Requirement: Locale filtering for catalogs
 
-The system MUST expose only catalogs whose `suggestLocales` includes the active UI locale (`vi` or `en`). Filtered catalogs MUST retain their relative order from the JSON file.
+The system MUST include every catalog row whose `suggestLocales` includes the active UI locale (`vi` or `en`). Rows tagged with only `vi` MUST be excluded when UI locale is `en`, and rows tagged with only `en` MUST be excluded when UI locale is `vi`. When multiple rows share the same `id` and match the locale, the system MUST merge them into a single UI section: sort rows by how early the active locale appears in `suggestLocales` (tie-break: earlier JSON row), then concatenate `playlists` in that order. Section order follows the first merged row’s position in that sorted list.
 
 #### Scenario: UI locale Vietnamese
 

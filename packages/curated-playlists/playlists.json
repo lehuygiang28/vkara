@@ -16,6 +16,13 @@
                 "https://www.youtube.com/watch?v=sT49aWnNDpA&list=PLRH1bes7ddmVp0Cpe2OWJxK6zqA2h8CrD",
                 "https://www.youtube.com/watch?v=EmE4Fc67IIM&list=PLRH1bes7ddmWyHL0CVqETM7p3mVwdFXFx"
             ]
+        },
+        {
+            "id": "karaoke",
+            "suggestLocales": ["en", "vi"],
+            "playlists": [
+                "https://www.youtube.com/watch?v=o71_MatpYV0&list=PLRH1bes7ddmWO-sNw14I-FxKKvxMujKoc"
+            ]
         }
     ]
 }

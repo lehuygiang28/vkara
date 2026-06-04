@@ -60,6 +60,33 @@ describe('loadCatalogs', () => {
     });
 });
 
+const duplicateIdFile: CuratedPlaylistsFile = {
+    version: 1,
+    catalogs: [
+        {
+            id: 'karaoke',
+            suggestLocales: ['vi', 'en'],
+            playlists: [
+                'https://www.youtube.com/playlist?list=PLVIET1111111111111111111111111111',
+            ],
+        },
+        {
+            id: 'music',
+            suggestLocales: ['vi', 'en'],
+            playlists: [
+                'https://www.youtube.com/playlist?list=PLMUSIC111111111111111111111111111',
+            ],
+        },
+        {
+            id: 'karaoke',
+            suggestLocales: ['en', 'vi'],
+            playlists: [
+                'https://www.youtube.com/playlist?list=PLENGLISH222222222222222222222222',
+            ],
+        },
+    ],
+};
+
 describe('filterCatalogsByLocale', () => {
     it('keeps catalog order and playlist order for matching locale', () => {
         const filtered = filterCatalogsByLocale(loadCatalogs(sampleFile), 'vi');
@@ -77,6 +104,20 @@ describe('filterCatalogsByLocale', () => {
         const filtered = filterCatalogsByLocale(loadCatalogs(sampleFile), 'en');
         expect(filtered.some((catalog) => catalog.id === 'vi-only')).toBe(false);
     });
+
+    it('merges duplicate ids into one section with locale-priority playlist order', () => {
+        const vi = filterCatalogsByLocale(loadCatalogs(duplicateIdFile), 'vi');
+        expect(vi.map((catalog) => catalog.id)).toEqual(['karaoke', 'music']);
+        expect(vi[0]?.playlists).toHaveLength(2);
+        expect(vi[0]?.playlists[0]).toContain('PLVIET111');
+        expect(vi[0]?.playlists[1]).toContain('PLENGLISH222');
+
+        const en = filterCatalogsByLocale(loadCatalogs(duplicateIdFile), 'en');
+        expect(en.map((catalog) => catalog.id)).toEqual(['karaoke', 'music']);
+        expect(en[0]?.playlists).toHaveLength(2);
+        expect(en[0]?.playlists[0]).toContain('PLENGLISH222');
+        expect(en[0]?.playlists[1]).toContain('PLVIET111');
+    });
 });
 
 describe('flattenCatalogEntries', () => {
@@ -90,5 +131,18 @@ describe('flattenCatalogEntries', () => {
 describe('getCuratedCatalogsForLocale', () => {
     it('returns non-empty catalogs for en', () => {
         expect(getCuratedCatalogsForLocale('en').length).toBeGreaterThan(0);
+    });
+
+    it('merges shipped karaoke rows into one section per locale', () => {
+        const vi = getCuratedCatalogsForLocale('vi');
+        const en = getCuratedCatalogsForLocale('en');
+        const viKaraoke = vi.find((catalog) => catalog.id === 'karaoke');
+        const enKaraoke = en.find((catalog) => catalog.id === 'karaoke');
+
+        expect(vi.filter((catalog) => catalog.id === 'karaoke')).toHaveLength(1);
+        expect(en.filter((catalog) => catalog.id === 'karaoke')).toHaveLength(1);
+        expect(viKaraoke?.playlists).toHaveLength(4);
+        expect(enKaraoke?.playlists).toHaveLength(4);
+        expect(enKaraoke?.playlists[0]).toContain('PLRH1bes7ddmWO-sNw14I-FxKKvxMujKoc');
     });
 });
