@@ -11,7 +11,7 @@ export type FlagDoc = {
 export const FLAG_DOCS = [
     {
         name: 'VKARA_EMBED_PREFILTER_AT_LIST',
-        default: false,
+        default: true,
         scope: 'api',
         description:
             'When enabled, filter non-embeddable videos from search/related/playlist preview lists.',
