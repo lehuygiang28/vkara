@@ -16,7 +16,7 @@ import { VideoSkeletonList } from '@/components/video-skeleton';
 
 import { VideoList } from './VideoList';
 import { VideoListEmptyState } from './video-list-empty-state';
-import { RemoteScrollRoot } from './remote-chrome';
+import { RemoteScrollRoot, RemoteScrollSurface } from './remote-chrome';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
 
 export function BrowseSuggestionsList() {
@@ -72,7 +72,10 @@ export function BrowseSuggestionsList() {
 
     if (showCuratedStarters) {
         return (
-            <RemoteScrollRoot className="flex min-h-0 flex-1 flex-col">
+            <RemoteScrollSurface
+                scrollTopLabel={t('scrollToTop')}
+                scrollRootClassName="flex min-h-0 flex-1 flex-col"
+            >
                 {!hasFeedSources ? (
                     <VideoListEmptyState
                         icon={<Search className="h-7 w-7 text-muted-foreground" />}
@@ -89,13 +92,16 @@ export function BrowseSuggestionsList() {
                     />
                 ) : null}
                 <CuratedPlaylistsPanel variant="browse" />
-            </RemoteScrollRoot>
+            </RemoteScrollSurface>
         );
     }
 
     if (!hasFeedSources) {
         return (
-            <RemoteScrollRoot className="flex min-h-0 flex-1 flex-col">
+            <RemoteScrollSurface
+                scrollTopLabel={t('scrollToTop')}
+                scrollRootClassName="flex min-h-0 flex-1 flex-col"
+            >
                 <VideoListEmptyState
                     icon={<Search className="h-7 w-7 text-muted-foreground" />}
                     title={t('browseEmptyTitle')}
@@ -109,7 +115,7 @@ export function BrowseSuggestionsList() {
                     ]}
                     className="flex-none"
                 />
-            </RemoteScrollRoot>
+            </RemoteScrollSurface>
         );
     }
 

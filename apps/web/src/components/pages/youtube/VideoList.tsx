@@ -8,10 +8,9 @@ import { useScopedI18n } from '@/locales/client';
 import { useInfiniteScrollSentinel } from '@/hooks/use-infinite-scroll-sentinel';
 import { usePullToRefresh } from '@/hooks/use-pull-to-refresh';
 import { VideoSkeleton } from '@/components/video-skeleton';
-import { ScrollToTopListButton } from '@/components/scroll-to-top-list';
 import { VideoListItem, VIDEO_LIST_ROW_HEIGHT, getVideoListRowHeight } from './VideoListItem';
 import { VideoListPullHeader } from './video-list-pull-indicator';
-import { RemoteScrollRoot } from './remote-chrome';
+import { RemoteScrollSurface } from './remote-chrome';
 
 const LOADING_ROW_COUNT = 3;
 const LOAD_MORE_SENTINEL_HEIGHT = 32;
@@ -54,7 +53,6 @@ export const VideoList = memo(function VideoList({
     const scrollRef = useRef<HTMLDivElement | null>(null);
     const sentinelRef = useRef<HTMLDivElement | null>(null);
     const [scrollReady, setScrollReady] = useState(false);
-    const [showScrollTop, setShowScrollTop] = useState(false);
     const [menuVideo, setMenuVideo] = useState<YouTubeVideo | null>(null);
 
     const assignScrollRef = useCallback((node: HTMLDivElement | null) => {
@@ -110,32 +108,19 @@ export const VideoList = memo(function VideoList({
         setMenuVideo((current) => (current?.id === video.id ? null : video));
     }, []);
 
-    const handleScroll = useCallback(() => {
-        const scrollTop = scrollRef.current?.scrollTop ?? 0;
-        setShowScrollTop(scrollTop > 200);
-    }, []);
-
-    const scrollToTop = useCallback(() => {
-        closeMenu();
-        const scrollEl = scrollRef.current;
-        if (!scrollEl) return;
-
-        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        scrollEl.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
-    }, [closeMenu]);
-
     const virtualItems = virtualizer.getVirtualItems();
     const totalSize = virtualizer.getTotalSize();
     const contentHeight = totalSize - paddingEnd;
     const actionHelpers: VideoListActionHelpers = { closeMenu };
 
     return (
-        <div className="relative isolate min-h-0 flex-1 overflow-hidden">
-            <RemoteScrollRoot
-                ref={assignScrollRef}
-                onScroll={handleScroll}
-                className="relative h-full"
-            >
+        <RemoteScrollSurface
+            scrollTopLabel={t('scrollToTop')}
+            showScrollTopButton={!menuVideo}
+            onBeforeScrollToTop={closeMenu}
+            onScrollRef={assignScrollRef}
+            scrollRootClassName="relative h-full"
+        >
                 {onRefresh ? (
                     <VideoListPullHeader
                         pullPosition={pullPosition}
@@ -236,14 +221,7 @@ export const VideoList = memo(function VideoList({
                         ) : null}
                     </div>
                 )}
-            </RemoteScrollRoot>
-
-            <ScrollToTopListButton
-                show={showScrollTop && !menuVideo}
-                onClick={scrollToTop}
-                label={t('scrollToTop')}
-            />
-        </div>
+        </RemoteScrollSurface>
     );
 });
 

@@ -9,6 +9,7 @@ import {
     type ServerMessage,
 } from '@vkara/room';
 import { createMigratingPersistStorage } from '@/lib/persisted-storage';
+import { useCuratedStore } from '@/store/curatedStore';
 import { toast } from '@/hooks/use-toast';
 import type { useScopedI18n } from '@/locales/client';
 import { cancelPendingQueueAdd, confirmPendingQueueAdd } from '@/lib/queue-action-feedback';
@@ -72,7 +73,10 @@ export const useYouTubeStore = create(
             setWsId: (wsId) => set({ wsId }),
             setPlayer: (player) => set({ player }),
             setVolume: (volume) => set({ volume }),
-            setCurrentTab: (currentTab) => set({ currentTab }),
+            setCurrentTab: (currentTab) => {
+                set({ currentTab });
+                useCuratedStore.getState().setImportPlaylistPanelOpen(false);
+            },
             setRoom: (room) =>
                 set({ room: room ? normalizePersistedRoom(room) : null }),
             setIsLoading: (isLoading) => set({ isLoading }),

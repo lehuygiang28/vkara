@@ -1,6 +1,25 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { useCuratedStore } from '@/store/curatedStore';
+import { useYouTubeStore } from '@/store/youtubeStore';
+
+function createMemoryStorage(): Storage {
+    const map = new Map<string, string>();
+    return {
+        get length() {
+            return map.size;
+        },
+        clear: () => map.clear(),
+        getItem: (key) => map.get(key) ?? null,
+        key: (index) => [...map.keys()][index] ?? null,
+        removeItem: (key) => {
+            map.delete(key);
+        },
+        setItem: (key, value) => {
+            map.set(key, value);
+        },
+    };
+}
 
 describe('useCuratedStore', () => {
     beforeEach(() => {
@@ -31,5 +50,18 @@ describe('useCuratedStore', () => {
         useCuratedStore.getState().closeCuratedPreview({ restoreReturnTo: false });
 
         expect(useCuratedStore.getState().importPlaylistPanelOpen).toBe(false);
+    });
+
+    it('closes import panel when the active remote tab changes', () => {
+        vi.stubGlobal('localStorage', createMemoryStorage());
+
+        useCuratedStore.getState().setImportPlaylistPanelOpen(true);
+        useYouTubeStore.getState().setCurrentTab('search');
+
+        expect(useCuratedStore.getState().importPlaylistPanelOpen).toBe(false);
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
     });
 });
