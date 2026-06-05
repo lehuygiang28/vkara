@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useRef, useState, type Dispatch, type SetStateAction } from 'react';
-import type { PlaylistDetailsResponse } from '@vkara/youtube';
+import { isCacheablePlaylistDetails, type PlaylistDetailsResponse } from '@vkara/youtube';
 
 import { fetchPlaylistDetails } from '@/services/youtube-api';
 
@@ -24,7 +24,7 @@ export function usePlaylistDetailsCache() {
     const prefetch = useCallback(
         (listId: string, options?: { videoLimit?: number }): Promise<PlaylistDetailsResponse> => {
             const existing = cacheRef.current.get(listId);
-            if (existing?.data) {
+            if (existing?.data && isCacheablePlaylistDetails(existing.data)) {
                 return Promise.resolve(existing.data);
             }
             if (existing?.promise) {
@@ -33,6 +33,10 @@ export function usePlaylistDetailsCache() {
 
             const promise = fetchPlaylistDetails(listId, options)
                 .then((data) => {
+                    if (!isCacheablePlaylistDetails(data)) {
+                        throw new Error('Playlist videos unavailable');
+                    }
+
                     cacheRef.current.set(listId, { data });
                     notifyCacheUpdate(setBump);
                     return data;
@@ -53,7 +57,7 @@ export function usePlaylistDetailsCache() {
     const load = useCallback(
         (listId: string, options?: { videoLimit?: number }) => {
             const entry = cacheRef.current.get(listId);
-            if (entry?.data) {
+            if (entry?.data && isCacheablePlaylistDetails(entry.data)) {
                 return Promise.resolve(entry.data);
             }
             if (entry?.promise) {

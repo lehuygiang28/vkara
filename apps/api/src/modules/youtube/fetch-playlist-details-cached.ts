@@ -1,6 +1,6 @@
 import type Redis from 'ioredis';
 import type { PlaylistDetailsResponse } from '@vkara/youtube';
-import { parseYoutubePlaylistInput } from '@vkara/youtube';
+import { isCacheablePlaylistDetails, parseYoutubePlaylistInput } from '@vkara/youtube';
 
 import { createInFlightDedup } from './in-flight-dedup';
 import { fetchYoutubePlaylistDetails } from './fetch-playlist-details';
@@ -42,18 +42,20 @@ export async function fetchYoutubePlaylistDetailsCached(
     const cacheKey = buildPlaylistDetailsCacheKey(parsed.listId, cacheOptions);
 
     const cached = await getCachedPlaylistDetails(redisClient, cacheKey);
-    if (cached) {
+    if (cached && isCacheablePlaylistDetails(cached)) {
         return servePlaylistDetails(redisClient, cached);
     }
 
     return inFlightByCacheKey.run(cacheKey, async () => {
         const cachedAgain = await getCachedPlaylistDetails(redisClient, cacheKey);
-        if (cachedAgain) {
+        if (cachedAgain && isCacheablePlaylistDetails(cachedAgain)) {
             return servePlaylistDetails(redisClient, cachedAgain);
         }
 
         const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, options);
-        await setCachedPlaylistDetails(redisClient, cacheKey, details);
+        if (isCacheablePlaylistDetails(details)) {
+            await setCachedPlaylistDetails(redisClient, cacheKey, details);
+        }
         return servePlaylistDetails(redisClient, details);
     });
 }

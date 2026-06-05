@@ -194,7 +194,7 @@ async function fetchStandardPlaylistViaInnertube(
 
     try {
         const playlist = await client.getPlaylist<Playlist>(listId);
-        if (!playlist?.videos?.items.length) {
+        if (!playlist?.videos) {
             return [];
         }
 
