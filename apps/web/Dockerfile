@@ -4,7 +4,7 @@ FROM oven/bun:1.3.13 AS build
 
 WORKDIR /repo
 
-COPY bun.lock package.json turbo.json ./
+COPY bun.lock package.json turbo.json eslint.config.mjs ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/env/package.json ./packages/env/package.json
