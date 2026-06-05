@@ -14,9 +14,15 @@ import { VideoChannels } from '@/components/video-channels';
  * Bottom control dock (Spotify / YouTube Music / SoundCloud pattern):
  * metadata, scrubber, transport, and volume pinned above bottom nav.
  */
-export function ControlsThumbDeck({ className }: { className?: string }) {
+type ControlsThumbDeckProps = {
+    className?: string;
+    /** When false, pauses the 1s extrapolation tick (tab hidden but kept mounted). */
+    tickEnabled?: boolean;
+};
+
+export function ControlsThumbDeck({ className, tickEnabled = true }: ControlsThumbDeckProps) {
     const { room } = useYouTubeStore();
-    const displayTime = usePlaybackDisplayTime();
+    const displayTime = usePlaybackDisplayTime({ enabled: tickEnabled });
     const { handleSeekToSeconds } = usePlayerAction();
 
     const playing = room?.playingNow;

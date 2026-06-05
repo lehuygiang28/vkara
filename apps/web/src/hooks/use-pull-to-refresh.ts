@@ -39,6 +39,8 @@ export function usePullToRefresh({
 
     const pullStartYRef = useRef(0);
     const pullPositionRef = useRef(0);
+    const renderedPullPositionRef = useRef(0);
+    const pullFrameRef = useRef<number | null>(null);
     const isRefreshingRef = useRef(false);
     const isDisabledRef = useRef(isDisabled);
 
@@ -50,9 +52,37 @@ export function usePullToRefresh({
         isDisabledRef.current = isDisabled;
     }, [isDisabled]);
 
+    const flushPullPosition = useCallback(() => {
+        pullFrameRef.current = null;
+        const next = pullPositionRef.current;
+        if (next === renderedPullPositionRef.current) {
+            return;
+        }
+
+        renderedPullPositionRef.current = next;
+        setPullPosition(next);
+    }, []);
+
+    const schedulePullPosition = useCallback(
+        (next: number) => {
+            pullPositionRef.current = next;
+            if (pullFrameRef.current !== null) {
+                return;
+            }
+
+            pullFrameRef.current = window.requestAnimationFrame(flushPullPosition);
+        },
+        [flushPullPosition],
+    );
+
     const resetPull = useCallback(() => {
         pullStartYRef.current = 0;
         pullPositionRef.current = 0;
+        renderedPullPositionRef.current = 0;
+        if (pullFrameRef.current !== null) {
+            window.cancelAnimationFrame(pullFrameRef.current);
+            pullFrameRef.current = null;
+        }
         setPullPosition(0);
     }, []);
 
@@ -87,9 +117,7 @@ export function usePullToRefresh({
             }
 
             const rawPullLength =
-                touch.clientY > pullStartYRef.current
-                    ? touch.clientY - pullStartYRef.current
-                    : 0;
+                touch.clientY > pullStartYRef.current ? touch.clientY - pullStartYRef.current : 0;
 
             let nextPullLength = rawPullLength;
             if (enableResistance && rawPullLength > 0) {
@@ -97,10 +125,9 @@ export function usePullToRefresh({
             }
 
             const clampedPullLength = Math.min(nextPullLength, maximumPullLength);
-            pullPositionRef.current = clampedPullLength;
-            setPullPosition(clampedPullLength);
+            schedulePullPosition(clampedPullLength);
         },
-        [elementRef, enableResistance, maximumPullLength, resetPull],
+        [elementRef, enableResistance, maximumPullLength, resetPull, schedulePullPosition],
     );
 
     const onTouchEnd = useCallback(() => {
@@ -117,8 +144,7 @@ export function usePullToRefresh({
         }
 
         setIsRefreshing(true);
-        pullPositionRef.current = 0;
-        setPullPosition(0);
+        schedulePullPosition(0);
 
         try {
             const result = onRefresh();
@@ -131,7 +157,7 @@ export function usePullToRefresh({
         } catch {
             setIsRefreshing(false);
         }
-    }, [onRefresh, refreshThreshold, resetPull]);
+    }, [onRefresh, refreshThreshold, resetPull, schedulePullPosition]);
 
     useEffect(() => {
         if (isDisabled) {
@@ -153,6 +179,10 @@ export function usePullToRefresh({
             target.removeEventListener('touchmove', onTouchMove);
             target.removeEventListener('touchend', onTouchEnd);
             target.removeEventListener('touchcancel', onTouchEnd);
+            if (pullFrameRef.current !== null) {
+                window.cancelAnimationFrame(pullFrameRef.current);
+                pullFrameRef.current = null;
+            }
         };
     }, [elementRef, isDisabled, onTouchEnd, onTouchMove, onTouchStart, resetPull]);
 

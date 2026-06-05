@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, type ComponentProps, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 
 import { ScrollToTopListButton } from '@/components/scroll-to-top-list';
 import { useScrollToTop } from '@/hooks/use-scroll-to-top';
@@ -34,13 +34,15 @@ export function RemoteScrollSurface({
     ...surfaceProps
 }: RemoteScrollSurfaceProps) {
     const scrollRef = useRef<HTMLDivElement | null>(null);
-    const { showScrollTop, handleScroll, scrollToTop } = useScrollToTop(scrollRef, {
+    const [scrollElement, setScrollElement] = useState<HTMLDivElement | null>(null);
+    const { showScrollTop, scrollToTop } = useScrollToTop(scrollElement, scrollRef, {
         onBeforeScroll: onBeforeScrollToTop,
     });
 
     const assignScrollRef = useCallback(
         (node: HTMLDivElement | null) => {
             scrollRef.current = node;
+            setScrollElement(node);
             onScrollRef?.(node);
         },
         [onScrollRef],
@@ -53,11 +55,7 @@ export function RemoteScrollSurface({
             className={cn('relative isolate min-h-0 flex-1 overflow-hidden', className)}
             {...surfaceProps}
         >
-            <RemoteScrollRoot
-                ref={assignScrollRef}
-                onScroll={handleScroll}
-                className={scrollRootClassName}
-            >
+            <RemoteScrollRoot ref={assignScrollRef} className={scrollRootClassName}>
                 {children}
             </RemoteScrollRoot>
             <ScrollToTopListButton

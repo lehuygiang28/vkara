@@ -42,9 +42,11 @@ const RemoteJoinLobby = dynamic(
 );
 
 export function RemoteShell() {
-    const { currentTab, room, setCurrentTab } = useYouTubeStore();
+    const currentTab = useYouTubeStore((state) => state.currentTab);
+    const setCurrentTab = useYouTubeStore((state) => state.setCurrentTab);
+    const hasPlaying = useYouTubeStore((state) => Boolean(state.room?.playingNow));
+    const room = useYouTubeStore((state) => state.room);
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
-    const hasPlaying = Boolean(room?.playingNow);
     const showNowPlayingBar = hasPlaying && currentTab !== 'controls';
 
     const showJoinLobby = effectiveLayoutMode === 'remote' && !room;

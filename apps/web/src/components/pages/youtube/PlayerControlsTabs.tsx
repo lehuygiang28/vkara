@@ -67,7 +67,7 @@ export function PlayerControlsTabs() {
 
             <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-safe-offset pt-safe-offset-controls">
                 <ControlsNowPlayingMeta className="min-h-0 flex-1" />
-                <ControlsThumbDeck className="shrink-0" />
+                <ControlsThumbDeck className="shrink-0" tickEnabled={isActive} />
             </div>
         </div>
     );

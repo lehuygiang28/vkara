@@ -121,106 +121,106 @@ export const VideoList = memo(function VideoList({
             onScrollRef={assignScrollRef}
             scrollRootClassName="relative h-full"
         >
-                {onRefresh ? (
-                    <VideoListPullHeader
-                        pullPosition={pullPosition}
-                        isRefreshing={isRefreshing}
-                        holdGap={PULL_REFRESH_THRESHOLD}
-                        refreshThreshold={PULL_REFRESH_THRESHOLD}
-                        maxPullGap={PULL_REFRESH_MAX}
-                    />
-                ) : null}
+            {onRefresh ? (
+                <VideoListPullHeader
+                    pullPosition={pullPosition}
+                    isRefreshing={isRefreshing}
+                    holdGap={PULL_REFRESH_THRESHOLD}
+                    refreshThreshold={PULL_REFRESH_THRESHOLD}
+                    maxPullGap={PULL_REFRESH_MAX}
+                />
+            ) : null}
 
-                {videos.length === 0 ? (
-                    emptyState ?? (
-                        <div className="flex min-h-[40%] items-center justify-center px-safe-offset py-12 text-center text-sm text-muted-foreground">
-                            {emptyMessage}
-                        </div>
-                    )
-                ) : (
-                    <div
-                        className={cn('relative w-full px-safe-offset pb-2', !onRefresh && 'pt-3')}
-                        style={{ height: `${totalSize}px` }}
-                    >
-                        {virtualItems.map((virtualRow) => {
-                            const video = videos[virtualRow.index];
-                            if (!video) return null;
-
-                            const isMenuOpen = menuVideo?.id === video.id;
-
-                            return (
-                                <div
-                                    key={virtualRow.key}
-                                    data-index={virtualRow.index}
-                                    className="absolute left-0 top-0 w-full pb-1"
-                                    style={{
-                                        transform: `translate3d(0, ${virtualRow.start}px, 0)`,
-                                    }}
-                                >
-                                    <VideoListItem
-                                        video={video}
-                                        viewsLabel={viewsLabel}
-                                        isActive={isMenuOpen}
-                                        actions={
-                                            isMenuOpen
-                                                ? renderActions(video, actionHelpers)
-                                                : undefined
-                                        }
-                                        onSelect={handleRowPress}
-                                    />
-                                </div>
-                            );
-                        })}
-
-                        {isLoading ? (
-                            <div
-                                className="absolute left-0 w-full space-y-1 px-safe-offset"
-                                style={{
-                                    transform: `translate3d(0, ${contentHeight}px, 0)`,
-                                    height: loadingFooterHeight,
-                                }}
-                                aria-busy
-                                aria-live="polite"
-                            >
-                                {Array.from({ length: LOADING_ROW_COUNT }, (_, i) => (
-                                    <VideoSkeleton key={`loading-row-${i}`} />
-                                ))}
-                            </div>
-                        ) : null}
-
-                        {loadError && !isLoading ? (
-                            <div
-                                className="absolute left-0 w-full px-safe-offset"
-                                style={{
-                                    transform: `translate3d(0, ${contentHeight + loadingFooterHeight}px, 0)`,
-                                    height: errorFooterHeight,
-                                }}
-                                role="status"
-                                aria-live="polite"
-                            >
-                                <div className="flex flex-col items-center gap-2 rounded-md border border-[#EAEAEA] bg-[#FDEBEC] px-4 py-3 text-center dark:border-border dark:bg-destructive/10">
-                                    <p className="text-sm text-[#9F2F2D] dark:text-destructive">
-                                        {loadError}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground">
-                                        {t('loadMoreRetryHint')}
-                                    </p>
-                                </div>
-                            </div>
-                        ) : null}
-
-                        {canLoadMore ? (
-                            <div
-                                ref={sentinelRef}
-                                className="absolute left-0 h-8 w-full"
-                                style={{
-                                    transform: `translate3d(0, ${contentHeight + loadingFooterHeight + errorFooterHeight}px, 0)`,
-                                }}
-                                aria-hidden
-                            />
-                        ) : null}
+            {videos.length === 0 ? (
+                (emptyState ?? (
+                    <div className="flex min-h-[40%] items-center justify-center px-safe-offset py-12 text-center text-sm text-muted-foreground">
+                        {emptyMessage}
                     </div>
-                )}
+                ))
+            ) : (
+                <div
+                    className={cn('relative w-full px-safe-offset pb-2', !onRefresh && 'pt-3')}
+                    style={{ height: `${totalSize}px` }}
+                >
+                    {virtualItems.map((virtualRow) => {
+                        const video = videos[virtualRow.index];
+                        if (!video) return null;
+
+                        const isMenuOpen = menuVideo?.id === video.id;
+
+                        return (
+                            <div
+                                key={virtualRow.key}
+                                data-index={virtualRow.index}
+                                className="absolute left-0 top-0 w-full pb-1"
+                                style={{
+                                    transform: `translate3d(0, ${virtualRow.start}px, 0)`,
+                                    contentVisibility: 'auto',
+                                    containIntrinsicSize: `${VIDEO_LIST_ROW_HEIGHT}px`,
+                                }}
+                            >
+                                <VideoListItem
+                                    video={video}
+                                    viewsLabel={viewsLabel}
+                                    isActive={isMenuOpen}
+                                    actions={
+                                        isMenuOpen ? renderActions(video, actionHelpers) : undefined
+                                    }
+                                    onSelect={handleRowPress}
+                                />
+                            </div>
+                        );
+                    })}
+
+                    {isLoading ? (
+                        <div
+                            className="absolute left-0 w-full space-y-1 px-safe-offset"
+                            style={{
+                                transform: `translate3d(0, ${contentHeight}px, 0)`,
+                                height: loadingFooterHeight,
+                            }}
+                            aria-busy
+                            aria-live="polite"
+                        >
+                            {Array.from({ length: LOADING_ROW_COUNT }, (_, i) => (
+                                <VideoSkeleton key={`loading-row-${i}`} />
+                            ))}
+                        </div>
+                    ) : null}
+
+                    {loadError && !isLoading ? (
+                        <div
+                            className="absolute left-0 w-full px-safe-offset"
+                            style={{
+                                transform: `translate3d(0, ${contentHeight + loadingFooterHeight}px, 0)`,
+                                height: errorFooterHeight,
+                            }}
+                            role="status"
+                            aria-live="polite"
+                        >
+                            <div className="flex flex-col items-center gap-2 rounded-md border border-[#EAEAEA] bg-[#FDEBEC] px-4 py-3 text-center dark:border-border dark:bg-destructive/10">
+                                <p className="text-sm text-[#9F2F2D] dark:text-destructive">
+                                    {loadError}
+                                </p>
+                                <p className="text-xs text-muted-foreground">
+                                    {t('loadMoreRetryHint')}
+                                </p>
+                            </div>
+                        </div>
+                    ) : null}
+
+                    {canLoadMore ? (
+                        <div
+                            ref={sentinelRef}
+                            className="absolute left-0 h-8 w-full"
+                            style={{
+                                transform: `translate3d(0, ${contentHeight + loadingFooterHeight + errorFooterHeight}px, 0)`,
+                            }}
+                            aria-hidden
+                        />
+                    ) : null}
+                </div>
+            )}
         </RemoteScrollSurface>
     );
 });

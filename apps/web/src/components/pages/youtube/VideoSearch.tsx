@@ -263,7 +263,7 @@ export function VideoSearch() {
                 onSearchAction={handleSearch}
             />
 
-            <div className="sticky top-0 z-10 shrink-0 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+            <div className="sticky top-0 z-10 shrink-0 border-b bg-background">
                 {showResults ? (
                     <ResultsSearchHeader
                         query={searchQuery}

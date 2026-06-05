@@ -24,7 +24,7 @@ export const RemoteScrollRoot = forwardRef<HTMLDivElement, ComponentProps<'div'>
             <div
                 ref={ref}
                 className={cn(
-                    'min-h-0 overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]',
+                    'min-h-0 touch-pan-y overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]',
                     className,
                 )}
                 {...props}

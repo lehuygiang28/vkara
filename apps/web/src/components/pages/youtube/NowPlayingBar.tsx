@@ -10,7 +10,6 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { cn } from '@/lib/utils';
 
-import { useNowPlayingAnimating } from '@/components/pages/youtube/remote-chrome';
 import { NowPlayingArtwork } from '@/components/pages/youtube/NowPlayingArtwork';
 import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,6 @@ interface NowPlayingBarProps {
 }
 
 export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps) {
-    const animating = useNowPlayingAnimating();
     const t = useScopedI18n('youtubePage');
     const { room } = useYouTubeStore();
     const { handlePlayerPlay, handlePlayerPause, handlePlayNextVideo } = usePlayerAction();
@@ -46,9 +44,8 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
         <div
             className={cn(
                 'flex items-center gap-2 border-t px-safe-offset py-1',
-                animating
-                    ? 'bg-background'
-                    : 'bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+                // Solid background: backdrop-blur repaints every scroll frame on mobile.
+                'bg-background',
                 className,
             )}
         >

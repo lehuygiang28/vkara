@@ -33,8 +33,9 @@ export const MobileBottomNav = forwardRef<HTMLElement, MobileBottomNavProps>(
     function MobileBottomNav({ className }, ref) {
         const t = useScopedI18n('youtubePage');
         const tGlobal = useI18n();
-        const { currentTab, room, setCurrentTab } = useYouTubeStore();
-        const queueCount = room?.videoQueue?.length ?? 0;
+        const currentTab = useYouTubeStore((state) => state.currentTab);
+        const setCurrentTab = useYouTubeStore((state) => state.setCurrentTab);
+        const queueCount = useYouTubeStore((state) => state.room?.videoQueue?.length ?? 0);
 
         const isPrimary = (tab: string): tab is PrimaryTab =>
             PRIMARY_TABS.includes(tab as PrimaryTab);

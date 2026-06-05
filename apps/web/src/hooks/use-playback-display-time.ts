@@ -2,18 +2,21 @@
 
 import { useEffect, useRef, useState } from 'react';
 
-import {
-    computeExtrapolatedPlaybackSeconds,
-    type PlaybackDisplayAnchor,
-} from '@vkara/room';
+import { computeExtrapolatedPlaybackSeconds, type PlaybackDisplayAnchor } from '@vkara/room';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 const TICK_MS = 1_000;
 
+type UsePlaybackDisplayTimeOptions = {
+    /** When false, skips the extrapolation interval (e.g. hidden controls tab). */
+    enabled?: boolean;
+};
+
 /**
  * Smooth playback position for UI: extrapolates from the last server anchor while playing.
  */
-export function usePlaybackDisplayTime(): number {
+export function usePlaybackDisplayTime(options?: UsePlaybackDisplayTimeOptions): number {
+    const enabled = options?.enabled ?? true;
     const room = useYouTubeStore((s) => s.room);
     const anchorRef = useRef<PlaybackDisplayAnchor>({
         baseSeconds: 0,
@@ -38,7 +41,7 @@ export function usePlaybackDisplayTime(): number {
     }, [serverTime, isPlaying, videoId]);
 
     useEffect(() => {
-        if (!isPlaying || !videoId) {
+        if (!enabled || !isPlaying || !videoId) {
             return;
         }
 
@@ -49,7 +52,7 @@ export function usePlaybackDisplayTime(): number {
         tick();
         const id = window.setInterval(tick, TICK_MS);
         return () => window.clearInterval(id);
-    }, [isPlaying, videoId]);
+    }, [enabled, isPlaying, videoId]);
 
     return displayTime;
 }
