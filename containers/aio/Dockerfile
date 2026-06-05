@@ -47,7 +47,7 @@ ENV TURBO_TEAM=${TURBO_TEAM}
 
 RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
     TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
-    bunx turbo run build --filter='@vkara/api'
+    bunx turbo run build --filter='@vkara/api' --force
 
 FROM deps AS build-web
 COPY apps/web ./apps/web
@@ -84,12 +84,13 @@ RUN apk add --no-cache supervisor
 COPY --from=caddy /usr/bin/caddy /usr/bin/caddy
 COPY --from=redis /usr/local/bin/redis-server /usr/bin/redis-server
 
-COPY --from=build-api /repo/apps/api/dist/server ./server
-RUN chmod +x ./server
-
 COPY --from=build-web /repo/apps/web/.next/standalone ./
 COPY --from=build-web /repo/apps/web/.next/static ./apps/web/.next/static
 COPY --from=build-web /repo/apps/web/public ./apps/web/public
+
+# Copy compiled API last; --force build avoids glibc remote-cache binary on Alpine.
+COPY --from=build-api /repo/apps/api/dist/server ./server
+RUN chmod +x ./server
 
 COPY ./containers/aio/Caddyfile ./Caddyfile
 COPY ./containers/aio/supervisord.conf ./supervisord.conf

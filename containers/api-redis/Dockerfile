@@ -40,7 +40,7 @@ ENV TURBO_TEAM=${TURBO_TEAM}
 
 RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
     TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
-    bunx turbo run build --filter='@vkara/api'
+    bunx turbo run build --filter='@vkara/api' --force
 
 FROM build AS production
 
