@@ -75,7 +75,9 @@ export const useYouTubeStore = create(
             setVolume: (volume) => set({ volume }),
             setCurrentTab: (currentTab) => {
                 set({ currentTab });
-                useCuratedStore.getState().setImportPlaylistPanelOpen(false);
+                const curated = useCuratedStore.getState();
+                curated.setImportPlaylistPanelOpen(false);
+                curated.closeCuratedPreview({ restoreReturnTo: false });
             },
             setRoom: (room) =>
                 set({ room: room ? normalizePersistedRoom(room) : null }),

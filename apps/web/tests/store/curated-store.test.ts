@@ -61,6 +61,17 @@ describe('useCuratedStore', () => {
         expect(useCuratedStore.getState().importPlaylistPanelOpen).toBe(false);
     });
 
+    it('closes curated preview when the active remote tab changes', () => {
+        vi.stubGlobal('localStorage', createMemoryStorage());
+
+        useCuratedStore.getState().openCuratedPreview('PLtest', { returnTo: 'import' });
+        useYouTubeStore.getState().setCurrentTab('controls');
+
+        expect(useCuratedStore.getState().curatedPreviewOpen).toBe(false);
+        expect(useCuratedStore.getState().activeListId).toBeNull();
+        expect(useCuratedStore.getState().importPlaylistPanelOpen).toBe(false);
+    });
+
     afterEach(() => {
         vi.unstubAllGlobals();
     });
