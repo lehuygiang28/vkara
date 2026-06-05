@@ -14,7 +14,7 @@ export function useRemoteVolumeSlider({
     volume,
     commitVolumeToRoomAction: commitVolumeToRoom,
 }: UseRemoteVolumeSliderArgs) {
-    const { shownValue, handlers } = useScrubberValue({
+    const { shownValue, isAdjusting, handlers } = useScrubberValue({
         value: volume,
         clampAction: clampVolume,
         onCommitAction: commitVolumeToRoom,
@@ -24,6 +24,7 @@ export function useRemoteVolumeSlider({
 
     return {
         shownVolume: shownValue,
+        isAdjustingVolume: isAdjusting,
         sliderHandlers: handlers,
     };
 }

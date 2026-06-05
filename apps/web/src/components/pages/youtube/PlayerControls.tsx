@@ -22,8 +22,8 @@ import { useWebSocket } from '@/providers/websocket-provider';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 import { CaptionsMenu } from '@/components/pages/youtube/captions-menu';
+import { VolumeScrubber } from '@/components/pages/youtube/VolumeScrubber';
 import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 
 interface PlayerControlsProps {
@@ -32,43 +32,6 @@ interface PlayerControlsProps {
 }
 
 const SKIP_SECONDS = 10;
-
-function VolumeSlider({
-    shownVolume,
-    ariaLabel,
-    className,
-    handlers,
-}: {
-    shownVolume: number;
-    ariaLabel: string;
-    className?: string;
-    handlers: {
-        onPointerDown: () => void;
-        onPointerUp: () => void;
-        onPointerCancel: () => void;
-        onValueChange: (value: number[]) => void;
-        onValueCommit: (value: number[]) => void;
-    };
-}) {
-    return (
-        <div
-            className={cn('min-w-0 flex-1', className)}
-            onPointerDown={handlers.onPointerDown}
-            onPointerUp={handlers.onPointerUp}
-            onPointerCancel={handlers.onPointerCancel}
-        >
-            <Slider
-                value={[shownVolume]}
-                max={100}
-                step={5}
-                onValueChange={handlers.onValueChange}
-                onValueCommit={handlers.onValueCommit}
-                className="w-full"
-                aria-label={ariaLabel}
-            />
-        </div>
-    );
-}
 
 function SeekBySecondsButton({
     direction,
@@ -130,16 +93,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     const disabled = !room?.playingNow;
     const isMuted = volume === 0;
     const preMuteVolumeRef = useRef(100);
-    const {
-        shownVolume,
-        sliderHandlers: {
-            onPointerDown,
-            onPointerUp,
-            onPointerCancel,
-            onValueChange,
-            onValueCommit,
-        },
-    } = useRemoteVolumeSlider({
+    const { shownVolume, isAdjustingVolume, sliderHandlers } = useRemoteVolumeSlider({
         volume,
         commitVolumeToRoomAction: handleSetVideoVolume,
     });
@@ -294,16 +248,12 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                                 <Volume2 className="h-5 w-5" />
                             )}
                         </Button>
-                        <VolumeSlider
+                        <VolumeScrubber
                             shownVolume={shownVolume}
+                            isAdjusting={isAdjustingVolume}
+                            disabled={disabled}
                             ariaLabel={t('volume')}
-                            handlers={{
-                                onPointerDown,
-                                onPointerUp,
-                                onPointerCancel,
-                                onValueChange,
-                                onValueCommit,
-                            }}
+                            handlers={sliderHandlers}
                         />
                         <span className="hidden w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground min-[380px]:inline">
                             {shownVolume}
@@ -360,27 +310,24 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     <SkipForward className="h-5 w-5" />
                 </Button>
             </div>
-            <div className="flex min-w-[10rem] max-w-xs flex-1 items-center gap-2">
+            <div className="flex min-w-[8rem] flex-1 items-center gap-2">
                 <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="shrink-0"
+                    className="h-11 w-11 shrink-0"
                     onClick={toggleMute}
                     aria-label={isMuted ? t('unmute') : t('mute')}
                 >
                     {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 </Button>
-                <VolumeSlider
+                <VolumeScrubber
                     shownVolume={shownVolume}
+                    isAdjusting={isAdjustingVolume}
+                    disabled={disabled}
                     ariaLabel={t('volume')}
-                    handlers={{
-                        onPointerDown,
-                        onPointerUp,
-                        onPointerCancel,
-                        onValueChange,
-                        onValueCommit,
-                    }}
+                    handlers={sliderHandlers}
+                    showDragValue
                 />
                 {captionsMenu}
             </div>
