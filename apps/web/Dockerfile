@@ -1,8 +1,10 @@
+# syntax=docker/dockerfile:1
+
 FROM oven/bun:1.3.13 AS build
 
 WORKDIR /repo
 
-COPY bun.lock package.json ./
+COPY bun.lock package.json turbo.json ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/env/package.json ./packages/env/package.json
@@ -40,7 +42,12 @@ ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL}
 ENV NEXT_PUBLIC_APP_URL=${NEXT_PUBLIC_APP_URL}
 
-RUN bun run --cwd apps/web build
+ARG TURBO_TEAM
+ENV TURBO_TEAM=${TURBO_TEAM}
+
+RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
+    TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
+    bunx turbo run build --filter='@vkara/web'
 
 FROM node:22-alpine AS production
 

@@ -1,8 +1,10 @@
+# syntax=docker/dockerfile:1
+
 FROM oven/bun:1.3.13-alpine AS build
 
 WORKDIR /repo
 
-COPY bun.lock package.json ./
+COPY bun.lock package.json turbo.json ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/env/package.json ./packages/env/package.json
@@ -33,7 +35,12 @@ COPY packages/room ./packages/room
 
 ENV NODE_ENV=production
 
-RUN bun run --cwd apps/api build
+ARG TURBO_TEAM
+ENV TURBO_TEAM=${TURBO_TEAM}
+
+RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
+    TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
+    bunx turbo run build --filter='@vkara/api'
 
 FROM build AS production
 

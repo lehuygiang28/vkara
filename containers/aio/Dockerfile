@@ -4,7 +4,7 @@ FROM oven/bun:1.3.13-alpine AS base
 
 WORKDIR /repo
 
-COPY bun.lock package.json ./
+COPY bun.lock package.json turbo.json ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 COPY packages/env/package.json ./packages/env/package.json
@@ -41,7 +41,13 @@ COPY packages/youtube ./packages/youtube
 COPY packages/room ./packages/room
 
 ENV NODE_ENV=production
-RUN bun run --cwd apps/api build
+
+ARG TURBO_TEAM
+ENV TURBO_TEAM=${TURBO_TEAM}
+
+RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
+    TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
+    bunx turbo run build --filter='@vkara/api'
 
 FROM deps AS build-web
 COPY apps/web ./apps/web
@@ -54,7 +60,13 @@ COPY packages/curated-playlists ./packages/curated-playlists
 
 ENV VKARA_AIO=1
 ENV NEXT_PUBLIC_API_URL=/api/vkara
-RUN bun run --cwd apps/web build
+
+ARG TURBO_TEAM
+ENV TURBO_TEAM=${TURBO_TEAM}
+
+RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
+    TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
+    bunx turbo run build --filter='@vkara/web'
 
 FROM caddy:2.10-alpine AS caddy
 FROM redis:7-alpine AS redis
