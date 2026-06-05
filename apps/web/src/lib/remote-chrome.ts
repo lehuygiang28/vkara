@@ -44,6 +44,12 @@ export const REMOTE_CHROME_DATASET = {
     modes: { none: 'none', full: 'full' },
 } as const;
 
+/** Remote shell stacking: bottom chrome (now playing) above panel overlays, below full-screen search. */
+export const REMOTE_CHROME_Z_INDEX = {
+    panelOverlay: 50,
+    nowPlayingBar: 60,
+} as const;
+
 /**
  * - `open` — bar visible on list tabs
  * - `closing` — bar animating away (controls tab); toast height still tracked

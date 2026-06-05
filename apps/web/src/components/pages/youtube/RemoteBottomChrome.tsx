@@ -1,5 +1,7 @@
 'use client';
 
+import { REMOTE_CHROME_Z_INDEX } from '@/lib/remote-chrome';
+
 import { MobileBottomNav } from './MobileBottomNav';
 import { NowPlayingBar } from './NowPlayingBar';
 import { NowPlayingBarSlot } from './NowPlayingBarSlot';
@@ -14,14 +16,24 @@ export function RemoteBottomChrome({ onOpenControls }: RemoteBottomChromeProps) 
     const {
         hasPlaying,
         showNowPlayingBar,
+        layoutPhase,
         navRef,
         panelRef,
         onBarAnimatingChange,
         onBarAnimationComplete,
     } = useRemoteChromeContext();
 
+    const stackAbovePanelOverlays = layoutPhase !== 'hidden';
+
     return (
-        <div className="relative mt-auto shrink-0">
+        <div
+            className="relative mt-auto shrink-0"
+            style={
+                stackAbovePanelOverlays
+                    ? { zIndex: REMOTE_CHROME_Z_INDEX.nowPlayingBar }
+                    : undefined
+            }
+        >
             <MobileBottomNav ref={navRef} />
             {hasPlaying ? (
                 <NowPlayingBarSlot

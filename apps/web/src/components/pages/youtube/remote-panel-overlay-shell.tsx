@@ -4,6 +4,7 @@ import * as ReactDOM from 'react-dom';
 import type { ReactNode } from 'react';
 
 import { SearchHeaderBackButton } from '@/components/search/search-header';
+import { REMOTE_CHROME_Z_INDEX } from '@/lib/remote-chrome';
 import { cn } from '@/lib/utils';
 
 import { RemoteScrollRoot } from './remote-chrome';
@@ -36,7 +37,8 @@ export function RemotePanelOverlayShell({
 
     return ReactDOM.createPortal(
         <div
-            className={cn(positionClass, 'inset-0 z-50 flex flex-col bg-background')}
+            className={cn(positionClass, 'inset-0 flex flex-col bg-background')}
+            style={{ zIndex: REMOTE_CHROME_Z_INDEX.panelOverlay }}
             role="dialog"
             aria-modal="true"
             aria-label={ariaLabel}
@@ -45,7 +47,9 @@ export function RemotePanelOverlayShell({
             {bodyMode === 'list' ? (
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
             ) : (
-                <RemoteScrollRoot className="min-h-0 flex-1 px-safe-offset">{children}</RemoteScrollRoot>
+                <RemoteScrollRoot className="min-h-0 flex-1 px-safe-offset">
+                    {children}
+                </RemoteScrollRoot>
             )}
         </div>,
         portalTarget,
