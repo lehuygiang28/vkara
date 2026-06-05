@@ -5,6 +5,7 @@ import { Clock3, ListVideo, MoreHorizontal, Search, Settings, SlidersVertical } 
 
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { prefetchPlayerControlsTabs } from '@/lib/layout-chunk-prefetch';
+import { REMOTE_CHROME_Z_INDEX, REMOTE_NAV_POPOVER_SIDE_OFFSET } from '@/lib/remote-chrome';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';
 
@@ -30,74 +31,83 @@ function formatQueueBadge(count: number): string {
 
 export const MobileBottomNav = forwardRef<HTMLElement, MobileBottomNavProps>(
     function MobileBottomNav({ className }, ref) {
-    const t = useScopedI18n('youtubePage');
-    const tGlobal = useI18n();
-    const { currentTab, room, setCurrentTab } = useYouTubeStore();
-    const queueCount = room?.videoQueue?.length ?? 0;
+        const t = useScopedI18n('youtubePage');
+        const tGlobal = useI18n();
+        const { currentTab, room, setCurrentTab } = useYouTubeStore();
+        const queueCount = room?.videoQueue?.length ?? 0;
 
-    const isPrimary = (tab: string): tab is PrimaryTab => PRIMARY_TABS.includes(tab as PrimaryTab);
+        const isPrimary = (tab: string): tab is PrimaryTab =>
+            PRIMARY_TABS.includes(tab as PrimaryTab);
 
-    const activePrimary = isPrimary(currentTab) ? currentTab : null;
+        const activePrimary = isPrimary(currentTab) ? currentTab : null;
 
-    return (
-        <nav
-            ref={ref}
-            className={cn(
-                'flex items-stretch justify-around border-t bg-background px-safe-offset pb-safe-offset pt-1',
-                className,
-            )}
-            aria-label={t('mainNavigation')}
-        >
-            <NavItem
-                active={activePrimary === 'search'}
-                icon={<Search className="h-6 w-6" />}
-                label={t('search')}
-                onClick={() => setCurrentTab('search')}
-            />
-            <NavItem
-                active={activePrimary === 'queue'}
-                icon={<ListVideo className="h-6 w-6" />}
-                label={t('queue')}
-                badge={queueCount}
-                ariaLabel={tGlobal('youtubePage.queueBadgeLabel', { count: queueCount })}
-                onClick={() => setCurrentTab('queue')}
-            />
-            <NavItem
-                active={activePrimary === 'controls'}
-                icon={<SlidersVertical className="h-6 w-6" />}
-                label={t('controls')}
-                onClick={() => setCurrentTab('controls')}
-                onPrefetch={prefetchPlayerControlsTabs}
-            />
-            <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                    <button
-                        type="button"
-                        className={cn(
-                            'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-2 text-[0.65rem] font-medium transition-colors',
-                            !isPrimary(currentTab)
-                                ? 'text-primary'
-                                : 'text-muted-foreground hover:text-foreground',
-                        )}
+        return (
+            <nav
+                ref={ref}
+                className={cn(
+                    'flex items-stretch justify-around border-t bg-background px-safe-offset pb-safe-offset pt-1',
+                    className,
+                )}
+                aria-label={t('mainNavigation')}
+            >
+                <NavItem
+                    active={activePrimary === 'search'}
+                    icon={<Search className="h-6 w-6" />}
+                    label={t('search')}
+                    onClick={() => setCurrentTab('search')}
+                />
+                <NavItem
+                    active={activePrimary === 'queue'}
+                    icon={<ListVideo className="h-6 w-6" />}
+                    label={t('queue')}
+                    badge={queueCount}
+                    ariaLabel={tGlobal('youtubePage.queueBadgeLabel', { count: queueCount })}
+                    onClick={() => setCurrentTab('queue')}
+                />
+                <NavItem
+                    active={activePrimary === 'controls'}
+                    icon={<SlidersVertical className="h-6 w-6" />}
+                    label={t('controls')}
+                    onClick={() => setCurrentTab('controls')}
+                    onPrefetch={prefetchPlayerControlsTabs}
+                />
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <button
+                            type="button"
+                            className={cn(
+                                'flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-2 text-[0.65rem] font-medium transition-colors',
+                                !isPrimary(currentTab)
+                                    ? 'text-primary'
+                                    : 'text-muted-foreground hover:text-foreground',
+                            )}
+                        >
+                            <MoreHorizontal className="h-6 w-6" />
+                            <span>{t('more')}</span>
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                        side="top"
+                        align="center"
+                        sideOffset={REMOTE_NAV_POPOVER_SIDE_OFFSET}
+                        collisionPadding={REMOTE_NAV_POPOVER_SIDE_OFFSET}
+                        className="w-64"
+                        style={{ zIndex: REMOTE_CHROME_Z_INDEX.transientChrome }}
                     >
-                        <MoreHorizontal className="h-6 w-6" />
-                        <span>{t('more')}</span>
-                    </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="top" align="center" className="mb-2 w-64">
-                    <DropdownMenuItem onClick={() => setCurrentTab('history')}>
-                        <Clock3 className="mr-2 h-4 w-4" />
-                        {t('history')}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setCurrentTab('settings')}>
-                        <Settings className="mr-2 h-4 w-4" />
-                        {t('settings')}
-                    </DropdownMenuItem>
-                </DropdownMenuContent>
-            </DropdownMenu>
-        </nav>
-    );
-});
+                        <DropdownMenuItem onClick={() => setCurrentTab('history')}>
+                            <Clock3 className="mr-2 h-4 w-4" />
+                            {t('history')}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => setCurrentTab('settings')}>
+                            <Settings className="mr-2 h-4 w-4" />
+                            {t('settings')}
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </nav>
+        );
+    },
+);
 
 function NavIconBadge({ count }: { count: number }) {
     const hasItems = count > 0;

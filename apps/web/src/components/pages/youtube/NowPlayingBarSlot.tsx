@@ -3,7 +3,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
 import { forwardRef, useCallback, type ReactNode } from 'react';
 
-import { nowPlayingBarTransitions } from '@/lib/remote-chrome';
+import { nowPlayingBarTransitions, REMOTE_CHROME_Z_INDEX } from '@/lib/remote-chrome';
 import { cn } from '@/lib/utils';
 
 import { useNowPlayingAnimating } from './remote-chrome';
@@ -48,10 +48,8 @@ export const NowPlayingBarSlot = forwardRef<HTMLDivElement, NowPlayingBarSlotPro
 
         return (
             <div
-                className={cn(
-                    'pointer-events-none absolute bottom-full left-0 right-0 z-20',
-                    className,
-                )}
+                className={cn('pointer-events-none absolute bottom-full left-0 right-0', className)}
+                style={{ zIndex: REMOTE_CHROME_Z_INDEX.nowPlayingBar }}
                 aria-hidden={!open}
             >
                 <div className="overflow-hidden [contain:layout_style_paint]">

@@ -44,11 +44,19 @@ export const REMOTE_CHROME_DATASET = {
     modes: { none: 'none', full: 'full' },
 } as const;
 
-/** Remote shell stacking: bottom chrome (now playing) above panel overlays, below full-screen search. */
+/**
+ * Remote shell stacking (low → high).
+ * Transient popovers may briefly overlay the now-playing bar; that is intentional on mobile.
+ */
 export const REMOTE_CHROME_Z_INDEX = {
     panelOverlay: 50,
     nowPlayingBar: 60,
+    /** Nav menus and other short-lived chrome portaled above the mini player. */
+    transientChrome: 70,
 } as const;
+
+/** Fixed gap between bottom-nav triggers and upward popovers (no dynamic bar-height offset). */
+export const REMOTE_NAV_POPOVER_SIDE_OFFSET = 8;
 
 /**
  * - `open` — bar visible on list tabs
