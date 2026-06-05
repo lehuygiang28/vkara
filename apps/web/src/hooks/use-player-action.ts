@@ -25,6 +25,7 @@ export type PlayerAction = {
     handlePlayNextVideo: () => void;
     handleRemoveVideoFromQueue: (video: YouTubeVideo) => void;
     handleSetVideoVolume: (volume: number) => void;
+    handleSyncVideoVolumeToRoom: (volume: number) => void;
     handleMoveVideoToTop: (video: YouTubeVideo) => void;
     handleShuffleQueue: () => void;
     handleClearQueue: () => void;
@@ -202,6 +203,15 @@ export const usePlayerAction = (): PlayerAction => {
         [ensureRoomReady, ensureConnectedAndSend, t],
     );
 
+    const handleSyncVideoVolumeToRoom = useCallback(
+        async (volume: number) => {
+            const clamped = Math.min(100, Math.max(0, volume));
+            if (!(await ensureRoomReady())) return;
+            ensureConnectedAndSend({ type: 'setVolume', volume: clamped });
+        },
+        [ensureRoomReady, ensureConnectedAndSend],
+    );
+
     const handleSetVideoVolume = useCallback(
         async (volume: number) => {
             const clamped = Math.min(100, Math.max(0, volume));
@@ -337,6 +347,7 @@ export const usePlayerAction = (): PlayerAction => {
         handlePlayNextVideo,
         handleRemoveVideoFromQueue,
         handleSetVideoVolume,
+        handleSyncVideoVolumeToRoom,
         handleMoveVideoToTop,
         handleShuffleQueue,
         handleClearQueue,

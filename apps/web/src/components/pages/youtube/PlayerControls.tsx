@@ -15,8 +15,10 @@ import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { usePlaybackDisplayTime } from '@/hooks/use-playback-display-time';
 import { usePlayerAction } from '@/hooks/use-player-action';
+import { useRemoteVolumeSlider } from '@/hooks/use-remote-volume-slider';
 import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
+import { markVolumeSentToRoom } from '@/lib/volume-remote-sync';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
@@ -69,7 +71,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     const t = useScopedI18n('youtubePage');
     const tToast = useI18n();
     const { ensureConnectedAndSend } = useWebSocket();
-    const { volume, room, setVolume } = useYouTubeStore();
+    const { volume, room } = useYouTubeStore();
     const captionsEnabled = room?.captionsEnabled ?? false;
     const captionsLanguage = room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE;
     const captionTracks = room?.captionTracks ?? [];
@@ -87,12 +89,28 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
         handlePlayNextVideo,
         handleSeekToSeconds,
         handleSetVideoVolume,
+        handleSyncVideoVolumeToRoom,
     } = usePlayerAction();
 
     const disabled = !room?.playingNow;
     const isMuted = volume === 0;
     const preMuteVolumeRef = useRef(100);
     const displayTime = usePlaybackDisplayTime();
+    const {
+        shownVolume,
+        sliderHandlers: {
+            onPointerDown,
+            onPointerUp,
+            onPointerCancel,
+            onValueChange,
+            onValueCommit,
+        },
+        cancelPendingSync,
+    } = useRemoteVolumeSlider({
+        volume,
+        syncVolumeToRoom: handleSyncVideoVolumeToRoom,
+        commitVolumeToRoom: handleSetVideoVolume,
+    });
 
     useEffect(() => {
         if (volume > 0) {
@@ -101,12 +119,16 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     }, [volume]);
 
     const toggleMute = () => {
+        cancelPendingSync();
         if (isMuted) {
-            handleSetVideoVolume(preMuteVolumeRef.current);
+            const next = preMuteVolumeRef.current;
+            markVolumeSentToRoom(next);
+            void handleSetVideoVolume(next);
             return;
         }
         preMuteVolumeRef.current = volume > 0 ? volume : 100;
-        handleSetVideoVolume(0);
+        markVolumeSentToRoom(0);
+        void handleSetVideoVolume(0);
     };
 
     const skipRelative = (delta: number) => {
@@ -243,17 +265,24 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                                 <Volume2 className="h-5 w-5" />
                             )}
                         </Button>
-                        <Slider
-                            value={[volume]}
-                            max={100}
-                            step={5}
-                            onValueChange={(value) => setVolume(value[0] ?? 0)}
-                            onValueCommit={(value) => handleSetVideoVolume(value[0] ?? 0)}
+                        <div
                             className="min-w-0 flex-1"
-                            aria-label={t('volume')}
-                        />
+                            onPointerDown={onPointerDown}
+                            onPointerUp={onPointerUp}
+                            onPointerCancel={onPointerCancel}
+                        >
+                            <Slider
+                                value={[shownVolume]}
+                                max={100}
+                                step={5}
+                                onValueChange={onValueChange}
+                                onValueCommit={onValueCommit}
+                                className="w-full"
+                                aria-label={t('volume')}
+                            />
+                        </div>
                         <span className="hidden w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground min-[380px]:inline">
-                            {volume}
+                            {shownVolume}
                         </span>
                         {captionsMenu}
                     </div>
@@ -316,21 +345,24 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     onClick={toggleMute}
                     aria-label={isMuted ? t('unmute') : t('mute')}
                 >
-                    {isMuted ? (
-                        <VolumeX className="h-5 w-5" />
-                    ) : (
-                        <Volume2 className="h-5 w-5" />
-                    )}
+                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 </Button>
-                <Slider
-                    value={[volume]}
-                    max={100}
-                    step={5}
-                    onValueChange={(value) => setVolume(value[0] ?? 0)}
-                    onValueCommit={(value) => handleSetVideoVolume(value[0] ?? 0)}
-                    className="flex-1"
-                    aria-label={t('volume')}
-                />
+                <div
+                    className="min-w-0 flex-1"
+                    onPointerDown={onPointerDown}
+                    onPointerUp={onPointerUp}
+                    onPointerCancel={onPointerCancel}
+                >
+                    <Slider
+                        value={[shownVolume]}
+                        max={100}
+                        step={5}
+                        onValueChange={onValueChange}
+                        onValueCommit={onValueCommit}
+                        className="w-full"
+                        aria-label={t('volume')}
+                    />
+                </div>
                 {captionsMenu}
             </div>
         </div>

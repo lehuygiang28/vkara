@@ -19,6 +19,7 @@ import {
     markServerPlaybackSeek,
     STALE_PLAYBACK_FORWARD_JUMP_SEC,
 } from '@/lib/youtube-playback-sync';
+import { shouldApplyRemoteVolumeChange } from '@/lib/volume-remote-sync';
 
 export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
 export type LayoutModeSource = 'auto' | 'url' | 'user';
@@ -263,9 +264,11 @@ export const useYouTubeStore = create(
                         break;
                     case 'volumeChanged':
                         {
+                            const volume = Math.min(100, Math.max(0, message.volume));
+                            if (!shouldApplyRemoteVolumeChange(volume)) {
+                                break;
+                            }
                             set((state) => {
-                                // Ensure volume is between 0 and 100
-                                const volume = Math.min(100, Math.max(0, message.volume));
                                 state?.player?.setVolume(volume);
                                 return { ...state, volume };
                             });
