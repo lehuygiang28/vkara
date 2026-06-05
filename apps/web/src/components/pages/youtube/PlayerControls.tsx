@@ -17,7 +17,7 @@ import { usePlayerAction } from '@/hooks/use-player-action';
 import { useRemoteVolumeSlider } from '@/hooks/use-remote-volume-slider';
 import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
-import { markVolumeSentToRoom } from '@/lib/remote-gesture-sync';
+import { beginVolumeGesture, endVolumeGesture } from '@/lib/remote-gesture-sync';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
@@ -125,7 +125,6 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
         handlePlayNextVideo,
         handleSeekRelative,
         handleSetVideoVolume,
-        handleSyncVideoVolumeToRoom,
     } = usePlayerAction();
 
     const disabled = !room?.playingNow;
@@ -140,10 +139,8 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
             onValueChange,
             onValueCommit,
         },
-        cancelPendingSync,
     } = useRemoteVolumeSlider({
         volume,
-        syncVolumeToRoomAction: handleSyncVideoVolumeToRoom,
         commitVolumeToRoomAction: handleSetVideoVolume,
     });
 
@@ -154,15 +151,17 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     }, [volume]);
 
     const toggleMute = () => {
-        cancelPendingSync();
         if (isMuted) {
             const next = preMuteVolumeRef.current;
-            markVolumeSentToRoom(next);
+            beginVolumeGesture(0);
+            endVolumeGesture(next);
             void handleSetVideoVolume(next);
             return;
         }
+
         preMuteVolumeRef.current = volume > 0 ? volume : 100;
-        markVolumeSentToRoom(0);
+        beginVolumeGesture(volume);
+        endVolumeGesture(0);
         void handleSetVideoVolume(0);
     };
 

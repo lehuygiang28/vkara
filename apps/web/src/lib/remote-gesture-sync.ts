@@ -7,7 +7,6 @@ type PendingRemoteValue = {
 
 type RemoteValueGestureSync = {
     beginGesture: (fromValue: number) => void;
-    markSent: (value: number) => void;
     endGesture: (finalValue: number) => void;
     shouldApplyRemote: (remoteValue: number) => boolean;
     resetForTests: () => void;
@@ -23,11 +22,6 @@ function createRemoteValueGestureSync(): RemoteValueGestureSync {
             gestureActive = true;
             gestureFromValue = Math.max(0, Math.floor(fromValue));
             pendingRemoteValue = null;
-        },
-        markSent(value: number) {
-            const target = Math.max(0, Math.floor(value));
-            const from = gestureFromValue ?? target;
-            pendingRemoteValue = { target, from };
         },
         endGesture(finalValue: number) {
             gestureActive = false;
@@ -74,10 +68,6 @@ const volumeGestureSync = createRemoteValueGestureSync();
 
 export const beginVolumeGesture = (fromVolume: number): void => {
     volumeGestureSync.beginGesture(fromVolume);
-};
-
-export const markVolumeSentToRoom = (volume: number): void => {
-    volumeGestureSync.markSent(volume);
 };
 
 export const endVolumeGesture = (finalVolume: number): void => {

@@ -3,7 +3,6 @@ import { describe, expect, it, beforeEach } from 'vitest';
 import {
     beginVolumeGesture,
     endVolumeGesture,
-    markVolumeSentToRoom,
     resetVolumeRemoteSyncForTests,
     shouldApplyRemoteVolumeChange,
 } from '@/lib/remote-gesture-sync';
@@ -20,7 +19,6 @@ describe('volume remote gesture sync', () => {
 
     it('ignores stale echoes until the expected volume arrives', () => {
         beginVolumeGesture(40);
-        markVolumeSentToRoom(60);
         endVolumeGesture(60);
         expect(shouldApplyRemoteVolumeChange(40)).toBe(false);
         expect(shouldApplyRemoteVolumeChange(60)).toBe(true);
