@@ -21,8 +21,8 @@ import {
     applyPreferredPlaybackQuality,
     applyRoomPlaybackToPlayer,
     isPlayerActuallyPlaying,
-    isServerPlaybackEcho,
     isYoutubePlaybackIntentState,
+    shouldSuppressPlaybackBroadcast,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
 import { isVideoLive } from '@/lib/youtube-video';
@@ -174,7 +174,7 @@ export function PlayerColumn({
     const onPlayerStateChange = (event: YT.PlayerEvent) => {
         const playerState = event.target.getPlayerState();
 
-        if (effectiveLayoutMode !== 'remote' && room?.id && !isServerPlaybackEcho()) {
+        if (effectiveLayoutMode !== 'remote' && room?.id && !shouldSuppressPlaybackBroadcast()) {
             const serverPlaying = useYouTubeStore.getState().room?.isPlaying ?? false;
 
             if (isYoutubePlaybackIntentState(playerState)) {

@@ -35,26 +35,107 @@ export function isYoutubePlaybackIntentState(state: number): boolean {
     return state === YT.PlayerState.PLAYING || state === YT.PlayerState.PAUSED;
 }
 
-const SERVER_PLAYBACK_ECHO_MS = 800;
-const SERVER_PLAYBACK_SEEK_ECHO_MS = 2_500;
-/** Ignore forward `currentTimeChanged` jumps during replay/seek echo window. */
-export const STALE_PLAYBACK_FORWARD_JUMP_SEC = 5;
-let serverPlaybackCommandUntil = 0;
+const STALE_PLAYBACK_FORWARD_JUMP_SEC = 5;
+const SEEK_TARGET_MATCH_TOLERANCE_SEC = 1;
 
-/** Call before applying a remote play/pause to the iframe (avoids echoing back to the server). */
-export function markServerPlaybackCommand(
-    graceMs: number = SERVER_PLAYBACK_ECHO_MS,
-): void {
-    serverPlaybackCommandUntil = Date.now() + graceMs;
+type PendingUserSeek = {
+    target: number;
+    from: number;
+};
+
+let seekGeneration = 0;
+let pendingUserSeek: PendingUserSeek | null = null;
+let suppressPlaybackBroadcast = false;
+
+function clearPendingUserSeek(): void {
+    pendingUserSeek = null;
 }
 
-/** Call before replay/seek so the TV does not broadcast the pre-seek position. */
-export function markServerPlaybackSeek(): void {
-    markServerPlaybackCommand(SERVER_PLAYBACK_SEEK_ECHO_MS);
+export function hasPendingUserSeek(): boolean {
+    return pendingUserSeek !== null;
 }
 
-export function isServerPlaybackEcho(): boolean {
-    return Date.now() < serverPlaybackCommandUntil;
+/** Block TV position sync while a local play/pause/seek has not been acknowledged yet. */
+export function markServerPlaybackCommand(): void {
+    suppressPlaybackBroadcast = true;
+}
+
+export function clearPlaybackBroadcastSuppression(): void {
+    suppressPlaybackBroadcast = false;
+}
+
+export function shouldSuppressPlaybackBroadcast(): boolean {
+    return suppressPlaybackBroadcast || pendingUserSeek !== null;
+}
+
+function matchesPendingSeekTarget(remoteSeconds: number): boolean {
+    if (pendingUserSeek === null) {
+        return false;
+    }
+    return Math.abs(remoteSeconds - pendingUserSeek.target) <= SEEK_TARGET_MATCH_TOLERANCE_SEC;
+}
+
+/** User-initiated seek/replay: track expected target/from without time windows. */
+export function markUserSeekTarget(seconds: number, fromSeconds: number): number {
+    seekGeneration += 1;
+    suppressPlaybackBroadcast = true;
+    pendingUserSeek = {
+        target: Math.max(0, Math.floor(seconds)),
+        from: Math.max(0, Math.floor(fromSeconds)),
+    };
+    return seekGeneration;
+}
+
+export function getCurrentSeekGeneration(): number {
+    return seekGeneration;
+}
+
+/** Whether a remote `currentTimeChanged` should update room state. */
+export function shouldApplyRemoteCurrentTime(remoteTime: number, roomTime: number): boolean {
+    const remote = Math.max(0, Math.floor(remoteTime));
+    const room = Math.max(0, Math.floor(roomTime));
+
+    if (pendingUserSeek !== null) {
+        if (matchesPendingSeekTarget(remote)) {
+            clearPendingUserSeek();
+            clearPlaybackBroadcastSuppression();
+            return true;
+        }
+
+        if (remote === pendingUserSeek.from) {
+            return false;
+        }
+
+        if (
+            remote > pendingUserSeek.from &&
+            remote <= pendingUserSeek.target + SEEK_TARGET_MATCH_TOLERANCE_SEC
+        ) {
+            return true;
+        }
+
+        if (remote < room && remote > pendingUserSeek.from) {
+            return true;
+        }
+
+        return false;
+    }
+
+    if (shouldSuppressPlaybackBroadcast() && remote > room + STALE_PLAYBACK_FORWARD_JUMP_SEC) {
+        return false;
+    }
+
+    return true;
+}
+
+/** Seek the embed immediately when this client initiated the seek. */
+export function applySeekToPlayer(player: YT.Player, targetSeconds: number): void {
+    player.seekTo(Math.max(0, Math.floor(targetSeconds)), true);
+}
+
+export function resetPlaybackSyncForTests(): void {
+    seekGeneration = 0;
+    clearPendingUserSeek();
+    clearPlaybackBroadcastSuppression();
 }
 
 /** Align the YouTube iframe with room `isPlaying` (marks server echo to avoid WS feedback). */

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 
+import { useScrubberValue } from '@/hooks/use-scrubber-value';
 import { useScopedI18n } from '@/locales/client';
 import { formatPlaybackSeconds } from '@/lib/format-playback-time';
 import { cn } from '@/lib/utils';
@@ -45,7 +46,6 @@ const SCRUB_SLIDER_CLASS = cn(
     '[&>span:first-child]:after:content-[""] motion-reduce:[&>span:first-child]:after:transition-none',
     '[&>span:first-child>span]:top-1/2 [&>span:first-child>span]:h-1 [&>span:first-child>span]:-translate-y-1/2',
     '[&>span:first-child>span]:bg-transparent',
-    // Tall row for touch; narrow width so min/max sit on the rail ends
     '[&_[role=slider]]:flex [&_[role=slider]]:h-11 [&_[role=slider]]:w-3.5',
     '[&_[role=slider]]:items-center [&_[role=slider]]:justify-center',
     '[&_[role=slider]]:border-0 [&_[role=slider]]:bg-transparent [&_[role=slider]]:shadow-none',
@@ -71,17 +71,22 @@ export function PlaybackScrubber({
 }: PlaybackScrubberProps) {
     const t = useScopedI18n('youtubePage');
     const max = Math.max(1, Math.floor(duration));
-    const [scrubTime, setScrubTime] = useState(displayTime);
-    const [isScrubbing, setIsScrubbing] = useState(false);
+    const syncedTime = Math.min(displayTime, max);
     const [isTrackPressed, setIsTrackPressed] = useState(false);
     const [sliderKey, setSliderKey] = useState(0);
     const prevDisplayTimeRef = useRef(displayTime);
 
-    useEffect(() => {
-        if (!isScrubbing) {
-            setScrubTime(Math.min(displayTime, max));
-        }
-    }, [displayTime, isScrubbing, max]);
+    const clampTime = (seconds: number) => Math.min(max, Math.max(0, seconds));
+
+    const {
+        shownValue: shownTime,
+        isAdjusting: isScrubbing,
+        handlers,
+    } = useScrubberValue({
+        value: syncedTime,
+        clampAction: clampTime,
+        onCommitAction: onSeek,
+    });
 
     useEffect(() => {
         const prev = prevDisplayTimeRef.current;
@@ -91,25 +96,11 @@ export function PlaybackScrubber({
         prevDisplayTimeRef.current = displayTime;
     }, [displayTime, isScrubbing]);
 
-    const shownTime = isScrubbing ? scrubTime : Math.min(displayTime, max);
     const scrubRatio = shownTime / max;
     const isAtStart = shownTime <= 0;
     const isAtEnd = shownTime >= max;
     const scrubPosition = isAtStart ? '0%' : isAtEnd ? '100%' : getScrubThumbCenter(scrubRatio);
     const isTrackExpanded = isScrubbing || isTrackPressed;
-
-    const handleValueChange = (value: number[]) => {
-        setIsScrubbing(true);
-        setScrubTime(Math.min(max, Math.max(0, value[0] ?? 0)));
-    };
-
-    const handleValueCommit = (value: number[]) => {
-        const next = Math.min(max, Math.max(0, value[0] ?? 0));
-        setIsScrubbing(false);
-        setIsTrackPressed(false);
-        setScrubTime(next);
-        onSeek(next);
-    };
 
     const releaseTrackPress = () => {
         setIsTrackPressed(false);
@@ -118,7 +109,13 @@ export function PlaybackScrubber({
     const handleTrackPointerDown = () => {
         if (!disabled) {
             setIsTrackPressed(true);
+            handlers.onPointerDown();
         }
+    };
+
+    const handleTrackPointerUp = () => {
+        releaseTrackPress();
+        handlers.onPointerUp();
     };
 
     return (
@@ -132,7 +129,7 @@ export function PlaybackScrubber({
                     style={{ left: 'var(--scrub-position)' }}
                     aria-hidden
                 >
-                    {formatPlaybackSeconds(scrubTime)}
+                    {formatPlaybackSeconds(shownTime)}
                 </div>
             ) : null}
 
@@ -143,8 +140,8 @@ export function PlaybackScrubber({
                     isScrubbing && 'cursor-grabbing',
                 )}
                 onPointerDown={handleTrackPointerDown}
-                onPointerUp={releaseTrackPress}
-                onPointerCancel={releaseTrackPress}
+                onPointerUp={handleTrackPointerUp}
+                onPointerCancel={handleTrackPointerUp}
                 onLostPointerCapture={releaseTrackPress}
             >
                 <Slider
@@ -154,8 +151,8 @@ export function PlaybackScrubber({
                     step={1}
                     disabled={disabled}
                     value={[shownTime]}
-                    onValueChange={handleValueChange}
-                    onValueCommit={handleValueCommit}
+                    onValueChange={handlers.onValueChange}
+                    onValueCommit={handlers.onValueCommit}
                     aria-label={t('playbackProgress')}
                     aria-valuemin={0}
                     aria-valuemax={max}
@@ -167,8 +164,7 @@ export function PlaybackScrubber({
                         isScrubbing && 'cursor-grabbing [&_[role=slider]]:opacity-100',
                         isScrubbing && '[&_[role=slider]]:after:scale-125',
                         isTrackExpanded && SCRUB_TRACK_EXPANDED_CLASS,
-                        isAtStart &&
-                            '[&_[role=slider]]:!left-0 [&_[role=slider]]:!translate-x-0',
+                        isAtStart && '[&_[role=slider]]:!left-0 [&_[role=slider]]:!translate-x-0',
                         isAtEnd &&
                             '[&_[role=slider]]:!left-auto [&_[role=slider]]:!right-0 [&_[role=slider]]:!translate-x-0',
                     )}

@@ -9,7 +9,12 @@ import { toastSessionNotReady } from '@/lib/session-toast';
 import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useWebSocket } from '@/providers/websocket-provider';
-import { markServerPlaybackSeek } from '@/lib/youtube-playback-sync';
+import {
+    applySeekToPlayer,
+    getCurrentSeekGeneration,
+    markServerPlaybackCommand,
+    markUserSeekTarget,
+} from '@/lib/youtube-playback-sync';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import type { YouTubeVideo } from '@vkara/youtube';
 
@@ -20,6 +25,7 @@ export type PlayerAction = {
     handlePlayerPause: () => void;
     handleReplayVideo: () => void;
     handleSeekToSeconds: (seconds: number) => void;
+    handleSeekRelative: (deltaSeconds: number) => void;
     handlePlayVideoNow: (video: YouTubeVideo) => void;
     handleAddVideoToQueue: (video: YouTubeVideo) => void;
     handlePlayNextVideo: () => void;
@@ -102,7 +108,10 @@ export const usePlayerAction = (): PlayerAction => {
                     });
                 }),
                 new Promise<void>((_, reject) => {
-                    setTimeout(() => reject(new Error('createRoomTimeout')), CREATE_ROOM_TIMEOUT_MS);
+                    setTimeout(
+                        () => reject(new Error('createRoomTimeout')),
+                        CREATE_ROOM_TIMEOUT_MS,
+                    );
                 }),
             ]);
             return true;
@@ -226,44 +235,96 @@ export const usePlayerAction = (): PlayerAction => {
 
     const handlePlayerPlay = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
+        markServerPlaybackCommand();
         useYouTubeStore.getState().setIsPlaying(true);
         ensureConnectedAndSend({ type: 'play' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 
     const handlePlayerPause = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
+        markServerPlaybackCommand();
         useYouTubeStore.getState().setIsPlaying(false);
         ensureConnectedAndSend({ type: 'pause' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 
     const handleReplayVideo = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
-        markServerPlaybackSeek();
+        const previous = useYouTubeStore.getState().room?.currentTime ?? 0;
+        markUserSeekTarget(0, previous);
         useYouTubeStore.setState((state) => ({
-            room: state.room
-                ? { ...state.room, currentTime: 0, isPlaying: true }
-                : null,
+            room: state.room ? { ...state.room, currentTime: 0, isPlaying: true } : null,
         }));
+        const player = useYouTubeStore.getState().player;
+        player?.seekTo(0, true);
         ensureConnectedAndSend({ type: 'replay' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 
-    const handleSeekToSeconds = useCallback(
-        async (seconds: number) => {
-            if (!(await ensureRoomReady())) return;
+    const clampSeekSeconds = useCallback((seconds: number): number | null => {
+        const room = useYouTubeStore.getState().room;
+        if (!room?.playingNow) {
+            return null;
+        }
 
-            const duration = useYouTubeStore.getState().room?.playingNow?.duration;
-            const clamped =
-                typeof duration === 'number' && duration > 0
-                    ? Math.min(duration, Math.max(0, Math.floor(seconds)))
-                    : Math.max(0, Math.floor(seconds));
+        const duration = room.playingNow.duration;
+        const clamped =
+            typeof duration === 'number' && duration > 0
+                ? Math.min(duration, Math.max(0, Math.floor(seconds)))
+                : Math.max(0, Math.floor(seconds));
+        return clamped;
+    }, []);
 
-            markServerPlaybackSeek();
-            useYouTubeStore.setState((state) => ({
-                room: state.room ? { ...state.room, currentTime: clamped } : null,
-            }));
-            ensureConnectedAndSend({ type: 'seek', time: clamped });
+    const applyUserSeekLocally = useCallback((clamped: number): number => {
+        const previous = useYouTubeStore.getState().room?.currentTime ?? 0;
+        const generation = markUserSeekTarget(clamped, previous);
+        useYouTubeStore.setState((state) => ({
+            room: state.room ? { ...state.room, currentTime: clamped } : null,
+        }));
+        const player = useYouTubeStore.getState().player;
+        if (player) {
+            applySeekToPlayer(player, clamped);
+        }
+        return generation;
+    }, []);
+
+    const sendSeekToRoom = useCallback(
+        async (fallbackTime: number, generation: number) => {
+            if (!(await ensureRoomReady())) {
+                return;
+            }
+            if (generation !== getCurrentSeekGeneration()) {
+                return;
+            }
+            const latest = useYouTubeStore.getState().room?.currentTime ?? fallbackTime;
+            ensureConnectedAndSend({ type: 'seek', time: latest });
         },
         [ensureRoomReady, ensureConnectedAndSend],
+    );
+
+    const handleSeekToSeconds = useCallback(
+        async (seconds: number) => {
+            const clamped = clampSeekSeconds(seconds);
+            if (clamped === null) {
+                return;
+            }
+
+            const generation = applyUserSeekLocally(clamped);
+            await sendSeekToRoom(clamped, generation);
+        },
+        [applyUserSeekLocally, clampSeekSeconds, sendSeekToRoom],
+    );
+
+    const handleSeekRelative = useCallback(
+        (deltaSeconds: number) => {
+            const base = useYouTubeStore.getState().room?.currentTime ?? 0;
+            const clamped = clampSeekSeconds(base + deltaSeconds);
+            if (clamped === null) {
+                return;
+            }
+
+            const generation = applyUserSeekLocally(clamped);
+            void sendSeekToRoom(clamped, generation);
+        },
+        [applyUserSeekLocally, clampSeekSeconds, sendSeekToRoom],
     );
 
     const handleMoveVideoToTop = useCallback(
@@ -342,6 +403,7 @@ export const usePlayerAction = (): PlayerAction => {
         handlePlayerPause,
         handleReplayVideo,
         handleSeekToSeconds,
+        handleSeekRelative,
         handlePlayVideoNow,
         handleAddVideoToQueue,
         handlePlayNextVideo,

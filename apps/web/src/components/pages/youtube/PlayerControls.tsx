@@ -13,12 +13,11 @@ import {
 } from 'lucide-react';
 import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
 import { useI18n, useScopedI18n } from '@/locales/client';
-import { usePlaybackDisplayTime } from '@/hooks/use-playback-display-time';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { useRemoteVolumeSlider } from '@/hooks/use-remote-volume-slider';
 import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
-import { markVolumeSentToRoom } from '@/lib/volume-remote-sync';
+import { markVolumeSentToRoom } from '@/lib/remote-gesture-sync';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
@@ -33,6 +32,43 @@ interface PlayerControlsProps {
 }
 
 const SKIP_SECONDS = 10;
+
+function VolumeSlider({
+    shownVolume,
+    ariaLabel,
+    className,
+    handlers,
+}: {
+    shownVolume: number;
+    ariaLabel: string;
+    className?: string;
+    handlers: {
+        onPointerDown: () => void;
+        onPointerUp: () => void;
+        onPointerCancel: () => void;
+        onValueChange: (value: number[]) => void;
+        onValueCommit: (value: number[]) => void;
+    };
+}) {
+    return (
+        <div
+            className={cn('min-w-0 flex-1', className)}
+            onPointerDown={handlers.onPointerDown}
+            onPointerUp={handlers.onPointerUp}
+            onPointerCancel={handlers.onPointerCancel}
+        >
+            <Slider
+                value={[shownVolume]}
+                max={100}
+                step={5}
+                onValueChange={handlers.onValueChange}
+                onValueCommit={handlers.onValueCommit}
+                className="w-full"
+                aria-label={ariaLabel}
+            />
+        </div>
+    );
+}
 
 function SeekBySecondsButton({
     direction,
@@ -87,7 +123,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
         handlePlayerPause,
         handleReplayVideo,
         handlePlayNextVideo,
-        handleSeekToSeconds,
+        handleSeekRelative,
         handleSetVideoVolume,
         handleSyncVideoVolumeToRoom,
     } = usePlayerAction();
@@ -95,7 +131,6 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     const disabled = !room?.playingNow;
     const isMuted = volume === 0;
     const preMuteVolumeRef = useRef(100);
-    const displayTime = usePlaybackDisplayTime();
     const {
         shownVolume,
         sliderHandlers: {
@@ -108,8 +143,8 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
         cancelPendingSync,
     } = useRemoteVolumeSlider({
         volume,
-        syncVolumeToRoom: handleSyncVideoVolumeToRoom,
-        commitVolumeToRoom: handleSetVideoVolume,
+        syncVolumeToRoomAction: handleSyncVideoVolumeToRoom,
+        commitVolumeToRoomAction: handleSetVideoVolume,
     });
 
     useEffect(() => {
@@ -129,11 +164,6 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
         preMuteVolumeRef.current = volume > 0 ? volume : 100;
         markVolumeSentToRoom(0);
         void handleSetVideoVolume(0);
-    };
-
-    const skipRelative = (delta: number) => {
-        const next = Math.max(0, displayTime + delta);
-        handleSeekToSeconds(next);
     };
 
     const handleCaptionsSelect = (languageCode: string | null) => {
@@ -190,7 +220,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     <SeekBySecondsButton
                         direction="back"
                         className="justify-self-start"
-                        onClick={() => skipRelative(-SKIP_SECONDS)}
+                        onClick={() => handleSeekRelative(-SKIP_SECONDS)}
                         disabled={disabled}
                         label={t('skipBack10')}
                     />
@@ -243,7 +273,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     <SeekBySecondsButton
                         direction="forward"
                         className="justify-self-end"
-                        onClick={() => skipRelative(SKIP_SECONDS)}
+                        onClick={() => handleSeekRelative(SKIP_SECONDS)}
                         disabled={disabled}
                         label={t('skipForward10')}
                     />
@@ -265,22 +295,17 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                                 <Volume2 className="h-5 w-5" />
                             )}
                         </Button>
-                        <div
-                            className="min-w-0 flex-1"
-                            onPointerDown={onPointerDown}
-                            onPointerUp={onPointerUp}
-                            onPointerCancel={onPointerCancel}
-                        >
-                            <Slider
-                                value={[shownVolume]}
-                                max={100}
-                                step={5}
-                                onValueChange={onValueChange}
-                                onValueCommit={onValueCommit}
-                                className="w-full"
-                                aria-label={t('volume')}
-                            />
-                        </div>
+                        <VolumeSlider
+                            shownVolume={shownVolume}
+                            ariaLabel={t('volume')}
+                            handlers={{
+                                onPointerDown,
+                                onPointerUp,
+                                onPointerCancel,
+                                onValueChange,
+                                onValueCommit,
+                            }}
+                        />
                         <span className="hidden w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground min-[380px]:inline">
                             {shownVolume}
                         </span>
@@ -347,22 +372,17 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                 >
                     {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
                 </Button>
-                <div
-                    className="min-w-0 flex-1"
-                    onPointerDown={onPointerDown}
-                    onPointerUp={onPointerUp}
-                    onPointerCancel={onPointerCancel}
-                >
-                    <Slider
-                        value={[shownVolume]}
-                        max={100}
-                        step={5}
-                        onValueChange={onValueChange}
-                        onValueCommit={onValueCommit}
-                        className="w-full"
-                        aria-label={t('volume')}
-                    />
-                </div>
+                <VolumeSlider
+                    shownVolume={shownVolume}
+                    ariaLabel={t('volume')}
+                    handlers={{
+                        onPointerDown,
+                        onPointerUp,
+                        onPointerCancel,
+                        onValueChange,
+                        onValueCommit,
+                    }}
+                />
                 {captionsMenu}
             </div>
         </div>

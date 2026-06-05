@@ -5,7 +5,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
-import { isServerPlaybackEcho } from '@/lib/youtube-playback-sync';
+import { shouldSuppressPlaybackBroadcast } from '@/lib/youtube-playback-sync';
 import {
     acceptSyncPlaybackPositionTime,
     PLAYBACK_TIME_BROADCAST_MIN_INTERVAL_MS,
@@ -38,7 +38,7 @@ export function usePlaybackPositionSync(): void {
     const sendSync = useCallback(
         (seconds: number, force = false) => {
             if (!roomId || !isRoomSessionReady) return;
-            if (isServerPlaybackEcho()) return;
+            if (shouldSuppressPlaybackBroadcast()) return;
 
             const serverTime = useYouTubeStore.getState().room?.currentTime ?? 0;
             const accepted = acceptSyncPlaybackPositionTime(serverTime, seconds);

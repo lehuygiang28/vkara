@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach, vi, afterEach } from 'vitest';
+import { describe, expect, it, beforeEach } from 'vitest';
 
 import {
     beginVolumeGesture,
@@ -6,40 +6,36 @@ import {
     markVolumeSentToRoom,
     resetVolumeRemoteSyncForTests,
     shouldApplyRemoteVolumeChange,
-} from '@/lib/volume-remote-sync';
+} from '@/lib/remote-gesture-sync';
 
-describe('volume-remote-sync', () => {
+describe('volume remote gesture sync', () => {
     beforeEach(() => {
         resetVolumeRemoteSyncForTests();
-        vi.useFakeTimers();
-    });
-
-    afterEach(() => {
-        vi.useRealTimers();
     });
 
     it('ignores remote volume while a local gesture is active', () => {
-        beginVolumeGesture();
+        beginVolumeGesture(40);
         expect(shouldApplyRemoteVolumeChange(40)).toBe(false);
     });
 
     it('ignores stale echoes until the expected volume arrives', () => {
+        beginVolumeGesture(40);
         markVolumeSentToRoom(60);
+        endVolumeGesture(60);
         expect(shouldApplyRemoteVolumeChange(40)).toBe(false);
         expect(shouldApplyRemoteVolumeChange(60)).toBe(true);
         expect(shouldApplyRemoteVolumeChange(40)).toBe(true);
     });
 
-    it('accepts remote volume again after the echo window expires', () => {
-        markVolumeSentToRoom(60);
+    it('accepts unexpected remote values from another client', () => {
+        beginVolumeGesture(40);
+        endVolumeGesture(60);
         expect(shouldApplyRemoteVolumeChange(40)).toBe(false);
-
-        vi.advanceTimersByTime(801);
-        expect(shouldApplyRemoteVolumeChange(40)).toBe(true);
+        expect(shouldApplyRemoteVolumeChange(55)).toBe(true);
     });
 
     it('tracks the final volume after a gesture ends', () => {
-        beginVolumeGesture();
+        beginVolumeGesture(20);
         expect(shouldApplyRemoteVolumeChange(20)).toBe(false);
 
         endVolumeGesture(75);

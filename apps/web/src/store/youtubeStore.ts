@@ -15,11 +15,11 @@ import type { useScopedI18n } from '@/locales/client';
 import { cancelPendingQueueAdd, confirmPendingQueueAdd } from '@/lib/queue-action-feedback';
 import {
     applyRoomPlaybackToPlayer,
-    isServerPlaybackEcho,
-    markServerPlaybackSeek,
-    STALE_PLAYBACK_FORWARD_JUMP_SEC,
+    clearPlaybackBroadcastSuppression,
+    markServerPlaybackCommand,
+    shouldApplyRemoteCurrentTime,
 } from '@/lib/youtube-playback-sync';
-import { shouldApplyRemoteVolumeChange } from '@/lib/volume-remote-sync';
+import { shouldApplyRemoteVolumeChange } from '@/lib/remote-gesture-sync';
 
 export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
 export type LayoutModeSource = 'auto' | 'url' | 'user';
@@ -80,8 +80,7 @@ export const useYouTubeStore = create(
                 curated.setImportPlaylistPanelOpen(false);
                 curated.closeCuratedPreview({ restoreReturnTo: false });
             },
-            setRoom: (room) =>
-                set({ room: room ? normalizePersistedRoom(room) : null }),
+            setRoom: (room) => set({ room: room ? normalizePersistedRoom(room) : null }),
             setIsLoading: (isLoading) => set({ isLoading }),
             setError: (error) => set({ error }),
             setLayoutMode: (layoutMode, source = 'user') => {
@@ -167,10 +166,7 @@ export const useYouTubeStore = create(
                 switch (message.type) {
                     case 'roomJoined': {
                         const joinedRoom = normalizePersistedRoom(message.room);
-                        const roomVolume = Math.min(
-                            100,
-                            Math.max(0, joinedRoom?.volume ?? 100),
-                        );
+                        const roomVolume = Math.min(100, Math.max(0, joinedRoom?.volume ?? 100));
                         set((state) => {
                             state?.player?.setVolume(roomVolume);
                             if (state.player && joinedRoom?.playingNow) {
@@ -197,10 +193,7 @@ export const useYouTubeStore = create(
                                 updatedRoom?.playingNow &&
                                 prevPlaying !== nextPlaying
                             ) {
-                                applyRoomPlaybackToPlayer(
-                                    state.player,
-                                    nextPlaying ?? false,
-                                );
+                                applyRoomPlaybackToPlayer(state.player, nextPlaying ?? false);
                             }
                             confirmPendingQueueAdd(state.room, updatedRoom);
                             return { room: updatedRoom };
@@ -235,9 +228,10 @@ export const useYouTubeStore = create(
                             set((state) => {
                                 const roomTime = state.room?.currentTime ?? 0;
                                 if (
-                                    isServerPlaybackEcho() &&
-                                    message.currentTime >
-                                        roomTime + STALE_PLAYBACK_FORWARD_JUMP_SEC
+                                    !shouldApplyRemoteCurrentTime(
+                                        message.currentTime,
+                                        roomTime,
+                                    )
                                 ) {
                                     return state;
                                 }
@@ -250,9 +244,10 @@ export const useYouTubeStore = create(
                                         message.currentTime,
                                     )
                                 ) {
-                                    markServerPlaybackSeek();
+                                    markServerPlaybackCommand();
                                     player.seekTo(message.currentTime, true);
                                 }
+                                clearPlaybackBroadcastSuppression();
                                 return {
                                     ...state,
                                     room: state.room
@@ -276,8 +271,9 @@ export const useYouTubeStore = create(
                         break;
                     case 'replay':
                         {
+                            clearPlaybackBroadcastSuppression();
                             set((state) => {
-                                markServerPlaybackSeek();
+                                markServerPlaybackCommand();
                                 state?.player?.seekTo(0, true);
                                 return {
                                     ...state,
@@ -294,6 +290,7 @@ export const useYouTubeStore = create(
                         break;
                     case 'play':
                         {
+                            clearPlaybackBroadcastSuppression();
                             set((state) => {
                                 if (state.player) {
                                     applyRoomPlaybackToPlayer(state.player, true);
@@ -307,6 +304,7 @@ export const useYouTubeStore = create(
                         break;
                     case 'pause':
                         {
+                            clearPlaybackBroadcastSuppression();
                             set((state) => {
                                 if (state.player) {
                                     applyRoomPlaybackToPlayer(state.player, false);
@@ -396,11 +394,15 @@ export const useYouTubeStore = create(
             },
             merge: (persistedState, currentState) => {
                 const persisted = persistedState as Partial<YouTubeState>;
-                const room = persisted.room
-                    ? normalizePersistedRoom(persisted.room)
-                    : null;
+                const room = persisted.room ? normalizePersistedRoom(persisted.room) : null;
                 const layoutModeSource = persisted.layoutModeSource ?? 'auto';
-                const merged = { ...currentState, ...persisted, room, player: null, layoutModeSource };
+                const merged = {
+                    ...currentState,
+                    ...persisted,
+                    room,
+                    player: null,
+                    layoutModeSource,
+                };
 
                 if (layoutModeSource === 'auto') {
                     return {

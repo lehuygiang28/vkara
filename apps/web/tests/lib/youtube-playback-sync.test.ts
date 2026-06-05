@@ -3,13 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     applyPreferredPlaybackQuality,
     applyRoomPlaybackToPlayer,
+    clearPlaybackBroadcastSuppression,
+    hasPendingUserSeek,
     isPlayerActuallyPlaying,
-    isServerPlaybackEcho,
     isYoutubeActivelyPlaying,
     isYoutubeExplicitlyPaused,
     isYoutubePlaybackIntentState,
     markServerPlaybackCommand,
-    markServerPlaybackSeek,
+    markUserSeekTarget,
+    resetPlaybackSyncForTests,
+    shouldApplyRemoteCurrentTime,
+    shouldSuppressPlaybackBroadcast,
 } from '@/lib/youtube-playback-sync';
 
 function mockPlayer(state: number): YT.Player {
@@ -71,25 +75,54 @@ describe('applyRoomPlaybackToPlayer', () => {
     });
 });
 
-describe('markServerPlaybackEcho', () => {
-    it('suppresses echo feedback for a short window', () => {
-        vi.useFakeTimers();
-        markServerPlaybackCommand();
-        expect(isServerPlaybackEcho()).toBe(true);
-        vi.advanceTimersByTime(801);
-        expect(isServerPlaybackEcho()).toBe(false);
-        vi.useRealTimers();
+describe('shouldSuppressPlaybackBroadcast', () => {
+    beforeEach(() => {
+        resetPlaybackSyncForTests();
     });
 
-    it('extends the echo window after replay/seek', () => {
-        vi.useFakeTimers();
-        markServerPlaybackSeek();
-        expect(isServerPlaybackEcho()).toBe(true);
-        vi.advanceTimersByTime(2_499);
-        expect(isServerPlaybackEcho()).toBe(true);
-        vi.advanceTimersByTime(2);
-        expect(isServerPlaybackEcho()).toBe(false);
-        vi.useRealTimers();
+    it('suppresses echo feedback until explicitly cleared', () => {
+        markServerPlaybackCommand();
+        expect(shouldSuppressPlaybackBroadcast()).toBe(true);
+        clearPlaybackBroadcastSuppression();
+        expect(shouldSuppressPlaybackBroadcast()).toBe(false);
+    });
+
+    it('stays suppressed while a user seek is pending', () => {
+        markUserSeekTarget(0, 42);
+        expect(hasPendingUserSeek()).toBe(true);
+        expect(shouldSuppressPlaybackBroadcast()).toBe(true);
+        expect(shouldApplyRemoteCurrentTime(0, 0)).toBe(true);
+        expect(hasPendingUserSeek()).toBe(false);
+        expect(shouldSuppressPlaybackBroadcast()).toBe(false);
+    });
+});
+
+describe('shouldApplyRemoteCurrentTime', () => {
+    beforeEach(() => {
+        resetPlaybackSyncForTests();
+    });
+
+    it('rejects stale positions until the expected seek target arrives', () => {
+        markUserSeekTarget(110, 100);
+        expect(shouldApplyRemoteCurrentTime(100, 110)).toBe(false);
+        expect(shouldApplyRemoteCurrentTime(110, 110)).toBe(true);
+        expect(shouldApplyRemoteCurrentTime(100, 110)).toBe(true);
+    });
+
+    it('rejects a second-seek stale echo at the previous confirmed position', () => {
+        markUserSeekTarget(120, 110);
+        expect(shouldApplyRemoteCurrentTime(110, 120)).toBe(false);
+    });
+
+    it('resyncs remote UI when TV keeps playing from the seek origin', () => {
+        markUserSeekTarget(120, 110);
+        expect(shouldApplyRemoteCurrentTime(112, 120)).toBe(true);
+    });
+
+    it('still blocks large forward jumps while broadcast suppression is active', () => {
+        markServerPlaybackCommand();
+        expect(shouldApplyRemoteCurrentTime(120, 100)).toBe(false);
+        expect(shouldApplyRemoteCurrentTime(104, 100)).toBe(true);
     });
 });
 

@@ -1,105 +1,48 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { useDebouncedCallback } from 'use-debounce';
+import { useCallback } from 'react';
 
 import {
     beginVolumeGesture,
     endVolumeGesture,
     markVolumeSentToRoom,
-} from '@/lib/volume-remote-sync';
+} from '@/lib/remote-gesture-sync';
+import { useScrubberValue } from '@/hooks/use-scrubber-value';
 
 type UseRemoteVolumeSliderArgs = {
     volume: number;
-    syncVolumeToRoom: (volume: number) => void | Promise<void>;
-    commitVolumeToRoom: (volume: number) => void | Promise<void>;
+    syncVolumeToRoomAction: (volume: number) => void | Promise<void>;
+    commitVolumeToRoomAction: (volume: number) => void | Promise<void>;
 };
+
+const clampVolume = (value: number) => Math.min(100, Math.max(0, value));
 
 export function useRemoteVolumeSlider({
     volume,
-    syncVolumeToRoom,
-    commitVolumeToRoom,
+    syncVolumeToRoomAction: syncVolumeToRoom,
+    commitVolumeToRoomAction: commitVolumeToRoom,
 }: UseRemoteVolumeSliderArgs) {
-    const [isAdjusting, setIsAdjusting] = useState(false);
-    const [scrubVolume, setScrubVolume] = useState(volume);
-    const isAdjustingRef = useRef(false);
-    const scrubVolumeRef = useRef(volume);
-
-    useEffect(() => {
-        if (!isAdjusting) {
-            scrubVolumeRef.current = volume;
-            setScrubVolume(volume);
-        }
-    }, [volume, isAdjusting]);
-
-    const debouncedRoomSync = useDebouncedCallback(
+    const handleSync = useCallback(
         (next: number) => {
             markVolumeSentToRoom(next);
             void syncVolumeToRoom(next);
         },
-        80,
-        { leading: true, trailing: true },
+        [syncVolumeToRoom],
     );
 
-    const finishGesture = useCallback(
-        (next: number) => {
-            if (!isAdjustingRef.current) {
-                return;
-            }
-
-            debouncedRoomSync.cancel();
-            isAdjustingRef.current = false;
-            setIsAdjusting(false);
-            endVolumeGesture(next);
-            scrubVolumeRef.current = next;
-            setScrubVolume(next);
-            void commitVolumeToRoom(next);
-        },
-        [commitVolumeToRoom, debouncedRoomSync],
-    );
-
-    const handlePointerDown = useCallback(() => {
-        beginVolumeGesture();
-        isAdjustingRef.current = true;
-        setIsAdjusting(true);
-        scrubVolumeRef.current = volume;
-        setScrubVolume(volume);
-    }, [volume]);
-
-    const handlePointerUp = useCallback(() => {
-        finishGesture(scrubVolumeRef.current);
-    }, [finishGesture]);
-
-    const handleValueChange = useCallback(
-        (value: number[]) => {
-            const next = value[0] ?? 0;
-            scrubVolumeRef.current = next;
-            setScrubVolume(next);
-            debouncedRoomSync(next);
-        },
-        [debouncedRoomSync],
-    );
-
-    const handleValueCommit = useCallback(
-        (value: number[]) => {
-            finishGesture(value[0] ?? 0);
-        },
-        [finishGesture],
-    );
-
-    const cancelPendingSync = useCallback(() => {
-        debouncedRoomSync.cancel();
-    }, [debouncedRoomSync]);
+    const { shownValue, handlers, cancelPendingSync } = useScrubberValue({
+        value: volume,
+        clampAction: clampVolume,
+        debounceMs: 80,
+        onSyncAction: handleSync,
+        onCommitAction: commitVolumeToRoom,
+        onGestureBeginAction: beginVolumeGesture,
+        onGestureEndAction: endVolumeGesture,
+    });
 
     return {
-        shownVolume: isAdjusting ? scrubVolume : volume,
-        sliderHandlers: {
-            onPointerDown: handlePointerDown,
-            onPointerUp: handlePointerUp,
-            onPointerCancel: handlePointerUp,
-            onValueChange: handleValueChange,
-            onValueCommit: handleValueCommit,
-        },
+        shownVolume: shownValue,
+        sliderHandlers: handlers,
         cancelPendingSync,
     };
 }
