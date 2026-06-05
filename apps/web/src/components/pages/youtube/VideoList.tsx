@@ -11,6 +11,7 @@ import { VideoSkeleton } from '@/components/video-skeleton';
 import { ScrollToTopListButton } from '@/components/scroll-to-top-list';
 import { VideoListItem, VIDEO_LIST_ROW_HEIGHT, getVideoListRowHeight } from './VideoListItem';
 import { VideoListPullHeader } from './video-list-pull-indicator';
+import { RemoteScrollRoot } from './remote-chrome';
 
 const LOADING_ROW_COUNT = 3;
 const LOAD_MORE_SENTINEL_HEIGHT = 32;
@@ -130,10 +131,10 @@ export const VideoList = memo(function VideoList({
 
     return (
         <div className="relative isolate min-h-0 flex-1 overflow-hidden">
-            <div
+            <RemoteScrollRoot
                 ref={assignScrollRef}
                 onScroll={handleScroll}
-                className="relative h-full overflow-y-auto overscroll-y-contain [-webkit-overflow-scrolling:touch]"
+                className="relative h-full"
             >
                 {onRefresh ? (
                     <VideoListPullHeader
@@ -147,7 +148,7 @@ export const VideoList = memo(function VideoList({
 
                 {videos.length === 0 ? (
                     emptyState ?? (
-                        <div className="flex min-h-[40%] items-center justify-center px-safe-offset py-12 pb-remote-scroll text-center text-sm text-muted-foreground">
+                        <div className="flex min-h-[40%] items-center justify-center px-safe-offset py-12 text-center text-sm text-muted-foreground">
                             {emptyMessage}
                         </div>
                     )
@@ -235,11 +236,7 @@ export const VideoList = memo(function VideoList({
                         ) : null}
                     </div>
                 )}
-
-                <div
-                    className={cn(!isLoading && videos.length > 0 && 'shrink-0 pb-remote-scroll')}
-                />
-            </div>
+            </RemoteScrollRoot>
 
             <ScrollToTopListButton
                 show={showScrollTop && !menuVideo}

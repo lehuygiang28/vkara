@@ -10,7 +10,7 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { cn } from '@/lib/utils';
 
-import { useNowPlayingAnimating } from '@/components/pages/youtube/NowPlayingBarSlot';
+import { useNowPlayingAnimating } from '@/components/pages/youtube/remote-chrome';
 import { NowPlayingArtwork } from '@/components/pages/youtube/NowPlayingArtwork';
 import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';

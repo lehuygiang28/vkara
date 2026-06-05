@@ -9,6 +9,8 @@ import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { useScopedI18n } from '@/locales/client';
 
+import { RemoteScrollInsetSpacer } from './remote-chrome';
+
 export function RoomSettings() {
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
     const isRemoteLayout = effectiveLayoutMode === 'remote';
@@ -24,7 +26,7 @@ export function RoomSettings() {
     return (
         <div className="flex h-full min-h-0 flex-col">
             <ScrollArea className="h-full" hideScrollbar>
-                <div className="space-y-8 px-safe-offset pb-remote-scroll pt-safe-offset">
+                <div className="space-y-8 px-safe-offset pt-safe-offset">
                     <header className="px-1">
                         <h1 className="text-lg font-semibold tracking-tight">{t('pageTitle')}</h1>
                         <p className="mt-1 text-sm text-muted-foreground">{t('pageDescription')}</p>
@@ -32,6 +34,7 @@ export function RoomSettings() {
 
                     <RoomSettingsSection isRemoteLayout={isRemoteLayout} />
                     <DeviceSettingsSection />
+                    <RemoteScrollInsetSpacer />
                 </div>
             </ScrollArea>
         </div>

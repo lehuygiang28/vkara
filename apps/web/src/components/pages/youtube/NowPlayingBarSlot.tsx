@@ -1,21 +1,18 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
-import { createContext, useCallback, useContext, useState, type ReactNode } from 'react';
+import { forwardRef, useCallback, type ReactNode } from 'react';
 
 import { nowPlayingBarTransitions } from '@/lib/remote-chrome';
 import { cn } from '@/lib/utils';
 
-const NowPlayingAnimatingContext = createContext(false);
-
-export function useNowPlayingAnimating() {
-    return useContext(NowPlayingAnimatingContext);
-}
+import { useNowPlayingAnimating } from './remote-chrome';
 
 interface NowPlayingBarSlotProps {
     open: boolean;
     children: ReactNode;
     className?: string;
+    onAnimatingChange?: (animating: boolean) => void;
     /** Fired when a slide animation finishes; `open` is the target visibility. */
     onAnimationComplete?: (open: boolean) => void;
 }
@@ -31,30 +28,25 @@ const panelVariants = {
     },
 } as const;
 
-/**
- * Floating now-playing strip above bottom nav (out of document flow).
- * Transform-only slide — tab content height stays fixed while animating.
- */
-export function NowPlayingBarSlot({
-    open,
-    children,
-    className,
-    onAnimationComplete,
-}: NowPlayingBarSlotProps) {
-    const reduceMotion = useReducedMotion();
-    const [animating, setAnimating] = useState(false);
+/** Floating now-playing strip above bottom nav (transform-only slide). */
+export const NowPlayingBarSlot = forwardRef<HTMLDivElement, NowPlayingBarSlotProps>(
+    function NowPlayingBarSlot(
+        { open, children, className, onAnimatingChange, onAnimationComplete },
+        ref,
+    ) {
+        const reduceMotion = useReducedMotion();
+        const animating = useNowPlayingAnimating();
 
-    const handleAnimationStart = useCallback(() => {
-        setAnimating(true);
-    }, []);
+        const handleAnimationStart = useCallback(() => {
+            onAnimatingChange?.(true);
+        }, [onAnimatingChange]);
 
-    const handleAnimationComplete = useCallback(() => {
-        setAnimating(false);
-        onAnimationComplete?.(open);
-    }, [onAnimationComplete, open]);
+        const handleAnimationComplete = useCallback(() => {
+            onAnimatingChange?.(false);
+            onAnimationComplete?.(open);
+        }, [onAnimatingChange, onAnimationComplete, open]);
 
-    return (
-        <NowPlayingAnimatingContext.Provider value={animating}>
+        return (
             <div
                 className={cn(
                     'pointer-events-none absolute bottom-full left-0 right-0 z-20',
@@ -64,7 +56,7 @@ export function NowPlayingBarSlot({
             >
                 <div className="overflow-hidden [contain:layout_style_paint]">
                     <motion.div
-                        data-vkara-now-playing-panel=""
+                        ref={ref}
                         initial={false}
                         animate={open ? 'open' : 'closed'}
                         variants={panelVariants}
@@ -81,6 +73,6 @@ export function NowPlayingBarSlot({
                     </motion.div>
                 </div>
             </div>
-        </NowPlayingAnimatingContext.Provider>
-    );
-}
+        );
+    },
+);

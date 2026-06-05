@@ -6,6 +6,7 @@ import type { ReactNode } from 'react';
 import { SearchHeaderBackButton } from '@/components/search/search-header';
 import { cn } from '@/lib/utils';
 
+import { RemoteScrollRoot } from './remote-chrome';
 import { useOverlayPortal } from './remote-panel-overlay-root';
 
 export type RemotePanelOverlayBodyMode = 'scroll' | 'list';
@@ -27,7 +28,7 @@ export function RemotePanelOverlayShell({
     children,
     bodyMode = 'scroll',
 }: RemotePanelOverlayShellProps) {
-    const { portalTarget, positionClass, containOverlays } = useOverlayPortal(active);
+    const { portalTarget, positionClass } = useOverlayPortal(active);
 
     if (!active || !portalTarget) {
         return null;
@@ -44,14 +45,7 @@ export function RemotePanelOverlayShell({
             {bodyMode === 'list' ? (
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
             ) : (
-                <div
-                    className={cn(
-                        'min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-safe-offset',
-                        containOverlays ? 'pb-4' : 'pb-remote-scroll',
-                    )}
-                >
-                    {children}
-                </div>
+                <RemoteScrollRoot className="min-h-0 flex-1 px-safe-offset">{children}</RemoteScrollRoot>
             )}
         </div>,
         portalTarget,

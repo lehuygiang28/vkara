@@ -15,6 +15,7 @@ import {
 } from '@/components/search/search-header';
 import { VoiceSearchOverlay } from '@/components/search/voice-search-overlay';
 import { useOverlayPortal } from '@/components/pages/youtube/remote-panel-overlay-root';
+import { RemoteScrollRoot } from '@/components/pages/youtube/remote-chrome';
 import { useVoiceSearch } from '@/hooks/use-voice-search';
 import type { SpeechRecognitionErrorCode } from '@/hooks/use-speech-recognition';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
@@ -214,7 +215,7 @@ function SearchPageOverlayContent({
         return () => debouncedNotify.cancel();
     }, [debouncedNotify]);
 
-    const { portalTarget, positionClass } = useOverlayPortal(true);
+    const { portalTarget, positionClass, containOverlays } = useOverlayPortal(true);
 
     const runSearch = useCallback(
         (value: string) => {
@@ -442,22 +443,41 @@ function SearchPageOverlayContent({
                     </SearchFieldChrome>
                 </SearchHeaderRow>
 
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-safe-offset">
-                    <MemoSuggestionPanel
-                        listId={listId}
-                        suggestions={suggestions}
-                        isLoading={isLoadingSuggestions}
-                        loadingLabel={t('loadingSuggestions')}
-                        localSuggestionQueries={localSuggestionQueries}
-                        deleteLabel={t('deleteSearch')}
-                        refillLabel={t('refillSearch')}
-                        onPick={handlePickSuggestion}
-                        onRefill={handleRefillSuggestion}
-                        onRemoveLocalSuggestion={
-                            onRemoveLocalSuggestion ? handleRemoveLocalSuggestion : undefined
-                        }
-                    />
-                </div>
+                {containOverlays ? (
+                    <RemoteScrollRoot className="min-h-0 flex-1">
+                        <MemoSuggestionPanel
+                            listId={listId}
+                            suggestions={suggestions}
+                            isLoading={isLoadingSuggestions}
+                            loadingLabel={t('loadingSuggestions')}
+                            localSuggestionQueries={localSuggestionQueries}
+                            deleteLabel={t('deleteSearch')}
+                            refillLabel={t('refillSearch')}
+                            onPick={handlePickSuggestion}
+                            onRefill={handleRefillSuggestion}
+                            onRemoveLocalSuggestion={
+                                onRemoveLocalSuggestion ? handleRemoveLocalSuggestion : undefined
+                            }
+                        />
+                    </RemoteScrollRoot>
+                ) : (
+                    <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-safe-offset">
+                        <MemoSuggestionPanel
+                            listId={listId}
+                            suggestions={suggestions}
+                            isLoading={isLoadingSuggestions}
+                            loadingLabel={t('loadingSuggestions')}
+                            localSuggestionQueries={localSuggestionQueries}
+                            deleteLabel={t('deleteSearch')}
+                            refillLabel={t('refillSearch')}
+                            onPick={handlePickSuggestion}
+                            onRefill={handleRefillSuggestion}
+                            onRemoveLocalSuggestion={
+                                onRemoveLocalSuggestion ? handleRemoveLocalSuggestion : undefined
+                            }
+                        />
+                    </div>
+                )}
             </div>
         </>,
         portalTarget,

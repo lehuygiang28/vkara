@@ -17,6 +17,7 @@ import { toast } from '@/hooks/use-toast';
 import { VideoSkeletonList } from '@/components/video-skeleton';
 import { VideoList } from './VideoList';
 import { BrowseSuggestionsList } from './BrowseSuggestionsList';
+import { RemoteScrollRoot } from './remote-chrome';
 import { VideoListEmptyState } from './video-list-empty-state';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
 
@@ -286,7 +287,9 @@ export function VideoSearch() {
             </div>
 
             {isLoading && searchResults.length === 0 && !showBrowseIdle ? (
-                <VideoSkeletonList count={6} className="pb-remote-scroll" />
+                <RemoteScrollRoot className="min-h-0 flex-1">
+                    <VideoSkeletonList count={6} />
+                </RemoteScrollRoot>
             ) : showBrowseIdle ? (
                 <BrowseSuggestionsList />
             ) : (

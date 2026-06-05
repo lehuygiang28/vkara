@@ -31,7 +31,7 @@ export function VideoListEmptyState({
     return (
         <div
             className={cn(
-                'flex min-h-[40%] flex-1 flex-col items-center justify-center px-safe-offset py-12 pb-remote-scroll text-center',
+                'flex min-h-[40%] flex-1 flex-col items-center justify-center px-safe-offset py-12 text-center',
                 className,
             )}
         >

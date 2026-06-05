@@ -1,5 +1,6 @@
 'use client';
 
+import { forwardRef } from 'react';
 import { Clock3, ListVideo, MoreHorizontal, Search, Settings, SlidersVertical } from 'lucide-react';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
@@ -27,7 +28,8 @@ function formatQueueBadge(count: number): string {
     return String(count);
 }
 
-export function MobileBottomNav({ className }: MobileBottomNavProps) {
+export const MobileBottomNav = forwardRef<HTMLElement, MobileBottomNavProps>(
+    function MobileBottomNav({ className }, ref) {
     const t = useScopedI18n('youtubePage');
     const tGlobal = useI18n();
     const { currentTab, room, setCurrentTab } = useYouTubeStore();
@@ -39,7 +41,7 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
 
     return (
         <nav
-            data-vkara-mobile-nav
+            ref={ref}
             className={cn(
                 'flex items-stretch justify-around border-t bg-background px-safe-offset pb-safe-offset pt-1',
                 className,
@@ -95,7 +97,7 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
             </DropdownMenu>
         </nav>
     );
-}
+});
 
 function NavIconBadge({ count }: { count: number }) {
     const hasItems = count > 0;

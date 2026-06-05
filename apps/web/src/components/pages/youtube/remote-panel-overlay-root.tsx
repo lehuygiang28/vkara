@@ -28,10 +28,7 @@ export function RemotePanelOverlayProvider({
     children,
 }: RemotePanelOverlayProviderProps) {
     const overlayRootRef = useRef<HTMLDivElement>(null);
-    const value = useMemo(
-        () => ({ overlayRootRef, containOverlays }),
-        [containOverlays],
-    );
+    const value = useMemo(() => ({ overlayRootRef, containOverlays }), [containOverlays]);
 
     return (
         <RemotePanelOverlayContext.Provider value={value}>

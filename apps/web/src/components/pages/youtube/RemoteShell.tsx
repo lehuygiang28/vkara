@@ -8,8 +8,10 @@ import { CuratedRemoteOverlays } from '@/components/curated-playlists/curated-re
 import { RemotePanelOverlayProvider } from './remote-panel-overlay-root';
 import { RemoteShellSkeleton } from './layout-skeletons';
 import { RemoteBottomChrome } from './RemoteBottomChrome';
+import { RemoteChromeProvider } from './remote-chrome';
 import { RemoteTabKeepAlive } from './RemoteTabKeepAlive';
 import { RemoteTabPanel } from './RemoteTabPanel';
+import { REMOTE_CHROME_DATASET } from '@/lib/remote-chrome';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
@@ -53,18 +55,6 @@ export function RemoteShell() {
         }
     }, [currentTab, setCurrentTab]);
 
-    useEffect(() => {
-        const root = document.documentElement;
-        if (showJoinLobby) {
-            root.dataset.vkaraRemoteChrome = 'none';
-        } else {
-            root.dataset.vkaraRemoteChrome = 'full';
-        }
-        return () => {
-            delete root.dataset.vkaraRemoteChrome;
-        };
-    }, [showJoinLobby]);
-
     if (showJoinLobby) {
         return (
             <TooltipProvider delayDuration={400}>
@@ -77,29 +67,31 @@ export function RemoteShell() {
 
     return (
         <TooltipProvider delayDuration={400}>
-            <div className="flex h-full min-h-0 flex-col">
-                <RemotePanelOverlayProvider containOverlays>
-                    <RemoteTabPanel>
-                        {currentTab === 'search' && <VideoSearch />}
-                        {currentTab === 'queue' && <VideoQueue />}
-                        {currentTab === 'history' && <VideoHistory />}
-                        <RemoteTabKeepAlive
-                            active={currentTab === 'controls'}
-                            keepMounted={hasPlaying || currentTab === 'controls'}
-                            className="flex min-h-0 flex-1 flex-col overflow-hidden"
-                        >
-                            <PlayerControlsTabs />
-                        </RemoteTabKeepAlive>
-                        {currentTab === 'settings' && <RoomSettings />}
-                    </RemoteTabPanel>
-                    <CuratedRemoteOverlays />
-                </RemotePanelOverlayProvider>
-                <RemoteBottomChrome
-                    hasPlaying={hasPlaying}
-                    showNowPlayingBar={showNowPlayingBar}
-                    onOpenControls={() => setCurrentTab('controls')}
-                />
-            </div>
+            <RemoteChromeProvider
+                mode={REMOTE_CHROME_DATASET.modes.full}
+                hasPlaying={hasPlaying}
+                showNowPlayingBar={showNowPlayingBar}
+            >
+                <div className="flex h-full min-h-0 flex-col">
+                    <RemotePanelOverlayProvider containOverlays>
+                        <RemoteTabPanel>
+                            {currentTab === 'search' && <VideoSearch />}
+                            {currentTab === 'queue' && <VideoQueue />}
+                            {currentTab === 'history' && <VideoHistory />}
+                            <RemoteTabKeepAlive
+                                active={currentTab === 'controls'}
+                                keepMounted={hasPlaying || currentTab === 'controls'}
+                                className="flex min-h-0 flex-1 flex-col overflow-hidden"
+                            >
+                                <PlayerControlsTabs />
+                            </RemoteTabKeepAlive>
+                            {currentTab === 'settings' && <RoomSettings />}
+                        </RemoteTabPanel>
+                        <CuratedRemoteOverlays />
+                    </RemotePanelOverlayProvider>
+                    <RemoteBottomChrome onOpenControls={() => setCurrentTab('controls')} />
+                </div>
+            </RemoteChromeProvider>
         </TooltipProvider>
     );
 }

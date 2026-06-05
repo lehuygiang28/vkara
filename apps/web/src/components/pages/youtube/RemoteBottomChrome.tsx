@@ -1,49 +1,34 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-
-import { useRemoteBottomChrome } from '@/hooks/use-remote-bottom-chrome';
-
 import { MobileBottomNav } from './MobileBottomNav';
 import { NowPlayingBar } from './NowPlayingBar';
 import { NowPlayingBarSlot } from './NowPlayingBarSlot';
+import { useRemoteChromeContext } from './remote-chrome';
 
 interface RemoteBottomChromeProps {
-    hasPlaying: boolean;
-    showNowPlayingBar: boolean;
     onOpenControls: () => void;
 }
 
-/**
- * Bottom nav + floating now-playing bar. Syncs layout CSS vars until close animation finishes.
- */
-export function RemoteBottomChrome({
-    hasPlaying,
-    showNowPlayingBar,
-    onOpenControls,
-}: RemoteBottomChromeProps) {
-    const containerRef = useRef<HTMLDivElement>(null);
-    const [layoutNowPlayingVisible, setLayoutNowPlayingVisible] = useState(showNowPlayingBar);
-
-    useEffect(() => {
-        if (showNowPlayingBar) {
-            setLayoutNowPlayingVisible(true);
-        }
-    }, [showNowPlayingBar]);
-
-    useRemoteBottomChrome(containerRef, { nowPlayingVisible: layoutNowPlayingVisible });
+/** Bottom nav + floating now-playing bar. Layout vars synced by {@link RemoteChromeProvider}. */
+export function RemoteBottomChrome({ onOpenControls }: RemoteBottomChromeProps) {
+    const {
+        hasPlaying,
+        showNowPlayingBar,
+        navRef,
+        panelRef,
+        onBarAnimatingChange,
+        onBarAnimationComplete,
+    } = useRemoteChromeContext();
 
     return (
-        <div ref={containerRef} className="relative mt-auto shrink-0">
-            <MobileBottomNav />
+        <div className="relative mt-auto shrink-0">
+            <MobileBottomNav ref={navRef} />
             {hasPlaying ? (
                 <NowPlayingBarSlot
+                    ref={panelRef}
                     open={showNowPlayingBar}
-                    onAnimationComplete={(open) => {
-                        if (!open) {
-                            setLayoutNowPlayingVisible(false);
-                        }
-                    }}
+                    onAnimatingChange={onBarAnimatingChange}
+                    onAnimationComplete={onBarAnimationComplete}
                 >
                     <NowPlayingBar onOpenControls={onOpenControls} />
                 </NowPlayingBarSlot>

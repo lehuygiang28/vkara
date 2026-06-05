@@ -16,6 +16,7 @@ import { VideoSkeletonList } from '@/components/video-skeleton';
 
 import { VideoList } from './VideoList';
 import { VideoListEmptyState } from './video-list-empty-state';
+import { RemoteScrollRoot } from './remote-chrome';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
 
 export function BrowseSuggestionsList() {
@@ -71,7 +72,7 @@ export function BrowseSuggestionsList() {
 
     if (showCuratedStarters) {
         return (
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto pb-remote-scroll">
+            <RemoteScrollRoot className="flex min-h-0 flex-1 flex-col">
                 {!hasFeedSources ? (
                     <VideoListEmptyState
                         icon={<Search className="h-7 w-7 text-muted-foreground" />}
@@ -88,30 +89,36 @@ export function BrowseSuggestionsList() {
                     />
                 ) : null}
                 <CuratedPlaylistsPanel variant="browse" />
-            </div>
+            </RemoteScrollRoot>
         );
     }
 
     if (!hasFeedSources) {
         return (
-            <VideoListEmptyState
-                icon={<Search className="h-7 w-7 text-muted-foreground" />}
-                title={t('browseEmptyTitle')}
-                description={t('browseEmptyHint')}
-                actions={[
-                    {
-                        label: t('browseEmptyCta'),
-                        icon: <Search />,
-                        onClick: requestSearchOverlay,
-                    },
-                ]}
-                className="flex-1"
-            />
+            <RemoteScrollRoot className="flex min-h-0 flex-1 flex-col">
+                <VideoListEmptyState
+                    icon={<Search className="h-7 w-7 text-muted-foreground" />}
+                    title={t('browseEmptyTitle')}
+                    description={t('browseEmptyHint')}
+                    actions={[
+                        {
+                            label: t('browseEmptyCta'),
+                            icon: <Search />,
+                            onClick: requestSearchOverlay,
+                        },
+                    ]}
+                    className="flex-none"
+                />
+            </RemoteScrollRoot>
         );
     }
 
     if (isLoading && videos.length === 0) {
-        return <VideoSkeletonList count={6} className="pb-remote-scroll pt-2" />;
+        return (
+            <RemoteScrollRoot className="flex min-h-0 flex-1 flex-col">
+                <VideoSkeletonList count={6} className="pt-2" />
+            </RemoteScrollRoot>
+        );
     }
 
     return (

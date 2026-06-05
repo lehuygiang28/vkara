@@ -1,7 +1,5 @@
 'use client';
 
-import { useDeferredActive } from '@/hooks/use-deferred-active';
-import { NOW_PLAYING_BAR_MS } from '@/lib/remote-chrome';
 import { Search, SlidersVertical } from 'lucide-react';
 
 import { getYouTubeThumbnailUrl } from '@vkara/youtube';
@@ -12,16 +10,15 @@ import { Button } from '@/components/ui/button';
 import { ControlsAmbientBackdrop } from './ControlsAmbientBackdrop';
 import { ControlsNowPlayingMeta } from './ControlsNowPlayingMeta';
 import { ControlsThumbDeck } from './ControlsThumbDeck';
+import { useNowPlayingLayoutPhase } from './remote-chrome';
 
 export function PlayerControlsTabs() {
     const t = useScopedI18n('youtubePage');
     const { room, setCurrentTab, currentTab } = useYouTubeStore();
     const playing = room?.playingNow;
     const isActive = currentTab === 'controls';
-    const showBackdrop = useDeferredActive(
-        isActive && Boolean(playing),
-        NOW_PLAYING_BAR_MS.close,
-    );
+    const layoutPhase = useNowPlayingLayoutPhase();
+    const showBackdrop = isActive && Boolean(playing) && layoutPhase !== 'closing';
 
     if (!playing) {
         return (
@@ -32,14 +29,26 @@ export function PlayerControlsTabs() {
                     </div>
                     <div className="max-w-xs space-y-2">
                         <h2 className="text-lg font-semibold">{t('controlsEmptyTitle')}</h2>
-                        <p className="text-sm text-muted-foreground">{t('controlsEmptyDescription')}</p>
+                        <p className="text-sm text-muted-foreground">
+                            {t('controlsEmptyDescription')}
+                        </p>
                     </div>
                     <div className="flex w-full max-w-xs flex-col gap-2 sm:flex-row sm:justify-center">
-                        <Button type="button" variant="default" className="min-h-11" onClick={() => setCurrentTab('search')}>
+                        <Button
+                            type="button"
+                            variant="default"
+                            className="min-h-11"
+                            onClick={() => setCurrentTab('search')}
+                        >
                             <Search className="mr-2 h-4 w-4" />
                             {t('openSearch')}
                         </Button>
-                        <Button type="button" variant="outline" className="min-h-11" onClick={() => setCurrentTab('queue')}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            className="min-h-11"
+                            onClick={() => setCurrentTab('queue')}
+                        >
                             {t('openQueue')}
                         </Button>
                     </div>

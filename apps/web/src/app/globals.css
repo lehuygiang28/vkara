@@ -7,7 +7,7 @@
     --safe-right: env(safe-area-inset-right, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
-    /** Mobile remote chrome — updated by RemoteShell when NowPlayingBar is visible */
+    /** Mobile remote chrome — defaults; synced by RemoteChromeProvider */
     --vkara-mobile-nav-height: 3.75rem;
     --vkara-now-playing-height: 0rem;
     --vkara-toast-gap: 0.5rem;
@@ -22,10 +22,11 @@
     --vkara-remote-floating-bottom: calc(
         var(--vkara-mobile-nav-block) + var(--vkara-now-playing-height) + var(--vkara-toast-gap)
     );
-    /** Scroll padding above bottom nav + now playing bar on remote layout */
-    --vkara-remote-scroll-bottom: calc(
-        var(--vkara-mobile-nav-block) + var(--vkara-now-playing-height) + 0.75rem
-    );
+    /**
+     * Inset for tab / overlay scroll areas above the floating now-playing bar.
+     * Nav height is excluded — flex shell already reserves bottom nav.
+     */
+    --vkara-remote-inset-bottom: 0px;
 }
 
 html[data-vkara-remote-chrome='full'] {
@@ -155,9 +156,6 @@ html[data-vkara-remote-chrome='full'] {
     }
     .pb-safe-offset-lg {
         padding-bottom: max(calc(var(--safe-bottom) + 2.5rem), 2.5rem);
-    }
-    .pb-remote-scroll {
-        padding-bottom: var(--vkara-remote-scroll-bottom);
     }
     .top-safe-offset {
         top: max(calc(var(--safe-top) + 0.75rem), 0.75rem);

@@ -8,6 +8,7 @@ import {
     RemotePanelOverlayShell,
 } from '@/components/pages/youtube/remote-panel-overlay-shell';
 import { VideoList } from '@/components/pages/youtube/VideoList';
+import { RemoteScrollRoot } from '@/components/pages/youtube/remote-chrome';
 import { useVideoSearchListActions } from '@/components/pages/youtube/use-video-search-list-actions';
 import { VideoSkeletonList } from '@/components/video-skeleton';
 import { Button } from '@/components/ui/button';
@@ -101,7 +102,9 @@ export function CuratedPlaylistPreviewOverlay({ listId }: CuratedPlaylistPreview
             }
         >
             {showSkeleton ? (
-                <VideoSkeletonList count={8} className="pb-remote-scroll pt-2" />
+                <RemoteScrollRoot className="h-full">
+                    <VideoSkeletonList count={8} className="pt-2" />
+                </RemoteScrollRoot>
             ) : (
                 <VideoList
                     keyPrefix={`curated-preview-${listId}`}
