@@ -13,7 +13,7 @@ interface ControlsStageThumbnailProps {
     className?: string;
 }
 
-/** Full 16:9 YouTube thumbnail for the controls stage (no square crop). */
+/** Full 16:9 YouTube thumbnail — scales up in the flex stage, capped at 92vw / 28rem. */
 export function ControlsStageThumbnail({
     src,
     title,
@@ -24,8 +24,8 @@ export function ControlsStageThumbnail({
     return (
         <div
             className={cn(
-                'relative aspect-video w-[min(92vw,28rem)] max-w-full shrink-0 overflow-hidden rounded-xl',
-                'shadow-2xl shadow-black/35 ring-1 ring-white/10',
+                'relative aspect-video h-full w-auto max-h-full min-h-0 max-w-[min(92vw,28rem)]',
+                'overflow-hidden rounded-xl shadow-2xl shadow-black/35 ring-1 ring-white/10',
                 className,
             )}
         >

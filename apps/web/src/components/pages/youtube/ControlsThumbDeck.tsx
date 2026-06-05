@@ -8,10 +8,11 @@ import { isVideoLive } from '@/lib/youtube-video';
 
 import { PlaybackScrubber } from '@/components/pages/youtube/PlaybackScrubber';
 import { PlayerControls } from '@/components/pages/youtube/PlayerControls';
+import { VideoChannels } from '@/components/video-channels';
 
 /**
- * Thumb-zone control cluster pinned above mini-player + bottom nav.
- * No pb-remote-scroll here: chrome lives outside RemoteTabPanel in RemoteShell.
+ * Bottom control dock (Spotify / YouTube Music / SoundCloud pattern):
+ * metadata, scrubber, transport, and volume pinned above bottom nav.
  */
 export function ControlsThumbDeck({ className }: { className?: string }) {
     const { room } = useYouTubeStore();
@@ -28,18 +29,25 @@ export function ControlsThumbDeck({ className }: { className?: string }) {
 
     return (
         <section
-            className={cn('shrink-0 px-3 pb-3 pt-2', className)}
+            className={cn(
+                'shrink-0 px-1 pb-2 pt-1 short-viewport:pb-1.5 min-[400px]:px-2 min-[400px]:pb-3',
+                className,
+            )}
             aria-label="Playback controls"
         >
-            <div
-                className={cn(
-                    'mx-auto flex w-full max-w-md flex-col gap-4',
-                    'rounded-xl border border-border/60 bg-card/95 p-4',
-                    'shadow-[0_10px_40px_-12px_rgb(0_0_0/0.55),0_4px_12px_-4px_rgb(0_0_0/0.35)]',
-                    'ring-1 ring-inset ring-white/[0.06]',
-                    'backdrop-blur-md supports-[backdrop-filter]:bg-card/80',
-                )}
-            >
+            <div className="mx-auto flex w-full max-w-md flex-col gap-3 short-viewport:gap-2.5 min-[400px]:gap-4">
+                <div className="space-y-0.5 px-0.5 text-center">
+                    <h2 className="line-clamp-2 break-words text-base font-semibold leading-snug">
+                        {playing.title}
+                    </h2>
+                    <VideoChannels
+                        video={playing}
+                        tone="emphasis"
+                        maxLines={2}
+                        className="justify-center text-sm text-muted-foreground short-viewport:max-h-[1.125rem] short-viewport:text-xs"
+                    />
+                </div>
+
                 {!isLive && duration > 0 ? (
                     <PlaybackScrubber
                         displayTime={displayTime}

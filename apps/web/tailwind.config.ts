@@ -69,5 +69,11 @@ export default {
         },
     },
     safelist: [...Array.from({ length: 96 }, (_, i) => `opacity-${i + 5}`)],
-    plugins: [tailwindcssAnimate],
+    plugins: [
+        tailwindcssAnimate,
+        ({ addVariant }) => {
+            /** iPhone SE, landscape phones, Safari with visible browser chrome */
+            addVariant('short-viewport', '@media (max-height: 680px)');
+        },
+    ],
 } satisfies Config;

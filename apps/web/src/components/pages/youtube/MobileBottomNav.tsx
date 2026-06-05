@@ -39,6 +39,7 @@ export function MobileBottomNav({ className }: MobileBottomNavProps) {
 
     return (
         <nav
+            data-vkara-mobile-nav
             className={cn(
                 'flex items-stretch justify-around border-t bg-background px-safe-offset pb-safe-offset pt-1',
                 className,

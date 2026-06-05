@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { NowPlayingBar } from './NowPlayingBar';
@@ -43,7 +43,10 @@ const RemoteJoinLobby = dynamic(
 export function RemoteShell() {
     const { currentTab, room, setCurrentTab } = useYouTubeStore();
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
-    useRemoteBottomChrome(Boolean(room?.playingNow));
+    const bottomChromeRef = useRef<HTMLDivElement>(null);
+    const hasPlaying = Boolean(room?.playingNow);
+    const showNowPlayingBar = hasPlaying && currentTab !== 'controls';
+    useRemoteBottomChrome(bottomChromeRef, showNowPlayingBar);
 
     const showJoinLobby = effectiveLayoutMode === 'remote' && !room;
 
@@ -88,8 +91,10 @@ export function RemoteShell() {
                     </RemoteTabPanel>
                     <CuratedRemoteOverlays />
                 </RemotePanelOverlayProvider>
-                <div className="mt-auto shrink-0">
-                    <NowPlayingBar onOpenControls={() => setCurrentTab('controls')} />
+                <div ref={bottomChromeRef} className="mt-auto shrink-0">
+                    {showNowPlayingBar ? (
+                        <NowPlayingBar onOpenControls={() => setCurrentTab('controls')} />
+                    ) : null}
                     <MobileBottomNav />
                 </div>
             </div>

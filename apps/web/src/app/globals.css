@@ -137,6 +137,15 @@ html[data-vkara-remote-chrome='full'] {
     .pt-safe-offset {
         padding-top: max(calc(var(--safe-top) + 1rem), 1rem);
     }
+    /** Controls tab — tighter top spacing on short mobile viewports */
+    .pt-safe-offset-controls {
+        padding-top: max(calc(var(--safe-top) + 1rem), 1rem);
+    }
+    @media (max-height: 680px) {
+        .pt-safe-offset-controls {
+            padding-top: max(calc(var(--safe-top) + 0.5rem), 0.5rem);
+        }
+    }
     .px-safe-offset {
         padding-left: max(var(--safe-left), 1rem);
         padding-right: max(var(--safe-right), 1rem);

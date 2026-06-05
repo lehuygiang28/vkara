@@ -42,8 +42,9 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
 
     return (
         <div
+            data-vkara-now-playing
             className={cn(
-                'flex items-center gap-3 border-t bg-background/95 px-safe-offset py-1 backdrop-blur supports-[backdrop-filter]:bg-background/80',
+                'flex items-center gap-2 border-t bg-background/95 px-safe-offset py-1 backdrop-blur supports-[backdrop-filter]:bg-background/80',
                 className,
             )}
         >
@@ -60,10 +61,15 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
                     isLive={isLive}
                 />
                 <div className="min-w-0 flex-1 space-y-0.5">
-                    <p className="line-clamp-2 break-words text-sm font-semibold leading-snug">
+                    <p className="line-clamp-1 break-words text-sm font-semibold leading-snug min-[400px]:line-clamp-2">
                         {playing.title}
                     </p>
-                    <VideoChannels video={playing} tone="emphasis" maxLines={2} />
+                    <VideoChannels
+                        video={playing}
+                        tone="emphasis"
+                        maxLines={2}
+                        className="max-h-[1.125rem] min-[400px]:max-h-[2.125rem]"
+                    />
                 </div>
             </button>
             <div className="flex shrink-0 items-center gap-1 self-center">

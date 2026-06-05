@@ -163,7 +163,7 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
 
     if (variant === 'panel') {
         return (
-            <div className={cn('flex flex-col gap-3', className)}>
+            <div className={cn('flex flex-col gap-2.5 min-[400px]:gap-3', className)}>
                 <div className="grid grid-cols-[3.25rem_1fr_3.25rem] items-center gap-2">
                     <SeekBySecondsButton
                         direction="back"
@@ -188,15 +188,21 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                         <Button
                             type="button"
                             size="icon"
-                            className="h-[4.25rem] w-[4.25rem] rounded-full"
+                            className="h-[4.25rem] w-[4.25rem] rounded-full short-viewport:h-14 short-viewport:w-14"
                             onClick={room?.isPlaying ? handlePlayerPause : handlePlayerPlay}
                             disabled={disabled}
                             aria-label={room?.isPlaying ? t('pause') : t('play')}
                         >
                             {room?.isPlaying ? (
-                                <Pause className="h-8 w-8" fill="currentColor" />
+                                <Pause
+                                    className="h-8 w-8 short-viewport:h-6 short-viewport:w-6"
+                                    fill="currentColor"
+                                />
                             ) : (
-                                <Play className="h-8 w-8" fill="currentColor" />
+                                <Play
+                                    className="h-8 w-8 short-viewport:h-6 short-viewport:w-6"
+                                    fill="currentColor"
+                                />
                             )}
                         </Button>
                         <Button
@@ -221,8 +227,8 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     />
                 </div>
 
-                <div className="rounded-xl border border-border/60 bg-muted/30 p-2.5 shadow-sm ring-1 ring-inset ring-white/[0.04]">
-                    <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-muted/20 p-2 min-[400px]:p-2.5">
+                    <div className="flex items-center gap-2 min-[400px]:gap-3">
                         <Button
                             type="button"
                             variant="ghost"
@@ -243,10 +249,10 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                             step={5}
                             onValueChange={(value) => setVolume(value[0] ?? 0)}
                             onValueCommit={(value) => handleSetVideoVolume(value[0] ?? 0)}
-                            className="flex-1"
+                            className="min-w-0 flex-1"
                             aria-label={t('volume')}
                         />
-                        <span className="w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground">
+                        <span className="hidden w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground min-[380px]:inline">
                             {volume}
                         </span>
                         {captionsMenu}
