@@ -24,7 +24,7 @@ export function ControlsStageThumbnail({
     return (
         <div
             className={cn(
-                'relative aspect-video h-full w-auto max-h-full min-h-0 max-w-[min(92vw,28rem)]',
+                'relative aspect-video w-[min(92vw,28rem)] max-w-full shrink-0',
                 'overflow-hidden rounded-xl shadow-2xl shadow-black/35 ring-1 ring-white/10',
                 className,
             )}

@@ -1,5 +1,7 @@
 'use client';
 
+import { useDeferredActive } from '@/hooks/use-deferred-active';
+import { NOW_PLAYING_BAR_MS } from '@/lib/remote-chrome';
 import { Search, SlidersVertical } from 'lucide-react';
 
 import { getYouTubeThumbnailUrl } from '@vkara/youtube';
@@ -13,8 +15,13 @@ import { ControlsThumbDeck } from './ControlsThumbDeck';
 
 export function PlayerControlsTabs() {
     const t = useScopedI18n('youtubePage');
-    const { room, setCurrentTab } = useYouTubeStore();
+    const { room, setCurrentTab, currentTab } = useYouTubeStore();
     const playing = room?.playingNow;
+    const isActive = currentTab === 'controls';
+    const showBackdrop = useDeferredActive(
+        isActive && Boolean(playing),
+        NOW_PLAYING_BAR_MS.close,
+    );
 
     if (!playing) {
         return (
@@ -43,9 +50,11 @@ export function PlayerControlsTabs() {
 
     return (
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
-            <ControlsAmbientBackdrop
-                src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
-            />
+            {showBackdrop ? (
+                <ControlsAmbientBackdrop
+                    src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
+                />
+            ) : null}
 
             <div className="relative z-10 flex min-h-0 flex-1 flex-col overflow-hidden px-safe-offset pt-safe-offset-controls">
                 <ControlsNowPlayingMeta className="min-h-0 flex-1" />

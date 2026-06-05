@@ -1,16 +1,15 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { NowPlayingBar } from './NowPlayingBar';
-import { MobileBottomNav } from './MobileBottomNav';
-import { RemoteTabPanel } from './RemoteTabPanel';
 import { CuratedRemoteOverlays } from '@/components/curated-playlists/curated-remote-overlays';
 import { RemotePanelOverlayProvider } from './remote-panel-overlay-root';
 import { RemoteShellSkeleton } from './layout-skeletons';
-import { useRemoteBottomChrome } from '@/hooks/use-remote-bottom-chrome';
+import { RemoteBottomChrome } from './RemoteBottomChrome';
+import { RemoteTabKeepAlive } from './RemoteTabKeepAlive';
+import { RemoteTabPanel } from './RemoteTabPanel';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
@@ -43,10 +42,8 @@ const RemoteJoinLobby = dynamic(
 export function RemoteShell() {
     const { currentTab, room, setCurrentTab } = useYouTubeStore();
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
-    const bottomChromeRef = useRef<HTMLDivElement>(null);
     const hasPlaying = Boolean(room?.playingNow);
     const showNowPlayingBar = hasPlaying && currentTab !== 'controls';
-    useRemoteBottomChrome(bottomChromeRef, showNowPlayingBar);
 
     const showJoinLobby = effectiveLayoutMode === 'remote' && !room;
 
@@ -86,17 +83,22 @@ export function RemoteShell() {
                         {currentTab === 'search' && <VideoSearch />}
                         {currentTab === 'queue' && <VideoQueue />}
                         {currentTab === 'history' && <VideoHistory />}
-                        {currentTab === 'controls' && <PlayerControlsTabs />}
+                        <RemoteTabKeepAlive
+                            active={currentTab === 'controls'}
+                            keepMounted={hasPlaying || currentTab === 'controls'}
+                            className="flex min-h-0 flex-1 flex-col overflow-hidden"
+                        >
+                            <PlayerControlsTabs />
+                        </RemoteTabKeepAlive>
                         {currentTab === 'settings' && <RoomSettings />}
                     </RemoteTabPanel>
                     <CuratedRemoteOverlays />
                 </RemotePanelOverlayProvider>
-                <div ref={bottomChromeRef} className="mt-auto shrink-0">
-                    {showNowPlayingBar ? (
-                        <NowPlayingBar onOpenControls={() => setCurrentTab('controls')} />
-                    ) : null}
-                    <MobileBottomNav />
-                </div>
+                <RemoteBottomChrome
+                    hasPlaying={hasPlaying}
+                    showNowPlayingBar={showNowPlayingBar}
+                    onOpenControls={() => setCurrentTab('controls')}
+                />
             </div>
         </TooltipProvider>
     );
