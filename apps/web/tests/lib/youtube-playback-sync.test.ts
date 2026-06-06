@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     applyPreferredPlaybackQuality,
     applyRoomPlaybackToPlayer,
+    loadTrackOnPlayer,
     clearPlaybackBroadcastSuppression,
     hasPendingUserSeek,
     isPlayerActuallyPlaying,
@@ -23,6 +24,30 @@ function mockPlayer(state: number): YT.Player {
         pauseVideo: vi.fn(),
     } as unknown as YT.Player;
 }
+
+describe('loadTrackOnPlayer', () => {
+    it('loads and plays when room intends play', () => {
+        const player = {
+            loadVideoById: vi.fn(),
+            cueVideoById: vi.fn(),
+        } as unknown as YT.Player;
+
+        loadTrackOnPlayer(player, 'next-track', true);
+        expect(player.loadVideoById).toHaveBeenCalledWith('next-track');
+        expect(player.cueVideoById).not.toHaveBeenCalled();
+    });
+
+    it('cues without autoplay when room is paused', () => {
+        const player = {
+            loadVideoById: vi.fn(),
+            cueVideoById: vi.fn(),
+        } as unknown as YT.Player;
+
+        loadTrackOnPlayer(player, 'next-track', false);
+        expect(player.cueVideoById).toHaveBeenCalledWith('next-track');
+        expect(player.loadVideoById).not.toHaveBeenCalled();
+    });
+});
 
 describe('applyRoomPlaybackToPlayer', () => {
     beforeEach(() => {
@@ -125,6 +150,16 @@ describe('shouldApplyRemoteCurrentTime', () => {
         expect(shouldApplyRemoteCurrentTime(104, 100)).toBe(true);
     });
 
+    it('accepts active-track seeks while broadcast suppression is active', () => {
+        markServerPlaybackCommand();
+        expect(
+            shouldApplyRemoteCurrentTime(45, 0, {
+                videoId: 'new-track',
+                activeVideoId: 'new-track',
+            }),
+        ).toBe(true);
+    });
+
     it('rejects stale timeline after track change when room time was reset', () => {
         expect(shouldApplyRemoteCurrentTime(142, 0)).toBe(false);
         expect(shouldApplyRemoteCurrentTime(6, 0)).toBe(true);
@@ -143,6 +178,25 @@ describe('shouldApplyRemoteCurrentTime', () => {
                 activeVideoId: 'same-video',
             }),
         ).toBe(true);
+    });
+});
+
+describe('shouldSyncEmbedPlaybackState', () => {
+    beforeEach(() => {
+        vi.stubGlobal('YT', {
+            PlayerState: {
+                UNSTARTED: -1,
+                ENDED: 0,
+                PLAYING: 1,
+                PAUSED: 2,
+                BUFFERING: 3,
+                CUED: 5,
+            },
+        });
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
     });
 });
 

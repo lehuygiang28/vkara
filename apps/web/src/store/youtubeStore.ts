@@ -197,6 +197,7 @@ export const useYouTubeStore = create(
                             if (
                                 state.player &&
                                 updatedRoom?.playingNow &&
+                                prevPlayingId === nextPlayingId &&
                                 prevPlaying !== nextPlaying
                             ) {
                                 applyRoomPlaybackToPlayer(state.player, nextPlaying ?? false);
@@ -234,16 +235,24 @@ export const useYouTubeStore = create(
                             set((state) => {
                                 const roomTime = state.room?.currentTime ?? 0;
                                 const activeVideoId = state.room?.playingNow?.id ?? null;
+                                const context = {
+                                    videoId: message.videoId,
+                                    activeVideoId,
+                                };
                                 if (
                                     !shouldApplyRemoteCurrentTime(
                                         message.currentTime,
                                         roomTime,
-                                        {
-                                            videoId: message.videoId,
-                                            activeVideoId,
-                                        },
+                                        context,
                                     )
                                 ) {
+                                    if (
+                                        context.videoId != null &&
+                                        activeVideoId != null &&
+                                        context.videoId !== activeVideoId
+                                    ) {
+                                        clearPlaybackBroadcastSuppression();
+                                    }
                                     return state;
                                 }
 

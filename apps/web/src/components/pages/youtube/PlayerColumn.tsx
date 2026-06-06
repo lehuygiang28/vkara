@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useRef } from 'react';
+
 import { Settings } from 'lucide-react';
 import { LayoutGroup } from 'framer-motion';
 
@@ -20,8 +21,10 @@ import {
 import {
     applyPreferredPlaybackQuality,
     applyRoomPlaybackToPlayer,
+    clearPlaybackBroadcastSuppression,
     isPlayerActuallyPlaying,
     isYoutubePlaybackIntentState,
+    loadTrackOnPlayer,
     shouldSuppressPlaybackBroadcast,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
@@ -68,6 +71,9 @@ export function PlayerColumn({
     const skippedUnplayableRef = useRef<string | null>(null);
     const endedForVideoIdRef = useRef<string | null>(null);
     const captionSyncCleanupRef = useRef<(() => void) | null>(null);
+    const prevPlayingNowIdRef = useRef<string | null>(null);
+    /** Frozen `videoId` prop — track advances use `loadVideoById`, not react-youtube reset. */
+    const embedSeedVideoIdRef = useRef<string | null>(null);
 
     const showsPlayer = effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
     const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
@@ -98,6 +104,10 @@ export function PlayerColumn({
         if (effectiveLayoutMode === 'remote' || !roomId || !playingNowId) {
             return;
         }
+        const seedId = embedSeedVideoIdRef.current;
+        if (seedId && playingNowId !== seedId) {
+            return;
+        }
         const player = useYouTubeStore.getState().player;
         if (!player) {
             return;
@@ -122,6 +132,56 @@ export function PlayerColumn({
         },
         [ensureConnectedAndSend],
     );
+
+    const applyTrackToPlayer = useCallback(
+        (player: YT.Player, videoId: string) => {
+            const currentRoom = useYouTubeStore.getState().room;
+            const shouldPlay = currentRoom?.isPlaying ?? false;
+            loadTrackOnPlayer(player, videoId, shouldPlay);
+            applyPreferredPlaybackQuality(player);
+            applyYoutubeCaptions(player, {
+                enabled: currentRoom?.captionsEnabled ?? false,
+                languageCode: currentRoom?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE,
+                tracks: currentRoom?.captionTracks ?? [],
+            });
+            captionSyncCleanupRef.current?.();
+            captionSyncCleanupRef.current = scheduleCaptionTrackSync(
+                player,
+                syncCaptionTracksFromPlayer,
+            );
+
+            applyRoomPlaybackToPlayer(player, shouldPlay);
+        },
+        [syncCaptionTracksFromPlayer],
+    );
+
+    useEffect(() => {
+        if (!playingNowId) {
+            embedSeedVideoIdRef.current = null;
+            prevPlayingNowIdRef.current = null;
+            return;
+        }
+
+        if (embedSeedVideoIdRef.current === null) {
+            embedSeedVideoIdRef.current = playingNowId;
+            prevPlayingNowIdRef.current = playingNowId;
+            return;
+        }
+
+        const prevId = prevPlayingNowIdRef.current;
+        prevPlayingNowIdRef.current = playingNowId;
+
+        if (!prevId || prevId === playingNowId) {
+            return;
+        }
+
+        const player = useYouTubeStore.getState().player;
+        if (!player) {
+            return;
+        }
+
+        applyTrackToPlayer(player, playingNowId);
+    }, [playingNowId, applyTrackToPlayer]);
 
     useEffect(() => {
         const player = useYouTubeStore.getState().player;
@@ -199,6 +259,7 @@ export function PlayerColumn({
         }
 
         if (playerState === YT.PlayerState.PLAYING) {
+            clearPlaybackBroadcastSuppression();
             applyPreferredPlaybackQuality(event.target);
             cancelCountdown();
         }
@@ -259,8 +320,8 @@ export function PlayerColumn({
             <div className="relative h-full w-full">
                 {room?.playingNow ? (
                     <YoutubeTvEmbed
-                        key={`${room.playingNow.id}-${effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}`}
-                        videoId={room.playingNow.id}
+                        key={effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}
+                        videoId={embedSeedVideoIdRef.current ?? room.playingNow.id}
                         autoplay={room.isPlaying ?? false}
                         onReadyAction={onPlayerReady}
                         onStateChangeAction={onPlayerStateChange}

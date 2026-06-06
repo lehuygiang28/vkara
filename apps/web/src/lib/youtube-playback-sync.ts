@@ -149,7 +149,18 @@ export function shouldApplyRemoteCurrentTime(
         return false;
     }
 
-    if (shouldSuppressPlaybackBroadcast() && remote > room + STALE_PLAYBACK_FORWARD_JUMP_SEC) {
+    const isForActiveVideo =
+        context?.videoId != null &&
+        context?.activeVideoId != null &&
+        context.videoId === context.activeVideoId;
+
+    // Suppression blocks stale timeline echoes without a videoId tag. Anchors and seeks for the
+    // active track must still apply immediately after auto-next.
+    if (
+        !isForActiveVideo &&
+        shouldSuppressPlaybackBroadcast() &&
+        remote > room + STALE_PLAYBACK_FORWARD_JUMP_SEC
+    ) {
         return false;
     }
 
@@ -165,6 +176,20 @@ export function resetPlaybackSyncForTests(): void {
     seekGeneration = 0;
     clearPendingUserSeek();
     clearPlaybackBroadcastSuppression();
+}
+
+/**
+ * Load a new track on the existing embed without remounting the iframe.
+ * react-youtube resets (destroy + recreate) when `videoId` prop changes — that
+ * leaves the store pointing at a destroyed player while UI state says "playing".
+ */
+export function loadTrackOnPlayer(player: YT.Player, videoId: string, shouldPlay: boolean): void {
+    markPlaybackTrackChange();
+    if (shouldPlay) {
+        player.loadVideoById(videoId);
+        return;
+    }
+    player.cueVideoById(videoId);
 }
 
 /** Align the YouTube iframe with room `isPlaying` (marks server echo to avoid WS feedback). */
