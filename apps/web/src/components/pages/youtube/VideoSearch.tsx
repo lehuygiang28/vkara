@@ -291,7 +291,7 @@ export function VideoSearch() {
                     <VideoSkeletonList count={6} />
                 </RemoteScrollRoot>
             ) : showBrowseIdle ? (
-                <BrowseSuggestionsList />
+                <BrowseSuggestionsList className="min-h-0 flex-1" />
             ) : (
                 <VideoList
                     keyPrefix="search-list"

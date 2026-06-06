@@ -151,6 +151,12 @@ html[data-vkara-remote-chrome='full'] {
         padding-left: max(var(--safe-left), 1rem);
         padding-right: max(var(--safe-right), 1rem);
     }
+    .pl-safe-offset {
+        padding-left: max(var(--safe-left), 1rem);
+    }
+    .pr-safe-offset {
+        padding-right: max(var(--safe-right), 1rem);
+    }
     .pb-safe-offset {
         padding-bottom: max(calc(var(--safe-bottom) + 0.25rem), 0.25rem);
     }

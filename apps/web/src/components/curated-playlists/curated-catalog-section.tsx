@@ -7,6 +7,8 @@ import { getCuratedCatalogLabel } from '@/lib/curated-catalog-label';
 import { useScopedI18n } from '@/locales/client';
 import { useCuratedStore } from '@/store/curatedStore';
 
+import { HorizontalScrollRail } from '@/components/ui/horizontal-scroll-rail';
+
 import { CuratedPlaylistCard } from './curated-playlist-card';
 
 type CuratedCatalogSectionProps = {
@@ -32,11 +34,11 @@ export function CuratedCatalogSection({
     };
 
     return (
-        <section className={horizontal ? 'px-safe-offset pb-4' : 'space-y-2'}>
+        <section className={horizontal ? 'min-w-0 pb-4' : 'space-y-2'}>
             <h3
                 className={
                     horizontal
-                        ? 'mb-3 text-sm font-medium text-foreground'
+                        ? 'mb-3 px-safe-offset text-sm font-medium text-foreground'
                         : 'text-xs font-medium uppercase tracking-wide text-muted-foreground'
                 }
             >
@@ -45,26 +47,36 @@ export function CuratedCatalogSection({
                     music: t('catalogs.music'),
                 })}
             </h3>
-            <div
-                className={
-                    horizontal
-                        ? 'flex gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden'
-                        : 'flex flex-col gap-2'
-                }
-            >
-                {catalog.playlists.map((playlistUrl) => {
-                    const { listId } = parseYoutubePlaylistInput(playlistUrl);
-                    return (
-                        <CuratedPlaylistCard
-                            key={listId}
-                            listId={listId}
-                            layout={horizontal ? 'tile' : 'list'}
-                            onOpen={() => openPlaylist(listId)}
-                            className={horizontal ? undefined : 'w-full'}
-                        />
-                    );
-                })}
-            </div>
+            {horizontal ? (
+                <HorizontalScrollRail>
+                    {catalog.playlists.map((playlistUrl) => {
+                        const { listId } = parseYoutubePlaylistInput(playlistUrl);
+                        return (
+                            <CuratedPlaylistCard
+                                key={listId}
+                                listId={listId}
+                                layout="tile"
+                                onOpen={() => openPlaylist(listId)}
+                            />
+                        );
+                    })}
+                </HorizontalScrollRail>
+            ) : (
+                <div className="flex flex-col gap-2">
+                    {catalog.playlists.map((playlistUrl) => {
+                        const { listId } = parseYoutubePlaylistInput(playlistUrl);
+                        return (
+                            <CuratedPlaylistCard
+                                key={listId}
+                                listId={listId}
+                                layout="list"
+                                onOpen={() => openPlaylist(listId)}
+                                className="w-full"
+                            />
+                        );
+                    })}
+                </div>
+            )}
         </section>
     );
 }

@@ -29,7 +29,7 @@ export function CuratedPlaylistsPanel({
         <div
             className={
                 isBrowse
-                    ? 'border-t border-border/60 pt-4'
+                    ? 'min-w-0 border-t border-border/60 pb-2 pt-4'
                     : isImport
                       ? 'py-4'
                       : 'w-full px-safe-offset'
@@ -53,7 +53,7 @@ export function CuratedPlaylistsPanel({
                     </p>
                 )
             ) : null}
-            <div className={isBrowse ? 'space-y-6' : 'space-y-4'}>
+            <div className={isBrowse ? 'min-w-0 space-y-6' : 'space-y-4'}>
                 {catalogs.map((catalog) => (
                     <CuratedCatalogSection
                         key={catalog.id}

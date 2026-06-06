@@ -17,6 +17,8 @@ type VideoListEmptyStateProps = {
     title: string;
     description?: string;
     actions?: VideoListEmptyAction[];
+    /** `compact` keeps room for content below on mobile browse surfaces. */
+    density?: 'default' | 'compact';
     className?: string;
 };
 
@@ -26,34 +28,55 @@ export function VideoListEmptyState({
     title,
     description,
     actions = [],
+    density = 'default',
     className,
 }: VideoListEmptyStateProps) {
+    const isCompact = density === 'compact';
+
     return (
         <div
             className={cn(
-                'flex min-h-[40%] flex-1 flex-col items-center justify-center px-safe-offset py-12 text-center',
+                'flex flex-col items-center justify-center px-safe-offset text-center',
+                isCompact
+                    ? 'min-h-0 flex-none py-6'
+                    : 'min-h-[40%] flex-1 py-12',
                 className,
             )}
         >
             {icon ? (
                 <div
-                    className="mb-5 flex h-14 w-14 items-center justify-center rounded-xl border border-border/60 bg-muted/40"
+                    className={cn(
+                        'flex items-center justify-center rounded-xl border border-border/60 bg-muted/40',
+                        isCompact ? 'mb-4 h-12 w-12' : 'mb-5 h-14 w-14',
+                    )}
                     aria-hidden
                 >
                     {icon}
                 </div>
             ) : null}
 
-            <p className="max-w-sm text-base font-medium tracking-tight text-foreground">{title}</p>
+            <p
+                className={cn(
+                    'max-w-sm font-medium tracking-tight text-foreground',
+                    isCompact ? 'text-sm' : 'text-base',
+                )}
+            >
+                {title}
+            </p>
 
             {description ? (
-                <p className="mt-2 max-w-xs text-sm leading-relaxed text-muted-foreground">
+                <p
+                    className={cn(
+                        'mt-2 max-w-xs leading-relaxed text-muted-foreground',
+                        isCompact ? 'text-xs' : 'text-sm',
+                    )}
+                >
                     {description}
                 </p>
             ) : null}
 
             {actions.length > 0 ? (
-                <div className="mt-6 flex w-full max-w-xs flex-col gap-2">
+                <div className={cn('flex w-full max-w-xs flex-col gap-2', isCompact ? 'mt-4' : 'mt-6')}>
                     {actions.map((action) => (
                         <Button
                             key={action.label}

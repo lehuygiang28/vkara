@@ -14,12 +14,18 @@ import { useSearchStore } from '@/store/searchStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { VideoSkeletonList } from '@/components/video-skeleton';
 
+import { cn } from '@/lib/utils';
+
 import { VideoList } from './VideoList';
 import { VideoListEmptyState } from './video-list-empty-state';
 import { RemoteScrollRoot, RemoteScrollSurface } from './remote-chrome';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
 
-export function BrowseSuggestionsList() {
+type BrowseSuggestionsListProps = {
+    className?: string;
+};
+
+export function BrowseSuggestionsList({ className }: BrowseSuggestionsListProps) {
     const t = useScopedI18n('videoSearch');
     const renderActions = useVideoSearchListActions();
     const requestSearchOverlay = useSearchStore((state) => state.requestSearchOverlay);
@@ -72,10 +78,7 @@ export function BrowseSuggestionsList() {
 
     if (showCuratedStarters) {
         return (
-            <RemoteScrollSurface
-                scrollTopLabel={t('scrollToTop')}
-                scrollRootClassName="flex min-h-0 flex-1 flex-col"
-            >
+            <RemoteScrollSurface scrollTopLabel={t('scrollToTop')} className={className}>
                 {!hasFeedSources ? (
                     <VideoListEmptyState
                         icon={<Search className="h-7 w-7 text-muted-foreground" />}
@@ -88,7 +91,7 @@ export function BrowseSuggestionsList() {
                                 onClick: requestSearchOverlay,
                             },
                         ]}
-                        className="flex-none"
+                        density="compact"
                     />
                 ) : null}
                 <CuratedPlaylistsPanel variant="browse" />
@@ -98,10 +101,7 @@ export function BrowseSuggestionsList() {
 
     if (!hasFeedSources) {
         return (
-            <RemoteScrollSurface
-                scrollTopLabel={t('scrollToTop')}
-                scrollRootClassName="flex min-h-0 flex-1 flex-col"
-            >
+            <RemoteScrollSurface scrollTopLabel={t('scrollToTop')} className={className}>
                 <VideoListEmptyState
                     icon={<Search className="h-7 w-7 text-muted-foreground" />}
                     title={t('browseEmptyTitle')}
@@ -113,7 +113,7 @@ export function BrowseSuggestionsList() {
                             onClick: requestSearchOverlay,
                         },
                     ]}
-                    className="flex-none"
+                    density="compact"
                 />
             </RemoteScrollSurface>
         );
@@ -121,36 +121,38 @@ export function BrowseSuggestionsList() {
 
     if (isLoading && videos.length === 0) {
         return (
-            <RemoteScrollRoot className="flex min-h-0 flex-1 flex-col">
+            <RemoteScrollRoot className={cn('min-h-0 flex-1', className)}>
                 <VideoSkeletonList count={6} className="pt-2" />
             </RemoteScrollRoot>
         );
     }
 
     return (
-        <VideoList
-            keyPrefix="browse-suggestions"
-            videos={videos}
-            emptyState={
-                <VideoListEmptyState
-                    icon={<Search className="h-7 w-7 text-muted-foreground" />}
-                    title={t('browseEmptyFeedTitle')}
-                    description={t('browseEmptyFeed')}
-                    actions={[
-                        {
-                            label: t('browseEmptyCta'),
-                            icon: <Search />,
-                            onClick: requestSearchOverlay,
-                        },
-                    ]}
-                />
-            }
-            renderActions={renderActions}
-            onLoadMore={loadMore}
-            hasMore={hasMore}
-            isLoading={isLoadingMore}
-            loadError={loadError ? t('loadMoreFailed') : null}
-            onRefresh={refresh}
-        />
+        <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
+            <VideoList
+                keyPrefix="browse-suggestions"
+                videos={videos}
+                emptyState={
+                    <VideoListEmptyState
+                        icon={<Search className="h-7 w-7 text-muted-foreground" />}
+                        title={t('browseEmptyFeedTitle')}
+                        description={t('browseEmptyFeed')}
+                        actions={[
+                            {
+                                label: t('browseEmptyCta'),
+                                icon: <Search />,
+                                onClick: requestSearchOverlay,
+                            },
+                        ]}
+                    />
+                }
+                renderActions={renderActions}
+                onLoadMore={loadMore}
+                hasMore={hasMore}
+                isLoading={isLoadingMore}
+                loadError={loadError ? t('loadMoreFailed') : null}
+                onRefresh={refresh}
+            />
+        </div>
     );
 }

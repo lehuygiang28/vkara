@@ -52,10 +52,13 @@ export function RemoteScrollSurface({
 
     return (
         <div
-            className={cn('relative isolate min-h-0 flex-1 overflow-hidden', className)}
+            className={cn('relative isolate flex min-h-0 flex-1 flex-col overflow-hidden', className)}
             {...surfaceProps}
         >
-            <RemoteScrollRoot ref={assignScrollRef} className={scrollRootClassName}>
+            <RemoteScrollRoot
+                ref={assignScrollRef}
+                className={cn('min-h-0 flex-1', scrollRootClassName)}
+            >
                 {children}
             </RemoteScrollRoot>
             <ScrollToTopListButton
