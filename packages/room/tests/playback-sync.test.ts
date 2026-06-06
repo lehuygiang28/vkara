@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
     acceptSyncPlaybackPositionTime,
     computeExtrapolatedPlaybackSeconds,
+    isPlaybackPositionForActiveVideo,
     needsPlaybackSeekCorrection,
     PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC,
     PLAYBACK_TIME_BROADCAST_MIN_DELTA_SEC,
@@ -145,5 +146,14 @@ describe('acceptSyncPlaybackPositionTime edge cases', () => {
         expect(acceptSyncPlaybackPositionTime(-5, 0)).toBe(0);
         expect(acceptSyncPlaybackPositionTime(0, -3)).toBe(0);
         expect(acceptSyncPlaybackPositionTime(5, -1)).toBeNull();
+    });
+});
+
+describe('isPlaybackPositionForActiveVideo', () => {
+    it('matches only when both ids are present and equal', () => {
+        expect(isPlaybackPositionForActiveVideo('a', 'a')).toBe(true);
+        expect(isPlaybackPositionForActiveVideo('a', 'b')).toBe(false);
+        expect(isPlaybackPositionForActiveVideo('a', null)).toBe(false);
+        expect(isPlaybackPositionForActiveVideo(null, 'a')).toBe(false);
     });
 });

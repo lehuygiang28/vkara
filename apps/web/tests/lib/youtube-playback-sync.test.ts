@@ -124,6 +124,26 @@ describe('shouldApplyRemoteCurrentTime', () => {
         expect(shouldApplyRemoteCurrentTime(120, 100)).toBe(false);
         expect(shouldApplyRemoteCurrentTime(104, 100)).toBe(true);
     });
+
+    it('rejects stale timeline after track change when room time was reset', () => {
+        expect(shouldApplyRemoteCurrentTime(142, 0)).toBe(false);
+        expect(shouldApplyRemoteCurrentTime(6, 0)).toBe(true);
+    });
+
+    it('rejects currentTimeChanged for a different playingNow video', () => {
+        expect(
+            shouldApplyRemoteCurrentTime(90, 0, {
+                videoId: 'old-video',
+                activeVideoId: 'new-video',
+            }),
+        ).toBe(false);
+        expect(
+            shouldApplyRemoteCurrentTime(12, 10, {
+                videoId: 'same-video',
+                activeVideoId: 'same-video',
+            }),
+        ).toBe(true);
+    });
 });
 
 describe('youtube player state helpers', () => {

@@ -523,21 +523,43 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
     async function seek(ws: ElysiaWS, time: number) {
         const roomId = await validateClientInRoom(ws);
+        let playingVideoId: string | null = null;
 
         await mutateRoom(roomId, (room) => {
             room.currentTime = time;
+            playingVideoId = room.playingNow?.id ?? null;
         });
 
         lastPlaybackBroadcastByRoom.set(roomId, { at: Date.now(), seconds: time });
-        publishToRoom(roomId, { type: 'currentTimeChanged', currentTime: time });
+        publishToRoom(roomId, {
+            type: 'currentTimeChanged',
+            currentTime: time,
+            videoId: playingVideoId,
+        });
     }
 
-    async function syncPlaybackPosition(ws: ElysiaWS, time: number, force = false) {
+    async function syncPlaybackPosition(
+        ws: ElysiaWS,
+        time: number,
+        force = false,
+        videoId?: string,
+    ) {
         const roomId = await validateClientInRoom(ws);
         let previousTime = 0;
         let acceptedTime: number | null = null;
+        let activeVideoId: string | null = null;
 
         await mutateRoom(roomId, (room) => {
+            activeVideoId = room.playingNow?.id ?? null;
+            if (
+                videoId &&
+                activeVideoId &&
+                videoId !== activeVideoId
+            ) {
+                acceptedTime = null;
+                return;
+            }
+
             previousTime = room.currentTime;
             acceptedTime = acceptSyncPlaybackPositionTime(room.currentTime, time);
             if (acceptedTime !== null) {
@@ -558,7 +580,11 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         }
 
         lastPlaybackBroadcastByRoom.set(roomId, { at: Date.now(), seconds: acceptedTime });
-        publishToRoom(roomId, { type: 'currentTimeChanged', currentTime: acceptedTime });
+        publishToRoom(roomId, {
+            type: 'currentTimeChanged',
+            currentTime: acceptedTime,
+            videoId: activeVideoId,
+        });
     }
 
     async function replay(ws: ElysiaWS) {
@@ -799,7 +825,15 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 if (typeof message.time !== 'number') {
                     throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid time value');
                 }
-                await syncPlaybackPosition(ws, message.time, message.force === true);
+                if (typeof message.videoId !== 'string' || message.videoId.length === 0) {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid video ID');
+                }
+                await syncPlaybackPosition(
+                    ws,
+                    message.time,
+                    message.force === true,
+                    message.videoId,
+                );
                 break;
             case 'videoFinished':
                 await nextVideo(ws);

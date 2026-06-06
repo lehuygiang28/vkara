@@ -57,6 +57,6 @@ export type ServerMessage =
     | { type: 'play' }
     | { type: 'pause' }
     | { type: 'volumeChanged'; volume: number }
-    | { type: 'currentTimeChanged'; currentTime: number };
+    | { type: 'currentTimeChanged'; currentTime: number; videoId: string | null };
 
 export type ConnectionStatus = 'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED';

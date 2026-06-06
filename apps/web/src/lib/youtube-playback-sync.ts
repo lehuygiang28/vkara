@@ -36,6 +36,7 @@ export function isYoutubePlaybackIntentState(state: number): boolean {
 }
 
 const STALE_PLAYBACK_FORWARD_JUMP_SEC = 5;
+const STALE_TRACK_TIMELINE_SEC = 60;
 const SEEK_TARGET_MATCH_TOLERANCE_SEC = 1;
 
 type PendingUserSeek = {
@@ -86,14 +87,37 @@ export function markUserSeekTarget(seconds: number, fromSeconds: number): number
     return seekGeneration;
 }
 
+/** After next/playNow/playNow server update: block stale timeline until the new track anchors. */
+export function markPlaybackTrackChange(): void {
+    clearPendingUserSeek();
+    markServerPlaybackCommand();
+}
+
+export type RemoteCurrentTimeContext = {
+    videoId?: string | null;
+    activeVideoId?: string | null;
+};
+
 export function getCurrentSeekGeneration(): number {
     return seekGeneration;
 }
 
 /** Whether a remote `currentTimeChanged` should update room state. */
-export function shouldApplyRemoteCurrentTime(remoteTime: number, roomTime: number): boolean {
+export function shouldApplyRemoteCurrentTime(
+    remoteTime: number,
+    roomTime: number,
+    context?: RemoteCurrentTimeContext,
+): boolean {
     const remote = Math.max(0, Math.floor(remoteTime));
     const room = Math.max(0, Math.floor(roomTime));
+
+    if (
+        context?.videoId != null &&
+        context.activeVideoId != null &&
+        context.videoId !== context.activeVideoId
+    ) {
+        return false;
+    }
 
     if (pendingUserSeek !== null) {
         if (matchesPendingSeekTarget(remote)) {
@@ -117,6 +141,11 @@ export function shouldApplyRemoteCurrentTime(remoteTime: number, roomTime: numbe
             return true;
         }
 
+        return false;
+    }
+
+    // Stale TV position from the previous track after next/playNow reset room time to 0.
+    if (room <= SEEK_TARGET_MATCH_TOLERANCE_SEC && remote >= STALE_TRACK_TIMELINE_SEC) {
         return false;
     }
 

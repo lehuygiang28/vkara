@@ -17,6 +17,7 @@ import {
     applyRoomPlaybackToPlayer,
     clearPlaybackBroadcastSuppression,
     markServerPlaybackCommand,
+    markPlaybackTrackChange,
     shouldApplyRemoteCurrentTime,
 } from '@/lib/youtube-playback-sync';
 import { shouldApplyRemoteVolumeChange } from '@/lib/remote-gesture-sync';
@@ -186,8 +187,13 @@ export const useYouTubeStore = create(
                     case 'roomUpdate':
                         set((state) => {
                             const updatedRoom = normalizePersistedRoom(message.room);
+                            const prevPlayingId = state.room?.playingNow?.id ?? null;
+                            const nextPlayingId = updatedRoom?.playingNow?.id ?? null;
                             const prevPlaying = state.room?.isPlaying;
                             const nextPlaying = updatedRoom?.isPlaying;
+                            if (prevPlayingId !== nextPlayingId) {
+                                markPlaybackTrackChange();
+                            }
                             if (
                                 state.player &&
                                 updatedRoom?.playingNow &&
@@ -227,10 +233,15 @@ export const useYouTubeStore = create(
                         {
                             set((state) => {
                                 const roomTime = state.room?.currentTime ?? 0;
+                                const activeVideoId = state.room?.playingNow?.id ?? null;
                                 if (
                                     !shouldApplyRemoteCurrentTime(
                                         message.currentTime,
                                         roomTime,
+                                        {
+                                            videoId: message.videoId,
+                                            activeVideoId,
+                                        },
                                     )
                                 ) {
                                     return state;

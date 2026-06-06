@@ -53,6 +53,17 @@ export function acceptSyncPlaybackPositionTime(
     return proposed;
 }
 
+/** Reject TV position reports that still reference a previous `playingNow` track. */
+export function isPlaybackPositionForActiveVideo(
+    activeVideoId: string | null | undefined,
+    reportedVideoId: string | null | undefined,
+): boolean {
+    if (!activeVideoId || !reportedVideoId) {
+        return false;
+    }
+    return activeVideoId === reportedVideoId;
+}
+
 export function needsPlaybackSeekCorrection(
     playerSeconds: number,
     targetSeconds: number,

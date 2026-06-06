@@ -37,7 +37,7 @@ export function usePlaybackPositionSync(): void {
 
     const sendSync = useCallback(
         (seconds: number, force = false) => {
-            if (!roomId || !isRoomSessionReady) return;
+            if (!roomId || !isRoomSessionReady || !playingNowId) return;
             if (shouldSuppressPlaybackBroadcast()) return;
 
             const serverTime = useYouTubeStore.getState().room?.currentTime ?? 0;
@@ -55,9 +55,14 @@ export function usePlaybackPositionSync(): void {
             }
 
             lastSentRef.current = { at: Date.now(), seconds: accepted };
-            ensureConnectedAndSend({ type: 'syncPlaybackPosition', time: accepted, force });
+            ensureConnectedAndSend({
+                type: 'syncPlaybackPosition',
+                time: accepted,
+                videoId: playingNowId,
+                force,
+            });
         },
-        [roomId, isRoomSessionReady, ensureConnectedAndSend],
+        [roomId, isRoomSessionReady, playingNowId, ensureConnectedAndSend],
     );
 
     useEffect(() => {

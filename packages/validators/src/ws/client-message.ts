@@ -70,6 +70,8 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
     withBase({
         type: z.literal('syncPlaybackPosition'),
         time: z.number(),
+        /** Must match `room.playingNow.id` so stale TV embed time cannot bleed after next/playNow. */
+        videoId: z.string(),
         force: z.boolean().optional(),
     }),
     withBase({ type: z.literal('videoFinished') }),
