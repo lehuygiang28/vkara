@@ -5,6 +5,9 @@ import { Play } from 'lucide-react';
 import { YouTubeThumbnailImage } from '@/components/youtube-thumbnail-image';
 import { cn } from '@/lib/utils';
 
+/** Scales 44px → 56px by viewport width; stable across iPhone SE through Pro Max. */
+const THUMB_SIZE_CLASS = 'size-[clamp(2.75rem,12vw,3.5rem)]';
+
 type NowPlayingArtworkProps = {
     src: string;
     videoId: string;
@@ -52,8 +55,8 @@ export function NowPlayingArtwork({
         : 'ring-muted-foreground/35 shadow-none';
 
     return (
-        <div className={cn('relative shrink-0', className)} aria-hidden>
-            <div className="relative aspect-video h-12">
+        <div className={cn('relative shrink-0 p-[3px]', className)} aria-hidden>
+            <div className={cn('relative aspect-square', THUMB_SIZE_CLASS)}>
                 {isPlaying ? (
                     <span
                         className={cn(
@@ -75,7 +78,7 @@ export function NowPlayingArtwork({
                         size="list"
                         alt=""
                         fill
-                        sizes="86px"
+                        sizes="(max-width: 390px) 48px, 56px"
                         className={cn(
                             'object-cover object-center transition-opacity duration-200',
                             !isPlaying && 'opacity-50',

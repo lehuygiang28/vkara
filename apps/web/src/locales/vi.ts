@@ -290,6 +290,7 @@ export default {
     'qrScanner.retry': 'Thử lại',
 
     'videoChannels.and': 'và',
+    'videoChannels.moreChannels': 'và {count} kênh khác',
 
     'relativeTime.justNow': 'Vừa xong',
     'relativeTime.secondAgo': '1 giây trước',

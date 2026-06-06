@@ -384,7 +384,7 @@ export function PlayerColumn({
                                 <VideoChannels
                                     video={room.videoQueue[0]}
                                     tone="inverse"
-                                    className="justify-center text-center"
+                                    align="center"
                                 />
                                 <p className="text-sm text-muted-foreground">
                                     {t('startingIn')}:{' '}

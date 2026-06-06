@@ -49,8 +49,9 @@ export function ControlsThumbDeck({ className, tickEnabled = true }: ControlsThu
                     <VideoChannels
                         video={playing}
                         tone="emphasis"
+                        align="center"
                         maxLines={2}
-                        className="justify-center text-sm text-muted-foreground short-viewport:max-h-[1.125rem] short-viewport:text-xs"
+                        className="text-sm text-muted-foreground short-viewport:text-xs"
                     />
                 </div>
 

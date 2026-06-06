@@ -14,7 +14,8 @@ export default {
     'appearance.languageVietnamese': 'Tiếng Việt',
 
     'settingsSections.pageTitle': 'Settings',
-    'settingsSections.pageDescription': 'Room settings sync with the TV and everyone connected. Everything else is only on this device.',
+    'settingsSections.pageDescription':
+        'Room settings sync with the TV and everyone connected. Everything else is only on this device.',
     'settingsSections.room': 'Room',
     'settingsSections.thisDevice': 'This device',
     'settingsSections.scopeDevice': 'This device',
@@ -74,8 +75,7 @@ export default {
     'youtubePage.layout': 'Device mode',
     'youtubePage.selectLayoutMode': 'Using vkara on',
     'youtubePage.layoutAuto': 'Automatic',
-    'youtubePage.layoutAutoDesc':
-        'Phone → remote. Large screen → TV (full-screen video).',
+    'youtubePage.layoutAutoDesc': 'Phone → remote. Large screen → TV (full-screen video).',
     'youtubePage.layoutRemote': 'Mobile · Remote',
     'youtubePage.layoutRemoteDesc':
         'Search, queue, and playback controls — no video on this device.',
@@ -132,7 +132,8 @@ export default {
     'voiceSearchSettings.descriptionFallback':
         'Your browser does not support built-in voice search. Whisper is used automatically when available.',
     'voiceSearchSettings.useWhisper': 'Use Whisper (AI)',
-    'voiceSearchSettings.useWhisperHint': 'Better for Vietnamese; may take a few seconds after you stop speaking.',
+    'voiceSearchSettings.useWhisperHint':
+        'Better for Vietnamese; may take a few seconds after you stop speaking.',
 
     'roomSettings.title': 'Room Settings',
     'roomSettings.roomId': 'Room ID',
@@ -262,11 +263,13 @@ export default {
     'curatedPlaylists.untitledPlaylist': 'YouTube playlist',
     'curatedPlaylists.cardLoadError': 'Could not load playlist',
     'curatedPlaylists.previewTitle': 'Playlist',
-    'curatedPlaylists.previewLoadError': 'Could not load songs. Check your connection and try again.',
+    'curatedPlaylists.previewLoadError':
+        'Could not load songs. Check your connection and try again.',
     'curatedPlaylists.addAll': 'Add all',
     'curatedPlaylists.close': 'Close preview',
     'curatedPlaylists.importQuickPick': 'Starter playlists',
-    'curatedPlaylists.importQuickPickHint': 'Preview songs, add one track, or import the full list.',
+    'curatedPlaylists.importQuickPickHint':
+        'Preview songs, add one track, or import the full list.',
     'curatedPlaylists.pastePlaylistLink': 'Paste a YouTube playlist link',
     'curatedPlaylists.importFromUrl': 'Import playlist',
     'curatedPlaylists.invalidPlaylistUrl': 'Enter a valid YouTube playlist ID or URL',
@@ -290,6 +293,7 @@ export default {
     'qrScanner.retry': 'Retry',
 
     'videoChannels.and': 'and',
+    'videoChannels.moreChannels': 'and {count} more',
 
     'relativeTime.justNow': 'Just now',
     'relativeTime.secondAgo': '1 second ago',

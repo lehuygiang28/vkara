@@ -43,8 +43,7 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
     return (
         <div
             className={cn(
-                'flex items-center gap-2 border-t px-safe-offset py-1',
-                // Solid background: backdrop-blur repaints every scroll frame on mobile.
+                'flex items-center gap-1.5 border-t px-safe-offset py-2',
                 'bg-background',
                 className,
             )}
@@ -53,7 +52,7 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
                 type="button"
                 onClick={onOpenControls}
                 aria-label={`${isPlaying ? t('nowPlaying') : t('pause')}: ${playing.title}`}
-                className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 text-left"
+                className="flex min-w-0 flex-1 items-center gap-2 text-left"
             >
                 <NowPlayingArtwork
                     src={getYouTubeThumbnailUrl(playing.thumbnails, 'list', playing.id)}
@@ -63,23 +62,24 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
                     isLive={isLive}
                 />
                 <div className="min-w-0 flex-1 space-y-0.5">
-                    <p className="line-clamp-1 break-words text-sm font-semibold leading-snug min-[400px]:line-clamp-2">
+                    <p className="line-clamp-2 text-[13px] font-semibold leading-4">
                         {playing.title}
                     </p>
                     <VideoChannels
                         video={playing}
                         tone="emphasis"
                         maxLines={2}
-                        className="max-h-[1.125rem] min-[400px]:max-h-[2.125rem]"
+                        allowNameWrap
+                        className="text-xs leading-4 text-muted-foreground"
                     />
                 </div>
             </button>
-            <div className="flex shrink-0 items-center gap-1 self-center">
+            <div className="flex shrink-0 items-center">
                 <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-11 w-11 rounded-full"
+                    className="h-11 w-11 touch-manipulation rounded-full"
                     onClick={isPlaying ? handlePlayerPause : handlePlayerPlay}
                     aria-label={isPlaying ? t('pause') : t('play')}
                 >
@@ -93,7 +93,7 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="h-10 w-10 rounded-full"
+                    className="h-10 w-10 touch-manipulation rounded-full"
                     onClick={handlePlayNextVideo}
                     disabled={!room?.videoQueue.length}
                     aria-label={t('next')}
