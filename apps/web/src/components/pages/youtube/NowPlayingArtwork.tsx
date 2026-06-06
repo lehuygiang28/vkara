@@ -1,12 +1,13 @@
 'use client';
 
-import Image from 'next/image';
 import { Play } from 'lucide-react';
 
+import { YouTubeThumbnailImage } from '@/components/youtube-thumbnail-image';
 import { cn } from '@/lib/utils';
 
 type NowPlayingArtworkProps = {
     src: string;
+    videoId: string;
     title: string;
     isPlaying: boolean;
     isLive: boolean;
@@ -37,6 +38,7 @@ function EqualizerBars({ tone }: { tone: 'primary' | 'live' }) {
 
 export function NowPlayingArtwork({
     src,
+    videoId,
     title,
     isPlaying,
     isLive,
@@ -67,8 +69,10 @@ export function NowPlayingArtwork({
                         ringClass,
                     )}
                 >
-                    <Image
+                    <YouTubeThumbnailImage
                         src={src}
+                        videoId={videoId}
+                        size="list"
                         alt=""
                         fill
                         sizes="86px"
@@ -76,7 +80,6 @@ export function NowPlayingArtwork({
                             'object-cover object-center transition-opacity duration-200',
                             !isPlaying && 'opacity-50',
                         )}
-                        unoptimized
                     />
 
                     {!isPlaying ? (

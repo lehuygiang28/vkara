@@ -2,9 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
     buildYouTubeThumbnails,
+    getNextYouTubeThumbnailFallback,
+    getYouTubeThumbnailFallbackChain,
     getYouTubeThumbnailSrcSet,
     getYouTubeThumbnailUrl,
+    isYouTubeThumbnailPlaceholder,
     normalizeVideoThumbnails,
+    youtubeCanonicalThumbnailUrl,
 } from '../src/youtube-thumbnail';
 
 describe("buildYouTubeThumbnails", () => {
@@ -44,11 +48,15 @@ describe("getYouTubeThumbnailUrl", () => {
     expect(getYouTubeThumbnailUrl(thumbnails, "large", "abc123")).toContain("/maxresdefault.jpg");
   });
 
-  it("rebuilds from video id when thumbnails are sparse", () => {
+  it("uses largest known youtubei thumbnail for large when maxres is absent", () => {
     const sparse = [{ url: "https://i.ytimg.com/vi/abc/hqdefault.jpg", width: 336, height: 188 }];
 
-    expect(getYouTubeThumbnailUrl(sparse, "large", "abc")).toContain("/maxresdefault.jpg");
+    expect(getYouTubeThumbnailUrl(sparse, "large", "abc")).toContain("/hqdefault.jpg");
     expect(getYouTubeThumbnailUrl(sparse, "list", "abc")).toContain("/mqdefault.jpg");
+  });
+
+  it("falls back to sddefault for large when youtubei provides nothing", () => {
+    expect(getYouTubeThumbnailUrl([], "large", "abc")).toContain("/sddefault.jpg");
   });
 });
 
@@ -70,5 +78,68 @@ describe("getYouTubeThumbnailSrcSet", () => {
 
     expect(srcSet).toContain("120w");
     expect(srcSet).toContain("1280w");
+  });
+
+  it("omits synthetic maxres from srcSet when youtubei only has hqdefault", () => {
+    const sparse = [{ url: "https://i.ytimg.com/vi/abc/hqdefault.jpg", width: 480, height: 360 }];
+    const srcSet = getYouTubeThumbnailSrcSet(sparse, "abc");
+
+    expect(srcSet).toContain("480w");
+    expect(srcSet).not.toContain("1280w");
+  });
+});
+
+describe("getYouTubeThumbnailFallbackChain", () => {
+  it("orders large slots from maxres down to default", () => {
+    const chain = getYouTubeThumbnailFallbackChain("abc123", "large");
+
+    expect(chain[0]).toContain("/maxresdefault.jpg");
+    expect(chain[1]).toContain("/sddefault.jpg");
+    expect(chain[2]).toContain("/hqdefault.jpg");
+  });
+
+  it("orders list slots from mqdefault down", () => {
+    const chain = getYouTubeThumbnailFallbackChain("abc123", "list");
+
+    expect(chain[0]).toContain("/mqdefault.jpg");
+    expect(chain[1]).toContain("/hqdefault.jpg");
+  });
+});
+
+describe("isYouTubeThumbnailPlaceholder", () => {
+  it("detects YouTube 404 placeholder width for non-default slots", () => {
+    const url = youtubeCanonicalThumbnailUrl("abc123", "maxresdefault");
+
+    expect(isYouTubeThumbnailPlaceholder(120, url)).toBe(true);
+    expect(isYouTubeThumbnailPlaceholder(640, url)).toBe(false);
+  });
+
+  it("does not treat default slot as placeholder at 120px", () => {
+    const url = youtubeCanonicalThumbnailUrl("abc123", "default");
+
+    expect(isYouTubeThumbnailPlaceholder(120, url)).toBe(false);
+  });
+});
+
+describe("getNextYouTubeThumbnailFallback", () => {
+  it("steps from maxresdefault to sddefault for large thumbnails", () => {
+    const current = youtubeCanonicalThumbnailUrl("abc123", "maxresdefault");
+    const next = getNextYouTubeThumbnailFallback(current, "abc123", "large");
+
+    expect(next).toContain("/sddefault.jpg");
+  });
+
+  it("steps from sddefault to hqdefault for large thumbnails", () => {
+    const current = youtubeCanonicalThumbnailUrl("abc123", "sddefault");
+    const next = getNextYouTubeThumbnailFallback(current, "abc123", "large");
+
+    expect(next).toContain("/hqdefault.jpg");
+  });
+
+  it("returns undefined after the last fallback slot", () => {
+    const current = youtubeCanonicalThumbnailUrl("abc123", "default");
+    const next = getNextYouTubeThumbnailFallback(current, "abc123", "large");
+
+    expect(next).toBeUndefined();
   });
 });

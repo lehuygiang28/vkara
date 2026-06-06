@@ -62,6 +62,7 @@ export function PlayerControlsTabs() {
             {showBackdrop ? (
                 <ControlsAmbientBackdrop
                     src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
+                    videoId={playing.id}
                 />
             ) : null}
 

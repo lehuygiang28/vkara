@@ -32,6 +32,7 @@ export function ControlsNowPlayingMeta({ className }: ControlsNowPlayingMetaProp
             <div className="flex min-h-0 flex-1 items-center justify-center px-1 py-2 short-viewport:py-1">
                 <ControlsStageThumbnail
                     src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
+                    videoId={playing.id}
                     srcSet={getYouTubeThumbnailSrcSet(playing.thumbnails, playing.id)}
                     title={playing.title}
                     isLive={isLive}

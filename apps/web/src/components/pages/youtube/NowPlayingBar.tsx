@@ -57,6 +57,7 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
             >
                 <NowPlayingArtwork
                     src={getYouTubeThumbnailUrl(playing.thumbnails, 'list', playing.id)}
+                    videoId={playing.id}
                     title={playing.title}
                     isPlaying={Boolean(isPlaying)}
                     isLive={isLive}

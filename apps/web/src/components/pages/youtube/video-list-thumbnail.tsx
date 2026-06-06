@@ -3,10 +3,12 @@
 import Image from 'next/image';
 import type { ReactNode } from 'react';
 
+import { YouTubeThumbnailImage } from '@/components/youtube-thumbnail-image';
 import { cn } from '@/lib/utils';
 
 type VideoListThumbnailProps = {
     src?: string | null;
+    videoId?: string;
     alt?: string;
     fallback?: ReactNode;
     overlay?: ReactNode;
@@ -16,6 +18,7 @@ type VideoListThumbnailProps = {
 /** Thumbnail frame shared by {@link VideoListItem} and curated playlist rows. */
 export function VideoListThumbnail({
     src,
+    videoId,
     alt = '',
     fallback,
     overlay,
@@ -30,14 +33,26 @@ export function VideoListThumbnail({
         >
             {src ? (
                 <>
-                    <Image
-                        src={src}
-                        alt={alt}
-                        fill
-                        sizes="(max-width: 640px) 96px, 128px"
-                        className="object-cover"
-                        unoptimized
-                    />
+                    {videoId ? (
+                        <YouTubeThumbnailImage
+                            src={src}
+                            videoId={videoId}
+                            size="list"
+                            alt={alt}
+                            fill
+                            sizes="(max-width: 640px) 96px, 128px"
+                            className="object-cover"
+                        />
+                    ) : (
+                        <Image
+                            src={src}
+                            alt={alt}
+                            fill
+                            sizes="(max-width: 640px) 96px, 128px"
+                            className="object-cover"
+                            unoptimized
+                        />
+                    )}
                     {overlay}
                 </>
             ) : (

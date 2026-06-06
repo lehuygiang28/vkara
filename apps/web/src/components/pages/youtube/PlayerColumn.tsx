@@ -370,6 +370,7 @@ export function PlayerColumn({
                                     'large',
                                     room.videoQueue[0].id,
                                 )}
+                                videoId={room.videoQueue[0].id}
                                 srcSet={getYouTubeThumbnailSrcSet(
                                     room.videoQueue[0].thumbnails,
                                     room.videoQueue[0].id,

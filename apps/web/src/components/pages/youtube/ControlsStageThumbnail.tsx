@@ -1,12 +1,12 @@
 'use client';
 
-import Image from 'next/image';
-
 import { LiveBadge } from '@/components/youtube-live-badge';
+import { YouTubeThumbnailImage } from '@/components/youtube-thumbnail-image';
 import { cn } from '@/lib/utils';
 
 interface ControlsStageThumbnailProps {
     src: string;
+    videoId: string;
     title: string;
     srcSet?: string;
     isLive?: boolean;
@@ -16,6 +16,7 @@ interface ControlsStageThumbnailProps {
 /** Full 16:9 YouTube thumbnail — scales up in the flex stage, capped at 92vw / 28rem. */
 export function ControlsStageThumbnail({
     src,
+    videoId,
     title,
     srcSet,
     isLive = false,
@@ -29,13 +30,14 @@ export function ControlsStageThumbnail({
                 className,
             )}
         >
-            <Image
+            <YouTubeThumbnailImage
                 src={src}
+                videoId={videoId}
+                size="large"
                 alt={title}
                 fill
                 sizes="(max-width: 768px) 92vw, 28rem"
                 className="object-cover"
-                unoptimized
                 priority
                 {...(srcSet ? { srcSet } : {})}
             />

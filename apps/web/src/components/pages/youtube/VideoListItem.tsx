@@ -87,6 +87,7 @@ export const VideoListItem = memo(function VideoListItem({
             >
                 <VideoListThumbnail
                     src={getYouTubeThumbnailUrl(video.thumbnails, 'list', video.id)}
+                    videoId={video.id}
                     overlay={
                         isLive ? (
                             <div className="absolute bottom-1 right-1">
