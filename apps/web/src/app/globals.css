@@ -56,6 +56,16 @@ html[data-vkara-remote-chrome='full'] {
     animation-delay: 0.9s;
 }
 
+@media (prefers-reduced-motion: reduce) {
+    .voice-ring-pulse,
+    .voice-ring-pulse-delay-1,
+    .voice-ring-pulse-delay-2 {
+        animation: none;
+        opacity: 0.35;
+        transform: scale(1);
+    }
+}
+
 @keyframes now-playing-eq {
     0%,
     100% {

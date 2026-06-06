@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -10,9 +10,7 @@ import { VoiceSearchOverlay } from '@/components/search/voice-search-overlay';
 import { useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { useSearchStore } from '@/store/searchStore';
 import { usePersonalizationStore } from '@/store/personalizationStore';
-import { useVoiceSearch } from '@/hooks/use-voice-search';
-import type { SpeechRecognitionErrorCode } from '@/hooks/use-speech-recognition';
-import { toast } from '@/hooks/use-toast';
+import { useVoiceSearchSession } from '@/hooks/use-voice-search-session';
 
 import { VideoSkeletonList } from '@/components/video-skeleton';
 import { VideoList } from './VideoList';
@@ -27,9 +25,6 @@ export function VideoSearch() {
 
     const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
     const [overlayInitialQuery, setOverlayInitialQuery] = useState<string | undefined>(undefined);
-    const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
-    const [overlayTranscript, setOverlayTranscript] = useState('');
-    const useWhisperEngineRef = useRef(false);
 
     const {
         searchQuery,
@@ -87,6 +82,13 @@ export function VideoSearch() {
         [performSearch],
     );
 
+    const voiceSession = useVoiceSearchSession({
+        locale,
+        onSearchAction: handleSearch,
+        onClearSuggestionsAction: clearSuggestions,
+        suspendWhen: isLoading,
+    });
+
     const handleDebouncedQuery = useCallback(
         (query: string) => {
             void fetchSuggestions(query);
@@ -100,105 +102,6 @@ export function VideoSearch() {
         },
         [removeSearchHistory],
     );
-
-    const handleSpeechError = useCallback(
-        (error: SpeechRecognitionErrorCode | string) => {
-            setVoiceOverlayOpen(false);
-            setOverlayTranscript('');
-
-            let description = t('voiceError');
-            if (error === 'not-allowed' || error === 'service-not-allowed') {
-                description = t('voicePermissionDenied');
-            } else if (error === 'no-speech') {
-                description = t('voiceNoSpeech');
-            } else if (error === 'network') {
-                description = t('voiceNetworkError');
-            }
-
-            toast({ id: 'voice-search-error', title: description, variant: 'error' });
-        },
-        [t],
-    );
-
-    const handleSpeechTranscript = useCallback(
-        (transcript: string, isFinal: boolean) => {
-            const trimmed = transcript.trim();
-            setOverlayTranscript(transcript);
-
-            const finishWithSearch = () => {
-                clearSuggestions();
-                setVoiceOverlayOpen(false);
-                setOverlayTranscript('');
-                setSearchOverlayOpen(false);
-                void performSearch(trimmed);
-            };
-
-            if (useWhisperEngineRef.current) {
-                if (!trimmed) return;
-                clearSuggestions();
-                window.setTimeout(() => {
-                    setVoiceOverlayOpen(false);
-                    setOverlayTranscript('');
-                    setSearchOverlayOpen(false);
-                    void performSearch(trimmed);
-                }, 450);
-                return;
-            }
-
-            if (isFinal && trimmed) {
-                finishWithSearch();
-            }
-        },
-        [clearSuggestions, performSearch],
-    );
-
-    const {
-        isVoiceSupported,
-        isListening,
-        isProcessing,
-        toggleListening,
-        stopListening,
-        useWhisperEngine,
-    } = useVoiceSearch({
-        locale,
-        onTranscriptAction: handleSpeechTranscript,
-        onErrorAction: handleSpeechError,
-    });
-
-    useEffect(() => {
-        useWhisperEngineRef.current = useWhisperEngine;
-    }, [useWhisperEngine]);
-
-    const closeVoiceOverlay = useCallback(() => {
-        setVoiceOverlayOpen(false);
-        setOverlayTranscript('');
-        stopListening();
-    }, [stopListening]);
-
-    const startVoiceSession = useCallback(() => {
-        setOverlayTranscript('');
-        setVoiceOverlayOpen(true);
-        if (!isListening && !isProcessing) {
-            toggleListening();
-        }
-    }, [isListening, isProcessing, toggleListening]);
-
-    const handleVoiceMicPress = useCallback(() => {
-        if (isProcessing) return;
-        if (isListening) {
-            stopListening();
-            return;
-        }
-        startVoiceSession();
-    }, [isListening, isProcessing, startVoiceSession, stopListening]);
-
-    useEffect(() => {
-        if (isLoading && voiceOverlayOpen) {
-            setVoiceOverlayOpen(false);
-            setOverlayTranscript('');
-            stopListening();
-        }
-    }, [isLoading, voiceOverlayOpen, stopListening]);
 
     const showBrowseIdle =
         !searchQuery && !isLoading && searchResults.length === 0 && !isLoadingMore;
@@ -237,13 +140,13 @@ export function VideoSearch() {
     return (
         <div className="flex h-full min-h-0 flex-col">
             <VoiceSearchOverlay
-                open={voiceOverlayOpen && !searchOverlayOpen}
-                isListening={isListening}
-                isProcessing={isProcessing}
-                liveTranscript={overlayTranscript}
-                useWhisperEngine={useWhisperEngine}
-                onCloseAction={closeVoiceOverlay}
-                onMicPressAction={handleVoiceMicPress}
+                open={voiceSession.voiceOverlayOpen}
+                isRecording={voiceSession.isRecording}
+                isProcessing={voiceSession.isProcessing}
+                liveTranscript={voiceSession.overlayTranscript}
+                useWhisperEngine={voiceSession.useWhisperEngine}
+                onCloseAction={voiceSession.closeVoiceOverlay}
+                onMicPressAction={voiceSession.handleVoiceMicPress}
             />
 
             <SearchPageOverlay
@@ -261,6 +164,7 @@ export function VideoSearch() {
                 onRemoveLocalSuggestionAction={handleRemoveLocalSuggestion}
                 onKaraokeChangeAction={setIsKaraoke}
                 onSearchAction={handleSearch}
+                voiceSession={voiceSession}
             />
 
             <div className="sticky top-0 z-10 shrink-0 border-b bg-background">
@@ -268,19 +172,19 @@ export function VideoSearch() {
                     <ResultsSearchHeader
                         query={searchQuery}
                         isKaraoke={isKaraoke}
-                        isVoiceSupported={isVoiceSupported}
+                        isVoiceSupported={voiceSession.isVoiceSupported}
                         onBackAction={handleBackFromResults}
                         onOpenSearchAction={() => openSearchOverlay()}
-                        onOpenVoiceAction={startVoiceSession}
+                        onOpenVoiceAction={voiceSession.startVoiceSession}
                         onClearQueryAction={handleClearResultsQuery}
                         onKaraokeChangeAction={setIsKaraoke}
                     />
                 ) : (
                     <BrowseSearchHeader
                         isKaraoke={isKaraoke}
-                        isVoiceSupported={isVoiceSupported}
+                        isVoiceSupported={voiceSession.isVoiceSupported}
                         onOpenSearchAction={() => openSearchOverlay()}
-                        onOpenVoiceAction={startVoiceSession}
+                        onOpenVoiceAction={voiceSession.startVoiceSession}
                         onKaraokeChangeAction={setIsKaraoke}
                     />
                 )}

@@ -186,7 +186,7 @@ export function useWhisperRecording({
     }, [clearStopTimer, releaseStream]);
 
     return {
-        isListening: isListening || isProcessing,
+        isRecording: isListening,
         isProcessing,
         toggleListening,
         stopListening,

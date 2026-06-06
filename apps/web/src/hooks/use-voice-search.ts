@@ -17,12 +17,14 @@ import { useWhisperRecording } from '@/hooks/use-whisper-recording';
 type UseVoiceSearchOptions = {
     locale: string;
     onTranscriptAction: (transcript: string, isFinal: boolean) => void;
+    onListeningEndAction?: (transcript: string) => void;
     onErrorAction?: (error: SpeechRecognitionErrorCode | string) => void;
 };
 
 export function useVoiceSearch({
     locale,
     onTranscriptAction: onTranscript,
+    onListeningEndAction: onListeningEnd,
     onErrorAction: onError,
 }: UseVoiceSearchOptions) {
     const useWhisperVoiceSearch = useAppSettingsStore((state) => state.useWhisperVoiceSearch);
@@ -36,6 +38,7 @@ export function useVoiceSearch({
     const webSpeech = useSpeechRecognition({
         lang: speechLang,
         onTranscriptAction: onTranscript,
+        onListeningEndAction: onListeningEnd,
         onErrorAction: onError,
         enabled: !useWhisperEngine,
     });
@@ -59,10 +62,14 @@ export function useVoiceSearch({
         return 'none';
     }, [useWhisperEngine, webSpeechSupported]);
 
+    const isRecording = useWhisperEngine ? whisper.isRecording : webSpeech.isListening;
+    const isProcessing = useWhisperEngine ? whisper.isProcessing : false;
+
     return {
         isVoiceSupported: webSpeechSupported || whisperAvailable,
-        isListening: active.isListening,
-        isProcessing: useWhisperEngine ? whisper.isProcessing : false,
+        isRecording,
+        isProcessing,
+        isListening: isRecording || isProcessing,
         toggleListening: active.toggleListening,
         stopListening: active.stopListening,
         voiceEngine,

@@ -14,6 +14,7 @@ export { localeToSpeechRecognitionLang };
 type UseSpeechRecognitionOptions = {
     lang: string;
     onTranscriptAction: (transcript: string, isFinal: boolean) => void;
+    onListeningEndAction?: (transcript: string) => void;
     onErrorAction?: (error: SpeechRecognitionErrorCode) => void;
     enabled?: boolean;
 };
@@ -39,18 +40,25 @@ function collectTranscript(results: SpeechRecognitionResultList): {
 export function useSpeechRecognition({
     lang,
     onTranscriptAction: onTranscript,
+    onListeningEndAction: onListeningEnd,
     onErrorAction: onError,
     enabled = true,
 }: UseSpeechRecognitionOptions) {
     const [isSupported, setIsSupported] = useState(false);
     const [isListening, setIsListening] = useState(false);
     const recognitionRef = useRef<SpeechRecognition | null>(null);
+    const latestTranscriptRef = useRef('');
     const onTranscriptRef = useRef(onTranscript);
+    const onListeningEndRef = useRef(onListeningEnd);
     const onErrorRef = useRef(onError);
 
     useEffect(() => {
         onTranscriptRef.current = onTranscript;
     }, [onTranscript]);
+
+    useEffect(() => {
+        onListeningEndRef.current = onListeningEnd;
+    }, [onListeningEnd]);
 
     useEffect(() => {
         onErrorRef.current = onError;
@@ -84,6 +92,7 @@ export function useSpeechRecognition({
 
         recognition.onend = () => {
             setIsListening(false);
+            onListeningEndRef.current?.(latestTranscriptRef.current);
         };
 
         recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -97,6 +106,7 @@ export function useSpeechRecognition({
         recognition.onresult = (event: SpeechRecognitionEvent) => {
             const { transcript, isFinal } = collectTranscript(event.results);
             if (transcript) {
+                latestTranscriptRef.current = transcript;
                 onTranscriptRef.current(transcript, isFinal);
             }
         };
@@ -124,6 +134,7 @@ export function useSpeechRecognition({
         }
 
         recognition.lang = lang;
+        latestTranscriptRef.current = '';
 
         try {
             recognition.start();
