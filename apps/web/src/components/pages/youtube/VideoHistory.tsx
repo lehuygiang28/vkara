@@ -84,7 +84,6 @@ export function VideoHistory() {
                 />
             ) : null}
             <VideoList
-                keyPrefix="history-list"
                 videos={room?.historyQueue || []}
                 emptyState={
                     <VideoListEmptyState

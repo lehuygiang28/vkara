@@ -7,7 +7,7 @@ import { SearchHeaderBackButton } from '@/components/search/search-header';
 import { REMOTE_CHROME_Z_INDEX } from '@/lib/remote-chrome';
 import { cn } from '@/lib/utils';
 
-import { RemoteScrollRoot } from './remote-chrome';
+import { RemotePageGutter, RemoteScrollRoot } from './remote-chrome';
 import { useOverlayPortal } from './remote-panel-overlay-root';
 
 export type RemotePanelOverlayBodyMode = 'scroll' | 'list';
@@ -47,8 +47,8 @@ export function RemotePanelOverlayShell({
             {bodyMode === 'list' ? (
                 <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
             ) : (
-                <RemoteScrollRoot className="min-h-0 flex-1 px-safe-offset">
-                    {children}
+                <RemoteScrollRoot className="min-h-0 flex-1">
+                    <RemotePageGutter className="min-h-min">{children}</RemotePageGutter>
                 </RemoteScrollRoot>
             )}
         </div>,
@@ -70,9 +70,9 @@ export function RemotePanelOverlayHeader({
     trailing,
 }: RemotePanelOverlayHeaderProps) {
     return (
-        <header className="flex shrink-0 items-center gap-2 border-b px-safe-offset py-3">
+        <header className="grid shrink-0 grid-cols-[2.75rem_minmax(0,1fr)_auto] items-center gap-2 border-b px-page-gutter py-3">
             <SearchHeaderBackButton onClickAction={onCloseAction} />
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
                 <div className="truncate text-base font-semibold tracking-tight">{title}</div>
                 {description ? (
                     <p className="text-xs text-muted-foreground">{description}</p>

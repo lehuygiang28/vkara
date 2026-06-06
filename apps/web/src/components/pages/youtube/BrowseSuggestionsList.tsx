@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { hasBrowseFeedSources } from '@vkara/personalization';
@@ -12,13 +12,13 @@ import { useShowCuratedStarters } from '@/hooks/use-curated-starter-visibility';
 import { usePersonalizationStore } from '@/store/personalizationStore';
 import { useSearchStore } from '@/store/searchStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { VideoSkeletonList } from '@/components/video-skeleton';
+import { VideoSkeletonListForViewport } from '@/components/video-skeleton';
 
 import { cn } from '@/lib/utils';
 
 import { VideoList } from './VideoList';
 import { VideoListEmptyState } from './video-list-empty-state';
-import { RemoteScrollRoot, RemoteScrollSurface } from './remote-chrome';
+import { RemotePageGutter, RemoteScrollRoot, RemoteScrollSurface } from './remote-chrome';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
 
 type BrowseSuggestionsListProps = {
@@ -75,11 +75,37 @@ export function BrowseSuggestionsList({ className }: BrowseSuggestionsListProps)
 
     const { videos, isLoading, isLoadingMore, hasMore, loadError, loadMore, refresh } =
         useBrowseFeed(profile, room);
+    const skeletonScrollRef = useRef<HTMLDivElement>(null);
 
     if (showCuratedStarters) {
         return (
             <RemoteScrollSurface scrollTopLabel={t('scrollToTop')} className={className}>
-                {!hasFeedSources ? (
+                <RemotePageGutter>
+                    {!hasFeedSources ? (
+                        <VideoListEmptyState
+                            icon={<Search className="h-7 w-7 text-muted-foreground" />}
+                            title={t('browseEmptyTitle')}
+                            description={t('browseEmptyHint')}
+                            actions={[
+                                {
+                                    label: t('browseEmptyCta'),
+                                    icon: <Search />,
+                                    onClick: requestSearchOverlay,
+                                },
+                            ]}
+                            density="compact"
+                        />
+                    ) : null}
+                    <CuratedPlaylistsPanel variant="browse" />
+                </RemotePageGutter>
+            </RemoteScrollSurface>
+        );
+    }
+
+    if (!hasFeedSources) {
+        return (
+            <RemoteScrollSurface scrollTopLabel={t('scrollToTop')} className={className}>
+                <RemotePageGutter>
                     <VideoListEmptyState
                         icon={<Search className="h-7 w-7 text-muted-foreground" />}
                         title={t('browseEmptyTitle')}
@@ -93,36 +119,17 @@ export function BrowseSuggestionsList({ className }: BrowseSuggestionsListProps)
                         ]}
                         density="compact"
                     />
-                ) : null}
-                <CuratedPlaylistsPanel variant="browse" />
-            </RemoteScrollSurface>
-        );
-    }
-
-    if (!hasFeedSources) {
-        return (
-            <RemoteScrollSurface scrollTopLabel={t('scrollToTop')} className={className}>
-                <VideoListEmptyState
-                    icon={<Search className="h-7 w-7 text-muted-foreground" />}
-                    title={t('browseEmptyTitle')}
-                    description={t('browseEmptyHint')}
-                    actions={[
-                        {
-                            label: t('browseEmptyCta'),
-                            icon: <Search />,
-                            onClick: requestSearchOverlay,
-                        },
-                    ]}
-                    density="compact"
-                />
+                </RemotePageGutter>
             </RemoteScrollSurface>
         );
     }
 
     if (isLoading && videos.length === 0) {
         return (
-            <RemoteScrollRoot className={cn('min-h-0 flex-1', className)}>
-                <VideoSkeletonList count={6} className="pt-2" />
+            <RemoteScrollRoot ref={skeletonScrollRef} className={cn('min-h-0 flex-1', className)}>
+                <RemotePageGutter>
+                    <VideoSkeletonListForViewport scrollRef={skeletonScrollRef} className="pt-2" />
+                </RemotePageGutter>
             </RemoteScrollRoot>
         );
     }
@@ -130,7 +137,6 @@ export function BrowseSuggestionsList({ className }: BrowseSuggestionsListProps)
     return (
         <div className={cn('flex min-h-0 flex-1 flex-col', className)}>
             <VideoList
-                keyPrefix="browse-suggestions"
                 videos={videos}
                 emptyState={
                     <VideoListEmptyState

@@ -20,6 +20,7 @@ export type VideoListAction = {
     tone?: 'default' | 'outline' | 'success' | 'priority' | 'destructive';
     confirmMode?: boolean;
     confirmContent?: ReactNode;
+    className?: string;
 };
 
 type VideoListActionBarProps = {
@@ -48,6 +49,7 @@ function ActionChip({
     confirmMode,
     confirmContent,
     onClick,
+    className,
 }: Omit<VideoListAction, 'id'>) {
     const t = useI18n();
     const [open, setOpen] = useState(false);
@@ -66,6 +68,7 @@ function ActionChip({
                 'text-[11px] font-medium leading-none transition-colors sm:text-xs',
                 'touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
                 toneClasses[tone],
+                className,
             )}
         >
             <span className="shrink-0 [&_svg]:h-3.5 [&_svg]:w-3.5 sm:[&_svg]:h-4 sm:[&_svg]:w-4">

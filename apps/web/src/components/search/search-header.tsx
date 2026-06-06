@@ -60,7 +60,7 @@ export function SearchHeaderRow({
     return (
         <div
             className={cn(
-                'flex min-w-0 items-center gap-1.5 px-safe-offset pb-3 pt-safe-offset sm:gap-2',
+                'grid min-w-0 grid-cols-1 items-center gap-1.5 px-page-gutter pb-3 pt-safe-offset sm:gap-2',
                 className,
             )}
         >
@@ -210,10 +210,7 @@ export function SearchFieldModeActions({
         <SearchFieldTrailing>
             <KaraokeModeChip isKaraoke={isKaraoke} onChangeAction={onKaraokeChange} />
             {isVoiceSupported && onOpenVoiceAction ? (
-                <SearchVoiceMicButton
-                    onClickAction={onOpenVoiceAction}
-                    disabled={voiceDisabled}
-                />
+                <SearchVoiceMicButton onClickAction={onOpenVoiceAction} disabled={voiceDisabled} />
             ) : null}
         </SearchFieldTrailing>
     );
@@ -287,7 +284,7 @@ export function ResultsSearchHeader({
     className,
 }: ResultsSearchHeaderProps) {
     return (
-        <SearchHeaderRow className={className}>
+        <SearchHeaderRow className={cn('grid-cols-[2.75rem_minmax(0,1fr)]', className)}>
             <SearchHeaderBackButton onClickAction={onBackAction} />
 
             <SearchFieldChrome>

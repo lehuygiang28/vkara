@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ListMusic } from 'lucide-react';
 
 import {
@@ -8,9 +8,9 @@ import {
     RemotePanelOverlayShell,
 } from '@/components/pages/youtube/remote-panel-overlay-shell';
 import { VideoList } from '@/components/pages/youtube/VideoList';
-import { RemoteScrollRoot } from '@/components/pages/youtube/remote-chrome';
+import { RemotePageGutter, RemoteScrollRoot } from '@/components/pages/youtube/remote-chrome';
 import { useVideoSearchListActions } from '@/components/pages/youtube/use-video-search-list-actions';
-import { VideoSkeletonList } from '@/components/video-skeleton';
+import { VideoSkeletonListForViewport } from '@/components/video-skeleton';
 import { Button } from '@/components/ui/button';
 import { useScopedI18n } from '@/locales/client';
 import { usePlaylistDetailsCache } from '@/hooks/use-playlist-details-cache';
@@ -34,6 +34,7 @@ export function CuratedPlaylistPreviewOverlay({ listId }: CuratedPlaylistPreview
 
     const [loading, setLoading] = useState(true);
     const [loadError, setLoadError] = useState<string | null>(null);
+    const skeletonScrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         let cancelled = false;
@@ -102,16 +103,20 @@ export function CuratedPlaylistPreviewOverlay({ listId }: CuratedPlaylistPreview
             }
         >
             {showSkeleton ? (
-                <RemoteScrollRoot className="h-full">
-                    <VideoSkeletonList count={8} className="pt-2" />
+                <RemoteScrollRoot ref={skeletonScrollRef} className="h-full">
+                    <RemotePageGutter>
+                        <VideoSkeletonListForViewport
+                            scrollRef={skeletonScrollRef}
+                            className="pt-2"
+                        />
+                    </RemotePageGutter>
                 </RemoteScrollRoot>
             ) : (
                 <VideoList
-                    keyPrefix={`curated-preview-${listId}`}
                     videos={videos}
                     emptyState={
                         loadError ? (
-                            <div className="px-4 py-8 text-center text-sm text-muted-foreground">
+                            <div className="py-8 text-center text-sm text-muted-foreground">
                                 {loadError}
                             </div>
                         ) : undefined

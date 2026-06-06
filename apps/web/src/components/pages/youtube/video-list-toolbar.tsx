@@ -9,25 +9,21 @@ type VideoListToolbarProps = {
     leading?: ReactNode;
     /** Secondary/destructive actions (e.g. clear) — aligned end. */
     trailing?: ReactNode;
-    /** @deprecated Prefer `leading` — treated as leading when `leading` is omitted. */
-    children?: ReactNode;
     className?: string;
 };
 
 /** Queue/history header: start actions vs end actions on opposite sides. */
-export function VideoListToolbar({ leading, trailing, children, className }: VideoListToolbarProps) {
-    const start = leading ?? children;
-
+export function VideoListToolbar({ leading, trailing, className }: VideoListToolbarProps) {
     return (
         <div
             className={cn(
-                'shrink-0 border-b bg-background/95 px-safe-offset pb-2.5 pt-safe-offset backdrop-blur supports-[backdrop-filter]:bg-background/80',
+                'shrink-0 border-b bg-background/95 px-page-gutter pb-2.5 pt-safe-offset backdrop-blur supports-[backdrop-filter]:bg-background/80',
                 className,
             )}
         >
             <div className="flex items-center justify-between gap-2">
-                {start ? (
-                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">{start}</div>
+                {leading ? (
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5">{leading}</div>
                 ) : (
                     <div className="min-w-0 flex-1" />
                 )}

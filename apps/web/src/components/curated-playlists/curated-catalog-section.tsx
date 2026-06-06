@@ -38,7 +38,7 @@ export function CuratedCatalogSection({
             <h3
                 className={
                     horizontal
-                        ? 'mb-3 px-safe-offset text-sm font-medium text-foreground'
+                        ? 'mb-3 text-sm font-medium text-foreground'
                         : 'text-xs font-medium uppercase tracking-wide text-muted-foreground'
                 }
             >
@@ -48,7 +48,7 @@ export function CuratedCatalogSection({
                 })}
             </h3>
             {horizontal ? (
-                <HorizontalScrollRail>
+                <HorizontalScrollRail className="pl-0 pr-0">
                     {catalog.playlists.map((playlistUrl) => {
                         const { listId } = parseYoutubePlaylistInput(playlistUrl);
                         return (
@@ -56,7 +56,7 @@ export function CuratedCatalogSection({
                                 key={listId}
                                 listId={listId}
                                 layout="tile"
-                                onOpen={() => openPlaylist(listId)}
+                                onOpenAction={() => openPlaylist(listId)}
                             />
                         );
                     })}
@@ -70,7 +70,7 @@ export function CuratedCatalogSection({
                                 key={listId}
                                 listId={listId}
                                 layout="list"
-                                onOpen={() => openPlaylist(listId)}
+                                onOpenAction={() => openPlaylist(listId)}
                                 className="w-full"
                             />
                         );

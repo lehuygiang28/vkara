@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Search } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -12,10 +12,10 @@ import { useSearchStore } from '@/store/searchStore';
 import { usePersonalizationStore } from '@/store/personalizationStore';
 import { useVoiceSearchSession } from '@/hooks/use-voice-search-session';
 
-import { VideoSkeletonList } from '@/components/video-skeleton';
+import { VideoSkeletonListForViewport } from '@/components/video-skeleton';
 import { VideoList } from './VideoList';
 import { BrowseSuggestionsList } from './BrowseSuggestionsList';
-import { RemoteScrollRoot } from './remote-chrome';
+import { RemotePageGutter, RemoteScrollRoot } from './remote-chrome';
 import { VideoListEmptyState } from './video-list-empty-state';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
 
@@ -25,6 +25,7 @@ export function VideoSearch() {
 
     const [searchOverlayOpen, setSearchOverlayOpen] = useState(false);
     const [overlayInitialQuery, setOverlayInitialQuery] = useState<string | undefined>(undefined);
+    const skeletonScrollRef = useRef<HTMLDivElement>(null);
 
     const {
         searchQuery,
@@ -191,14 +192,15 @@ export function VideoSearch() {
             </div>
 
             {isLoading && searchResults.length === 0 && !showBrowseIdle ? (
-                <RemoteScrollRoot className="min-h-0 flex-1">
-                    <VideoSkeletonList count={6} />
+                <RemoteScrollRoot ref={skeletonScrollRef} className="min-h-0 flex-1">
+                    <RemotePageGutter>
+                        <VideoSkeletonListForViewport scrollRef={skeletonScrollRef} className="pt-2" />
+                    </RemotePageGutter>
                 </RemoteScrollRoot>
             ) : showBrowseIdle ? (
                 <BrowseSuggestionsList className="min-h-0 flex-1" />
             ) : (
                 <VideoList
-                    keyPrefix="search-list"
                     videos={searchResults}
                     emptyState={
                         showNoResults ? (
@@ -219,7 +221,7 @@ export function VideoSearch() {
                     renderActions={renderActions}
                     onLoadMore={handleLoadMore}
                     hasMore={Boolean(nextToken) || loadMoreFailed}
-                    isLoading={isLoading || isLoadingMore}
+                    isLoading={isLoadingMore}
                     loadError={loadMoreFailed ? t('loadMoreFailed') : null}
                     onRefresh={() => void refreshSearch()}
                 />

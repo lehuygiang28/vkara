@@ -43,7 +43,7 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
     return (
         <div
             className={cn(
-                'flex items-center gap-1.5 border-t px-safe-offset py-2',
+                'flex items-center gap-1.5 border-t px-page-gutter py-2',
                 'bg-background',
                 className,
             )}

@@ -28,7 +28,7 @@ export function ScrollToTopListButton({ show, onClick, label }: ScrollToTopListB
                 'absolute z-30 flex size-11 cursor-pointer items-center justify-center rounded-full',
                 'border border-border/80 bg-background/92 text-foreground',
                 'shadow-[0_2px_12px_rgba(0,0,0,0.08)] backdrop-blur-sm',
-                'right-safe-offset',
+                'right-page-gutter',
                 'transition-[transform,opacity] duration-200 ease-out motion-reduce:transition-none',
                 'hover:bg-accent/80 active:scale-[0.96]',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',

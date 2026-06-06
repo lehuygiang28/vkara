@@ -7,6 +7,14 @@
     --safe-right: env(safe-area-inset-right, 0px);
     --safe-bottom: env(safe-area-inset-bottom, 0px);
     --safe-left: env(safe-area-inset-left, 0px);
+    /**
+     * Remote page horizontal gutter — single source for chrome bands and edge controls.
+     * Shell wrappers apply px-page-gutter once; children use vertical padding / gap only.
+     * See PAGE_GUTTER in lib/remote-chrome.ts
+     */
+    --vkara-page-gutter: 1rem;
+    --vkara-page-gutter-inline-start: max(var(--safe-left), var(--vkara-page-gutter));
+    --vkara-page-gutter-inline-end: max(var(--safe-right), var(--vkara-page-gutter));
     /** Mobile remote chrome — defaults; synced by RemoteChromeProvider */
     --vkara-mobile-nav-height: 3.75rem;
     --vkara-now-playing-height: 0rem;
@@ -157,15 +165,18 @@ html[data-vkara-remote-chrome='full'] {
             padding-top: max(calc(var(--safe-top) + 0.5rem), 0.5rem);
         }
     }
+    .px-page-gutter,
     .px-safe-offset {
-        padding-left: max(var(--safe-left), 1rem);
-        padding-right: max(var(--safe-right), 1rem);
+        padding-left: var(--vkara-page-gutter-inline-start);
+        padding-right: var(--vkara-page-gutter-inline-end);
     }
+    .pl-page-gutter,
     .pl-safe-offset {
-        padding-left: max(var(--safe-left), 1rem);
+        padding-left: var(--vkara-page-gutter-inline-start);
     }
+    .pr-page-gutter,
     .pr-safe-offset {
-        padding-right: max(var(--safe-right), 1rem);
+        padding-right: var(--vkara-page-gutter-inline-end);
     }
     .pb-safe-offset {
         padding-bottom: max(calc(var(--safe-bottom) + 0.25rem), 0.25rem);
@@ -176,11 +187,13 @@ html[data-vkara-remote-chrome='full'] {
     .top-safe-offset {
         top: max(calc(var(--safe-top) + 0.75rem), 0.75rem);
     }
+    .left-page-gutter,
     .left-safe-offset {
-        left: max(calc(var(--safe-left) + 0.75rem), 0.75rem);
+        left: var(--vkara-page-gutter-inline-start);
     }
+    .right-page-gutter,
     .right-safe-offset {
-        right: max(calc(var(--safe-right) + 0.75rem), 0.75rem);
+        right: var(--vkara-page-gutter-inline-end);
     }
     .pl-safe {
         padding-left: var(--safe-left);

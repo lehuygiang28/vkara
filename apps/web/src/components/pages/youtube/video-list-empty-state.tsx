@@ -36,10 +36,8 @@ export function VideoListEmptyState({
     return (
         <div
             className={cn(
-                'flex flex-col items-center justify-center px-safe-offset text-center',
-                isCompact
-                    ? 'min-h-0 flex-none py-6'
-                    : 'min-h-[40%] flex-1 py-12',
+                'flex flex-col items-center justify-center text-center',
+                isCompact ? 'min-h-0 flex-none py-6' : 'min-h-[40%] flex-1 py-12',
                 className,
             )}
         >
@@ -76,7 +74,12 @@ export function VideoListEmptyState({
             ) : null}
 
             {actions.length > 0 ? (
-                <div className={cn('flex w-full max-w-xs flex-col gap-2', isCompact ? 'mt-4' : 'mt-6')}>
+                <div
+                    className={cn(
+                        'flex w-full max-w-xs flex-col gap-2',
+                        isCompact ? 'mt-4' : 'mt-6',
+                    )}
+                >
                     {actions.map((action) => (
                         <Button
                             key={action.label}

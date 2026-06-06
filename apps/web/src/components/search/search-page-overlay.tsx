@@ -13,7 +13,7 @@ import {
     SearchHeaderRow,
 } from '@/components/search/search-header';
 import { useOverlayPortal } from '@/components/pages/youtube/remote-panel-overlay-root';
-import { RemoteScrollRoot } from '@/components/pages/youtube/remote-chrome';
+import { RemotePageGutter, RemoteScrollRoot } from '@/components/pages/youtube/remote-chrome';
 import type { useVoiceSearchSession } from '@/hooks/use-voice-search-session';
 import { useScopedI18n } from '@/locales/client';
 
@@ -60,7 +60,7 @@ function SuggestionRow({
         <div className="flex w-full items-center">
             <button
                 type="button"
-                className="flex min-w-0 flex-1 items-center gap-3 px-4 py-3.5 text-left text-[0.9375rem] leading-snug hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none active:bg-accent/80"
+                className="flex min-w-0 flex-1 items-center gap-3 py-3.5 text-left text-[0.9375rem] leading-snug hover:bg-accent/60 focus-visible:bg-accent/60 focus-visible:outline-none active:bg-accent/80"
                 onClick={onPick}
             >
                 {isHistoryItem ? (
@@ -131,10 +131,13 @@ function SuggestionPanel({
     if (isLoading && suggestions.length === 0) {
         return (
             <div
-                className="flex items-center gap-2 px-4 py-4 text-sm text-muted-foreground"
+                className="flex items-center gap-2 py-4 text-sm text-muted-foreground"
                 role="status"
             >
-                <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
+                <Loader2
+                    className="h-4 w-4 shrink-0 animate-spin motion-reduce:animate-none"
+                    aria-hidden
+                />
                 {loadingLabel}
             </div>
         );
@@ -276,6 +279,25 @@ function SearchPageOverlayContent({
         return null;
     }
 
+    const suggestionPanel = (
+        <RemotePageGutter>
+            <MemoSuggestionPanel
+                listId={listId}
+                suggestions={suggestions}
+                isLoading={isLoadingSuggestions}
+                loadingLabel={t('loadingSuggestions')}
+                localSuggestionQueries={localSuggestionQueries}
+                deleteLabel={t('deleteSearch')}
+                refillLabel={t('refillSearch')}
+                onPick={handlePickSuggestion}
+                onRefill={handleRefillSuggestion}
+                onRemoveLocalSuggestion={
+                    onRemoveLocalSuggestion ? handleRemoveLocalSuggestion : undefined
+                }
+            />
+        </RemotePageGutter>
+    );
+
     return ReactDOM.createPortal(
         <div
             className={`${positionClass} inset-0 z-[190] flex flex-col bg-background text-foreground`}
@@ -283,7 +305,7 @@ function SearchPageOverlayContent({
             aria-modal="true"
             aria-label={t('search')}
         >
-            <SearchHeaderRow className="shrink-0 pb-0">
+            <SearchHeaderRow className="shrink-0 grid-cols-[2.75rem_minmax(0,1fr)] pb-0">
                 <SearchHeaderBackButton onClickAction={onCloseAction} />
                 <SearchFieldChrome variant="overlay">
                     <input
@@ -333,38 +355,10 @@ function SearchPageOverlayContent({
             </SearchHeaderRow>
 
             {containOverlays ? (
-                <RemoteScrollRoot className="min-h-0 flex-1">
-                    <MemoSuggestionPanel
-                        listId={listId}
-                        suggestions={suggestions}
-                        isLoading={isLoadingSuggestions}
-                        loadingLabel={t('loadingSuggestions')}
-                        localSuggestionQueries={localSuggestionQueries}
-                        deleteLabel={t('deleteSearch')}
-                        refillLabel={t('refillSearch')}
-                        onPick={handlePickSuggestion}
-                        onRefill={handleRefillSuggestion}
-                        onRemoveLocalSuggestion={
-                            onRemoveLocalSuggestion ? handleRemoveLocalSuggestion : undefined
-                        }
-                    />
-                </RemoteScrollRoot>
+                <RemoteScrollRoot className="min-h-0 flex-1">{suggestionPanel}</RemoteScrollRoot>
             ) : (
                 <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-safe-offset">
-                    <MemoSuggestionPanel
-                        listId={listId}
-                        suggestions={suggestions}
-                        isLoading={isLoadingSuggestions}
-                        loadingLabel={t('loadingSuggestions')}
-                        localSuggestionQueries={localSuggestionQueries}
-                        deleteLabel={t('deleteSearch')}
-                        refillLabel={t('refillSearch')}
-                        onPick={handlePickSuggestion}
-                        onRefill={handleRefillSuggestion}
-                        onRemoveLocalSuggestion={
-                            onRemoveLocalSuggestion ? handleRemoveLocalSuggestion : undefined
-                        }
-                    />
+                    {suggestionPanel}
                 </div>
             )}
         </div>,

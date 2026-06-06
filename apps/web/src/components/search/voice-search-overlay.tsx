@@ -107,7 +107,7 @@ export function VoiceSearchOverlay({
             aria-modal="true"
             aria-labelledby="voice-search-headline"
         >
-            <header className="flex shrink-0 items-start px-3 pt-safe-offset">
+            <header className="flex shrink-0 items-start px-page-gutter pt-safe-offset">
                 <button
                     type="button"
                     onClick={onClose}
@@ -118,7 +118,7 @@ export function VoiceSearchOverlay({
                 </button>
             </header>
 
-            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-5 pt-2 sm:px-10">
+            <div className="flex min-h-0 flex-1 flex-col overflow-y-auto px-page-gutter pt-2">
                 <h1
                     id="voice-search-headline"
                     className={cn(
@@ -137,7 +137,7 @@ export function VoiceSearchOverlay({
                 ) : null}
             </div>
 
-            <footer className="flex shrink-0 flex-col items-center px-5 pb-safe-offset-lg pt-4 sm:px-6">
+            <footer className="flex shrink-0 flex-col items-center px-page-gutter pb-safe-offset-lg pt-4">
                 <div className="relative flex h-[min(38dvh,260px)] w-full max-w-sm flex-col items-center justify-end">
                     {statusHint ? (
                         <p className="mb-8 max-w-[18rem] text-center text-sm leading-relaxed text-muted-foreground">

@@ -13,7 +13,7 @@ import { cn } from '@/lib/utils';
 
 type CuratedPlaylistCardProps = {
     listId: string;
-    onOpen: () => void;
+    onOpenAction: () => void;
     /** `list` matches {@link VideoListItem}; `tile` is for horizontal browse carousel only. */
     layout?: 'list' | 'tile';
     className?: string;
@@ -51,7 +51,9 @@ function CuratedPlaylistMeta({
                 {hasError ? t('cardLoadError') : (title ?? t('untitledPlaylist'))}
             </p>
             {videoCount !== undefined ? (
-                <p className="text-xs text-muted-foreground">{t('videoCount', { count: videoCount })}</p>
+                <p className="text-xs text-muted-foreground">
+                    {t('videoCount', { count: videoCount })}
+                </p>
             ) : null}
         </>
     );
@@ -71,7 +73,7 @@ function CuratedPlaylistThumbPlaceholder({ isLoading }: { isLoading: boolean }) 
 
 export function CuratedPlaylistCard({
     listId,
-    onOpen,
+    onOpenAction: onOpen,
     layout = 'list',
     className,
 }: CuratedPlaylistCardProps) {
@@ -143,7 +145,7 @@ export function CuratedPlaylistCard({
                 onClick={onOpen}
                 aria-label={ariaLabel}
                 className={cn(
-                    'flex w-full cursor-pointer items-start gap-3 p-2 text-left',
+                    'flex w-full cursor-pointer items-start gap-3 py-2 text-left',
                     'hover:bg-accent/50 active:bg-accent/60',
                     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 )}

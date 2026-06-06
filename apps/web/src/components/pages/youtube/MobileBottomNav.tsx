@@ -46,7 +46,7 @@ export const MobileBottomNav = forwardRef<HTMLElement, MobileBottomNavProps>(
             <nav
                 ref={ref}
                 className={cn(
-                    'flex items-stretch justify-around border-t bg-background px-safe-offset pb-safe-offset pt-1',
+                    'grid grid-cols-4 items-stretch border-t bg-background px-page-gutter pb-safe-offset pt-1',
                     className,
                 )}
                 aria-label={t('mainNavigation')}

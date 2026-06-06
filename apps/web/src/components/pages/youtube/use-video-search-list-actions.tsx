@@ -39,7 +39,8 @@ export function useVideoSearchListActions() {
                         label: t('addToQueue'),
                         buttonText: t('addToQueueShort'),
                         icon: <ListPlus />,
-                        tone: 'default',
+                        tone: 'outline',
+                        className: 'ring-1 ring-inset ring-border/80 dark:ring-border',
                         onClick: () => {
                             closeMenu();
                             recordEngagement(video, 'queue');

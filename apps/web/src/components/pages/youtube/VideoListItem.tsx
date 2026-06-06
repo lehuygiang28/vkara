@@ -11,14 +11,20 @@ import { useI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@vkara/youtube';
 
 import { VideoListThumbnail } from './video-list-thumbnail';
+import {
+    VIDEO_LIST_ROW_HEIGHT,
+    VIDEO_LIST_ROW_GAP,
+    VIDEO_LIST_ROW_STRIDE,
+} from '@/lib/video-list-layout';
 
-/** Base row: title (2 lines) + channels + views. */
-export const VIDEO_LIST_ROW_HEIGHT = 100;
+export { VIDEO_LIST_ROW_HEIGHT, VIDEO_LIST_ROW_GAP, VIDEO_LIST_ROW_STRIDE };
 /** Action chips row when a video is selected. */
 export const VIDEO_LIST_ROW_ACTIONS_HEIGHT = 52;
 
 export function getVideoListRowHeight(hasActions: boolean): number {
-    return hasActions ? VIDEO_LIST_ROW_HEIGHT + VIDEO_LIST_ROW_ACTIONS_HEIGHT : VIDEO_LIST_ROW_HEIGHT;
+    return hasActions
+        ? VIDEO_LIST_ROW_HEIGHT + VIDEO_LIST_ROW_ACTIONS_HEIGHT
+        : VIDEO_LIST_ROW_HEIGHT;
 }
 
 interface VideoListItemProps {
@@ -37,9 +43,7 @@ export const VideoListItem = memo(function VideoListItem({
     onSelect,
 }: VideoListItemProps) {
     const t = useI18n();
-    const uploadedAtLabel = video.uploadedAt
-        ? formatUploadedAt(video.uploadedAt, t)
-        : '';
+    const uploadedAtLabel = video.uploadedAt ? formatUploadedAt(video.uploadedAt, t) : '';
     const views = coerceViewCount(video.views);
     const isLive = isVideoLive(video);
 
@@ -66,8 +70,8 @@ export const VideoListItem = memo(function VideoListItem({
     return (
         <div
             className={cn(
-                'w-full overflow-hidden rounded-lg text-left text-sm',
-                isActive && 'bg-accent/30 ring-1 ring-inset ring-primary/40',
+                'w-full overflow-hidden rounded-lg text-left text-sm transition-colors',
+                isActive && 'bg-primary/10 dark:bg-primary/15',
             )}
         >
             <div
@@ -81,8 +85,8 @@ export const VideoListItem = memo(function VideoListItem({
                     }
                 }}
                 className={cn(
-                    'flex h-[100px] w-full cursor-pointer items-start gap-3 p-2',
-                    'hover:bg-accent/50 active:bg-accent/60',
+                    'flex h-[100px] w-full cursor-pointer items-start gap-3 py-2',
+                    !isActive && 'hover:bg-accent/50 active:bg-accent/60',
                 )}
             >
                 <VideoListThumbnail
@@ -106,13 +110,15 @@ export const VideoListItem = memo(function VideoListItem({
                     </div>
                     <VideoChannels video={video} tone="muted" maxLines={2} />
                     {metadataLine ? (
-                        <div className="line-clamp-1 text-xs text-muted-foreground">{metadataLine}</div>
+                        <div className="line-clamp-1 text-xs text-muted-foreground">
+                            {metadataLine}
+                        </div>
                     ) : null}
                 </div>
             </div>
             {actions ? (
                 <div
-                    className="border-t border-border/50 px-2 pb-2 pt-1.5"
+                    className="pb-2 pt-1.5"
                     onClick={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
                 >

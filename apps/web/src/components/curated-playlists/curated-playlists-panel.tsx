@@ -32,20 +32,22 @@ export function CuratedPlaylistsPanel({
                     ? 'min-w-0 border-t border-border/60 pb-2 pt-4'
                     : isImport
                       ? 'py-4'
-                      : 'w-full px-safe-offset'
+                      : 'w-full'
             }
         >
             {showHeading ? (
                 isImport ? (
                     <div className="mb-4 space-y-1">
-                        <h3 className="text-sm font-medium text-foreground">{t('importQuickPick')}</h3>
+                        <h3 className="text-sm font-medium text-foreground">
+                            {t('importQuickPick')}
+                        </h3>
                         <p className="text-xs text-muted-foreground">{t('importQuickPickHint')}</p>
                     </div>
                 ) : (
                     <p
                         className={
                             isBrowse
-                                ? 'mb-4 px-safe-offset text-sm text-muted-foreground'
+                                ? 'mb-4 text-sm text-muted-foreground'
                                 : 'mb-3 text-center text-sm text-muted-foreground'
                         }
                     >

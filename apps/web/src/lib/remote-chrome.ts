@@ -5,7 +5,22 @@ import type { Transition } from 'framer-motion';
  *
  * Provider + scroll components live in `components/pages/youtube/remote-chrome/`.
  * `--vkara-remote-inset-bottom` = now-playing height + gap (nav excluded).
+ *
+ * Horizontal gutter: apply `PAGE_GUTTER.className` once per chrome band (header, list,
+ * now-playing, nav). Do not nest horizontal gutter utilities on children unless full-bleed.
+ * Virtualized lists: apply gutter on a wrapper inside the scroll root (e.g. `RemotePageGutter`),
+ * not on the same element as the `relative` container for `position: absolute` rows.
  */
+
+/** Shared horizontal inset for remote page chrome (CSS vars + Tailwind utility). */
+export const PAGE_GUTTER = {
+    cssVar: '--vkara-page-gutter',
+    inlineStartVar: '--vkara-page-gutter-inline-start',
+    inlineEndVar: '--vkara-page-gutter-inline-end',
+    className: 'px-page-gutter',
+    classNameStart: 'pl-page-gutter',
+    classNameEnd: 'pr-page-gutter',
+} as const;
 
 /** Shared timing for now-playing bar slide + dependent layout effects. */
 export const NOW_PLAYING_BAR_MS = {

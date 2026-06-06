@@ -95,7 +95,6 @@ export function VideoQueue() {
                 }
             />
             <VideoList
-                keyPrefix="queue-list"
                 videos={room?.videoQueue || []}
                 emptyState={
                     <div className="flex w-full flex-col items-center">
