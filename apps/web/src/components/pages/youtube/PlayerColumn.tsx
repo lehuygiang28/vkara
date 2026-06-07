@@ -407,7 +407,7 @@ function PlayerColumnInner({
         }
         endedForVideoIdRef.current = current.id;
         setShouldShowTimer(true);
-    }, []);
+    }, [setShouldShowTimer]);
 
     const handleSkipUnplayable = useCallback(
         (videoId: string) => {
