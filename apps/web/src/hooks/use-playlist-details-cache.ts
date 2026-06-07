@@ -42,7 +42,8 @@ export function usePlaylistDetailsCache() {
                     return data;
                 })
                 .catch((error: unknown) => {
-                    const message = error instanceof Error ? error.message : 'Failed to load playlist';
+                    const message =
+                        error instanceof Error ? error.message : 'Failed to load playlist';
                     cacheRef.current.set(listId, { error: message });
                     notifyCacheUpdate(setBump);
                     throw error;

@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-    filterCatalogsByLocale,
-    getCuratedCatalogsForLocale,
-    loadCatalogs,
-} from '@src/index';
+import { filterCatalogsByLocale, getCuratedCatalogsForLocale, loadCatalogs } from '@src/index';
 import type { CuratedPlaylistsFile } from '@src/schema';
 
 const sampleFile: CuratedPlaylistsFile = {
@@ -26,9 +22,7 @@ const sampleFile: CuratedPlaylistsFile = {
         {
             id: 'vi-only',
             suggestLocales: ['vi'],
-            playlists: [
-                'https://www.youtube.com/playlist?list=PLRH1bes7ddmVp0Cpe2OWJxK6zqA2h8CrD',
-            ],
+            playlists: ['https://www.youtube.com/playlist?list=PLRH1bes7ddmVp0Cpe2OWJxK6zqA2h8CrD'],
         },
     ],
 };
@@ -39,23 +33,17 @@ const duplicateIdFile: CuratedPlaylistsFile = {
         {
             id: 'karaoke',
             suggestLocales: ['vi', 'en'],
-            playlists: [
-                'https://www.youtube.com/playlist?list=PLVIET1111111111111111111111111111',
-            ],
+            playlists: ['https://www.youtube.com/playlist?list=PLVIET1111111111111111111111111111'],
         },
         {
             id: 'music',
             suggestLocales: ['vi', 'en'],
-            playlists: [
-                'https://www.youtube.com/playlist?list=PLMUSIC111111111111111111111111111',
-            ],
+            playlists: ['https://www.youtube.com/playlist?list=PLMUSIC111111111111111111111111111'],
         },
         {
             id: 'karaoke',
             suggestLocales: ['en', 'vi'],
-            playlists: [
-                'https://www.youtube.com/playlist?list=PLENGLISH222222222222222222222222',
-            ],
+            playlists: ['https://www.youtube.com/playlist?list=PLENGLISH222222222222222222222222'],
         },
     ],
 };
@@ -121,7 +109,9 @@ describe('filterCatalogsByLocale', () => {
             expect(karaoke?.playlists).toHaveLength(4);
         }
 
-        const enKaraoke = getCuratedCatalogsForLocale('en').find((catalog) => catalog.id === 'karaoke');
+        const enKaraoke = getCuratedCatalogsForLocale('en').find(
+            (catalog) => catalog.id === 'karaoke',
+        );
         expect(enKaraoke?.playlists[0]).toContain('PLRH1bes7ddmWO-sNw14I-FxKKvxMujKoc');
     });
 });

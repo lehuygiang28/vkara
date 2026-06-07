@@ -2,11 +2,7 @@
 
 import { useEffect, useState } from 'react';
 
-import {
-    useCurrentLocale,
-    useScopedI18n,
-    type SUPPORTED_LOCALES,
-} from '@/locales/client';
+import { useCurrentLocale, useScopedI18n, type SUPPORTED_LOCALES } from '@/locales/client';
 import { useChangeLocale } from '@/hooks/use-change-locale';
 import { cn } from '@/lib/utils';
 import {
@@ -64,7 +60,9 @@ function LocaleToggle({
                         <span
                             className={cn(
                                 'select-none',
-                                isOverlay ? 'px-0.5 text-zinc-600' : 'px-0.5 text-muted-foreground/50',
+                                isOverlay
+                                    ? 'px-0.5 text-zinc-600'
+                                    : 'px-0.5 text-muted-foreground/50',
                             )}
                             aria-hidden
                         >
@@ -115,10 +113,7 @@ export function LanguageSwitcher({ variant = 'inline', className }: LanguageSwit
         if (variant === 'menu') return null;
         return (
             <div
-                className={cn(
-                    variant === 'overlay' ? 'h-6 w-12' : 'h-8 w-[4.25rem]',
-                    className,
-                )}
+                className={cn(variant === 'overlay' ? 'h-6 w-12' : 'h-8 w-[4.25rem]', className)}
                 aria-hidden
             />
         );

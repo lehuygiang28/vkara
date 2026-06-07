@@ -42,17 +42,14 @@ describe('fetchYoutubePlaylistDetails', () => {
             id: 'PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI',
             title: 'Karaoke Hits',
             videoCount: 42,
-            thumbnails: [
-                { url: 'https://example.com/pl.jpg', width: 320, height: 180 },
-            ],
+            thumbnails: [{ url: 'https://example.com/pl.jpg', width: 320, height: 180 }],
             channel: { name: 'VKara' },
             videos: { items: [] },
         });
 
-        const result = await fetchYoutubePlaylistDetails(
-            'PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI',
-            { videoLimit: 25 },
-        );
+        const result = await fetchYoutubePlaylistDetails('PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI', {
+            videoLimit: 25,
+        });
 
         expect(fetchYoutubePlaylistVideos).toHaveBeenCalledWith(
             'PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI',
@@ -67,10 +64,9 @@ describe('fetchYoutubePlaylistDetails', () => {
         fetchYoutubePlaylistVideos.mockResolvedValue([]);
         getPlaylist.mockRejectedValue(new Error('network'));
 
-        const result = await fetchYoutubePlaylistDetails(
-            'PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI',
-            { videoLimit: 10 },
-        );
+        const result = await fetchYoutubePlaylistDetails('PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI', {
+            videoLimit: 10,
+        });
 
         expect(result.playlist.id).toBe('PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI');
         expect(result.videos).toEqual([]);

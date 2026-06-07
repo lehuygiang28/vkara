@@ -108,7 +108,8 @@ export const buildBrowseFeedRankContext = (
     const latestSearch = profile.searchHistory[0];
 
     return {
-        query: latestSearch?.query ?? room.playingNow?.title ?? profile.recentVideos[0]?.title ?? '',
+        query:
+            latestSearch?.query ?? room.playingNow?.title ?? profile.recentVideos[0]?.title ?? '',
         isKaraoke: latestSearch?.isKaraoke ?? false,
         roomHistory: room.historyQueue,
     };

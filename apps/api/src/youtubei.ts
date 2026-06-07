@@ -198,10 +198,7 @@ export const searchYoutubeiElysia = new Elysia({})
     )
     .post(
         '/playlist',
-        async ({
-            body: { playlistUrlOrId, videoLimit, fetchAll },
-            store: { redisClient },
-        }) =>
+        async ({ body: { playlistUrlOrId, videoLimit, fetchAll }, store: { redisClient } }) =>
             fetchYoutubePlaylistDetailsCached(redisClient, playlistUrlOrId, {
                 videoLimit,
                 fetchAll,

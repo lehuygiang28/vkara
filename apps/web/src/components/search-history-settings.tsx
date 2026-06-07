@@ -31,7 +31,9 @@ export function SearchHistorySettings() {
                     confirmContent={
                         <>
                             <h4 className="font-medium leading-none">{t('confirmTitle')}</h4>
-                            <p className="text-sm text-muted-foreground">{t('confirmDescription')}</p>
+                            <p className="text-sm text-muted-foreground">
+                                {t('confirmDescription')}
+                            </p>
                         </>
                     }
                 />

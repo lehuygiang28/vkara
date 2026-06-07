@@ -117,10 +117,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     );
 
     useEffect(() => {
-        if (
-            lastMessage?.type === 'roomJoined' ||
-            lastMessage?.type === 'roomCreated'
-        ) {
+        if (lastMessage?.type === 'roomJoined' || lastMessage?.type === 'roomCreated') {
             recoveryInFlight.current = false;
             abandonedRoomIdRef.current = null;
             useWebSocketStore.setState({ roomSessionEpoch: connectionEpoch });

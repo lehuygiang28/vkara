@@ -104,7 +104,9 @@ describe('parseVideos', () => {
         expect(video.isImagePost).toBe(true);
         expect(video.imageCount).toBe(1);
         expect(video.cover).toBe('https://cdn.example/photo-a.jpeg');
-        expect(video.url).toBe('https://www.tiktok.com/@karaokeloversworldwide/video/7547206919400721684');
+        expect(video.url).toBe(
+            'https://www.tiktok.com/@karaokeloversworldwide/video/7547206919400721684',
+        );
     });
 
     it('parses livestreams with live URL and cover fallback', () => {

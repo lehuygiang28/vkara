@@ -18,13 +18,13 @@ vkara/
 └── docker-compose.yml       # Profiles: api | web | bundle | aio | whisper
 ```
 
-| Image | Dockerfile | Exposed ports | Use when |
-|-------|------------|---------------|----------|
-| `lehuygiang28/vkara-api` | `apps/api/Dockerfile` | `8000` | API behind your own Redis / reverse proxy |
-| `lehuygiang28/vkara-web` | `apps/web/Dockerfile` | `3000` | Frontend only; point env at external API |
-| `lehuygiang28/vkara-api-redis` | `containers/api-redis/Dockerfile` | `8000` | Backend bundle without Next.js; Redis stays inside the container |
-| `lehuygiang28/vkara-aio` | `containers/aio/Dockerfile` | `3000` | Single container, one public port |
-| *(local / HF Space)* | `containers/whisper-stt/Dockerfile` | `7860` | Optional voice search STT (build context = that folder) |
+| Image                          | Dockerfile                          | Exposed ports | Use when                                                         |
+| ------------------------------ | ----------------------------------- | ------------- | ---------------------------------------------------------------- |
+| `lehuygiang28/vkara-api`       | `apps/api/Dockerfile`               | `8000`        | API behind your own Redis / reverse proxy                        |
+| `lehuygiang28/vkara-web`       | `apps/web/Dockerfile`               | `3000`        | Frontend only; point env at external API                         |
+| `lehuygiang28/vkara-api-redis` | `containers/api-redis/Dockerfile`   | `8000`        | Backend bundle without Next.js; Redis stays inside the container |
+| `lehuygiang28/vkara-aio`       | `containers/aio/Dockerfile`         | `3000`        | Single container, one public port                                |
+| _(local / HF Space)_           | `containers/whisper-stt/Dockerfile` | `7860`        | Optional voice search STT (build context = that folder)          |
 
 Build context is the **repository root** (`.`) for vkara app/bundle images, including monorepo `packages/*`. **Exception:** `whisper-stt` builds from `containers/whisper-stt/` only.
 
@@ -85,22 +85,22 @@ Hugging Face deployment: [whisper-stt/README.md](./whisper-stt/README.md).
 
 ## Docker Compose profiles
 
-| Profile | Services | Command |
-|---------|----------|---------|
-| `api` | `vkara_api` | `docker compose --profile api up` |
-| `web` | `vkara_web` | `docker compose --profile web up` |
-| `bundle` | `api_redis` | `docker compose --profile bundle up` |
-| `aio` | `vkara_aio` | `docker compose --profile aio up` |
+| Profile   | Services      | Command                               |
+| --------- | ------------- | ------------------------------------- |
+| `api`     | `vkara_api`   | `docker compose --profile api up`     |
+| `web`     | `vkara_web`   | `docker compose --profile web up`     |
+| `bundle`  | `api_redis`   | `docker compose --profile bundle up`  |
+| `aio`     | `vkara_aio`   | `docker compose --profile aio up`     |
 | `whisper` | `whisper_stt` | `docker compose --profile whisper up` |
 
 Optional env for compose (shell or `.env` at repo root):
 
-| Variable | Default | Meaning |
-|----------|---------|---------|
-| `COMPOSE_TAG` | `latest` | Image tag |
-| `WEB_PORT` | `3000` | Host port for web profile |
-| `AIO_PORT` | `3000` | Host port for aio profile |
-| `BUNDLE_PORT` | `8000` | Host port for api-redis bundle API |
+| Variable      | Default  | Meaning                            |
+| ------------- | -------- | ---------------------------------- |
+| `COMPOSE_TAG` | `latest` | Image tag                          |
+| `WEB_PORT`    | `3000`   | Host port for web profile          |
+| `AIO_PORT`    | `3000`   | Host port for aio profile          |
+| `BUNDLE_PORT` | `8000`   | Host port for api-redis bundle API |
 
 ---
 
@@ -181,22 +181,22 @@ Whenever `NEXT_PUBLIC_*` values change. They are baked into the Next.js bundle a
 
 See `apps/api/.env.example`. Required for production:
 
-| Variable | Description |
-|----------|-------------|
-| `PORT` | Listen port (default `8000`) |
-| `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` | Redis connection |
-| `PUBLIC_APP_URL` | Web origin for YouTube embed checks (e.g. `https://vkara.example.com`) |
+| Variable                                       | Description                                                            |
+| ---------------------------------------------- | ---------------------------------------------------------------------- |
+| `PORT`                                         | Listen port (default `8000`)                                           |
+| `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` | Redis connection                                                       |
+| `PUBLIC_APP_URL`                               | Web origin for YouTube embed checks (e.g. `https://vkara.example.com`) |
 
 ### `apps/web` (standalone web)
 
 See `apps/web/.env.example`. Client vars must be set **at build time** for production images:
 
-| Variable | Standalone example | AIO (set in Dockerfile) |
-|----------|-------------------|-------------------------|
-| `NEXT_PUBLIC_API_URL` | `http://localhost:8000/` | `/api/vkara` |
-| `NEXT_PUBLIC_TIKTOK_API_URL` | *(optional → `NEXT_PUBLIC_API_URL`)* | *(optional → `/api/vkara`)* |
-| `NEXT_PUBLIC_WS_URL` | `ws://localhost:8000/` | *(empty → same-origin `/ws`)* |
-| `NEXT_PUBLIC_APP_URL` | Public site URL | Same as `PUBLIC_APP_URL` |
+| Variable                     | Standalone example                   | AIO (set in Dockerfile)       |
+| ---------------------------- | ------------------------------------ | ----------------------------- |
+| `NEXT_PUBLIC_API_URL`        | `http://localhost:8000/`             | `/api/vkara`                  |
+| `NEXT_PUBLIC_TIKTOK_API_URL` | _(optional → `NEXT_PUBLIC_API_URL`)_ | _(optional → `/api/vkara`)_   |
+| `NEXT_PUBLIC_WS_URL`         | `ws://localhost:8000/`               | _(empty → same-origin `/ws`)_ |
+| `NEXT_PUBLIC_APP_URL`        | Public site URL                      | Same as `PUBLIC_APP_URL`      |
 
 Server-only (optional): `WHISPER_URL`, `HF_TOKEN` for speech routes under `/api/speech/*`.
 
@@ -208,10 +208,10 @@ See `containers/api-redis/.env.example`. Redis password defaults to `giang` in s
 
 See `containers/aio/.env.example`:
 
-| Variable | Description |
-|----------|-------------|
+| Variable         | Description                                  |
+| ---------------- | -------------------------------------------- |
 | `PUBLIC_APP_URL` | Public URL (default `http://localhost:3000`) |
-| `VKARA_AIO` | Must stay `1` in this image |
+| `VKARA_AIO`      | Must stay `1` in this image                  |
 
 Redis credentials are fixed inside the image (`127.0.0.1:6379`, password `giang`).
 
@@ -229,12 +229,12 @@ Redis credentials are fixed inside the image (`127.0.0.1:6379`, password `giang`
 
 ## Troubleshooting
 
-| Symptom | Check |
-|---------|--------|
-| Web cannot reach API | `NEXT_PUBLIC_API_URL` / WS URL; CORS is open on API but URLs must match |
-| AIO `/` errors | Hard-refresh browser (old redirects may be cached) |
-| Build fails on `npm` / TypeScript | Build from repo root; aio Dockerfile installs workspace filters + `typescript` |
-| Redis connection refused (api profile) | API image has no Redis - use `bundle` or external Redis |
+| Symptom                                | Check                                                                          |
+| -------------------------------------- | ------------------------------------------------------------------------------ |
+| Web cannot reach API                   | `NEXT_PUBLIC_API_URL` / WS URL; CORS is open on API but URLs must match        |
+| AIO `/` errors                         | Hard-refresh browser (old redirects may be cached)                             |
+| Build fails on `npm` / TypeScript      | Build from repo root; aio Dockerfile installs workspace filters + `typescript` |
+| Redis connection refused (api profile) | API image has no Redis - use `bundle` or external Redis                        |
 
 For local development without Docker, use `bun run dev` from the repo root ([README](../README.md#quick-start)).
 

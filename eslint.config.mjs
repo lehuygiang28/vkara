@@ -108,7 +108,8 @@ export default tseslint.config(
                         ...sharedLegacyImports.patterns,
                         {
                             group: ['../../apps/**', '../../../apps/**', '@/../apps/**'],
-                            message: 'Packages must not import from apps/. Move shared code to packages/*.',
+                            message:
+                                'Packages must not import from apps/. Move shared code to packages/*.',
                         },
                     ],
                 },

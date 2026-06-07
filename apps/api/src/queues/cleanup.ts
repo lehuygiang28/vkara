@@ -37,14 +37,10 @@ export const cleanupQueue = new Queue('room-cleanup', {
 });
 
 // Create a worker to process cleanup jobs
-const worker = new Worker(
-    'room-cleanup',
-    async () => await cleanupInactiveRooms(),
-    {
-        connection: connectionOptions,
-        concurrency: 1,
-    },
-);
+const worker = new Worker('room-cleanup', async () => await cleanupInactiveRooms(), {
+    connection: connectionOptions,
+    concurrency: 1,
+});
 
 // Handle worker events
 worker.on('completed', (job) => {

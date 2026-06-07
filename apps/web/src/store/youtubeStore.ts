@@ -291,9 +291,12 @@ export const useYouTubeStore = create(
                                 if (playing) {
                                     const seekBase = isTikTokPlayback({ video: playing })
                                         ? getTikTokSeekBaseSeconds(state.room?.isPlaying ?? false)
-                                        : state.player?.getCurrentTime() ?? roomTime;
+                                        : (state.player?.getCurrentTime() ?? roomTime);
                                     if (
-                                        needsPlaybackSeekCorrection(seekBase, message.currentTime) &&
+                                        needsPlaybackSeekCorrection(
+                                            seekBase,
+                                            message.currentTime,
+                                        ) &&
                                         (isTikTokPlayback({ video: playing }) || state.player)
                                     ) {
                                         markServerPlaybackCommand();

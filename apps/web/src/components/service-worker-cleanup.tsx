@@ -14,9 +14,7 @@ export function ServiceWorkerCleanup() {
             if ('caches' in window) {
                 const keys = await caches.keys();
                 await Promise.all(
-                    keys
-                        .filter((key) => key.startsWith('vkara-'))
-                        .map((key) => caches.delete(key)),
+                    keys.filter((key) => key.startsWith('vkara-')).map((key) => caches.delete(key)),
                 );
             }
         })();

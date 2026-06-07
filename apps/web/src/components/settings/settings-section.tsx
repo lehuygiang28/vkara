@@ -10,7 +10,13 @@ type SettingsSectionProps = {
     children: ReactNode;
 };
 
-export function SettingsSection({ title, hint, scope, scopeLabel, children }: SettingsSectionProps) {
+export function SettingsSection({
+    title,
+    hint,
+    scope,
+    scopeLabel,
+    children,
+}: SettingsSectionProps) {
     return (
         <section className="space-y-2">
             <div className="space-y-1 px-1">
@@ -20,7 +26,9 @@ export function SettingsSection({ title, hint, scope, scopeLabel, children }: Se
                     </h2>
                     {scope && scopeLabel ? <ScopeBadge scope={scope} label={scopeLabel} /> : null}
                 </div>
-                {hint ? <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
+                {hint ? (
+                    <p className="text-xs leading-relaxed text-muted-foreground">{hint}</p>
+                ) : null}
             </div>
             {children}
         </section>

@@ -15,10 +15,10 @@ Default host mapping: API **8000** only. Redis runs inside the container and is 
 
 ## Files
 
-| File | Role |
-|------|------|
-| `Dockerfile` | Build API from monorepo; runtime with Redis + supervisord |
-| `supervisord.conf` | Runs `redis-server` and `/app/server` |
-| `entrypoint.sh` | Starts supervisord |
+| File               | Role                                                      |
+| ------------------ | --------------------------------------------------------- |
+| `Dockerfile`       | Build API from monorepo; runtime with Redis + supervisord |
+| `supervisord.conf` | Runs `redis-server` and `/app/server`                     |
+| `entrypoint.sh`    | Starts supervisord                                        |
 
 Pair with `lehuygiang28/vkara-web` or your own Next.js deployment for a full stack.

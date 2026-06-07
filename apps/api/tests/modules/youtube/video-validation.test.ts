@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-    isPlayableYoutubeVideo,
-    isSearchResultVideo,
-} from '@/modules/youtube/video-validation';
+import { isPlayableYoutubeVideo, isSearchResultVideo } from '@/modules/youtube/video-validation';
 
 describe('isSearchResultVideo', () => {
     it('accepts valid id and non-empty title', () => {

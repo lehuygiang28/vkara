@@ -117,8 +117,6 @@ export function videoProviderSurfaceColors({
             prefersDark,
             alpha: active ? palette.borderActiveAlpha * 0.55 : palette.borderInactiveAlpha,
         }),
-        checkBackground: prefersDark
-            ? palette.checkBackground.dark
-            : palette.checkBackground.light,
+        checkBackground: prefersDark ? palette.checkBackground.dark : palette.checkBackground.light,
     };
 }

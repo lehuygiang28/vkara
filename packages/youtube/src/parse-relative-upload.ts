@@ -1,11 +1,4 @@
-export type RelativeUploadUnit =
-    | 'second'
-    | 'minute'
-    | 'hour'
-    | 'day'
-    | 'week'
-    | 'month'
-    | 'year';
+export type RelativeUploadUnit = 'second' | 'minute' | 'hour' | 'day' | 'week' | 'month' | 'year';
 
 export type ParsedRelativeUpload =
     | { kind: 'relative'; value: number; unit: RelativeUploadUnit }
@@ -43,8 +36,7 @@ const UNIT_ALIASES: Record<string, RelativeUploadUnit> = {
 const JUST_NOW_PATTERN = /^(?:just\s+now|a\s+moment\s+ago)$/i;
 
 /** Matches YouTube-style strings: "11 months ago", "Streamed 2 days ago", "1 year ago". */
-const RELATIVE_PATTERN =
-    /^(?:(?:streamed|premiered)\s+)?(?:(\d+)|(a|an))\s+([a-z]+)\s+ago$/i;
+const RELATIVE_PATTERN = /^(?:(?:streamed|premiered)\s+)?(?:(\d+)|(a|an))\s+([a-z]+)\s+ago$/i;
 
 /**
  * Parse English relative upload labels from YouTube / youtubei.

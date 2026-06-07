@@ -1,6 +1,4 @@
-export function getSpeechRecognitionConstructor():
-    | (new () => SpeechRecognition)
-    | undefined {
+export function getSpeechRecognitionConstructor(): (new () => SpeechRecognition) | undefined {
     if (typeof window === 'undefined') {
         return undefined;
     }

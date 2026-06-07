@@ -57,10 +57,7 @@ export function usePlaybackPositionSync(): void {
             }
 
             const previous = serverTime;
-            if (
-                !force &&
-                !shouldBroadcastPlaybackTime(lastSentRef.current, accepted, previous)
-            ) {
+            if (!force && !shouldBroadcastPlaybackTime(lastSentRef.current, accepted, previous)) {
                 return;
             }
 

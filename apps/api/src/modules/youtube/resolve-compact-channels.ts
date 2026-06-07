@@ -168,8 +168,7 @@ export const collectCompactChannelCandidates = (
                 id: item.channel.id,
                 name: item.channel.name,
                 verified:
-                    isVerifiedChannel(item.channel) ||
-                    verifiedByVideoId.get(item.id) === true,
+                    isVerifiedChannel(item.channel) || verifiedByVideoId.get(item.id) === true,
             },
         ];
     });

@@ -17,11 +17,7 @@ import { TooltipButton } from '@/components/tooltip-button';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
-} from '@/components/ui/input-otp';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import {
     Select,
     SelectContent,
@@ -37,7 +33,11 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import { generateShareableUrl } from '@/lib/room-share';
-import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } from '@/lib/room-field-autofill';
+import {
+    roomCodeFieldProps,
+    roomCodeOtpSlotClassName,
+    roomSecretFieldProps,
+} from '@/lib/room-field-autofill';
 import { resolveRoomPasswordForShare, ROOM_ID_LENGTH } from '@vkara/room';
 
 type RoomSettingsSectionProps = {
@@ -47,15 +47,16 @@ type RoomSettingsSectionProps = {
 export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps) {
     const { wsId, room, setRoom, enterTvLobby } = useYouTubeStore();
     const { ensureConnectedAndSend, connectionStatus } = useWebSocket();
+    const { roomPassword, showPassword, setRoomPassword, setShowPassword, resetJoinFormState } =
+        useRoomSettingsStore();
     const {
-        roomPassword,
-        showPassword,
-        setRoomPassword,
-        setShowPassword,
-        resetJoinFormState,
-    } = useRoomSettingsStore();
-    const { joinRoom, joinFromScan, joinRoomId, setJoinRoomId, joinRoomPassword, setJoinRoomPassword } =
-        useJoinRoom();
+        joinRoom,
+        joinFromScan,
+        joinRoomId,
+        setJoinRoomId,
+        joinRoomPassword,
+        setJoinRoomPassword,
+    } = useJoinRoom();
 
     const t = useI18n();
     const tRoom = useScopedI18n('roomSettings');
@@ -150,12 +151,16 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                 <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                                     {tRoom('roomId')}
                                 </p>
-                                <p className="font-mono text-3xl font-semibold tabular-nums">{room.id}</p>
+                                <p className="font-mono text-3xl font-semibold tabular-nums">
+                                    {room.id}
+                                </p>
                             </div>
 
                             {room.password ? (
                                 <div className="space-y-2">
-                                    <Label htmlFor="room-password">{tRoom('roomPassword.label')}</Label>
+                                    <Label htmlFor="room-password">
+                                        {tRoom('roomPassword.label')}
+                                    </Label>
                                     <div className="flex">
                                         <Input
                                             id="room-password"
@@ -172,7 +177,9 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                             size="icon"
                                             onClick={() => setShowPassword(!showPassword)}
                                             className="ml-2"
-                                            aria-label={showPassword ? 'Hide password' : 'Show password'}
+                                            aria-label={
+                                                showPassword ? 'Hide password' : 'Show password'
+                                            }
                                         >
                                             {showPassword ? (
                                                 <EyeOff className="h-4 w-4" />
@@ -320,16 +327,30 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                     {...roomCodeFieldProps}
                                 >
                                     <InputOTPGroup>
-                                        <InputOTPSlot index={0} className={roomCodeOtpSlotClassName} />
-                                        <InputOTPSlot index={1} className={roomCodeOtpSlotClassName} />
-                                        <InputOTPSlot index={2} className={roomCodeOtpSlotClassName} />
-                                        <InputOTPSlot index={3} className={roomCodeOtpSlotClassName} />
+                                        <InputOTPSlot
+                                            index={0}
+                                            className={roomCodeOtpSlotClassName}
+                                        />
+                                        <InputOTPSlot
+                                            index={1}
+                                            className={roomCodeOtpSlotClassName}
+                                        />
+                                        <InputOTPSlot
+                                            index={2}
+                                            className={roomCodeOtpSlotClassName}
+                                        />
+                                        <InputOTPSlot
+                                            index={3}
+                                            className={roomCodeOtpSlotClassName}
+                                        />
                                     </InputOTPGroup>
                                 </InputOTP>
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label htmlFor="join-room-password">{tRoom('joinRoomPassword.label')}</Label>
+                            <Label htmlFor="join-room-password">
+                                {tRoom('joinRoomPassword.label')}
+                            </Label>
                             <Input
                                 id="join-room-password"
                                 type="password"
@@ -354,7 +375,9 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                             <SettingsSubheader>{tSections('createRoom')}</SettingsSubheader>
                             <SettingsBlock>
                                 <div className="space-y-2">
-                                    <Label htmlFor="create-room-password">{tRoom('roomPassword.label')}</Label>
+                                    <Label htmlFor="create-room-password">
+                                        {tRoom('roomPassword.label')}
+                                    </Label>
                                     <Input
                                         id="create-room-password"
                                         type="password"

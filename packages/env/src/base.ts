@@ -20,10 +20,7 @@ export function parseEnvFlagValue(raw: string | undefined, defaultValue = false)
     return defaultValue;
 }
 
-export function parseEnvPositiveIntValue(
-    raw: string | undefined,
-    defaultValue: number,
-): number {
+export function parseEnvPositiveIntValue(raw: string | undefined, defaultValue: number): number {
     const trimmed = raw?.trim();
     if (!trimmed) {
         return defaultValue;

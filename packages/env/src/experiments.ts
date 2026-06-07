@@ -34,9 +34,7 @@ export function isExperimentsEnabled(
 }
 
 /** Web client mirror for Settings visibility (falls back to server flag when unset). */
-export function isExperimentsEnabledOnWeb(
-    env: ExperimentsEnvValues,
-): boolean {
+export function isExperimentsEnabledOnWeb(env: ExperimentsEnvValues): boolean {
     if (env.NEXT_PUBLIC_VKARA_EXPERIMENTS !== undefined) {
         return parseEnvFlagValue(env.NEXT_PUBLIC_VKARA_EXPERIMENTS, false);
     }

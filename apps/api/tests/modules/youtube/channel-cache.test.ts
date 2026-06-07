@@ -7,9 +7,7 @@ describe('getCachedChannel', () => {
         const redis = {
             get: vi
                 .fn()
-                .mockResolvedValue(
-                    JSON.stringify({ id: 'UCabc', name: 'Artist', verified: true }),
-                ),
+                .mockResolvedValue(JSON.stringify({ id: 'UCabc', name: 'Artist', verified: true })),
         } as never;
 
         await expect(getCachedChannel(redis, 'UCabc')).resolves.toEqual({
@@ -23,9 +21,7 @@ describe('getCachedChannel', () => {
         const redis = {
             get: vi
                 .fn()
-                .mockResolvedValueOnce(
-                    JSON.stringify({ id: 1, name: 'Artist', verified: true }),
-                )
+                .mockResolvedValueOnce(JSON.stringify({ id: 1, name: 'Artist', verified: true }))
                 .mockResolvedValueOnce(
                     JSON.stringify({ id: 'UCabc', name: ['x'], verified: false }),
                 ),

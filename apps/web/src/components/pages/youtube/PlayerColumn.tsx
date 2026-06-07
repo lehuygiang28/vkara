@@ -6,10 +6,7 @@ import { Settings } from 'lucide-react';
 import { LayoutGroup } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 
-import {
-    type CaptionTrack,
-    type YouTubeVideo,
-} from '@vkara/youtube';
+import { type CaptionTrack, type YouTubeVideo } from '@vkara/youtube';
 import { getVideoThumbnailSrcSet, getVideoThumbnailUrl } from '@vkara/tiktok';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';

@@ -2,10 +2,7 @@ import { getVideoSource, type YouTubeVideo } from '@vkara/youtube';
 
 export type TikTokQueueItem = Pick<YouTubeVideo, 'source' | 'url'>;
 
-export type TikTokPhotoItem = Pick<
-    YouTubeVideo,
-    'type' | 'source' | 'url' | 'tiktokImageCount'
->;
+export type TikTokPhotoItem = Pick<YouTubeVideo, 'type' | 'source' | 'url' | 'tiktokImageCount'>;
 
 export function isTikTokVideo(video: TikTokQueueItem): boolean {
     if (getVideoSource(video) === 'tiktok') {

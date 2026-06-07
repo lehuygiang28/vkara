@@ -36,19 +36,19 @@ describe('tv-room-recovery', () => {
     });
 
     it('shouldRecoverTvRoom only for TV layout', () => {
-        expect(
-            shouldRecoverTvRoom('errorWithCode', ErrorCode.REJOIN_ROOM_NOT_FOUND, true),
-        ).toBe(true);
-        expect(
-            shouldRecoverTvRoom('errorWithCode', ErrorCode.REJOIN_ROOM_NOT_FOUND, false),
-        ).toBe(false);
+        expect(shouldRecoverTvRoom('errorWithCode', ErrorCode.REJOIN_ROOM_NOT_FOUND, true)).toBe(
+            true,
+        );
+        expect(shouldRecoverTvRoom('errorWithCode', ErrorCode.REJOIN_ROOM_NOT_FOUND, false)).toBe(
+            false,
+        );
         expect(shouldRecoverTvRoom('roomClosed', undefined, true)).toBe(false);
     });
 
     it('does not recover for unrelated error codes on TV', () => {
-        expect(
-            shouldRecoverTvRoom('errorWithCode', ErrorCode.INCORRECT_PASSWORD, true),
-        ).toBe(false);
+        expect(shouldRecoverTvRoom('errorWithCode', ErrorCode.INCORRECT_PASSWORD, true)).toBe(
+            false,
+        );
         expect(shouldRecoverTvRoom('roomUpdate', undefined, true)).toBe(false);
     });
 

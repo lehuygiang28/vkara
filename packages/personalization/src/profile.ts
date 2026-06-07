@@ -45,7 +45,8 @@ export const recordSearch = (
     }
 
     const withoutDuplicate = profile.searchHistory.filter(
-        (entry) => entry.query.toLowerCase() !== trimmed.toLowerCase() || entry.isKaraoke !== isKaraoke,
+        (entry) =>
+            entry.query.toLowerCase() !== trimmed.toLowerCase() || entry.isKaraoke !== isKaraoke,
     );
 
     const searchHistory = trimSearchHistory([
@@ -124,5 +125,4 @@ export const getTopChannels = (
 export const getRecentSearchQueries = (
     profile: PersonalizationProfile,
     limit: number = PERSONALIZATION_LIMITS.recentSearchBoostCount,
-): string[] =>
-    profile.searchHistory.slice(0, limit).map((entry) => entry.query);
+): string[] => profile.searchHistory.slice(0, limit).map((entry) => entry.query);

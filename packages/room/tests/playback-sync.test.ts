@@ -35,9 +35,9 @@ describe('needsPlaybackSeekCorrection', () => {
     });
 
     it('is true when drift exceeds tolerance', () => {
-        expect(
-            needsPlaybackSeekCorrection(0, 100 + PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC + 1),
-        ).toBe(true);
+        expect(needsPlaybackSeekCorrection(0, 100 + PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC + 1)).toBe(
+            true,
+        );
     });
 });
 

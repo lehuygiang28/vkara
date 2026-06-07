@@ -85,7 +85,10 @@ export function ImportPlaylistPanel({ open }: ImportPlaylistPanelProps) {
             }
         >
             <section className="space-y-3 border-b border-border/60 py-4">
-                <label htmlFor="import-playlist-url" className="flex items-center gap-2 text-sm font-medium">
+                <label
+                    htmlFor="import-playlist-url"
+                    className="flex items-center gap-2 text-sm font-medium"
+                >
                     <Link2 className="h-4 w-4 text-muted-foreground" aria-hidden />
                     {tCurated('pastePlaylistLink')}
                 </label>

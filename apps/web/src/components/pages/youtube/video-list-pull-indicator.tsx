@@ -18,11 +18,7 @@ type VideoListPullHeaderProps = {
 };
 
 /** Extra pull beyond threshold adds less visual height so the gap does not balloon. */
-function displayGap(
-    pullPosition: number,
-    refreshThreshold: number,
-    maxPullGap: number,
-): number {
+function displayGap(pullPosition: number, refreshThreshold: number, maxPullGap: number): number {
     if (pullPosition <= refreshThreshold) return pullPosition;
     const extra = pullPosition - refreshThreshold;
     const maxExtra = Math.max(maxPullGap - refreshThreshold, 1);
@@ -51,9 +47,7 @@ export function VideoListPullHeader({
     refreshThreshold,
     maxPullGap,
 }: VideoListPullHeaderProps) {
-    const gap = isRefreshing
-        ? holdGap
-        : displayGap(pullPosition, refreshThreshold, maxPullGap);
+    const gap = isRefreshing ? holdGap : displayGap(pullPosition, refreshThreshold, maxPullGap);
     const isDragging = pullPosition > 0 && !isRefreshing;
     const iconSize = iconSizeForGap(gap, refreshThreshold);
     const showIcon = iconSize > 0;
@@ -82,8 +76,7 @@ export function VideoListPullHeader({
                     style={{
                         width: iconSize,
                         height: iconSize,
-                        transform:
-                            pullRotation > 0 ? `rotate(${pullRotation}deg)` : undefined,
+                        transform: pullRotation > 0 ? `rotate(${pullRotation}deg)` : undefined,
                     }}
                 >
                     <Loader2

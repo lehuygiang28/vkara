@@ -5,10 +5,7 @@ import type { PlaylistDetailsResponse, YouTubeVideo } from '@vkara/youtube';
 
 const PLAYLIST_ID = 'PLRH1bes7ddmVMYRkmPNJY4lFZsGlAAXbC';
 
-function makeVideo(
-    id: string,
-    thumbnails: YouTubeVideo['thumbnails'],
-): YouTubeVideo {
+function makeVideo(id: string, thumbnails: YouTubeVideo['thumbnails']): YouTubeVideo {
     return {
         id,
         title: 'First song',

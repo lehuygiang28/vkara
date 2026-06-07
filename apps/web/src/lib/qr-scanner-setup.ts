@@ -20,17 +20,13 @@ export function createQrScanner(
     video: HTMLVideoElement,
     onDecode: (data: string) => void,
 ): QrScanner {
-    const scanner = new QrScanner(
-        video,
-        (result) => onDecode(result.data),
-        {
-            preferredCamera: 'environment',
-            maxScansPerSecond: 30,
-            highlightScanRegion: true,
-            highlightCodeOutline: true,
-            calculateScanRegion: calculateTvFriendlyScanRegion,
-        },
-    );
+    const scanner = new QrScanner(video, (result) => onDecode(result.data), {
+        preferredCamera: 'environment',
+        maxScansPerSecond: 30,
+        highlightScanRegion: true,
+        highlightCodeOutline: true,
+        calculateScanRegion: calculateTvFriendlyScanRegion,
+    });
 
     // QR on TV/phone screens often needs inverted detection.
     scanner.setInversionMode('both');

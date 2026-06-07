@@ -13,10 +13,7 @@ const EMBED_CHECK_CONCURRENCY = 6;
 
 const embedResolveInFlight = createInFlightDedup<string, boolean>();
 
-async function fetchMissedEmbeddability(
-    redisClient: Redis,
-    videoId: string,
-): Promise<boolean> {
+async function fetchMissedEmbeddability(redisClient: Redis, videoId: string): Promise<boolean> {
     return embedResolveInFlight.run(videoId, async () => {
         const recheck = await mgetEmbeddability(redisClient, [videoId]);
         const cached = recheck.get(videoId);

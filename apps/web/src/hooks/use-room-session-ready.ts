@@ -11,9 +11,7 @@ export function useIsRoomSessionReady(): boolean {
     const roomSessionEpoch = useWebSocketStore((s) => s.roomSessionEpoch);
     const roomId = useYouTubeStore((s) => s.room?.id);
 
-    return (
-        connectionStatus === 'OPEN' && (!roomId || roomSessionEpoch === connectionEpoch)
-    );
+    return connectionStatus === 'OPEN' && (!roomId || roomSessionEpoch === connectionEpoch);
 }
 
 export function useWaitForRoomSession() {
@@ -25,10 +23,7 @@ export function useWaitForRoomSession() {
                 useWebSocketStore.getState();
             const roomId = useYouTubeStore.getState().room?.id;
 
-            if (
-                connectionStatus === 'OPEN' &&
-                (!roomId || roomSessionEpoch === connectionEpoch)
-            ) {
+            if (connectionStatus === 'OPEN' && (!roomId || roomSessionEpoch === connectionEpoch)) {
                 return true;
             }
 

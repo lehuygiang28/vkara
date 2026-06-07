@@ -19,9 +19,10 @@ describe('parseRoomFromScan', () => {
     });
 
     it('parses HTTPS invite URLs', () => {
-        expect(
-            parseRoomFromScan('https://vkara.app/vi?roomId=5678&password=party'),
-        ).toEqual({ roomId: '5678', password: 'party' });
+        expect(parseRoomFromScan('https://vkara.app/vi?roomId=5678&password=party')).toEqual({
+            roomId: '5678',
+            password: 'party',
+        });
     });
 
     it('parses relative URLs via fallback base', () => {

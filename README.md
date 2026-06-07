@@ -93,12 +93,12 @@
 
 ### Tips
 
-| Situation | What to do |
-|-----------|------------|
-| Old or slow TV browser | Plug in a laptop via HDMI |
-| Want karaoke versions | Turn on the karaoke filter when searching |
-| App UI · English | Open [/en](https://vkara.vercel.app/en) |
-| App UI · Vietnamese | Open [`/`](https://vkara.vercel.app/) |
+| Situation              | What to do                                |
+| ---------------------- | ----------------------------------------- |
+| Old or slow TV browser | Plug in a laptop via HDMI                 |
+| Want karaoke versions  | Turn on the karaoke filter when searching |
+| App UI · English       | Open [/en](https://vkara.vercel.app/en)   |
+| App UI · Vietnamese    | Open [`/`](https://vkara.vercel.app/)     |
 
 ## FAQ
 
@@ -179,11 +179,11 @@ bun run dev:api
 <details>
 <summary><strong>Docker images</strong></summary>
 
-| Image | Port | Notes |
-|-------|------|--------|
-| `lehuygiang28/vkara-aio` | 3000 | Full stack (recommended) |
-| `lehuygiang28/vkara-web` | 3000 | Frontend only |
-| `lehuygiang28/vkara-api` | 8000 | API only (bring your own Redis) |
+| Image                          | Port | Notes                                                |
+| ------------------------------ | ---- | ---------------------------------------------------- |
+| `lehuygiang28/vkara-aio`       | 3000 | Full stack (recommended)                             |
+| `lehuygiang28/vkara-web`       | 3000 | Frontend only                                        |
+| `lehuygiang28/vkara-api`       | 8000 | API only (bring your own Redis)                      |
 | `lehuygiang28/vkara-api-redis` | 8000 | API + Redis in one container; Redis is internal only |
 
 Compose profiles: `aio`, `web`, `api`, `bundle`, `whisper`. See [containers/README.md](containers/README.md).
@@ -193,12 +193,12 @@ Compose profiles: `aio`, `web`, `api`, `bundle`, `whisper`. See [containers/READ
 <details>
 <summary><strong>Tech stack</strong></summary>
 
-| Layer | Stack |
-|-------|--------|
+| Layer    | Stack                          |
+| -------- | ------------------------------ |
 | Frontend | Next.js 15, React 19, Tailwind |
-| Backend | Bun, Elysia |
-| State | Redis |
-| Repo | Bun workspaces, Turborepo |
+| Backend  | Bun, Elysia                    |
+| State    | Redis                          |
+| Repo     | Bun workspaces, Turborepo      |
 
 Optional voice search: [Whisper STT](containers/whisper-stt/README.md).
 
@@ -243,11 +243,11 @@ Issues and pull requests welcome. Change `packages/validators` (and related doma
 
 YouTube search and playback in vkara depend on open-source libraries and their authors:
 
-| Library | Author | Used for |
-|---------|--------|----------|
+| Library                                                      | Author                                                           | Used for                                         |
+| ------------------------------------------------------------ | ---------------------------------------------------------------- | ------------------------------------------------ |
 | [youtubei](https://github.com/SuspiciousLookingOwl/youtubei) | [@SuspiciousLookingOwl](https://github.com/SuspiciousLookingOwl) | Search, video metadata, playlists, Innertube API |
-| [youtube-sr](https://github.com/twlite/youtube-sr) | [@twlite](https://github.com/twlite) | Search suggestions |
-| [react-youtube](https://github.com/tjallingt/react-youtube) | [@tjallingt](https://github.com/tjallingt) | YouTube player embed in the web app |
+| [youtube-sr](https://github.com/twlite/youtube-sr)           | [@twlite](https://github.com/twlite)                             | Search suggestions                               |
+| [react-youtube](https://github.com/tjallingt/react-youtube)  | [@tjallingt](https://github.com/tjallingt)                       | YouTube player embed in the web app              |
 
 Thank you to the maintainers and contributors of these projects.
 

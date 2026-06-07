@@ -113,13 +113,7 @@ export function RemoteChromeProvider({
             onBarAnimatingChange: setAnimating,
             onBarAnimationComplete,
         }),
-        [
-            layoutPhase,
-            animating,
-            showNowPlayingBar,
-            hasPlaying,
-            onBarAnimationComplete,
-        ],
+        [layoutPhase, animating, showNowPlayingBar, hasPlaying, onBarAnimationComplete],
     );
 
     return <RemoteChromeContext.Provider value={value}>{children}</RemoteChromeContext.Provider>;

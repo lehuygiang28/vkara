@@ -15,3 +15,7 @@
 **/*.tgz
 **/*.log
 **/*.bun
+
+# Documentation and OpenSpec (hand-edited prose/specs)
+docs/**
+openspec/**

@@ -16,8 +16,7 @@ export async function resolveItemViews(
         return preloaded;
     }
 
-    let views =
-        metadata.viewCountByVideoId.get(item.id) ?? resolveViewCount(item.viewCount);
+    let views = metadata.viewCountByVideoId.get(item.id) ?? resolveViewCount(item.viewCount);
 
     if (
         views === 0 &&

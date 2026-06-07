@@ -48,12 +48,12 @@ git push -u origin main
 
 3. **Settings → Variables and secrets** (optional):
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `WHISPER_MODEL` | `small` | `tiny`, `base`, `small`, `medium`, or HF id e.g. `Systran/faster-whisper-small` |
-| `WHISPER_COMPUTE_TYPE` | `int8` | CPU: `int8` or `int8_float32` |
-| `WHISPER_LANGUAGE` | *(empty)* | `vi`, `en`, … or empty for auto-detect |
-| `HF_TOKEN` | - | Only if pulling private/gated models |
+| Variable               | Default   | Description                                                                     |
+| ---------------------- | --------- | ------------------------------------------------------------------------------- |
+| `WHISPER_MODEL`        | `small`   | `tiny`, `base`, `small`, `medium`, or HF id e.g. `Systran/faster-whisper-small` |
+| `WHISPER_COMPUTE_TYPE` | `int8`    | CPU: `int8` or `int8_float32`                                                   |
+| `WHISPER_LANGUAGE`     | _(empty)_ | `vi`, `en`, … or empty for auto-detect                                          |
+| `HF_TOKEN`             | -         | Only if pulling private/gated models                                            |
 
 4. Wait for build (~5-15 min first time while model downloads to `/data` cache).
 
@@ -71,11 +71,11 @@ Public Spaces may require `HF_TOKEN` in the header when calling from vkara web (
 
 ## Duplicate an existing Space instead
 
-| Space | Why |
-|-------|-----|
-| [speaches-ai/speaches](https://huggingface.co/spaces/speaches-ai/speaches) | OpenAI API (transcribe + TTS), actively maintained; pick **CPU** hardware |
-| [fedirz/faster-whisper-server](https://huggingface.co/spaces/fedirz/faster-whisper-server) | Older name of speaches; may have README preload limits - prefer speaches |
-| [wolfofbackstreet/faster-whisper-transcription-api](https://huggingface.co/spaces/wolfofbackstreet/faster-whisper-transcription-api) | API-focused; check if Space is running before duplicate |
+| Space                                                                                                                                | Why                                                                       |
+| ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------- |
+| [speaches-ai/speaches](https://huggingface.co/spaces/speaches-ai/speaches)                                                           | OpenAI API (transcribe + TTS), actively maintained; pick **CPU** hardware |
+| [fedirz/faster-whisper-server](https://huggingface.co/spaces/fedirz/faster-whisper-server)                                           | Older name of speaches; may have README preload limits - prefer speaches  |
+| [wolfofbackstreet/faster-whisper-transcription-api](https://huggingface.co/spaces/wolfofbackstreet/faster-whisper-transcription-api) | API-focused; check if Space is running before duplicate                   |
 
 **Duplicate:** Space page → **⋮** → **Duplicate this Space** → remove excess `preload_from_hub` models in README if build fails (HF limits ~10 preloads).
 

@@ -33,7 +33,8 @@ export function CountdownTimer({
             return;
         }
 
-        const { startCountdown, setRemainingSeconds, cancelCountdown } = useCountdownStore.getState();
+        const { startCountdown, setRemainingSeconds, cancelCountdown } =
+            useCountdownStore.getState();
         startCountdown(initialSeconds);
 
         timerRef.current = setInterval(() => {

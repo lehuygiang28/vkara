@@ -1,8 +1,5 @@
 import { createContextLogger } from '@/utils/logger';
-import {
-    relatedInstances,
-    searchInstances,
-} from '@/modules/youtube/cache';
+import { relatedInstances, searchInstances } from '@/modules/youtube/cache';
 
 const reportLogger = createContextLogger('Service/Report');
 

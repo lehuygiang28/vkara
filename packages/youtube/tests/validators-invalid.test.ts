@@ -43,6 +43,8 @@ describe('parseYoutubePlaylistInput invalid inputs', () => {
     });
 
     it('throws when no playlist id pattern matches', () => {
-        expect(() => parseYoutubePlaylistInput('ZZ' + 'A'.repeat(500))).toThrow('Invalid playlist ID');
+        expect(() => parseYoutubePlaylistInput('ZZ' + 'A'.repeat(500))).toThrow(
+            'Invalid playlist ID',
+        );
     });
 });

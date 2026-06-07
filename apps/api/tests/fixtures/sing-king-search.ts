@@ -28,7 +28,9 @@ const SING_KING_VIDEO_IDS = [
 
 const SING_KING_FIXTURE_SIZE: number = SING_KING_VIDEO_IDS.length;
 
-export function buildSingKingStyleSearchPage(count: number = SING_KING_FIXTURE_SIZE): YouTubeVideo[] {
+export function buildSingKingStyleSearchPage(
+    count: number = SING_KING_FIXTURE_SIZE,
+): YouTubeVideo[] {
     const limit = Math.min(count, SING_KING_FIXTURE_SIZE);
     return SING_KING_VIDEO_IDS.slice(0, limit).map((id, index) => ({
         id,
@@ -40,6 +42,8 @@ export function buildSingKingStyleSearchPage(count: number = SING_KING_FIXTURE_S
         uploadedAt: '2024-01-01',
         views: 1_000_000 + index,
         channels: [{ name: SING_KING_CHANNEL_NAME, verified: true }],
-        thumbnails: [{ url: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, width: 480, height: 360 }],
+        thumbnails: [
+            { url: `https://i.ytimg.com/vi/${id}/hqdefault.jpg`, width: 480, height: 360 },
+        ],
     }));
 }

@@ -10,10 +10,7 @@ import {
     navigateTikTokPhotoTo,
 } from '@/lib/tiktok-playback-sync';
 import { isPlayerPageHidden } from '@/lib/tiktok-room-playback';
-import {
-    applyRoomPlaybackToPlayer,
-    applySeekToPlayer,
-} from '@/lib/youtube-playback-sync';
+import { applyRoomPlaybackToPlayer, applySeekToPlayer } from '@/lib/youtube-playback-sync';
 
 export type ActivePlaybackVideo = Pick<YouTubeVideo, 'source' | 'url'> | null | undefined;
 

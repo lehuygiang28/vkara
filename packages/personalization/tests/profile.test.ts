@@ -27,7 +27,9 @@ describe('search history mutations', () => {
         profile = {
             ...profile,
             channelScores: { test: 1 },
-            recentVideos: [{ id: 'v1', title: 'Song', channels: [{ name: 'Ch', verified: false }] }],
+            recentVideos: [
+                { id: 'v1', title: 'Song', channels: [{ name: 'Ch', verified: false }] },
+            ],
         };
 
         const cleared = clearSearchHistory(profile);
@@ -41,9 +43,9 @@ describe('search history mutations', () => {
         const profile = createEmptyProfile();
         expect(recordSearch(profile, '   ', false)).toBe(profile);
         expect(recordSearch(profile, '\n\t', false)).toBe(profile);
-        expect(recordSearch(profile, '<script>alert(1)</script>', false).searchHistory[0]?.query).toBe(
-            '<script>alert(1)</script>',
-        );
+        expect(
+            recordSearch(profile, '<script>alert(1)</script>', false).searchHistory[0]?.query,
+        ).toBe('<script>alert(1)</script>');
     });
 
     test('recordSearch dedupes case-insensitively but keeps karaoke flag variants', () => {
@@ -60,7 +62,9 @@ describe('search history mutations', () => {
             profile = recordSearch(profile, `q${i}`, false);
         }
         expect(profile.searchHistory).toHaveLength(PERSONALIZATION_LIMITS.maxSearchHistory);
-        expect(profile.searchHistory[0]?.query).toBe(`q${PERSONALIZATION_LIMITS.maxSearchHistory + 4}`);
+        expect(profile.searchHistory[0]?.query).toBe(
+            `q${PERSONALIZATION_LIMITS.maxSearchHistory + 4}`,
+        );
     });
 
     test('removeSearchHistoryEntry is no-op for blank query', () => {

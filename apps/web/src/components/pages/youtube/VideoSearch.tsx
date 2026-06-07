@@ -194,7 +194,10 @@ export function VideoSearch() {
             {isLoading && searchResults.length === 0 && !showBrowseIdle ? (
                 <RemoteScrollRoot ref={skeletonScrollRef} className="min-h-0 flex-1">
                     <RemotePageGutter>
-                        <VideoSkeletonListForViewport scrollRef={skeletonScrollRef} className="pt-2" />
+                        <VideoSkeletonListForViewport
+                            scrollRef={skeletonScrollRef}
+                            className="pt-2"
+                        />
                     </RemotePageGutter>
                 </RemoteScrollRoot>
             ) : showBrowseIdle ? (

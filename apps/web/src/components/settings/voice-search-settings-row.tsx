@@ -27,7 +27,9 @@ export function VoiceSearchSettingsRow() {
                         {t('useWhisper')}
                     </Label>
                     <p className="text-xs text-muted-foreground">
-                        {webSpeechSupported ? t('descriptionWithBrowser') : t('descriptionFallback')}
+                        {webSpeechSupported
+                            ? t('descriptionWithBrowser')
+                            : t('descriptionFallback')}
                     </p>
                     <p className="text-xs text-muted-foreground">{t('useWhisperHint')}</p>
                 </div>

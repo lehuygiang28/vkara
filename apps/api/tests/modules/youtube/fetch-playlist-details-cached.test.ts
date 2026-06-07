@@ -12,7 +12,8 @@ vi.mock('@/modules/youtube/fetch-playlist-details', () => ({
 }));
 
 vi.mock('@/modules/youtube/playlist-details-cache', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('@/modules/youtube/playlist-details-cache')>();
+    const actual =
+        await importOriginal<typeof import('@/modules/youtube/playlist-details-cache')>();
     return {
         ...actual,
         getCachedPlaylistDetails,

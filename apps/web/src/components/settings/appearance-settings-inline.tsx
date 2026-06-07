@@ -58,10 +58,7 @@ export function AppearanceSettingsInline() {
                     )
                 }
             />
-            <SettingsRow
-                label={t('language')}
-                control={<LanguageSwitcher variant="inline" />}
-            />
+            <SettingsRow label={t('language')} control={<LanguageSwitcher variant="inline" />} />
         </>
     );
 }

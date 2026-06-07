@@ -22,7 +22,8 @@ export interface SearchInstanceWithTimestamp {
 export const searchInstances = new Map<string, SearchInstanceWithTimestamp>();
 export const relatedInstances = new Map<string, SearchInstanceWithTimestamp>();
 
-export const getRedisKey = (prefix: string, continuation: string): string => `${prefix}${continuation}`;
+export const getRedisKey = (prefix: string, continuation: string): string =>
+    `${prefix}${continuation}`;
 
 export async function storeContinuation(
     prefix: string,

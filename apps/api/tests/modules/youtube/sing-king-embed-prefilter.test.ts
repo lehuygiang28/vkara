@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import type Redis from 'ioredis';
 
-import { buildSingKingStyleSearchPage, SING_KING_CHANNEL_NAME } from '../../fixtures/sing-king-search';
+import {
+    buildSingKingStyleSearchPage,
+    SING_KING_CHANNEL_NAME,
+} from '../../fixtures/sing-king-search';
 import { filterVideosForListPrefilter } from '@/modules/youtube/resolve-embed-playability';
 import { resolveNextEmbeddableFromQueue } from '@/modules/youtube/resolve-embeddable-queue';
 
@@ -23,7 +26,9 @@ function redisWithEmbeddability(byVideoId: Record<string, '0' | '1'>): Redis {
     } as unknown as Redis;
 }
 
-function allNonEmbeddable(page: ReturnType<typeof buildSingKingStyleSearchPage>): Record<string, '0'> {
+function allNonEmbeddable(
+    page: ReturnType<typeof buildSingKingStyleSearchPage>,
+): Record<string, '0'> {
     return Object.fromEntries(page.map((video) => [video.id, '0']));
 }
 
@@ -43,7 +48,9 @@ describe('Sing King search embed prefilter', () => {
         const filtered = await filterVideosForListPrefilter(redis, page, prefilterOn);
 
         expect(filtered).toEqual([]);
-        expect(page.every((video) => video.channels[0]?.name === SING_KING_CHANNEL_NAME)).toBe(true);
+        expect(page.every((video) => video.channels[0]?.name === SING_KING_CHANNEL_NAME)).toBe(
+            true,
+        );
     });
 
     it('keeps only embeddable rows when one Sing King result is allowed', async () => {

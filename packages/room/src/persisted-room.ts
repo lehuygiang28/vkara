@@ -20,10 +20,7 @@ export function normalizePersistedRoom(
         id: room.id,
         videoQueue: Array.isArray(room.videoQueue) ? room.videoQueue : [],
         historyQueue: Array.isArray(room.historyQueue) ? room.historyQueue : [],
-        volume:
-            typeof room.volume === 'number'
-                ? Math.min(100, Math.max(0, room.volume))
-                : 100,
+        volume: typeof room.volume === 'number' ? Math.min(100, Math.max(0, room.volume)) : 100,
         showQRInPlayer: room.showQRInPlayer ?? true,
         captionsEnabled: room.captionsEnabled ?? false,
         captionsLanguage: room.captionsLanguage || DEFAULT_CAPTION_LANGUAGE,

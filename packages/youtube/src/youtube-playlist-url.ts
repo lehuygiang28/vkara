@@ -72,7 +72,7 @@ export function parseYoutubePlaylistInput(raw: string): YoutubePlaylistInput {
             fetchUrl: isMix ? buildMixWatchUrl(listId) : buildStandardPlaylistUrl(listId),
             isMix,
             listId,
-            seedVideoId: isMix ? extractSeedVideoIdFromMixListId(listId) ?? undefined : undefined,
+            seedVideoId: isMix ? (extractSeedVideoIdFromMixListId(listId) ?? undefined) : undefined,
         };
     }
 

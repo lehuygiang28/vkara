@@ -13,13 +13,8 @@ import { toast } from '@/hooks/use-toast';
 export function useJoinRoom() {
     const t = useScopedI18n('roomSettings');
     const { ensureConnectedAndSend } = useWebSocket();
-    const {
-        joinRoomId,
-        joinRoomPassword,
-        setJoinRoomId,
-        setJoinRoomPassword,
-        resetJoinFormState,
-    } = useRoomSettingsStore();
+    const { joinRoomId, joinRoomPassword, setJoinRoomId, setJoinRoomPassword, resetJoinFormState } =
+        useRoomSettingsStore();
 
     const joinRoom = useCallback(
         (data?: { roomId?: string; password?: string | null }) => {

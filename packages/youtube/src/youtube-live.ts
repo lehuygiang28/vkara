@@ -12,9 +12,7 @@ export function resolveYoutubeLiveFlag(video: {
     const uploadDate = video.uploadDate ?? video.uploadedAt;
     const noUpload = !uploadDate?.trim();
     const noDuration =
-        video.duration === null ||
-        video.duration === undefined ||
-        video.duration === 0;
+        video.duration === null || video.duration === undefined || video.duration === 0;
 
     return noUpload && noDuration;
 }

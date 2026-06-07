@@ -2,15 +2,15 @@
     "name": "vkara-monorepo",
     "private": true,
     "packageManager": "bun@1.3.13",
-	"author": "lehuygiang28 <lehuygiang28@gmail.com>",
-	"license": "MIT",
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/lehuygiang28/vkara"
-	},
-	"homepage": "https://github.com/lehuygiang28/vkara",
-	"bugs": "https://github.com/lehuygiang28/vkara/issues",
-	"version": "0.0.1",
+    "author": "lehuygiang28 <lehuygiang28@gmail.com>",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lehuygiang28/vkara"
+    },
+    "homepage": "https://github.com/lehuygiang28/vkara",
+    "bugs": "https://github.com/lehuygiang28/vkara/issues",
+    "version": "0.0.1",
     "workspaces": [
         "apps/*",
         "packages/*"

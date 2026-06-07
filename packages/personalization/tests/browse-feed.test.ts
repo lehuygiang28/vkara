@@ -32,9 +32,9 @@ describe('buildBrowseFeedSources', () => {
             videoId: 'room-live',
             seedTitle: 'Live in room',
         });
-        expect(sources.some((source) => source.kind === 'search' && source.query === 'hoàng luân')).toBe(
-            true,
-        );
+        expect(
+            sources.some((source) => source.kind === 'search' && source.query === 'hoàng luân'),
+        ).toBe(true);
     });
 
     test('falls back to profile channels when search history is empty', () => {
@@ -43,9 +43,9 @@ describe('buildBrowseFeedSources', () => {
 
         const sources = buildBrowseFeedSources(profile, { historyQueue: [] });
 
-        expect(sources.some((source) => source.kind === 'search' && source.query === 'Kara King')).toBe(
-            true,
-        );
+        expect(
+            sources.some((source) => source.kind === 'search' && source.query === 'Kara King'),
+        ).toBe(true);
     });
 });
 
@@ -88,9 +88,7 @@ describe('rankBrowseFeedBatch', () => {
         const ctx = buildBrowseFeedRankContext(profile, { historyQueue: [] });
         const existing = new Set(['only']);
 
-        expect(
-            rankBrowseFeedBatch([video('only', 'Dup')], existing, profile, ctx),
-        ).toEqual([]);
+        expect(rankBrowseFeedBatch([video('only', 'Dup')], existing, profile, ctx)).toEqual([]);
     });
 });
 

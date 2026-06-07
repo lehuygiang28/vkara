@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import {
-    getEffectiveLayoutMode,
-    getSuggestedLayoutMode,
-    TV_MIN_WIDTH_PX,
-} from '@/lib/layout-mode';
+import { getEffectiveLayoutMode, getSuggestedLayoutMode, TV_MIN_WIDTH_PX } from '@/lib/layout-mode';
 
 describe('getSuggestedLayoutMode', () => {
     it('suggests player at TV breakpoint and remote below', () => {

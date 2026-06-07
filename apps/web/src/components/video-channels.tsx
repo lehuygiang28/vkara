@@ -60,11 +60,7 @@ const overflowHintClassName: Record<VideoChannelsTone, string> = {
     inverse: 'shrink-0 font-normal text-white/75',
 };
 
-function channelSeparatorLabel(
-    index: number,
-    total: number,
-    andLabel: string,
-): string | undefined {
+function channelSeparatorLabel(index: number, total: number, andLabel: string): string | undefined {
     if (index === 0) {
         return undefined;
     }
@@ -147,7 +143,9 @@ export function VideoChannels({
         <div
             className={cn(
                 'flex w-full min-w-0 flex-wrap items-center',
-                isCompact ? 'flex-nowrap gap-x-0.5 overflow-hidden' : 'gap-x-0 gap-y-0.5 overflow-hidden',
+                isCompact
+                    ? 'flex-nowrap gap-x-0.5 overflow-hidden'
+                    : 'gap-x-0 gap-y-0.5 overflow-hidden',
                 allowWrap ? maxLinesWrapClassName[maxLines] : maxLinesClassName[maxLines],
                 toneClassName[tone],
                 alignClassName,
@@ -171,7 +169,9 @@ export function VideoChannels({
                             channel={channel}
                             tone={tone}
                             allowNameWrap={perChannelNameWrap}
-                            shrink={allowWrap || (isCompact && index === visibleChannels.length - 1)}
+                            shrink={
+                                allowWrap || (isCompact && index === visibleChannels.length - 1)
+                            }
                         />
                     </span>
                 );

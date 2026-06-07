@@ -7,24 +7,26 @@ import { usePreferBottomChrome } from '@/hooks/use-prefer-bottom-chrome';
 import { cn } from '@/lib/utils';
 import { useActionFeedbackStore, type ActionFeedbackVariant } from '@/store/action-feedback-store';
 
-const toneStyles: Record<ActionFeedbackVariant, { border: string; iconWrap: string; badge: string }> =
-    {
-        success: {
-            border: 'border-emerald-500/50',
-            iconWrap: 'border-emerald-400/70 bg-emerald-500 text-white',
-            badge: 'bg-emerald-500/20 text-emerald-300',
-        },
-        info: {
-            border: 'border-sky-500/50',
-            iconWrap: 'border-sky-400/70 bg-sky-500 text-white',
-            badge: 'bg-sky-500/20 text-sky-300',
-        },
-        warning: {
-            border: 'border-amber-500/50',
-            iconWrap: 'border-amber-400/70 bg-amber-500 text-zinc-950',
-            badge: 'bg-amber-500/20 text-amber-200',
-        },
-    };
+const toneStyles: Record<
+    ActionFeedbackVariant,
+    { border: string; iconWrap: string; badge: string }
+> = {
+    success: {
+        border: 'border-emerald-500/50',
+        iconWrap: 'border-emerald-400/70 bg-emerald-500 text-white',
+        badge: 'bg-emerald-500/20 text-emerald-300',
+    },
+    info: {
+        border: 'border-sky-500/50',
+        iconWrap: 'border-sky-400/70 bg-sky-500 text-white',
+        badge: 'bg-sky-500/20 text-sky-300',
+    },
+    warning: {
+        border: 'border-amber-500/50',
+        iconWrap: 'border-amber-400/70 bg-amber-500 text-zinc-950',
+        badge: 'bg-amber-500/20 text-amber-200',
+    },
+};
 
 function ActionFeedbackIcon({ variant }: { variant: ActionFeedbackVariant }) {
     const className = 'h-3.5 w-3.5 stroke-[2.75]';
@@ -124,7 +126,9 @@ export function ActionFeedbackHost() {
             aria-hidden={!visible}
             className={cn(
                 'pointer-events-none fixed inset-x-0 z-[105] flex justify-center px-safe-offset',
-                preferBottom ? 'bottom-[var(--vkara-toast-bottom)]' : 'top-[var(--vkara-toast-top)]',
+                preferBottom
+                    ? 'bottom-[var(--vkara-toast-bottom)]'
+                    : 'top-[var(--vkara-toast-top)]',
                 hostTransition,
                 visible
                     ? 'translate-y-0 opacity-100'
@@ -133,11 +137,7 @@ export function ActionFeedbackHost() {
                       : '-translate-y-1.5 opacity-0',
             )}
         >
-            {visible ? (
-                <ActionFeedbackCard
-                    className="pointer-events-auto"
-                />
-            ) : null}
+            {visible ? <ActionFeedbackCard className="pointer-events-auto" /> : null}
         </div>
     );
 }

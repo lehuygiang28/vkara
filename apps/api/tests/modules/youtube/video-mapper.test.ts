@@ -5,7 +5,11 @@ import { mapYoutubeiThumbnails } from '@/modules/youtube/video-mapper';
 describe('mapYoutubeiThumbnails', () => {
     it('enriches sparse youtubei hqdefault data with canonical sizes', () => {
         const thumbnails = mapYoutubeiThumbnails('abc123', [
-            { url: 'https://i.ytimg.com/vi/abc123/hqdefault.jpg?signed=1', width: 336, height: 188 },
+            {
+                url: 'https://i.ytimg.com/vi/abc123/hqdefault.jpg?signed=1',
+                width: 336,
+                height: 188,
+            },
         ] as never);
 
         expect(thumbnails[0]?.url).toContain('/default.jpg');

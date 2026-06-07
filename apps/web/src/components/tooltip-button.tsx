@@ -69,10 +69,8 @@ export function TooltipButton({
                 iconOnly ? 'w-9 gap-0 px-0' : 'gap-1 px-2.5',
                 variant === 'destructive' &&
                     'border-destructive/70 bg-destructive/25 text-destructive hover:bg-destructive/35',
-                variant === 'secondary' &&
-                    'border-border/60 bg-secondary/60 hover:bg-secondary/90',
-                variant === 'outline' &&
-                    'border-border/70 bg-background/80 hover:bg-accent/50',
+                variant === 'secondary' && 'border-border/60 bg-secondary/60 hover:bg-secondary/90',
+                variant === 'outline' && 'border-border/70 bg-background/80 hover:bg-accent/50',
                 className,
             )}
             onClick={handleClick}
@@ -90,36 +88,36 @@ export function TooltipButton({
     return (
         <div className={cn(iconOnly ? 'shrink-0' : 'min-w-0')}>
             <Tooltip>
-            <TooltipTrigger asChild>
-                {confirmMode ? (
-                    <Popover open={open} onOpenChange={setOpen}>
-                        <PopoverTrigger asChild>{button}</PopoverTrigger>
-                        <PopoverContent className="w-auto max-w-96 p-0">
-                            <div className="grid gap-4 p-4">
-                                <div className="space-y-2">{confirmContent}</div>
-                                <div className="flex justify-end space-x-2">
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setOpen(false)}
-                                    >
-                                        {t('cancel')}
-                                    </Button>
-                                    <Button size="sm" onClick={handleConfirm}>
-                                        {t('confirm')}
-                                    </Button>
+                <TooltipTrigger asChild>
+                    {confirmMode ? (
+                        <Popover open={open} onOpenChange={setOpen}>
+                            <PopoverTrigger asChild>{button}</PopoverTrigger>
+                            <PopoverContent className="w-auto max-w-96 p-0">
+                                <div className="grid gap-4 p-4">
+                                    <div className="space-y-2">{confirmContent}</div>
+                                    <div className="flex justify-end space-x-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setOpen(false)}
+                                        >
+                                            {t('cancel')}
+                                        </Button>
+                                        <Button size="sm" onClick={handleConfirm}>
+                                            {t('confirm')}
+                                        </Button>
+                                    </div>
                                 </div>
-                            </div>
-                        </PopoverContent>
-                    </Popover>
-                ) : (
-                    button
-                )}
-            </TooltipTrigger>
-            <TooltipContent>
-                <p>{tooltipContent}</p>
-            </TooltipContent>
-        </Tooltip>
+                            </PopoverContent>
+                        </Popover>
+                    ) : (
+                        button
+                    )}
+                </TooltipTrigger>
+                <TooltipContent>
+                    <p>{tooltipContent}</p>
+                </TooltipContent>
+            </Tooltip>
         </div>
     );
 }

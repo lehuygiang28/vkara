@@ -22,16 +22,8 @@ describe('resolveCompactVideoChannels', () => {
             set: async () => 'OK',
         } as never;
 
-        const channels = await resolveCompactVideoChannels(
-            compact,
-            redisClient,
-            true,
-            client,
-        );
+        const channels = await resolveCompactVideoChannels(compact, redisClient, true, client);
 
-        expect(channels.map((channel) => channel.name)).toEqual([
-            'Sơn Tùng M-TP Official',
-            'Tyga',
-        ]);
+        expect(channels.map((channel) => channel.name)).toEqual(['Sơn Tùng M-TP Official', 'Tyga']);
     });
 });

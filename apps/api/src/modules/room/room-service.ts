@@ -1,16 +1,8 @@
 import type { ElysiaWS } from 'elysia/ws';
 
-import {
-    cleanUpRoomField,
-    generateRandomNumber,
-    shuffleArray,
-} from '@/utils/common';
+import { cleanUpRoomField, generateRandomNumber, shuffleArray } from '@/utils/common';
 import { roomLogger, createContextLogger } from '@/utils/logger';
-import {
-    DEFAULT_CAPTION_LANGUAGE,
-    type CaptionTrack,
-    type YouTubeVideo,
-} from '@vkara/youtube';
+import { DEFAULT_CAPTION_LANGUAGE, type CaptionTrack, type YouTubeVideo } from '@vkara/youtube';
 import { getTikTokPhotoMaxIndex, isTikTokVideo } from '@vkara/tiktok';
 import {
     ErrorCode,
@@ -34,12 +26,7 @@ import {
 import { resolveNextEmbeddableFromQueue } from '@/modules/youtube/resolve-embeddable-queue';
 import { mergeQueueAfterAdvance } from '@/modules/room/merge-queue-after-advance';
 import { redis } from '@/redis';
-import {
-    isVideoAlreadyInRoom,
-    mutateRoom,
-    requireRoom,
-    writeRoom,
-} from '@/utils/room-store';
+import { isVideoAlreadyInRoom, mutateRoom, requireRoom, writeRoom } from '@/utils/room-store';
 
 const serviceLogger = createContextLogger('RoomService');
 
@@ -177,10 +164,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         preferredRoomId?: string,
         restore?: TvRoomRestoreState,
     ) {
-        const roomId = await resolveCreateRoomId(
-            restore ? preferredRoomId : undefined,
-            restore,
-        );
+        const roomId = await resolveCreateRoomId(restore ? preferredRoomId : undefined, restore);
 
         roomLogger.info(`Creating new room`, {
             roomId,
@@ -219,12 +203,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         sendToClient(ws, { type: 'roomCreated', roomId });
     }
 
-    async function joinRoom(
-        ws: ElysiaWS,
-        roomId: string,
-        password?: string,
-        isRejoin = false,
-    ) {
+    async function joinRoom(ws: ElysiaWS, roomId: string, password?: string, isRejoin = false) {
         const room = await requireRoom(roomId, isRejoin);
 
         const expectedPassword = normalizeRoomPassword(room.password);
@@ -647,11 +626,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
         await mutateRoom(roomId, (room) => {
             activeVideoId = room.playingNow?.id ?? null;
-            if (
-                videoId &&
-                activeVideoId &&
-                videoId !== activeVideoId
-            ) {
+            if (videoId && activeVideoId && videoId !== activeVideoId) {
                 acceptedTime = null;
                 return;
             }
@@ -668,10 +643,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         }
 
         const lastBroadcast = lastPlaybackBroadcastByRoom.get(roomId);
-        if (
-            !force &&
-            !shouldBroadcastPlaybackTime(lastBroadcast, acceptedTime, previousTime)
-        ) {
+        if (!force && !shouldBroadcastPlaybackTime(lastBroadcast, acceptedTime, previousTime)) {
             return;
         }
 
@@ -830,12 +802,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 sendToClient(ws, { type: 'pong' });
                 break;
             case 'createRoom':
-                await createRoom(
-                    ws,
-                    message.password,
-                    message.preferredRoomId,
-                    message.restore,
-                );
+                await createRoom(ws, message.password, message.preferredRoomId, message.restore);
                 break;
             case 'joinRoom':
                 await joinRoom(ws, message.roomId, message.password);
@@ -899,7 +866,10 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 break;
             case 'syncCaptionTracks':
                 if (typeof message.videoId !== 'string' || !Array.isArray(message.tracks)) {
-                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid caption tracks payload');
+                    throw new RoomError(
+                        ErrorCode.INVALID_MESSAGE,
+                        'Invalid caption tracks payload',
+                    );
                 }
                 await syncCaptionTracks(ws, message.videoId, message.tracks);
                 break;

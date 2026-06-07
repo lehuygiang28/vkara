@@ -1,5 +1,9 @@
 import type { Playlist } from 'youtubei';
-import type { PlaylistDetailsResponse, YouTubeThumbnailVariant, YouTubeVideo } from '@vkara/youtube';
+import type {
+    PlaylistDetailsResponse,
+    YouTubeThumbnailVariant,
+    YouTubeVideo,
+} from '@vkara/youtube';
 import { buildYouTubeThumbnails, parseYoutubePlaylistInput } from '@vkara/youtube';
 
 import { createContextLogger } from '@/utils/logger';

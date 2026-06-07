@@ -111,8 +111,7 @@ function PlayerEmbedSurface({
                             return;
                         }
 
-                        const serverPlaying =
-                            useYouTubeStore.getState().room?.isPlaying ?? false;
+                        const serverPlaying = useYouTubeStore.getState().room?.isPlaying ?? false;
                         if (!serverPlaying) {
                             markServerPlaybackCommand();
                             ensureConnectedAndSend({ type: 'play' });

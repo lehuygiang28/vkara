@@ -5,11 +5,7 @@ const LIVE_ROOM_STATUS_ACTIVE = 2;
 
 function hasActiveAuthorRoom(roomId: unknown): boolean {
     return (
-        roomId !== undefined &&
-        roomId !== null &&
-        roomId !== '' &&
-        roomId !== '0' &&
-        roomId !== 0
+        roomId !== undefined && roomId !== null && roomId !== '' && roomId !== '0' && roomId !== 0
     );
 }
 
@@ -45,7 +41,11 @@ export function isTikTokItemLive(item: TikTokSearchItem): boolean {
     return false;
 }
 
-export function buildTikTokItemUrl(item: TikTokSearchItem, uniqueId: string, isLive: boolean): string {
+export function buildTikTokItemUrl(
+    item: TikTokSearchItem,
+    uniqueId: string,
+    isLive: boolean,
+): string {
     if (isLive) {
         return `https://www.tiktok.com/@${uniqueId}/live`;
     }

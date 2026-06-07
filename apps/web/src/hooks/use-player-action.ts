@@ -306,24 +306,29 @@ export const usePlayerAction = (): PlayerAction => {
                 youtubePlayer: player,
                 roomIsPlaying: room.isPlaying ?? false,
                 roomCurrentTime: room.currentTime ?? 0,
-            }) ?? room.currentTime ?? 0
+            }) ??
+            room.currentTime ??
+            0
         );
     }, []);
 
-    const applyUserSeekLocally = useCallback((clamped: number): number => {
-        const previous = getSeekBaseSeconds();
-        const generation = markUserSeekTarget(clamped, previous);
-        useYouTubeStore.setState((state) => ({
-            room: state.room ? { ...state.room, currentTime: clamped } : null,
-        }));
-        const { player, room } = useYouTubeStore.getState();
-        applyPlaybackSeek({
-            video: room?.playingNow,
-            youtubePlayer: player,
-            seconds: clamped,
-        });
-        return generation;
-    }, [getSeekBaseSeconds]);
+    const applyUserSeekLocally = useCallback(
+        (clamped: number): number => {
+            const previous = getSeekBaseSeconds();
+            const generation = markUserSeekTarget(clamped, previous);
+            useYouTubeStore.setState((state) => ({
+                room: state.room ? { ...state.room, currentTime: clamped } : null,
+            }));
+            const { player, room } = useYouTubeStore.getState();
+            applyPlaybackSeek({
+                video: room?.playingNow,
+                youtubePlayer: player,
+                seconds: clamped,
+            });
+            return generation;
+        },
+        [getSeekBaseSeconds],
+    );
 
     const sendSeekToRoom = useCallback(
         async (fallbackTime: number, generation: number) => {

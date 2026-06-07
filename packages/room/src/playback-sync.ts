@@ -64,10 +64,7 @@ export function isPlaybackPositionForActiveVideo(
     return activeVideoId === reportedVideoId;
 }
 
-export function needsPlaybackSeekCorrection(
-    playerSeconds: number,
-    targetSeconds: number,
-): boolean {
+export function needsPlaybackSeekCorrection(playerSeconds: number, targetSeconds: number): boolean {
     const player = Math.floor(playerSeconds);
     const target = Math.floor(targetSeconds);
     return Math.abs(player - target) > PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC;

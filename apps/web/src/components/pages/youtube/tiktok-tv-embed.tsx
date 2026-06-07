@@ -103,9 +103,7 @@ export function TikTokTvEmbed({
                     applySeekToTikTok(seekTarget);
                 }
 
-                applyRoomPlaybackToTikTok(
-                    autoplayRef.current && !isPlayerPageHidden(),
-                );
+                applyRoomPlaybackToTikTok(autoplayRef.current && !isPlayerPageHidden());
                 onReadyRef.current?.();
             }
 

@@ -253,10 +253,7 @@ export function getTikTokSeekBaseSeconds(isPlaying: boolean): number {
 
 /** Freeze extrapolation at the current embed position (call when embed reports pause). */
 export function captureTikTokPausePosition(): number {
-    const seconds = Math.max(
-        0,
-        Math.floor(pauseSnapshotSec ?? getTikTokSeekBaseSeconds(true)),
-    );
+    const seconds = Math.max(0, Math.floor(pauseSnapshotSec ?? getTikTokSeekBaseSeconds(true)));
     pauseSnapshotSec = null;
     currentTimeSec = seconds;
     currentTimeSyncedAtMs = Date.now();

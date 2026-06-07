@@ -45,8 +45,6 @@ export function getEmbedCacheTtlSeconds(embed: EmbedEnvValues): number {
 }
 
 /** First set public app URL for embed playability checks. */
-export function resolvePublicAppUrl(
-    env: ReturnType<typeof embedEnv>,
-): string | undefined {
+export function resolvePublicAppUrl(env: ReturnType<typeof embedEnv>): string | undefined {
     return env.PUBLIC_APP_URL ?? env.APP_PUBLIC_URL ?? env.WEB_ORIGIN;
 }

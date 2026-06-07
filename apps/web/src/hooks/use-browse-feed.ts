@@ -234,9 +234,7 @@ export function useBrowseFeed(profile: PersonalizationProfile, room: BrowseRoomC
                 }
 
                 if (batch.length > 0) {
-                    videosRef.current = replaceExisting
-                        ? batch
-                        : [...videosRef.current, ...batch];
+                    videosRef.current = replaceExisting ? batch : [...videosRef.current, ...batch];
                     setVideos(videosRef.current);
                     setLoadError(false);
                     setHasMore(computeHasMore());

@@ -2,11 +2,7 @@
 
 import { useLayoutEffect, useMemo, useSyncExternalStore } from 'react';
 
-import {
-    getEffectiveLayoutMode,
-    getSuggestedLayoutMode,
-    TV_MIN_WIDTH_PX,
-} from '@/lib/layout-mode';
+import { getEffectiveLayoutMode, getSuggestedLayoutMode, TV_MIN_WIDTH_PX } from '@/lib/layout-mode';
 import type { YouTubeStoreLayoutMode } from '@/store/youtubeStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 

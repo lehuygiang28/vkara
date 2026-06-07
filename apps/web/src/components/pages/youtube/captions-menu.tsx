@@ -83,10 +83,7 @@ export function CaptionsMenu({
                 {!loading && unavailable ? (
                     <p className="px-2 py-1.5 text-xs text-muted-foreground">{emptyLabel}</p>
                 ) : null}
-                <DropdownMenuRadioGroup
-                    value={selectedValue}
-                    onValueChange={handleValueChange}
-                >
+                <DropdownMenuRadioGroup value={selectedValue} onValueChange={handleValueChange}>
                     <DropdownMenuRadioItem value={CAPTIONS_OFF_VALUE}>
                         {offLabel}
                     </DropdownMenuRadioItem>

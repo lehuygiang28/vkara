@@ -2,10 +2,7 @@ import { cn } from '@/lib/utils';
 
 export function PlayerColumnSkeleton({ className }: { className?: string }) {
     return (
-        <div
-            className={cn('relative h-full w-full bg-zinc-950', className)}
-            aria-hidden
-        >
+        <div className={cn('relative h-full w-full bg-zinc-950', className)} aria-hidden>
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
         </div>
     );

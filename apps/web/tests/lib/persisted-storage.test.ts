@@ -69,9 +69,7 @@ describe('createMigratingPersistStorage', () => {
         storage.setItem(PERSIST_STORE_KEYS.youtube, JSON.stringify(legacyEnvelope));
 
         const persistStorage = createMigratingPersistStorage();
-        const raw = await Promise.resolve(
-            persistStorage.getItem(PERSIST_STORE_KEYS.youtube),
-        );
+        const raw = await Promise.resolve(persistStorage.getItem(PERSIST_STORE_KEYS.youtube));
         expect(raw).not.toBeNull();
 
         const parsed = JSON.parse(raw as string) as {

@@ -12,12 +12,8 @@ describe('embed env helpers', () => {
     });
 
     it('prefilter flag uses shared boolean format', () => {
-        expect(
-            isEmbedPrefilterAtListEnabled({ VKARA_EMBED_PREFILTER_AT_LIST: 'true' }),
-        ).toBe(true);
-        expect(isEmbedPrefilterAtListEnabled({ VKARA_EMBED_PREFILTER_AT_LIST: '0' })).toBe(
-            false,
-        );
+        expect(isEmbedPrefilterAtListEnabled({ VKARA_EMBED_PREFILTER_AT_LIST: 'true' })).toBe(true);
+        expect(isEmbedPrefilterAtListEnabled({ VKARA_EMBED_PREFILTER_AT_LIST: '0' })).toBe(false);
     });
 
     it('TTL defaults to 30 days', () => {

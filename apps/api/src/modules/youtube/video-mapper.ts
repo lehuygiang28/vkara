@@ -10,7 +10,9 @@ interface MapYoutubeiVideoOptions {
     views?: number;
 }
 
-function collectYoutubeiVariants(thumbnails?: VideoCompact['thumbnails']): YouTubeThumbnailVariant[] {
+function collectYoutubeiVariants(
+    thumbnails?: VideoCompact['thumbnails'],
+): YouTubeThumbnailVariant[] {
     const variants: YouTubeThumbnailVariant[] = [];
 
     if (!thumbnails?.length) {
@@ -80,9 +82,7 @@ export const mapYoutubeiVideo = (
         },
     ];
     const channels =
-        options.channels && options.channels.length > 0
-            ? options.channels
-            : fallbackChannels;
+        options.channels && options.channels.length > 0 ? options.channels : fallbackChannels;
 
     const isLive = resolveYoutubeLiveFlag({
         isLive: video.isLive,

@@ -40,8 +40,7 @@ export async function loadVideoFromNextResponses(
         playerResponse: playerResponse.data,
     };
 
-    const contents =
-        nextData.contents?.twoColumnWatchNextResults?.results?.results?.contents;
+    const contents = nextData.contents?.twoColumnWatchNextResults?.results?.results?.contents;
     const playabilityStatus = playerData.playabilityStatus?.status;
 
     if (!contents || playabilityStatus === 'ERROR') {

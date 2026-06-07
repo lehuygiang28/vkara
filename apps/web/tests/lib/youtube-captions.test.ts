@@ -1,10 +1,7 @@
 import { pickCaptionTrack, type CaptionTrack } from '@vkara/youtube';
 import { describe, expect, it } from 'vitest';
 
-import {
-    isCaptionsCapablePlayer,
-    normalizeYoutubeCaptionTrack,
-} from '@/lib/youtube-captions';
+import { isCaptionsCapablePlayer, normalizeYoutubeCaptionTrack } from '@/lib/youtube-captions';
 
 const SAMPLE_TRACKS: CaptionTrack[] = [
     { languageCode: 'en', displayName: 'English' },

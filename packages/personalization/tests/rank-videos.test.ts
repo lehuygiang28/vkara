@@ -82,10 +82,7 @@ describe('rankVideos', () => {
             channelScores: {},
             recentVideos: [],
         };
-        const videos = [
-            baseVideo('1', 'First', 'Ch'),
-            baseVideo('2', 'Second', 'Ch'),
-        ];
+        const videos = [baseVideo('1', 'First', 'Ch'), baseVideo('2', 'Second', 'Ch')];
         const ranked = rankVideos(videos, profile, { query: 'unrelated', isKaraoke: false });
         expect(ranked.map((v) => v.id)).toEqual(['1', '2']);
     });

@@ -26,8 +26,9 @@ describe('getCachedPlaylistDetails', () => {
             get: vi.fn().mockResolvedValue(JSON.stringify(validPayload)),
         } as never;
 
-        await expect(getCachedPlaylistDetails(redis, 'youtube-playlist-details:PLabc:all')).resolves
-            .toEqual(validPayload);
+        await expect(
+            getCachedPlaylistDetails(redis, 'youtube-playlist-details:PLabc:all'),
+        ).resolves.toEqual(validPayload);
     });
 
     it('rejects cache payloads with non-object playlist or non-string playlist id', async () => {

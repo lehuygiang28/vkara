@@ -3,7 +3,11 @@
 import { useCallback } from 'react';
 
 import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
-import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } from '@/lib/room-field-autofill';
+import {
+    roomCodeFieldProps,
+    roomCodeOtpSlotClassName,
+    roomSecretFieldProps,
+} from '@/lib/room-field-autofill';
 import { useJoinRoom } from '@/hooks/use-join-room';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useScopedI18n } from '@/locales/client';
@@ -12,11 +16,7 @@ import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {
-    InputOTP,
-    InputOTPGroup,
-    InputOTPSlot,
-} from '@/components/ui/input-otp';
+import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 
 type TvRoomLobbyProps = {
     onOpenSettingsAction?: () => void;
@@ -27,13 +27,8 @@ export function TvRoomLobby({ onOpenSettingsAction, compact = false }: TvRoomLob
     const t = useScopedI18n('tvLobby');
     const { connectionStatus, ensureConnectedAndSend } = useWebSocket();
     const { roomPassword, resetJoinFormState } = useRoomSettingsStore();
-    const {
-        joinRoom,
-        joinRoomId,
-        joinRoomPassword,
-        setJoinRoomId,
-        setJoinRoomPassword,
-    } = useJoinRoom();
+    const { joinRoom, joinRoomId, joinRoomPassword, setJoinRoomId, setJoinRoomPassword } =
+        useJoinRoom();
 
     const isConnected = connectionStatus === 'OPEN';
 

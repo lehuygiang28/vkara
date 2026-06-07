@@ -16,8 +16,12 @@ import { VideoListToolbar } from './video-list-toolbar';
 import { VideoListEmptyState } from './video-list-empty-state';
 
 export function VideoHistory() {
-    const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop, handleClearHistory } =
-        usePlayerAction();
+    const {
+        handlePlayVideoNow,
+        handleAddVideoToQueue,
+        handleAddVideoAndMoveToTop,
+        handleClearHistory,
+    } = usePlayerAction();
     const { room, setCurrentTab } = useYouTubeStore();
     const t = useScopedI18n('videoHistory');
 

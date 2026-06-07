@@ -45,10 +45,8 @@ export function useSyncRemoteChromeMeasurements(
 
         applyRemoteChromeVars(document.documentElement, {
             mobileNavHeightPx: navRef.current?.offsetHeight ?? 0,
-            nowPlayingHeightPx:
-                measureBarHeight && panelHeightPx > 0 ? panelHeightPx : 0,
-            contentInsetHeightPx:
-                reserveContentInset && panelHeightPx > 0 ? panelHeightPx : 0,
+            nowPlayingHeightPx: measureBarHeight && panelHeightPx > 0 ? panelHeightPx : 0,
+            contentInsetHeightPx: reserveContentInset && panelHeightPx > 0 ? panelHeightPx : 0,
         });
     }, [navRef, panelRef, measureBarHeight, reserveContentInset]);
 

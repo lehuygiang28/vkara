@@ -5,7 +5,10 @@ export type CuratedCatalogLabels = {
     music: string;
 };
 
-export function getCuratedCatalogLabel(catalog: CuratedCatalog, labels: CuratedCatalogLabels): string {
+export function getCuratedCatalogLabel(
+    catalog: CuratedCatalog,
+    labels: CuratedCatalogLabels,
+): string {
     if (catalog.id === 'karaoke') {
         return labels.karaoke;
     }

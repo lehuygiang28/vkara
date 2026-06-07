@@ -68,9 +68,7 @@ export function TvPlayerQrZone({
         ? { duration: 0 }
         : { type: 'spring' as const, stiffness: 260, damping: 30, mass: 0.9 };
 
-    const steps = compact
-        ? []
-        : [t('tvEmptyStep1'), t('tvEmptyStep2'), t('tvEmptyStep3')];
+    const steps = compact ? [] : [t('tvEmptyStep1'), t('tvEmptyStep2'), t('tvEmptyStep3')];
     const idleTitle = compact ? t('tvEmptyTitleBoth') : t('tvEmptyTitle');
     const idleSubtitle = compact ? t('tvEmptySubtitleBoth') : t('tvEmptySubtitle');
 

@@ -220,17 +220,17 @@ function encodeIco(images) {
 }
 
 async function renderPng(size, innerScale = 0.9) {
-    return iconSharp(size, innerScale).png({
-        quality: 100,
-        compressionLevel: 9,
-        adaptiveFiltering: true,
-    }).toBuffer();
+    return iconSharp(size, innerScale)
+        .png({
+            quality: 100,
+            compressionLevel: 9,
+            adaptiveFiltering: true,
+        })
+        .toBuffer();
 }
 
 async function writeIcon(name, size, innerScale = 0.9) {
-    await renderPng(size, innerScale).then((buffer) =>
-        writeFile(`${OUT_DIR}/${name}`, buffer),
-    );
+    await renderPng(size, innerScale).then((buffer) => writeFile(`${OUT_DIR}/${name}`, buffer));
 }
 
 async function writeFavicon() {

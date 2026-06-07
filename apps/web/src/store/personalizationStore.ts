@@ -73,7 +73,8 @@ export const usePersonalizationStore = create(
             removeSearchHistory: (query) => {
                 set((state) => ({
                     ...state,
-                    searchHistory: removeSearchHistoryEntry(get().getProfile(), query).searchHistory,
+                    searchHistory: removeSearchHistoryEntry(get().getProfile(), query)
+                        .searchHistory,
                 }));
             },
 

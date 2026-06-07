@@ -3,10 +3,7 @@
 import type { ReactNode } from 'react';
 import { toast as sonner, type ExternalToast } from 'sonner';
 
-import {
-    useActionFeedbackStore,
-    type ActionFeedbackVariant,
-} from '@/store/action-feedback-store';
+import { useActionFeedbackStore, type ActionFeedbackVariant } from '@/store/action-feedback-store';
 
 export type ToastVariant = 'default' | 'destructive' | 'success' | 'warning' | 'info' | 'error';
 

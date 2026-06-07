@@ -13,18 +13,18 @@ docker compose --profile aio up --build
 
 ## Files
 
-| File | Role |
-|------|------|
-| `Dockerfile` | Multi-stage build (Bun) + runtime (Bun + Caddy + Redis binaries) |
-| `Caddyfile` | Edge proxy: `/api/vkara`, `/ws`, `/vi` redirects, Next.js |
-| `supervisord.conf` | Process manager for redis, api, web, caddy |
-| `entrypoint.sh` | Sets `PUBLIC_APP_URL`, starts supervisord |
+| File               | Role                                                             |
+| ------------------ | ---------------------------------------------------------------- |
+| `Dockerfile`       | Multi-stage build (Bun) + runtime (Bun + Caddy + Redis binaries) |
+| `Caddyfile`        | Edge proxy: `/api/vkara`, `/ws`, `/vi` redirects, Next.js        |
+| `supervisord.conf` | Process manager for redis, api, web, caddy                       |
+| `entrypoint.sh`    | Sets `PUBLIC_APP_URL`, starts supervisord                        |
 
 ## Internal ports (not exposed)
 
-| Service | Port |
-|---------|------|
+| Service        | Port   |
+| -------------- | ------ |
 | Caddy (public) | `3000` |
-| Next.js | `3001` |
-| API | `8000` |
-| Redis | `6379` |
+| Next.js        | `3001` |
+| API            | `8000` |
+| Redis          | `6379` |

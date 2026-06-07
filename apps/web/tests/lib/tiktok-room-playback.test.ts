@@ -219,10 +219,7 @@ describe('resumeTikTokAfterBackgroundIfNeeded', () => {
         expect(getTikTokBackgroundResumeVideoIdForTests()).toBeNull();
         expect(useYouTubeStore.getState().room?.isPlaying).toBe(true);
         expect(send).toHaveBeenCalledWith({ type: 'play' });
-        expect(postMessage).toHaveBeenCalledWith(
-            { type: 'play', 'x-tiktok-player': true },
-            '*',
-        );
+        expect(postMessage).toHaveBeenCalledWith({ type: 'play', 'x-tiktok-player': true }, '*');
     });
 
     it('does not resume after a manual pause (no background flag)', () => {

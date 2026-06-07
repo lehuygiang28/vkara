@@ -13,22 +13,22 @@ export function DeviceSettingsSection() {
 
     return (
         <>
-        <ExperimentsSettingsSection />
-        <SettingsSection
-            title={tSections('thisDevice')}
-            hint={tSections('deviceHint')}
-            scope="device"
-            scopeLabel={tSections('scopeDevice')}
-        >
-            <SettingsGroup>
-                <div className="px-4 py-3.5">
-                    <LayoutModePicker id="selectLayoutMode" />
-                </div>
-                <VoiceSearchSettingsRow />
-                <SearchHistorySettingsRow />
-                <AppearanceSettingsInline />
-            </SettingsGroup>
-        </SettingsSection>
+            <ExperimentsSettingsSection />
+            <SettingsSection
+                title={tSections('thisDevice')}
+                hint={tSections('deviceHint')}
+                scope="device"
+                scopeLabel={tSections('scopeDevice')}
+            >
+                <SettingsGroup>
+                    <div className="px-4 py-3.5">
+                        <LayoutModePicker id="selectLayoutMode" />
+                    </div>
+                    <VoiceSearchSettingsRow />
+                    <SearchHistorySettingsRow />
+                    <AppearanceSettingsInline />
+                </SettingsGroup>
+            </SettingsSection>
         </>
     );
 }

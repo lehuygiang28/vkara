@@ -1,7 +1,4 @@
-import {
-    pickCaptionTrack,
-    type CaptionTrack,
-} from '@vkara/youtube';
+import { pickCaptionTrack, type CaptionTrack } from '@vkara/youtube';
 
 type CaptionsCapablePlayer = YT.Player & {
     getOption: NonNullable<YT.Player['getOption']>;

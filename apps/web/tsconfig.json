@@ -34,6 +34,12 @@
         },
         "types": ["@types/youtube"]
     },
-    "include": ["next-env.d.ts", "src/**/*.ts", "src/**/*.tsx", "tests/**/*.ts", ".next/types/**/*.ts"],
+    "include": [
+        "next-env.d.ts",
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "tests/**/*.ts",
+        ".next/types/**/*.ts"
+    ],
     "exclude": ["node_modules"]
 }

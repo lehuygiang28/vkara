@@ -12,9 +12,7 @@ export function prefetchPlayerControlsTabs(): void {
     void import('@/components/pages/youtube/PlayerControlsTabs');
 }
 
-export function prefetchLayoutChunksForMode(
-    mode: 'remote' | 'player' | 'both',
-): void {
+export function prefetchLayoutChunksForMode(mode: 'remote' | 'player' | 'both'): void {
     if (mode === 'remote') {
         prefetchRemoteShell();
         return;

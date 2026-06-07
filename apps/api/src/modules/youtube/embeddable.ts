@@ -44,11 +44,9 @@ export function parseEmbedPlayabilityPreview(html: string): EmbedPlayabilityPrev
 
     const chunk = html.slice(idx, idx + 2000);
     const status =
-        chunk.match(/status\\":\\"([A-Z_]+)/)?.[1] ??
-        chunk.match(/"status":"([A-Z_]+)"/)?.[1];
+        chunk.match(/status\\":\\"([A-Z_]+)/)?.[1] ?? chunk.match(/"status":"([A-Z_]+)"/)?.[1];
     const reason =
-        chunk.match(/reason\\":\\"([^\\"]+)/)?.[1] ??
-        chunk.match(/"reason":"([^"]+)"/)?.[1];
+        chunk.match(/reason\\":\\"([^\\"]+)/)?.[1] ?? chunk.match(/"reason":"([^"]+)"/)?.[1];
 
     return { status, reason };
 }
@@ -93,4 +91,3 @@ export async function fetchEmbeddableFromYoutube(videoId: string): Promise<boole
     const text = await raw.text();
     return !isEmbedBlockedInHtml(text);
 }
-

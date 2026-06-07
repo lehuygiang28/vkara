@@ -4,11 +4,7 @@ import { useCallback } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 
 import { useCurrentLocale, type SUPPORTED_LOCALES } from '@/locales/client';
-import {
-    LOCALE_COOKIE_NAME,
-    buildLocalePrefixedPath,
-    type AppLocale,
-} from '@/lib/locale-path';
+import { LOCALE_COOKIE_NAME, buildLocalePrefixedPath, type AppLocale } from '@/lib/locale-path';
 
 const localeLoaders: Record<SUPPORTED_LOCALES, () => Promise<{ default: unknown }>> = {
     vi: () => import('@/locales/vi'),

@@ -30,9 +30,8 @@ type BrowsePayload = {
 };
 
 const getChannelVerifiedFromBrowsePayload = (data: unknown): boolean => {
-    const label = (data as BrowsePayload)?.header?.pageHeaderRenderer?.content
-        ?.pageHeaderViewModel?.title?.dynamicTextViewModel?.rendererContext
-        ?.accessibilityContext?.label;
+    const label = (data as BrowsePayload)?.header?.pageHeaderRenderer?.content?.pageHeaderViewModel
+        ?.title?.dynamicTextViewModel?.rendererContext?.accessibilityContext?.label;
 
     return typeof label === 'string' && VERIFIED_ACCESSIBILITY_LABEL.test(label);
 };

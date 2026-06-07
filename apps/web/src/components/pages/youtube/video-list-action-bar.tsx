@@ -5,11 +5,7 @@ import { useState, type ReactNode } from 'react';
 import { useI18n } from '@/locales/client';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export type VideoListAction = {
     id: string;

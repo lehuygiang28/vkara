@@ -62,6 +62,12 @@ export function useVideoSearchListActions() {
                 ]}
             />
         ),
-        [t, recordEngagement, handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop],
+        [
+            t,
+            recordEngagement,
+            handlePlayVideoNow,
+            handleAddVideoToQueue,
+            handleAddVideoAndMoveToTop,
+        ],
     );
 }

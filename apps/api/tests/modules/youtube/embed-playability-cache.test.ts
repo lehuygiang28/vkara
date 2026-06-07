@@ -27,11 +27,7 @@ describe('embed-playability-cache', () => {
 
         const map = await mgetEmbeddability(redis, ['a', 'b', 'c']);
 
-        expect(mget).toHaveBeenCalledWith(
-            'youtube-embed:a',
-            'youtube-embed:b',
-            'youtube-embed:c',
-        );
+        expect(mget).toHaveBeenCalledWith('youtube-embed:a', 'youtube-embed:b', 'youtube-embed:c');
         expect(map.get('a')).toBe(true);
         expect(map.get('b')).toBe(false);
         expect(map.get('c')).toBeUndefined();
