@@ -10,6 +10,8 @@ interface ControlsStageThumbnailProps {
     title: string;
     srcSet?: string;
     isLive?: boolean;
+    /** TV path: skip heavy shadow compositing. */
+    flatOnTv?: boolean;
     className?: string;
 }
 
@@ -20,13 +22,15 @@ export function ControlsStageThumbnail({
     title,
     srcSet,
     isLive = false,
+    flatOnTv = false,
     className,
 }: ControlsStageThumbnailProps) {
     return (
         <div
             className={cn(
                 'relative aspect-video w-[min(92vw,28rem)] max-w-full shrink-0',
-                'overflow-hidden rounded-xl shadow-2xl shadow-black/35 ring-1 ring-white/10',
+                'overflow-hidden rounded-xl ring-1 ring-white/10',
+                flatOnTv ? 'shadow-none' : 'shadow-2xl shadow-black/35',
                 className,
             )}
         >

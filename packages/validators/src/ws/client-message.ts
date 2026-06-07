@@ -25,6 +25,8 @@ export const tvRoomRestoreSchema = z.object({
     captionsLanguage: z.string(),
     captionTracks: z.array(captionTrackSchema),
     captionTracksVideoId: z.string().nullable(),
+    tiktokPhotoIndex: z.number(),
+    tiktokPhotoMaxIndex: z.number(),
 });
 
 const withBase = <T extends z.ZodRawShape>(shape: T) => messageBaseSchema.extend(shape);
@@ -82,6 +84,17 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
     withBase({ type: z.literal('clearHistory') }),
     withBase({ type: z.literal('addVideoAndMoveToTop'), video: youtubeVideoSchema }),
     withBase({ type: z.literal('importPlaylist'), playlistUrlOrId: z.string() }),
+    withBase({
+        type: z.literal('tiktokNavigatePhoto'),
+        index: z.number().int().nonnegative(),
+        videoId: z.string(),
+    }),
+    withBase({
+        type: z.literal('syncTikTokPhotoIndex'),
+        index: z.number().int().nonnegative(),
+        maxIndex: z.number().int().nonnegative(),
+        videoId: z.string(),
+    }),
 ]);
 
 export type ClientMessage = z.infer<typeof wsClientMessageSchema>;

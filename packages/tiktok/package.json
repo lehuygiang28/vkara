@@ -1,0 +1,21 @@
+{
+    "name": "@vkara/tiktok",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "lint": "eslint . --max-warnings 0",
+        "lint:fix": "eslint . --fix",
+        "test": "vitest run --config ../../vitest.config.mts --project @vkara/tiktok"
+    },
+    "exports": {
+        ".": "./src/index.ts",
+        "./browser-pool": "./src/browser-pool.ts"
+    },
+    "dependencies": {
+        "@vkara/youtube": "workspace:*"
+    },
+    "devDependencies": {
+        "playwright": "^1.52.0"
+    }
+}

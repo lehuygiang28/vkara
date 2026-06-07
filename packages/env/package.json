@@ -17,7 +17,8 @@
         "./logger": "./src/logger.ts",
         "./web-public": "./src/web-public.ts",
         "./web-server": "./src/web-server.ts",
-        "./flags": "./src/flags.ts"
+        "./flags": "./src/flags.ts",
+        "./experiments": "./src/experiments.ts"
     },
     "dependencies": {
         "@t3-oss/env-core": "^0.13.10",

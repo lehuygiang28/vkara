@@ -71,6 +71,28 @@ describe('sanitizeVideoForClient', () => {
         expect('channel' in sanitized).toBe(false);
         expect(sanitized.thumbnails.length).toBeGreaterThan(0);
     });
+
+    it('does not inject YouTube thumbnail slots into TikTok videos', () => {
+        const tiktokThumb =
+            'https://p16-common-sign.tiktokcdn.com/tos-alisg-i-photomode-sg/cover~tplv-photomode-image.jpeg';
+        const sanitized = sanitizeVideoForClient({
+            id: '7575874238628891922',
+            title: 'photo post',
+            duration: 0,
+            duration_formatted: '',
+            type: 'photo',
+            url: 'https://www.tiktok.com/@user/video/7575874238628891922',
+            uploadedAt: '',
+            views: 1,
+            channels: [{ name: 'User', verified: false }],
+            thumbnails: [{ url: tiktokThumb, width: 540, height: 960 }],
+            source: 'tiktok',
+        });
+
+        expect(sanitized.thumbnails).toHaveLength(1);
+        expect(sanitized.thumbnails[0]?.url).toBe(tiktokThumb);
+        expect(sanitized.thumbnails.some((entry) => entry.url.includes('ytimg.com'))).toBe(false);
+    });
 });
 
 describe('cleanUpRoomField', () => {
@@ -91,6 +113,8 @@ describe('cleanUpRoomField', () => {
             creatorId: 'c1',
             isPlaying: true,
             currentTime: 0,
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
         };
 
         const cleaned = cleanUpRoomField(room);

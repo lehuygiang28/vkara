@@ -1,12 +1,16 @@
 'use client';
 
-import dynamic from 'next/dynamic';
-import { useCallback, useEffect, useRef } from 'react';
+import { memo, useCallback, useEffect, useRef, useState } from 'react';
 
 import { Settings } from 'lucide-react';
 import { LayoutGroup } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 
-import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/youtube';
+import {
+    type CaptionTrack,
+    type YouTubeVideo,
+} from '@vkara/youtube';
+import { getVideoThumbnailSrcSet, getVideoThumbnailUrl } from '@vkara/tiktok';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
 import { needsPlaybackSeekCorrection } from '@vkara/room';
@@ -18,6 +22,7 @@ import {
     listYoutubeCaptionTracks,
     scheduleCaptionTrackSync,
 } from '@/lib/youtube-captions';
+import { applyPlaybackIntent, isTikTokPlayback } from '@/lib/active-playback';
 import {
     applyPreferredPlaybackQuality,
     applyRoomPlaybackToPlayer,
@@ -28,7 +33,7 @@ import {
     shouldSuppressPlaybackBroadcast,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
-import { isVideoLive } from '@/lib/youtube-video';
+import { isVideoLive } from '@vkara/tiktok';
 import { cn } from '@/lib/utils';
 import type { YouTubeStoreLayoutMode } from '@/store/youtubeStore';
 
@@ -43,11 +48,11 @@ import { TV_MIN_WIDTH_PX } from '@/lib/layout-mode';
 import { TvIdleLayoutSwitch } from './TvIdleLayoutSwitch';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
 import { TvRoomLobby } from './TvRoomLobby';
+import { PlayerEmbedSurfaceMemo } from './player-embed-surface';
 
-const YoutubeTvEmbed = dynamic(
-    () => import('./youtube-tv-embed').then((mod) => mod.YoutubeTvEmbed),
-    { ssr: false },
-);
+/** Stable fallbacks — `?? []` in selectors creates new refs and loops with useShallow. */
+const EMPTY_VIDEO_QUEUE: YouTubeVideo[] = [];
+const EMPTY_CAPTION_TRACKS: CaptionTrack[] = [];
 
 type PlayerColumnProps = {
     effectiveLayoutMode: YouTubeStoreLayoutMode;
@@ -57,21 +62,63 @@ type PlayerColumnProps = {
     onSettingsPrefetchAction?: () => void;
 };
 
-export function PlayerColumn({
+function PlayerColumnInner({
     effectiveLayoutMode,
     isTvViewport,
     hasFinePointer,
     onOpenSettingsAction,
     onSettingsPrefetchAction: onSettingsPrefetch,
 }: PlayerColumnProps) {
-    const { room, setPlayer, setVolume, nextVideo, setIsPlaying, tvSuppressAutoCreate } =
-        useYouTubeStore();
+    const {
+        playingNow,
+        roomId,
+        roomPassword,
+        roomIsPlaying,
+        currentTime,
+        videoQueue,
+        showQRInPlayer,
+        captionsEnabled,
+        captionsLanguage,
+        captionTracks,
+        captionTracksVideoId,
+        volume,
+        tvSuppressAutoCreate,
+        setPlayer,
+        setVolume,
+        nextVideo,
+        setIsPlaying,
+    } = useYouTubeStore(
+        useShallow((s) => ({
+            playingNow: s.room?.playingNow,
+            roomId: s.room?.id,
+            roomPassword: s.room?.password,
+            roomIsPlaying: s.room?.isPlaying ?? false,
+            currentTime: s.room?.currentTime ?? 0,
+            videoQueue: s.room?.videoQueue ?? EMPTY_VIDEO_QUEUE,
+            showQRInPlayer: s.room?.showQRInPlayer ?? true,
+            captionsEnabled: s.room?.captionsEnabled ?? false,
+            captionsLanguage: s.room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE,
+            captionTracks: s.room?.captionTracks ?? EMPTY_CAPTION_TRACKS,
+            captionTracksVideoId: s.room?.captionTracksVideoId,
+            volume: s.volume,
+            tvSuppressAutoCreate: s.tvSuppressAutoCreate,
+            setPlayer: s.setPlayer,
+            setVolume: s.setVolume,
+            nextVideo: s.nextVideo,
+            setIsPlaying: s.setIsPlaying,
+        })),
+    );
     const t = useScopedI18n('youtubePage');
     const locale = useCurrentLocale();
-    const shouldShowTimer = useCountdownStore((state) => state.shouldShowTimer);
-    const setShouldShowTimer = useCountdownStore((state) => state.setShouldShowTimer);
-    const cancelCountdown = useCountdownStore((state) => state.cancelCountdown);
-    const resetCountdown = useCountdownStore((state) => state.reset);
+    const { shouldShowTimer, setShouldShowTimer, cancelCountdown, resetCountdown } =
+        useCountdownStore(
+            useShallow((state) => ({
+                shouldShowTimer: state.shouldShowTimer,
+                setShouldShowTimer: state.setShouldShowTimer,
+                cancelCountdown: state.cancelCountdown,
+                resetCountdown: state.reset,
+            })),
+        );
     const { ensureConnectedAndSend } = useWebSocket();
 
     const skippedUnplayableRef = useRef<string | null>(null);
@@ -80,14 +127,13 @@ export function PlayerColumn({
     const prevPlayingNowIdRef = useRef<string | null>(null);
     /** Frozen `videoId` prop — track advances use `loadVideoById`, not react-youtube reset. */
     const embedSeedVideoIdRef = useRef<string | null>(null);
+    /** Keep the YouTube iframe mounted (hidden) while TikTok plays so mixed queues can resume. */
+    const [youtubeEmbedMounted, setYoutubeEmbedMounted] = useState(false);
 
     const showsPlayer = effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
-    const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
-    const isTvIdle = Boolean(isTvPlayerIdle && room?.id);
+    const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !playingNow);
+    const isTvIdle = Boolean(isTvPlayerIdle && roomId);
     const isBothIdleLayout = effectiveLayoutMode === 'both' && isTvIdle;
-    const showQRInPlayer = room?.showQRInPlayer ?? true;
-    const captionsEnabled = room?.captionsEnabled ?? false;
-    const captionsLanguage = room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE;
     const showPlayerSettingsButton =
         effectiveLayoutMode === 'player' && !isTvPlayerIdle && hasFinePointer;
 
@@ -95,28 +141,34 @@ export function PlayerColumn({
     const isNarrowViewport = viewportWidth > 0 && viewportWidth < TV_MIN_WIDTH_PX;
     const needsModeRecovery =
         effectiveLayoutMode === 'player' && (isNarrowViewport || !hasFinePointer);
-    const showRecoveryModeBar =
-        needsModeRecovery && (isTvPlayerIdle || Boolean(room?.playingNow));
+    const showRecoveryModeBar = needsModeRecovery && (isTvPlayerIdle || Boolean(playingNow));
     const showCornerTvSwitch =
         isTvPlayerIdle && hasFinePointer && !isNarrowViewport && !needsModeRecovery;
 
     useEffect(() => {
         resetCountdown();
         endedForVideoIdRef.current = null;
-    }, [room?.playingNow?.id, resetCountdown]);
+    }, [playingNow?.id, resetCountdown]);
 
     useEffect(() => {
         skippedUnplayableRef.current = null;
         captionSyncCleanupRef.current?.();
         captionSyncCleanupRef.current = null;
-    }, [room?.playingNow?.id]);
+    }, [playingNow?.id]);
 
-    const playingNowId = room?.playingNow?.id;
-    const roomIsPlaying = room?.isPlaying ?? false;
-    const roomId = room?.id;
+    const playingNowId = playingNow?.id;
+    const isTikTokNow = isTikTokPlayback({ video: playingNow });
 
     useEffect(() => {
         if (effectiveLayoutMode === 'remote' || !roomId || !playingNowId) {
+            return;
+        }
+        if (isTikTokNow) {
+            applyPlaybackIntent({
+                video: playingNow,
+                youtubePlayer: null,
+                isPlaying: roomIsPlaying,
+            });
             return;
         }
         const seedId = embedSeedVideoIdRef.current;
@@ -127,8 +179,12 @@ export function PlayerColumn({
         if (!player) {
             return;
         }
-        applyRoomPlaybackToPlayer(player, roomIsPlaying);
-    }, [effectiveLayoutMode, roomId, playingNowId, roomIsPlaying]);
+        applyPlaybackIntent({
+            video: playingNow,
+            youtubePlayer: player,
+            isPlaying: roomIsPlaying,
+        });
+    }, [effectiveLayoutMode, roomId, playingNowId, roomIsPlaying, isTikTokNow, playingNow]);
 
     const syncCaptionTracksFromPlayer = useCallback(
         (player: YT.Player) => {
@@ -174,12 +230,19 @@ export function PlayerColumn({
         if (!playingNowId) {
             embedSeedVideoIdRef.current = null;
             prevPlayingNowIdRef.current = null;
+            setYoutubeEmbedMounted(false);
             return;
         }
 
-        if (embedSeedVideoIdRef.current === null) {
+        if (isTikTokNow) {
+            prevPlayingNowIdRef.current = playingNowId;
+            return;
+        }
+
+        if (!youtubeEmbedMounted) {
             embedSeedVideoIdRef.current = playingNowId;
             prevPlayingNowIdRef.current = playingNowId;
+            setYoutubeEmbedMounted(true);
             return;
         }
 
@@ -196,20 +259,30 @@ export function PlayerColumn({
         }
 
         applyTrackToPlayer(player, playingNowId);
-    }, [playingNowId, applyTrackToPlayer]);
+    }, [playingNowId, isTikTokNow, youtubeEmbedMounted, applyTrackToPlayer]);
+
+    useEffect(() => {
+        if (!isTikTokNow || !youtubeEmbedMounted) {
+            return;
+        }
+
+        const player = useYouTubeStore.getState().player;
+        if (player) {
+            applyRoomPlaybackToPlayer(player, false);
+        }
+    }, [isTikTokNow, youtubeEmbedMounted]);
 
     useEffect(() => {
         const player = useYouTubeStore.getState().player;
-        const currentRoom = useYouTubeStore.getState().room;
         if (!player) {
             return;
         }
         applyYoutubeCaptions(player, {
             enabled: captionsEnabled,
             languageCode: captionsLanguage,
-            tracks: currentRoom?.captionTracks ?? [],
+            tracks: captionTracks,
         });
-    }, [captionsEnabled, captionsLanguage, room?.captionTracks, room?.captionTracksVideoId]);
+    }, [captionsEnabled, captionsLanguage, captionTracks, captionTracksVideoId]);
 
     const onPlayerReady = (event: YT.PlayerEvent) => {
         setPlayer(event.target);
@@ -249,7 +322,7 @@ export function PlayerColumn({
     const onPlayerStateChange = (event: YT.PlayerEvent) => {
         const playerState = event.target.getPlayerState();
 
-        if (effectiveLayoutMode !== 'remote' && room?.id && !shouldSuppressPlaybackBroadcast()) {
+        if (effectiveLayoutMode !== 'remote' && roomId && !shouldSuppressPlaybackBroadcast()) {
             const serverPlaying = useYouTubeStore.getState().room?.isPlaying ?? false;
 
             if (isYoutubePlaybackIntentState(playerState)) {
@@ -281,7 +354,7 @@ export function PlayerColumn({
 
         if (playerState === YT.PlayerState.ENDED) {
             const current = useYouTubeStore.getState().room?.playingNow;
-            if (!current || isVideoLive(current)) {
+            if (!current || isVideoLive({ video: current })) {
                 return;
             }
             endedForVideoIdRef.current = current.id;
@@ -299,7 +372,7 @@ export function PlayerColumn({
         }
 
         const currentVideoId = useYouTubeStore.getState().room?.playingNow?.id;
-        if (!currentVideoId || !room?.id) {
+        if (!currentVideoId || !roomId) {
             return;
         }
 
@@ -330,145 +403,202 @@ export function PlayerColumn({
         }
     }, [cancelCountdown, ensureConnectedAndSend, nextVideo]);
 
-    return (
-        <LayoutGroup id="tv-player-qr">
-            <div className="relative h-full w-full">
-                {room?.playingNow ? (
-                    <YoutubeTvEmbed
-                        key={effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}
-                        videoId={embedSeedVideoIdRef.current ?? room.playingNow.id}
-                        autoplay={room.isPlaying ?? false}
-                        onReadyAction={onPlayerReady}
-                        onStateChangeAction={onPlayerStateChange}
-                        onErrorAction={onPlayerError}
-                        className="absolute inset-0"
-                        variant={effectiveLayoutMode === 'both' ? 'laptop' : 'tv'}
-                    />
-                ) : (
-                    <div className="absolute inset-0 bg-zinc-950" aria-hidden />
-                )}
+    const handleEmbedEnded = useCallback(() => {
+        const current = useYouTubeStore.getState().room?.playingNow;
+        if (!current) {
+            return;
+        }
+        endedForVideoIdRef.current = current.id;
+        setShouldShowTimer(true);
+    }, []);
 
-                {isTvPlayerIdle && !room?.id && tvSuppressAutoCreate && (
-                    <div className="absolute inset-0 z-[5] flex items-center justify-center bg-zinc-950">
+    const handleSkipUnplayable = useCallback(
+        (videoId: string) => {
+            if (!roomId) {
+                return;
+            }
+            if (skippedUnplayableRef.current === videoId) {
+                return;
+            }
+            skippedUnplayableRef.current = videoId;
+            ensureConnectedAndSend({ type: 'skipUnplayableVideo', videoId });
+        },
+        [ensureConnectedAndSend, roomId],
+    );
+
+    const playerSurface = (
+        <div className="relative h-full w-full">
+            {playingNow ? (
+                <PlayerEmbedSurfaceMemo
+                    playingNow={playingNow}
+                    effectiveLayoutMode={effectiveLayoutMode}
+                    roomId={roomId}
+                    roomIsPlaying={roomIsPlaying}
+                    currentTime={currentTime}
+                    volume={volume}
+                    captionsEnabled={captionsEnabled}
+                    youtubeEmbedMounted={youtubeEmbedMounted}
+                    embedSeedVideoId={embedSeedVideoIdRef.current}
+                    isTikTokNow={isTikTokNow}
+                    onYoutubeReadyAction={onPlayerReady}
+                    onYoutubeStateChangeAction={onPlayerStateChange}
+                    onYoutubeErrorAction={onPlayerError}
+                    onEndedAction={handleEmbedEnded}
+                    onSkipUnplayableAction={handleSkipUnplayable}
+                    setIsPlaying={setIsPlaying}
+                    ensureConnectedAndSend={ensureConnectedAndSend}
+                />
+            ) : (
+                <div className="absolute inset-0 bg-zinc-950" aria-hidden />
+            )}
+
+            {isTvPlayerIdle && !roomId && tvSuppressAutoCreate && (
+                <div className="absolute inset-0 z-[5] flex items-center justify-center bg-zinc-950">
+                    {!isTvViewport ? (
                         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
-                        <div
-                            className={cn(
-                                'pointer-events-auto relative z-[1] max-h-full overflow-y-auto py-safe-offset',
-                                showRecoveryModeBar && 'pb-28',
-                            )}
-                        >
-                            <TvRoomLobby
-                                compact={isBothIdleLayout}
-                                onOpenSettingsAction={onOpenSettingsAction}
-                            />
+                    ) : null}
+                    <div
+                        className={cn(
+                            'pointer-events-auto relative z-[1] max-h-full overflow-y-auto py-safe-offset',
+                            showRecoveryModeBar && 'pb-28',
+                        )}
+                    >
+                        <TvRoomLobby
+                            compact={isBothIdleLayout}
+                            onOpenSettingsAction={onOpenSettingsAction}
+                        />
+                    </div>
+                </div>
+            )}
+
+            {isTvIdle && roomId && (
+                <TvPlayerQrZone
+                    roomId={roomId}
+                    roomPassword={roomPassword}
+                    disableLayoutMorph={isTvViewport}
+                    locale={locale}
+                    showQR={showQRInPlayer}
+                    isIdle
+                    compact={isBothIdleLayout}
+                    reserveFooterSpace={showRecoveryModeBar}
+                    onOpenSettingsAction={onOpenSettingsAction}
+                />
+            )}
+
+            {isTvPlayerIdle && (
+                <div className="pointer-events-auto absolute right-safe-offset top-safe-offset z-[6] flex items-center gap-3 sm:gap-4">
+                    {showCornerTvSwitch ? (
+                        <TvIdleLayoutSwitch effectiveLayoutMode={effectiveLayoutMode} />
+                    ) : null}
+                    <LanguageSwitcher variant="overlay" />
+                </div>
+            )}
+
+            {showRecoveryModeBar ? (
+                <div
+                    className={cn(
+                        'pointer-events-auto absolute inset-x-0 bottom-0 z-[6] border-t border-zinc-800/80 px-4 py-3 pb-safe-offset',
+                        isTvViewport ? 'bg-zinc-950' : 'bg-zinc-950/95 backdrop-blur-sm',
+                    )}
+                >
+                    <p
+                        className={cn(
+                            'mb-2 text-center',
+                            isTvViewport ? 'text-sm text-zinc-300' : 'text-xs text-zinc-500',
+                        )}
+                    >
+                        {t('tvIdleModeHint')}
+                    </p>
+                    <LayoutModeSwitch
+                        tone="overlay-visible"
+                        className="w-full"
+                        choices={RECOVERY_MODE_CHOICES}
+                    />
+                </div>
+            ) : null}
+
+            {playingNow && shouldShowTimer && videoQueue.length > 0 && (
+                <div
+                    className={cn(
+                        'absolute inset-0 z-10 flex flex-col items-center justify-center p-4 text-center',
+                        isTvViewport ? 'bg-black' : 'bg-black/85',
+                    )}
+                >
+                    <h3 className="mb-4 text-xl font-semibold">{t('nextUp')}</h3>
+                    <div className="flex w-full max-w-lg flex-col items-center gap-4 px-2">
+                        <ControlsStageThumbnail
+                            src={getVideoThumbnailUrl({ video: videoQueue[0], size: 'large' })}
+                            videoId={videoQueue[0].id}
+                            srcSet={getVideoThumbnailSrcSet({ video: videoQueue[0] })}
+                            title={videoQueue[0].title}
+                            flatOnTv={isTvViewport}
+                        />
+                        <div className="space-y-2">
+                            <p
+                                className={cn(
+                                    'line-clamp-2 font-medium',
+                                    isTvViewport && 'text-base text-white',
+                                )}
+                            >
+                                {videoQueue[0].title}
+                            </p>
+                            <VideoChannels video={videoQueue[0]} tone="inverse" align="center" />
+                            <p
+                                className={cn(
+                                    'text-sm',
+                                    isTvViewport ? 'text-zinc-200' : 'text-muted-foreground',
+                                )}
+                            >
+                                {t('startingIn')}:{' '}
+                                <CountdownTimer
+                                    classNames="text-sm font-medium text-white"
+                                    initialSeconds={NEXT_VIDEO_COUNTDOWN_SECONDS}
+                                    onCountdownComplete={handleVideoFinished}
+                                />
+                            </p>
                         </div>
                     </div>
-                )}
+                </div>
+            )}
 
-                {isTvIdle && room?.id && (
+            <div className="absolute left-safe-offset top-safe-offset z-10 flex flex-col items-start gap-2.5">
+                {!isTvPlayerIdle && roomId && isTvViewport && showQRInPlayer && (
                     <TvPlayerQrZone
-                        roomId={room.id}
-                        roomPassword={room.password}
+                        roomId={roomId}
+                        roomPassword={roomPassword}
                         locale={locale}
                         showQR={showQRInPlayer}
-                        isIdle
-                        compact={isBothIdleLayout}
-                        reserveFooterSpace={showRecoveryModeBar}
+                        isIdle={false}
+                        disableLayoutMorph
                         onOpenSettingsAction={onOpenSettingsAction}
                     />
                 )}
-
-                {isTvPlayerIdle && (
-                    <div className="pointer-events-auto absolute right-safe-offset top-safe-offset z-[6] flex items-center gap-3 sm:gap-4">
-                        {showCornerTvSwitch ? (
-                            <TvIdleLayoutSwitch effectiveLayoutMode={effectiveLayoutMode} />
-                        ) : null}
-                        <LanguageSwitcher variant="overlay" />
-                    </div>
-                )}
-
-                {showRecoveryModeBar ? (
-                    <div className="pointer-events-auto absolute inset-x-0 bottom-0 z-[6] border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 pb-safe-offset backdrop-blur-sm">
-                        <p className="mb-2 text-center text-xs text-zinc-500">
-                            {t('tvIdleModeHint')}
-                        </p>
-                        <LayoutModeSwitch
-                            tone="overlay-visible"
-                            className="w-full"
-                            choices={RECOVERY_MODE_CHOICES}
-                        />
-                    </div>
-                ) : null}
-
-                {room?.playingNow && shouldShowTimer && room.videoQueue.length > 0 && (
-                    <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/85 p-4 text-center">
-                        <h3 className="mb-4 text-xl font-semibold">{t('nextUp')}</h3>
-                        <div className="flex w-full max-w-lg flex-col items-center gap-4 px-2">
-                            <ControlsStageThumbnail
-                                src={getYouTubeThumbnailUrl(
-                                    room.videoQueue[0].thumbnails,
-                                    'large',
-                                    room.videoQueue[0].id,
-                                )}
-                                videoId={room.videoQueue[0].id}
-                                srcSet={getYouTubeThumbnailSrcSet(
-                                    room.videoQueue[0].thumbnails,
-                                    room.videoQueue[0].id,
-                                )}
-                                title={room.videoQueue[0].title}
-                            />
-                            <div className="space-y-2">
-                                <p className="line-clamp-2 font-medium">
-                                    {room.videoQueue[0].title}
-                                </p>
-                                <VideoChannels
-                                    video={room.videoQueue[0]}
-                                    tone="inverse"
-                                    align="center"
-                                />
-                                <p className="text-sm text-muted-foreground">
-                                    {t('startingIn')}:{' '}
-                                    <CountdownTimer
-                                        classNames="text-sm font-medium text-white"
-                                        initialSeconds={NEXT_VIDEO_COUNTDOWN_SECONDS}
-                                        onCountdownComplete={handleVideoFinished}
-                                    />
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                <div className="absolute left-safe-offset top-safe-offset z-10 flex flex-col items-start gap-2.5">
-                    {!isTvPlayerIdle && room?.id && isTvViewport && showQRInPlayer && (
-                        <TvPlayerQrZone
-                            roomId={room.id}
-                            roomPassword={room.password}
-                            locale={locale}
-                            showQR={showQRInPlayer}
-                            isIdle={false}
-                            onOpenSettingsAction={onOpenSettingsAction}
-                        />
-                    )}
-                </div>
-
-                {showPlayerSettingsButton && (
-                    <div className="player-settings-button pointer-events-auto absolute right-safe-offset top-safe-offset z-20">
-                        <Button
-                            type="button"
-                            variant="secondary"
-                            size="icon"
-                            className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                            onClick={onOpenSettingsAction}
-                            onMouseEnter={onSettingsPrefetch}
-                            onFocus={onSettingsPrefetch}
-                            aria-label={t('settings')}
-                        >
-                            <Settings className="h-5 w-5" />
-                        </Button>
-                    </div>
-                )}
             </div>
-        </LayoutGroup>
+
+            {showPlayerSettingsButton && (
+                <div className="player-settings-button pointer-events-auto absolute right-safe-offset top-safe-offset z-20">
+                    <Button
+                        type="button"
+                        variant="secondary"
+                        size="icon"
+                        className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
+                        onClick={onOpenSettingsAction}
+                        onMouseEnter={onSettingsPrefetch}
+                        onFocus={onSettingsPrefetch}
+                        aria-label={t('settings')}
+                    >
+                        <Settings className="h-5 w-5" />
+                    </Button>
+                </div>
+            )}
+        </div>
     );
+
+    if (isTvViewport) {
+        return playerSurface;
+    }
+
+    return <LayoutGroup id="tv-player-qr">{playerSurface}</LayoutGroup>;
 }
+
+export const PlayerColumn = memo(PlayerColumnInner);

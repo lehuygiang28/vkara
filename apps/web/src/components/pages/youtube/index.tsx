@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useScopedI18n } from '@/locales/client';
@@ -13,6 +12,8 @@ import { useLayoutChunkPrefetch, prefetchRemoteShell } from '@/hooks/use-layout-
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
+import { useTikTokHiddenPlayGuard } from '@/hooks/use-tiktok-hidden-play-guard';
+import { useTikTokPhotoIndexSync } from '@/hooks/use-tiktok-photo-index-sync';
 
 import { ConnectionStatusToast } from '@/components/connection-status-toast';
 import {
@@ -41,7 +42,8 @@ function getFinePointerSnapshot() {
 }
 
 export default function YoutubePlayerPage() {
-    const { room, handleServerMessage, setCurrentTab } = useYouTubeStore();
+    const playingNow = useYouTubeStore((s) => s.room?.playingNow);
+    const setCurrentTab = useYouTubeStore((s) => s.setCurrentTab);
 
     const t_Toast = useScopedI18n('toast');
     const [showRemotePanel, setShowRemotePanel] = useState(false);
@@ -58,15 +60,17 @@ export default function YoutubePlayerPage() {
 
     const { lastMessage } = useWebSocket();
     usePlaybackPositionSync();
+    useTikTokHiddenPlayGuard();
+    useTikTokPhotoIndexSync();
 
     const isTvLayout = effectiveLayoutMode !== 'remote';
 
     useEffect(() => {
-        if (lastMessage) {
-            handleServerMessage(lastMessage, t_Toast, { isTvLayout });
+        if (!lastMessage) {
+            return;
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [lastMessage, handleServerMessage, isTvLayout]);
+        useYouTubeStore.getState().handleServerMessage(lastMessage, t_Toast, { isTvLayout });
+    }, [lastMessage, isTvLayout, t_Toast]);
 
     useEffect(() => {
         if (effectiveLayoutMode === 'remote' && prevLayoutMode.current !== 'remote') {
@@ -83,7 +87,7 @@ export default function YoutubePlayerPage() {
 
     const isRemoteOnly = effectiveLayoutMode === 'remote';
     const showsPlayer = effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
-    const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !room?.playingNow);
+    const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !playingNow);
     const useTvIdleShell = needsLayoutBootstrap || isTvPlayerIdle;
 
     if (needsLayoutBootstrap) {
@@ -93,7 +97,7 @@ export default function YoutubePlayerPage() {
                 aria-busy="true"
             >
                 <ConnectionStatusToast />
-                <div className="pointer-events-auto absolute inset-x-0 bottom-0 border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 pb-safe-offset backdrop-blur-sm">
+                <div className="pointer-events-auto absolute inset-x-0 bottom-0 border-t border-zinc-800/80 bg-zinc-950 px-4 py-3 pb-safe-offset">
                     <LayoutModeSwitch
                         tone="overlay-visible"
                         className="w-full"
@@ -147,28 +151,17 @@ export default function YoutubePlayerPage() {
                     </div>
                 )}
 
-                <AnimatePresence>
-                    {effectiveLayoutMode === 'player' && showRemotePanel && (
-                        <>
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="fixed inset-0 z-40 bg-black/60"
-                                onClick={() => setShowRemotePanel(false)}
-                            />
-                            <motion.div
-                                initial={{ x: '100%' }}
-                                animate={{ x: 0 }}
-                                exit={{ x: '100%' }}
-                                transition={{ type: 'spring', stiffness: 320, damping: 32 }}
-                                className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-background pt-safe-offset pr-safe-offset shadow-xl"
-                            >
-                                <RemoteShell />
-                            </motion.div>
-                        </>
-                    )}
-                </AnimatePresence>
+                {effectiveLayoutMode === 'player' && showRemotePanel ? (
+                    <>
+                        <div
+                            className="fixed inset-0 z-40 bg-black/60 motion-reduce:bg-black"
+                            onClick={() => setShowRemotePanel(false)}
+                        />
+                        <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-md flex-col bg-background pt-safe-offset pr-safe-offset shadow-xl motion-reduce:transition-none animate-in slide-in-from-right duration-300 motion-reduce:animate-none motion-reduce:duration-0">
+                            <RemoteShell />
+                        </div>
+                    </>
+                ) : null}
             </main>
         </div>
     );

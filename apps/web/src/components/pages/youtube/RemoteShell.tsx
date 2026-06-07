@@ -45,13 +45,13 @@ export function RemoteShell() {
     const currentTab = useYouTubeStore((state) => state.currentTab);
     const setCurrentTab = useYouTubeStore((state) => state.setCurrentTab);
     const hasPlaying = useYouTubeStore((state) => Boolean(state.room?.playingNow));
-    const room = useYouTubeStore((state) => state.room);
+    const hasRoom = useYouTubeStore((state) => Boolean(state.room));
     const tvSuppressAutoCreate = useYouTubeStore((state) => state.tvSuppressAutoCreate);
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
     const showNowPlayingBar = hasPlaying && currentTab !== 'controls';
 
     const showJoinLobby =
-        !room &&
+        !hasRoom &&
         (effectiveLayoutMode === 'remote' ||
             (effectiveLayoutMode === 'both' && tvSuppressAutoCreate));
 

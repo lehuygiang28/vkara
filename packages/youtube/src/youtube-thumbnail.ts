@@ -220,3 +220,7 @@ export function getYouTubeThumbnailSrcSet(
 
     return withWidth.map((variant) => `${variant.url} ${variant.width}w`).join(', ');
 }
+
+export function isYouTubeThumbnailHost(url: string): boolean {
+    return /(^|\/\/)(i\.)?ytimg\.com\//.test(url);
+}

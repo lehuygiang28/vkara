@@ -39,6 +39,8 @@ export function captureTvRoomSnapshot(room: Omit<Room, 'clients'> | null): TvRoo
             captionsLanguage: normalized.captionsLanguage,
             captionTracks: [...normalized.captionTracks],
             captionTracksVideoId: normalized.captionTracksVideoId,
+            tiktokPhotoIndex: normalized.tiktokPhotoIndex,
+            tiktokPhotoMaxIndex: normalized.tiktokPhotoMaxIndex,
         },
     };
 }

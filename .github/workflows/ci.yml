@@ -38,3 +38,4 @@ jobs:
                   NEXT_PUBLIC_APP_URL: https://example.com
                   NEXT_PUBLIC_WS_URL: wss://api.example.com
                   NEXT_PUBLIC_API_URL: https://api.example.com
+                  NEXT_PUBLIC_TIKTOK_API_URL: https://api.example.com

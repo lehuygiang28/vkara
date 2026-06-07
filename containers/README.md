@@ -145,6 +145,7 @@ Client :3000
 Build-time (in `containers/aio/Dockerfile`):
 
 - `NEXT_PUBLIC_API_URL=/api/vkara` - browser calls same-origin REST
+- `NEXT_PUBLIC_TIKTOK_API_URL` - optional; defaults to `NEXT_PUBLIC_API_URL` (same `/api/vkara` in AIO)
 - `VKARA_AIO=1` - middleware skips `/vi` redirect (Caddy handles it at the edge)
 
 Runtime processes (supervisord): `redis` → `api` → `web` → `caddy`.
@@ -193,6 +194,7 @@ See `apps/web/.env.example`. Client vars must be set **at build time** for produ
 | Variable | Standalone example | AIO (set in Dockerfile) |
 |----------|-------------------|-------------------------|
 | `NEXT_PUBLIC_API_URL` | `http://localhost:8000/` | `/api/vkara` |
+| `NEXT_PUBLIC_TIKTOK_API_URL` | *(optional → `NEXT_PUBLIC_API_URL`)* | *(optional → `/api/vkara`)* |
 | `NEXT_PUBLIC_WS_URL` | `ws://localhost:8000/` | *(empty → same-origin `/ws`)* |
 | `NEXT_PUBLIC_APP_URL` | Public site URL | Same as `PUBLIC_APP_URL` |
 
@@ -235,3 +237,17 @@ Redis credentials are fixed inside the image (`127.0.0.1:6379`, password `giang`
 | Redis connection refused (api profile) | API image has no Redis - use `bundle` or external Redis |
 
 For local development without Docker, use `bun run dev` from the repo root ([README](../README.md#quick-start)).
+
+---
+
+## Experiments (`VKARA_EXPERIMENTS`)
+
+TikTok search is gated behind `VKARA_EXPERIMENTS=1` on the API and `NEXT_PUBLIC_VKARA_EXPERIMENTS=1` on the web. When off, the TikTok route is not mounted and the Settings experiments section stays hidden.
+
+**Local dev (API on host):** install Playwright Chromium once:
+
+```bash
+cd apps/api && bunx playwright install chromium
+```
+
+**Docker:** published API images are distroless/minimal and do not bundle Chromium. Enabling `VKARA_EXPERIMENTS` in a container requires a custom image with Playwright browser deps, or run the API on the host for TikTok testing. YouTube-only deployments are unaffected when the flag is unset.

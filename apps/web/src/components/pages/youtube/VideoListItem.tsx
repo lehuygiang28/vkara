@@ -3,9 +3,9 @@
 import { memo, type ReactNode } from 'react';
 import { VideoChannels } from '@/components/video-channels';
 import { LiveBadge } from '@/components/youtube-live-badge';
-import { coerceViewCount, formatViewCount, getYouTubeThumbnailUrl } from '@vkara/youtube';
+import { coerceViewCount, formatViewCount } from '@vkara/youtube';
+import { getVideoThumbnailUrl, isTikTokVideo, isVideoLive } from '@vkara/tiktok';
 import { formatUploadedAt } from '@/lib/format-uploaded-at';
-import { isVideoLive } from '@/lib/youtube-video';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/locales/client';
 import type { YouTubeVideo } from '@vkara/youtube';
@@ -45,7 +45,9 @@ export const VideoListItem = memo(function VideoListItem({
     const t = useI18n();
     const uploadedAtLabel = video.uploadedAt ? formatUploadedAt(video.uploadedAt, t) : '';
     const views = coerceViewCount(video.views);
-    const isLive = isVideoLive(video);
+    const isLive = isVideoLive({ video });
+    const isTikTok = isTikTokVideo(video);
+    const thumbnailSrc = getVideoThumbnailUrl({ video, size: 'list' }) || null;
 
     const metadataLine = (() => {
         if (isLive) {
@@ -90,8 +92,8 @@ export const VideoListItem = memo(function VideoListItem({
                 )}
             >
                 <VideoListThumbnail
-                    src={getYouTubeThumbnailUrl(video.thumbnails, 'list', video.id)}
-                    videoId={video.id}
+                    src={thumbnailSrc}
+                    videoId={isTikTok ? undefined : video.id}
                     overlay={
                         isLive ? (
                             <div className="absolute bottom-1 right-1">

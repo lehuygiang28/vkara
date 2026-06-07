@@ -23,6 +23,8 @@ type TvPlayerQrZoneProps = {
     compact?: boolean;
     /** Room for sticky mode switch on narrow viewports. */
     reserveFooterSpace?: boolean;
+    /** TV / reduced-motion path: static layout without framer layout morph. */
+    disableLayoutMorph?: boolean;
     onOpenSettingsAction: () => void;
 };
 
@@ -49,10 +51,12 @@ export function TvPlayerQrZone({
     isIdle,
     compact = false,
     reserveFooterSpace = false,
+    disableLayoutMorph = false,
     onOpenSettingsAction: onOpenSettings,
 }: TvPlayerQrZoneProps) {
     const t = useScopedI18n('youtubePage');
     const reduceMotion = useReducedMotion();
+    const staticLayout = disableLayoutMorph || reduceMotion;
 
     const shareUrl = generateShareableUrl({
         roomId,
@@ -70,14 +74,23 @@ export function TvPlayerQrZone({
     const idleTitle = compact ? t('tvEmptyTitleBoth') : t('tvEmptyTitle');
     const idleSubtitle = compact ? t('tvEmptySubtitleBoth') : t('tvEmptySubtitle');
 
+    const Shell = staticLayout ? 'div' : motion.div;
+    const ShellButton = staticLayout ? 'button' : motion.button;
+    const ShellSpan = staticLayout ? 'span' : motion.span;
+    const ShellList = staticLayout ? 'ol' : motion.ol;
+    const shellMotionProps = staticLayout
+        ? {}
+        : { layout: true as const, transition: layoutTransition };
+
     const qrShell = (
-        <motion.div
-            layout
-            layoutId="tv-player-qr-shell"
-            transition={layoutTransition}
+        <Shell
+            {...shellMotionProps}
+            {...(staticLayout ? {} : { layoutId: 'tv-player-qr-shell' })}
             className={cn(
                 isIdle
-                    ? 'rounded-2xl bg-white p-3 shadow-[0_24px_80px_rgb(0_0_0_0.45)] sm:p-4'
+                    ? staticLayout
+                        ? 'rounded-2xl border border-zinc-200 bg-white p-3 shadow-sm sm:p-4'
+                        : 'rounded-2xl bg-white p-3 shadow-[0_24px_80px_rgb(0_0_0_0.45)] sm:p-4'
                     : 'rounded-lg',
             )}
         >
@@ -85,6 +98,8 @@ export function TvPlayerQrZone({
                 isIdle ? (
                     compact ? (
                         <PlayerQrMark shareUrl={shareUrl} size={IDLE_QR_SIZE_COMPACT} />
+                    ) : staticLayout ? (
+                        <PlayerQrMark shareUrl={shareUrl} size={IDLE_QR_SIZE_LG} />
                     ) : (
                         <>
                             <div className="lg:hidden">
@@ -114,27 +129,29 @@ export function TvPlayerQrZone({
                     {roomId}
                 </div>
             )}
-        </motion.div>
+        </Shell>
     );
 
     const roomLabel = isIdle ? (
-        <motion.span
-            layout
-            layoutId="tv-player-room-label"
-            transition={layoutTransition}
+        <ShellSpan
+            {...shellMotionProps}
+            {...(staticLayout ? {} : { layoutId: 'tv-player-room-label' })}
             className={cn(
-                'mt-4 text-center font-semibold tabular-nums text-white drop-shadow-sm',
+                'mt-4 text-center font-semibold tabular-nums text-white',
+                !staticLayout && 'drop-shadow-sm',
                 compact ? 'text-2xl' : 'text-3xl sm:text-4xl',
             )}
         >
             {`${t('tvRoomCode')}: ${roomId}`}
-        </motion.span>
+        </ShellSpan>
     ) : (
-        <motion.div
-            layout
-            layoutId="tv-player-room-label"
-            transition={layoutTransition}
-            className="mt-1 grid grid-cols-4 font-mono text-2xl font-semibold leading-none tabular-nums text-white drop-shadow-sm"
+        <Shell
+            {...shellMotionProps}
+            {...(staticLayout ? {} : { layoutId: 'tv-player-room-label' })}
+            className={cn(
+                'mt-1 grid grid-cols-4 font-mono text-2xl font-semibold leading-none tabular-nums text-white',
+                !staticLayout && 'drop-shadow-sm',
+            )}
             style={{ width: CORNER_QR_SIZE }}
         >
             {roomId.split('').map((digit, index) => (
@@ -142,7 +159,7 @@ export function TvPlayerQrZone({
                     {digit}
                 </span>
             ))}
-        </motion.div>
+        </Shell>
     );
 
     if (isIdle) {
@@ -156,10 +173,12 @@ export function TvPlayerQrZone({
                     reserveFooterSpace && 'pb-28',
                 )}
             >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgb(39_39_42_/_0.55),transparent_65%)]" />
+                {!staticLayout ? (
+                    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgb(39_39_42_/_0.55),transparent_65%)]" />
+                ) : null}
 
-                <motion.div
-                    layout
+                <Shell
+                    {...shellMotionProps}
                     className={cn(
                         'relative z-[1] flex w-full flex-col items-center text-center',
                         compact ? 'max-w-sm py-2 lg:py-0' : 'max-w-xl py-2 sm:py-0',
@@ -183,7 +202,8 @@ export function TvPlayerQrZone({
                         </h1>
                         <p
                             className={cn(
-                                'max-w-sm text-pretty leading-relaxed text-zinc-400 sm:max-w-md',
+                                'max-w-sm text-pretty leading-relaxed sm:max-w-md',
+                                staticLayout ? 'text-base text-zinc-300' : 'text-zinc-400',
                                 compact
                                     ? 'text-sm lg:text-[0.9375rem]'
                                     : 'text-sm sm:text-base lg:text-lg',
@@ -193,47 +213,55 @@ export function TvPlayerQrZone({
                         </p>
                     </div>
 
-                    <motion.button
+                    <ShellButton
                         type="button"
-                        layout
-                        layoutId="tv-player-qr-anchor"
-                        transition={layoutTransition}
+                        {...shellMotionProps}
+                        {...(staticLayout ? {} : { layoutId: 'tv-player-qr-anchor' })}
                         onClick={onOpenSettings}
                         className="group flex flex-col items-center rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
                         aria-label={t('tvEmptyQrAria')}
                     >
                         {qrShell}
                         {roomLabel}
-                    </motion.button>
+                    </ShellButton>
 
                     {compact ? (
-                        <p className="mt-5 max-w-xs text-center text-xs leading-relaxed text-zinc-500">
+                        <p
+                            className={cn(
+                                'mt-5 max-w-xs text-center text-xs leading-relaxed',
+                                staticLayout ? 'text-zinc-300' : 'text-zinc-500',
+                            )}
+                        >
                             {t('tvIdleBothInvite')}
                         </p>
                     ) : (
-                        <motion.ol className="mt-5 w-full max-w-md space-y-3 text-left sm:mt-10 sm:space-y-5">
+                        <ShellList className="mt-5 w-full max-w-md space-y-3 text-left sm:mt-10 sm:space-y-5">
                             {steps.map((step, index) => (
                                 <li key={step} className="flex items-start gap-3 sm:gap-4">
                                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-700/90 text-sm font-medium text-zinc-300">
                                         {index + 1}
                                     </span>
-                                    <span className="pt-1 text-sm leading-relaxed text-zinc-400 sm:text-base">
+                                    <span
+                                        className={cn(
+                                            'pt-1 text-sm leading-relaxed sm:text-base',
+                                            staticLayout ? 'text-zinc-300' : 'text-zinc-400',
+                                        )}
+                                    >
                                         {step}
                                     </span>
                                 </li>
                             ))}
-                        </motion.ol>
+                        </ShellList>
                     )}
-                </motion.div>
+                </Shell>
             </div>
         );
     }
 
     return (
-        <motion.div
-            layout
-            layoutId="tv-player-qr-anchor"
-            transition={layoutTransition}
+        <Shell
+            {...shellMotionProps}
+            {...(staticLayout ? {} : { layoutId: 'tv-player-qr-anchor' })}
             className="hidden lg:block"
         >
             <div
@@ -249,6 +277,6 @@ export function TvPlayerQrZone({
                 {qrShell}
                 {roomLabel}
             </div>
-        </motion.div>
+        </Shell>
     );
 }

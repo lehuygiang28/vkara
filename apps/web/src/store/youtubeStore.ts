@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import type { YouTubeVideo } from '@vkara/youtube';
+import { type YouTubeVideo } from '@vkara/youtube';
 import {
     ErrorCode,
     normalizePersistedRoom,
@@ -14,12 +14,20 @@ import { toast } from '@/hooks/use-toast';
 import type { useScopedI18n } from '@/locales/client';
 import { cancelPendingQueueAdd, confirmPendingQueueAdd } from '@/lib/queue-action-feedback';
 import {
-    applyRoomPlaybackToPlayer,
+    applyPlaybackIntent,
+    applyPlaybackSeek,
+    applyPlaybackVolume,
+    bootstrapActivePlayback,
+    isTikTokPlayback,
+    syncTikTokPhotoIndex,
+} from '@/lib/active-playback';
+import {
     clearPlaybackBroadcastSuppression,
     markServerPlaybackCommand,
     markPlaybackTrackChange,
     shouldApplyRemoteCurrentTime,
 } from '@/lib/youtube-playback-sync';
+import { getTikTokSeekBaseSeconds } from '@/lib/tiktok-playback-sync';
 import { shouldApplyRemoteVolumeChange } from '@/lib/remote-gesture-sync';
 
 export type YouTubeStoreLayoutMode = 'both' | 'remote' | 'player';
@@ -178,13 +186,12 @@ export const useYouTubeStore = create(
                         const joinedRoom = normalizePersistedRoom(message.room);
                         const roomVolume = Math.min(100, Math.max(0, joinedRoom?.volume ?? 100));
                         set((state) => {
-                            state?.player?.setVolume(roomVolume);
-                            if (state.player && joinedRoom?.playingNow) {
-                                applyRoomPlaybackToPlayer(
-                                    state.player,
-                                    joinedRoom.isPlaying ?? false,
-                                );
-                            }
+                            bootstrapActivePlayback({
+                                video: joinedRoom?.playingNow,
+                                youtubePlayer: state?.player ?? null,
+                                roomVolume,
+                                roomIsPlaying: joinedRoom?.isPlaying ?? false,
+                            });
                             return {
                                 room: joinedRoom,
                                 wsId: message.yourId,
@@ -203,13 +210,17 @@ export const useYouTubeStore = create(
                             if (prevPlayingId !== nextPlayingId) {
                                 markPlaybackTrackChange();
                             }
+                            const updatedPlaying = updatedRoom?.playingNow;
                             if (
-                                state.player &&
-                                updatedRoom?.playingNow &&
+                                updatedPlaying &&
                                 prevPlayingId === nextPlayingId &&
                                 prevPlaying !== nextPlaying
                             ) {
-                                applyRoomPlaybackToPlayer(state.player, nextPlaying ?? false);
+                                applyPlaybackIntent({
+                                    video: updatedPlaying,
+                                    youtubePlayer: state.player,
+                                    isPlaying: nextPlaying ?? false,
+                                });
                             }
                             confirmPendingQueueAdd(state.room, updatedRoom);
                             return { room: updatedRoom };
@@ -276,16 +287,22 @@ export const useYouTubeStore = create(
                                     return state;
                                 }
 
-                                const player = state.player;
-                                if (
-                                    player &&
-                                    needsPlaybackSeekCorrection(
-                                        player.getCurrentTime(),
-                                        message.currentTime,
-                                    )
-                                ) {
-                                    markServerPlaybackCommand();
-                                    player.seekTo(message.currentTime, true);
+                                const playing = state.room?.playingNow;
+                                if (playing) {
+                                    const seekBase = isTikTokPlayback({ video: playing })
+                                        ? getTikTokSeekBaseSeconds(state.room?.isPlaying ?? false)
+                                        : state.player?.getCurrentTime() ?? roomTime;
+                                    if (
+                                        needsPlaybackSeekCorrection(seekBase, message.currentTime) &&
+                                        (isTikTokPlayback({ video: playing }) || state.player)
+                                    ) {
+                                        markServerPlaybackCommand();
+                                        applyPlaybackSeek({
+                                            video: playing,
+                                            youtubePlayer: state.player,
+                                            seconds: message.currentTime,
+                                        });
+                                    }
                                 }
                                 clearPlaybackBroadcastSuppression();
                                 return {
@@ -304,7 +321,11 @@ export const useYouTubeStore = create(
                                 break;
                             }
                             set((state) => {
-                                state?.player?.setVolume(volume);
+                                applyPlaybackVolume({
+                                    video: state.room?.playingNow,
+                                    youtubePlayer: state.player,
+                                    volume,
+                                });
                                 return { ...state, volume };
                             });
                         }
@@ -314,7 +335,11 @@ export const useYouTubeStore = create(
                             clearPlaybackBroadcastSuppression();
                             set((state) => {
                                 markServerPlaybackCommand();
-                                state?.player?.seekTo(0, true);
+                                applyPlaybackSeek({
+                                    video: state.room?.playingNow,
+                                    youtubePlayer: state.player,
+                                    seconds: 0,
+                                });
                                 return {
                                     ...state,
                                     room: state.room
@@ -332,9 +357,11 @@ export const useYouTubeStore = create(
                         {
                             clearPlaybackBroadcastSuppression();
                             set((state) => {
-                                if (state.player) {
-                                    applyRoomPlaybackToPlayer(state.player, true);
-                                }
+                                applyPlaybackIntent({
+                                    video: state.room?.playingNow,
+                                    youtubePlayer: state.player,
+                                    isPlaying: true,
+                                });
                                 return {
                                     ...state,
                                     room: state.room ? { ...state.room, isPlaying: true } : null,
@@ -346,12 +373,42 @@ export const useYouTubeStore = create(
                         {
                             clearPlaybackBroadcastSuppression();
                             set((state) => {
-                                if (state.player) {
-                                    applyRoomPlaybackToPlayer(state.player, false);
-                                }
+                                applyPlaybackIntent({
+                                    video: state.room?.playingNow,
+                                    youtubePlayer: state.player,
+                                    isPlaying: false,
+                                });
                                 return {
                                     ...state,
                                     room: state.room ? { ...state.room, isPlaying: false } : null,
+                                };
+                            });
+                        }
+                        break;
+                    case 'tiktokPhotoIndexChanged':
+                        {
+                            set((state) => {
+                                const activeVideoId = state.room?.playingNow?.id ?? null;
+                                if (
+                                    message.videoId != null &&
+                                    activeVideoId != null &&
+                                    message.videoId !== activeVideoId
+                                ) {
+                                    return state;
+                                }
+
+                                const playing = state.room?.playingNow;
+                                syncTikTokPhotoIndex({ video: playing, index: message.index });
+
+                                return {
+                                    ...state,
+                                    room: state.room
+                                        ? {
+                                              ...state.room,
+                                              tiktokPhotoIndex: message.index,
+                                              tiktokPhotoMaxIndex: message.maxIndex,
+                                          }
+                                        : null,
                                 };
                             });
                         }

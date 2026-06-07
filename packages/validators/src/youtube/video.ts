@@ -25,6 +25,8 @@ export const youtubeVideoSchema = z.object({
         .min(1),
     thumbnails: z.array(youtubeThumbnailVariantSchema),
     isLive: z.boolean().optional(),
+    source: z.enum(['youtube', 'tiktok']).optional(),
+    tiktokImageCount: z.number().int().positive().optional(),
 });
 
 export type YouTubeVideoInput = z.infer<typeof youtubeVideoSchema>;

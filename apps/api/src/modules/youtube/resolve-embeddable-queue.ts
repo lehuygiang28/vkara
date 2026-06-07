@@ -1,5 +1,6 @@
 import type Redis from 'ioredis';
 import type { YouTubeVideo } from '@vkara/youtube';
+import { isTikTokVideo } from '@vkara/tiktok';
 
 import { checkEmbeddable } from './resolve-embed-playability';
 
@@ -21,7 +22,7 @@ export async function resolveNextEmbeddableFromQueue(
 
     while (remainingQueue.length > 0 && skippedCount < MAX_EMBED_SKIP) {
         const candidate = remainingQueue.shift()!;
-        if (await checkEmbeddable(redisClient, candidate.id)) {
+        if (isTikTokVideo(candidate) || (await checkEmbeddable(redisClient, candidate.id))) {
             return { video: candidate, remainingQueue, skippedCount };
         }
         skippedCount += 1;

@@ -1,15 +1,18 @@
 import { createEnv } from '@t3-oss/env-nextjs';
-import { envSkipValidation, webPublicEnv, webServerEnv } from '@vkara/env';
+import { envSkipValidation, experimentsEnv, webPublicEnv, webServerEnv } from '@vkara/env';
 
 export const env = createEnv({
-    extends: [webPublicEnv(), webServerEnv()],
+    extends: [webPublicEnv(), experimentsEnv(), webServerEnv()],
     runtimeEnv: {
         NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+        NEXT_PUBLIC_TIKTOK_API_URL: process.env.NEXT_PUBLIC_TIKTOK_API_URL,
         NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
         NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
         NEXT_PUBLIC_GOOGLE_ANALYTICS_ID: process.env.NEXT_PUBLIC_GOOGLE_ANALYTICS_ID,
         NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN:
             process.env.NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN,
+        NEXT_PUBLIC_VKARA_EXPERIMENTS: process.env.NEXT_PUBLIC_VKARA_EXPERIMENTS,
+        VKARA_EXPERIMENTS: process.env.VKARA_EXPERIMENTS,
         WHISPER_URL: process.env.WHISPER_URL,
         HF_TOKEN: process.env.HF_TOKEN,
         VKARA_AIO: process.env.VKARA_AIO,

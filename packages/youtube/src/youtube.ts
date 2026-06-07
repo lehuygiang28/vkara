@@ -17,6 +17,8 @@ export type YouTubeThumbnailVariant = {
   height?: number;
 };
 
+export type VideoSource = 'youtube' | 'tiktok';
+
 export type YouTubeVideo = {
   id: string;
   duration: number;
@@ -31,7 +33,15 @@ export type YouTubeVideo = {
   thumbnails: YouTubeThumbnailVariant[];
   /** Active YouTube livestream (no fixed duration). */
   isLive?: boolean;
+  /** Queue provider; omitted or `youtube` for InnerTube items. */
+  source?: VideoSource;
+  /** TikTok photo carousel slide count (from search `imagePost.images`). */
+  tiktokImageCount?: number;
 };
+
+export function getVideoSource(video: Pick<YouTubeVideo, 'source'>): VideoSource {
+  return video.source ?? 'youtube';
+}
 
 /** Legacy payloads may still include `channel`; normalize to `channels` for UI. */
 export function normalizeVideoChannels(

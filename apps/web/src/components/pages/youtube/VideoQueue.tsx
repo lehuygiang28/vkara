@@ -10,6 +10,7 @@ import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { CuratedPlaylistsPanel } from '@/components/curated-playlists/curated-playlists-panel';
 import { TooltipButton } from '@/components/tooltip-button';
+import { isTikTokProviderActive } from '@/lib/video-provider';
 import { useCuratedStore } from '@/store/curatedStore';
 import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
@@ -26,6 +27,7 @@ export function VideoQueue() {
     } = usePlayerAction();
     const t = useScopedI18n('videoQueue');
     const setImportPlaylistPanelOpen = useCuratedStore((state) => state.setImportPlaylistPanelOpen);
+    const hideYoutubeOnlyActions = isTikTokProviderActive();
 
     const renderActions = useCallback(
         (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers) => (
@@ -64,12 +66,14 @@ export function VideoQueue() {
             <VideoListToolbar
                 leading={
                     <>
-                        <TooltipButton
-                            tooltipContent={t('importPlaylistDescription')}
-                            buttonText={t('importPlaylist')}
-                            icon={<ListMusic />}
-                            onConfirm={() => setImportPlaylistPanelOpen(true)}
-                        />
+                        {!hideYoutubeOnlyActions ? (
+                            <TooltipButton
+                                tooltipContent={t('importPlaylistDescription')}
+                                buttonText={t('importPlaylist')}
+                                icon={<ListMusic />}
+                                onConfirm={() => setImportPlaylistPanelOpen(true)}
+                            />
+                        ) : null}
                         {(room?.videoQueue?.length || 0) > 2 ? (
                             <TooltipButton
                                 tooltipContent={t('shuffle')}
@@ -111,7 +115,9 @@ export function VideoQueue() {
                             ]}
                             className="flex-none"
                         />
-                        <CuratedPlaylistsPanel variant="compact" showHeading />
+                        {!hideYoutubeOnlyActions ? (
+                            <CuratedPlaylistsPanel variant="compact" showHeading />
+                        ) : null}
                     </div>
                 }
                 renderActions={renderActions}

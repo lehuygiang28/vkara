@@ -26,6 +26,8 @@ describe('tv-room-recovery', () => {
             creatorId: 'x',
             isPlaying: false,
             currentTime: 0,
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
         });
 
         expect(snapshot?.previousRoomId).toBe('5678');

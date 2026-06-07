@@ -3,7 +3,7 @@
 import { useEffect } from 'react';
 import { Pause, Play, SkipForward } from 'lucide-react';
 
-import { getYouTubeThumbnailUrl } from '@vkara/youtube';
+import { getVideoThumbnailUrl, isVideoLive } from '@vkara/tiktok';
 import { useScopedI18n } from '@/locales/client';
 import { prefetchPlayerControlsTabs } from '@/lib/layout-chunk-prefetch';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -13,7 +13,6 @@ import { cn } from '@/lib/utils';
 import { NowPlayingArtwork } from '@/components/pages/youtube/NowPlayingArtwork';
 import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';
-import { isVideoLive } from '@/lib/youtube-video';
 
 interface NowPlayingBarProps {
     className?: string;
@@ -27,7 +26,7 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
 
     const playing = room?.playingNow;
     const isPlaying = room?.isPlaying;
-    const isLive = playing ? isVideoLive(playing) : false;
+    const isLive = playing ? isVideoLive({ video: playing }) : false;
     const playingId = playing?.id;
 
     useEffect(() => {
@@ -55,8 +54,11 @@ export function NowPlayingBar({ className, onOpenControls }: NowPlayingBarProps)
                 className="flex min-w-0 flex-1 items-center gap-2 text-left"
             >
                 <NowPlayingArtwork
-                    src={getYouTubeThumbnailUrl(playing.thumbnails, 'list', playing.id)}
+                    src={getVideoThumbnailUrl({ video: playing, size: 'list' })}
                     videoId={playing.id}
+                    videoUrl={playing.url}
+                    thumbnails={playing.thumbnails}
+                    source={playing.source}
                     title={playing.title}
                     isPlaying={Boolean(isPlaying)}
                     isLive={isLive}

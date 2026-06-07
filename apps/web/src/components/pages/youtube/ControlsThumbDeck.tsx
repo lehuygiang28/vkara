@@ -4,10 +4,15 @@ import { usePlaybackDisplayTime } from '@/hooks/use-playback-display-time';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';
-import { isVideoLive } from '@/lib/youtube-video';
+import { isTikTokPhotoPost, isVideoLive } from '@vkara/tiktok';
+import { useScopedI18n } from '@/locales/client';
 
 import { PlaybackScrubber } from '@/components/pages/youtube/PlaybackScrubber';
 import { PlayerControls } from '@/components/pages/youtube/PlayerControls';
+import {
+    TikTokPhotoNavigationBar,
+    useTikTokPhotoIndex,
+} from '@/components/pages/youtube/tiktok-photo-controls';
 import { VideoChannels } from '@/components/video-channels';
 
 /**
@@ -21,16 +26,20 @@ type ControlsThumbDeckProps = {
 };
 
 export function ControlsThumbDeck({ className, tickEnabled = true }: ControlsThumbDeckProps) {
+    const t = useScopedI18n('youtubePage');
     const { room } = useYouTubeStore();
     const displayTime = usePlaybackDisplayTime({ enabled: tickEnabled });
-    const { handleSeekToSeconds } = usePlayerAction();
+    const { handleSeekToSeconds, handleTikTokPhotoNavigate } = usePlayerAction();
 
     const playing = room?.playingNow;
+    const isPhotoPost = playing ? isTikTokPhotoPost({ video: playing }) : false;
+    const { index: photoIndex, maxIndex: photoMaxIndex } = useTikTokPhotoIndex(isPhotoPost);
+
     if (!playing) {
         return null;
     }
 
-    const isLive = isVideoLive(playing);
+    const isLive = isVideoLive({ video: playing });
     const duration = playing.duration ?? 0;
 
     return (
@@ -55,7 +64,15 @@ export function ControlsThumbDeck({ className, tickEnabled = true }: ControlsThu
                     />
                 </div>
 
-                {!isLive && duration > 0 ? (
+                {isPhotoPost ? (
+                    <TikTokPhotoNavigationBar
+                        index={photoIndex}
+                        maxIndex={photoMaxIndex}
+                        prevLabel={t('tiktokPhotoPrev')}
+                        nextLabel={t('tiktokPhotoNext')}
+                        onNavigateAction={handleTikTokPhotoNavigate}
+                    />
+                ) : !isLive && duration > 0 ? (
                     <PlaybackScrubber
                         displayTime={displayTime}
                         duration={duration}

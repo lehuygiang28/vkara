@@ -3,6 +3,7 @@ import {
     normalizeVideoThumbnails,
     type YouTubeVideo,
 } from '@vkara/youtube';
+import { isTikTokVideo, normalizeTikTokThumbnails } from '@vkara/tiktok';
 import { type Room } from '@vkara/room';
 
 /**
@@ -70,7 +71,9 @@ export function sanitizeVideoForClient(video: VideoWithLegacyChannel): YouTubeVi
     return {
         ...rest,
         channels: normalizeVideoChannels(video),
-        thumbnails: normalizeVideoThumbnails(rest.thumbnails, rest.id),
+        thumbnails: isTikTokVideo(rest)
+            ? normalizeTikTokThumbnails(rest.thumbnails)
+            : normalizeVideoThumbnails(rest.thumbnails, rest.id),
     };
 }
 

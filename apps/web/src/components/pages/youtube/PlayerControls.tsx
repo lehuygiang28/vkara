@@ -19,9 +19,10 @@ import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import { beginVolumeGesture, endVolumeGesture } from '@/lib/remote-gesture-sync';
 import { useWebSocket } from '@/providers/websocket-provider';
+import { isTikTokVideo, isTikTokPhotoPost } from '@vkara/tiktok';
 import { useYouTubeStore } from '@/store/youtubeStore';
-
 import { CaptionsMenu } from '@/components/pages/youtube/captions-menu';
+import { TikTokPlaybackUtilities } from '@/components/pages/youtube/tiktok-playback-utilities';
 import { VolumeScrubber } from '@/components/pages/youtube/VolumeScrubber';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -91,6 +92,10 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     } = usePlayerAction();
 
     const disabled = !room?.playingNow;
+    const isTikTokNow = room?.playingNow ? isTikTokVideo(room.playingNow) : false;
+    const isTikTokPhotoNow = room?.playingNow
+        ? isTikTokPhotoPost({ video: room.playingNow })
+        : false;
     const isMuted = volume === 0;
     const preMuteVolumeRef = useRef(100);
     const { shownVolume, isAdjustingVolume, sliderHandlers } = useRemoteVolumeSlider({
@@ -105,6 +110,11 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
     }, [volume]);
 
     const toggleMute = () => {
+        if (isTikTokNow) {
+            void handleSetVideoVolume(isMuted ? 100 : 0);
+            return;
+        }
+
         if (isMuted) {
             const next = preMuteVolumeRef.current;
             beginVolumeGesture(0);
@@ -149,6 +159,18 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
         }
     };
 
+    const handleCaptionsToggle = (enabled: boolean) => {
+        if (!room?.id) {
+            toastSessionNotReady({
+                title: tToast('toast.sessionNotReady'),
+                description: tToast('toast.sessionNotReadyDescription'),
+            });
+            return;
+        }
+
+        ensureConnectedAndSend({ type: 'setCaptionsEnabled', enabled });
+    };
+
     const captionsMenu = (
         <CaptionsMenu
             captionsEnabled={captionsEnabled}
@@ -165,6 +187,23 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
             onSelectAction={handleCaptionsSelect}
         />
     );
+
+    const tikTokUtilities = (
+        <TikTokPlaybackUtilities
+            isMuted={isMuted}
+            captionsEnabled={captionsEnabled}
+            captionsDisabled={isTikTokPhotoNow}
+            disabled={disabled}
+            groupLabel={t('tiktokUtilitiesGroup')}
+            soundOnLabel={t('tiktokSoundOn')}
+            soundOffLabel={t('tiktokSoundOff')}
+            captionsLabel={t('captionsMenu')}
+            onMuteToggleAction={toggleMute}
+            onCaptionsToggleAction={handleCaptionsToggle}
+        />
+    );
+
+    const captionsControl = isTikTokNow ? null : captionsMenu;
 
     if (variant === 'panel') {
         return (
@@ -233,33 +272,37 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                 </div>
 
                 <div className="rounded-lg bg-muted/20 p-2 min-[400px]:p-2.5">
-                    <div className="flex items-center gap-2 min-[400px]:gap-3">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            className="h-11 w-11 shrink-0"
-                            onClick={toggleMute}
-                            aria-label={isMuted ? t('unmute') : t('mute')}
-                        >
-                            {isMuted ? (
-                                <VolumeX className="h-5 w-5" />
-                            ) : (
-                                <Volume2 className="h-5 w-5" />
-                            )}
-                        </Button>
-                        <VolumeScrubber
-                            shownVolume={shownVolume}
-                            isAdjusting={isAdjustingVolume}
-                            disabled={disabled}
-                            ariaLabel={t('volume')}
-                            handlers={sliderHandlers}
-                        />
-                        <span className="hidden w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground min-[380px]:inline">
-                            {shownVolume}
-                        </span>
-                        {captionsMenu}
-                    </div>
+                    {isTikTokNow ? (
+                        tikTokUtilities
+                    ) : (
+                        <div className="flex items-center gap-2 min-[400px]:gap-3">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-11 w-11 shrink-0"
+                                onClick={toggleMute}
+                                aria-label={isMuted ? t('unmute') : t('mute')}
+                            >
+                                {isMuted ? (
+                                    <VolumeX className="h-5 w-5" />
+                                ) : (
+                                    <Volume2 className="h-5 w-5" />
+                                )}
+                            </Button>
+                            <VolumeScrubber
+                                shownVolume={shownVolume}
+                                isAdjusting={isAdjustingVolume}
+                                disabled={disabled}
+                                ariaLabel={t('volume')}
+                                handlers={sliderHandlers}
+                            />
+                            <span className="hidden w-9 shrink-0 text-right text-sm tabular-nums text-muted-foreground min-[380px]:inline">
+                                {shownVolume}
+                            </span>
+                            {captionsControl}
+                        </div>
+                    )}
                 </div>
             </div>
         );
@@ -310,26 +353,41 @@ export function PlayerControls({ variant = 'bar', className }: PlayerControlsPro
                     <SkipForward className="h-5 w-5" />
                 </Button>
             </div>
-            <div className="flex min-w-[8rem] flex-1 items-center gap-2">
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-11 w-11 shrink-0"
-                    onClick={toggleMute}
-                    aria-label={isMuted ? t('unmute') : t('mute')}
-                >
-                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
-                </Button>
-                <VolumeScrubber
-                    shownVolume={shownVolume}
-                    isAdjusting={isAdjustingVolume}
-                    disabled={disabled}
-                    ariaLabel={t('volume')}
-                    handlers={sliderHandlers}
-                    showDragValue
-                />
-                {captionsMenu}
+            <div
+                className={cn(
+                    'flex items-center gap-2',
+                    isTikTokNow ? 'w-full justify-center md:flex-1' : 'min-w-[8rem] flex-1',
+                )}
+            >
+                {isTikTokNow ? (
+                    tikTokUtilities
+                ) : (
+                    <>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-11 w-11 shrink-0"
+                            onClick={toggleMute}
+                            aria-label={isMuted ? t('unmute') : t('mute')}
+                        >
+                            {isMuted ? (
+                                <VolumeX className="h-5 w-5" />
+                            ) : (
+                                <Volume2 className="h-5 w-5" />
+                            )}
+                        </Button>
+                        <VolumeScrubber
+                            shownVolume={shownVolume}
+                            isAdjusting={isAdjustingVolume}
+                            disabled={disabled}
+                            ariaLabel={t('volume')}
+                            handlers={sliderHandlers}
+                            showDragValue
+                        />
+                        {captionsControl}
+                    </>
+                )}
             </div>
         </div>
     );

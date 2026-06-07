@@ -32,6 +32,10 @@ export interface Room {
     creatorId: string;
     isPlaying: boolean;
     currentTime: number;
+    /** TikTok photo-post carousel index (synced across clients). */
+    tiktokPhotoIndex: number;
+    /** Highest image index reported by the TV embed for the current photo post. */
+    tiktokPhotoMaxIndex: number;
 }
 
 export type MessageBase = Pick<ClientMessage, 'id' | 'timestamp'>;
@@ -57,6 +61,12 @@ export type ServerMessage =
     | { type: 'play' }
     | { type: 'pause' }
     | { type: 'volumeChanged'; volume: number }
-    | { type: 'currentTimeChanged'; currentTime: number; videoId: string | null };
+    | { type: 'currentTimeChanged'; currentTime: number; videoId: string | null }
+    | {
+          type: 'tiktokPhotoIndexChanged';
+          index: number;
+          maxIndex: number;
+          videoId: string | null;
+      };
 
 export type ConnectionStatus = 'CONNECTING' | 'OPEN' | 'CLOSING' | 'CLOSED';

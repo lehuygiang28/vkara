@@ -22,6 +22,13 @@ export const FLAG_DOCS = [
         scope: 'web',
         description: 'All-in-one deploy: skip /vi redirect middleware when set to 1.',
     },
+    {
+        name: 'VKARA_EXPERIMENTS',
+        default: false,
+        scope: 'both',
+        description:
+            'Enable experimental features (TikTok provider API, Experiments section in Settings).',
+    },
 ] as const satisfies readonly FlagDoc[];
 
 /** Non-boolean `VKARA_*` tunables (numeric config) — keep in sync with zod schemas and `.env.example`. */

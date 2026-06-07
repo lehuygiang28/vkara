@@ -116,6 +116,14 @@ export default defineConfig({
                     },
                 },
             },
+            {
+                test: {
+                    name: '@vkara/tiktok',
+                    root: path.join(repoRoot, 'packages/tiktok'),
+                    include: ['tests/**/*.test.ts'],
+                    environment: 'node',
+                },
+            },
         ],
     },
 });

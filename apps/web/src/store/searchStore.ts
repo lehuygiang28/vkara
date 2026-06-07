@@ -4,30 +4,18 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { createMigratingPersistStorage } from '@/lib/persisted-storage';
 
 import type { YouTubeVideo } from '@vkara/youtube';
-import { blendSuggestions, rankVideos } from '@vkara/personalization';
-import { getYoutubeSuggestions, searchYoutube } from '@/services/youtube-api';
+import { blendSuggestions } from '@vkara/personalization';
+import { getYoutubeSuggestions } from '@/services/youtube-api';
+import {
+    canLoadMoreSearchPages,
+    searchFirstPage,
+    searchNextPage,
+    supportsSearchSuggestions,
+} from '@/lib/search-providers';
 import { getPersonalizationProfile, usePersonalizationStore } from '@/store/personalizationStore';
 import { useCuratedStore } from '@/store/curatedStore';
-import { useYouTubeStore } from '@/store/youtubeStore';
 
 const MIN_SUGGESTION_QUERY_LENGTH = 2;
-
-const personalizeSearchResults = (
-    items: YouTubeVideo[],
-    query: string,
-    isKaraoke: boolean,
-): YouTubeVideo[] => {
-    const roomHistory = useYouTubeStore.getState().room?.historyQueue ?? [];
-    return rankVideos(items, getPersonalizationProfile(), {
-        query,
-        isKaraoke,
-        roomHistory: roomHistory.map((video) => ({
-            id: video.id,
-            title: video.title,
-            channels: video.channels,
-        })),
-    });
-};
 
 const getLocalSuggestionQueries = (): string[] => {
     const { searchHistory } = getPersonalizationProfile();
@@ -43,6 +31,8 @@ interface SearchState {
     searchResults: YouTubeVideo[];
     suggestions: string[];
     nextToken: string | null;
+    /** TikTok pagination session id from the API; required with nextToken for load more. */
+    tiktokSearchId: string | null;
     error: string | null;
     loadMoreFailed: boolean;
     searchOverlayRequestId: number;
@@ -75,6 +65,7 @@ export const useSearchStore = create(
             searchResults: [],
             suggestions: [],
             nextToken: null,
+            tiktokSearchId: null,
             error: null,
             loadMoreFailed: false,
             searchOverlayRequestId: 0,
@@ -106,6 +97,7 @@ export const useSearchStore = create(
                         searchQuery: '',
                         searchResults: [],
                         nextToken: null,
+                        tiktokSearchId: null,
                         error: null,
                         loadMoreFailed: false,
                         isLoading: false,
@@ -127,12 +119,13 @@ export const useSearchStore = create(
                         isLoading: true,
                         searchResults: [],
                         nextToken: null,
+                        tiktokSearchId: null,
                         error: null,
                         loadMoreFailed: false,
                     });
 
                     try {
-                        const { items, continuation } = await searchYoutube({
+                        const result = await searchFirstPage({
                             query: trimmed,
                             isKaraoke,
                             signal: controller.signal,
@@ -143,8 +136,9 @@ export const useSearchStore = create(
                         usePersonalizationStore.getState().recordSearch(trimmed, isKaraoke);
 
                         set({
-                            searchResults: personalizeSearchResults(items, trimmed, isKaraoke),
-                            nextToken: continuation,
+                            searchResults: result.items,
+                            nextToken: result.continuation,
+                            tiktokSearchId: result.searchId,
                         });
                     } catch (err) {
                         if (err instanceof Error && err.name === 'AbortError') return;
@@ -162,25 +156,21 @@ export const useSearchStore = create(
                 set({ isLoadingMore: true, loadMoreFailed: false });
 
                 try {
-                    const { items, continuation } = await searchYoutube({
+                    const existingIds = new Set(get().searchResults.map((video) => video.id));
+                    const result = await searchNextPage({
                         query: trimmed,
                         isKaraoke,
                         continuation: token,
+                        existingIds,
+                        tiktokSearchId: get().tiktokSearchId,
                     });
 
-                    set((state) => {
-                        const existingIds = new Set(state.searchResults.map((video) => video.id));
-                        const newItems = items.filter((video) => !existingIds.has(video.id));
-
-                        return {
-                            searchResults: [
-                                ...state.searchResults,
-                                ...personalizeSearchResults(newItems, trimmed, isKaraoke),
-                            ],
-                            nextToken: continuation,
-                            loadMoreFailed: false,
-                        };
-                    });
+                    set((state) => ({
+                        searchResults: [...state.searchResults, ...result.items],
+                        nextToken: result.continuation,
+                        tiktokSearchId: result.searchId ?? state.tiktokSearchId,
+                        loadMoreFailed: false,
+                    }));
                 } catch (err) {
                     console.error('Search error:', err);
                     set({ loadMoreFailed: true });
@@ -190,10 +180,14 @@ export const useSearchStore = create(
             },
 
             loadMore: async () => {
-                const { nextToken, isLoadingMore, searchQuery } = get();
-                if (nextToken && !isLoadingMore && searchQuery.trim()) {
-                    await get().performSearch(searchQuery, nextToken);
+                const { nextToken, isLoadingMore, searchQuery, tiktokSearchId } = get();
+                if (!nextToken || isLoadingMore || !searchQuery.trim()) {
+                    return;
                 }
+                if (!canLoadMoreSearchPages({ tiktokSearchId })) {
+                    return;
+                }
+                await get().performSearch(searchQuery, nextToken);
             },
 
             retryLoadMore: async () => {
@@ -211,6 +205,11 @@ export const useSearchStore = create(
             },
 
             fetchSuggestions: async (query) => {
+                if (!supportsSearchSuggestions()) {
+                    set({ suggestions: [], isLoadingSuggestions: false });
+                    return;
+                }
+
                 const trimmed = query.trim();
                 const localQueries = getLocalSuggestionQueries();
 

@@ -16,6 +16,8 @@ export function clampRestoreState(restore: TvRoomRestoreState): TvRoomRestoreSta
         captionsLanguage: restore.captionsLanguage,
         captionTracks: restore.captionTracks.slice(0, MAX_RESTORE_CAPTION_TRACKS),
         captionTracksVideoId: restore.captionTracksVideoId,
+        tiktokPhotoIndex: Math.max(0, Math.floor(restore.tiktokPhotoIndex)),
+        tiktokPhotoMaxIndex: Math.max(0, Math.floor(restore.tiktokPhotoMaxIndex)),
     };
 }
 
@@ -32,4 +34,6 @@ export function applyTvRestoreToRoom(room: Room, restore: TvRoomRestoreState): v
     room.captionsLanguage = clamped.captionsLanguage;
     room.captionTracks = clamped.captionTracks;
     room.captionTracksVideoId = clamped.captionTracksVideoId;
+    room.tiktokPhotoIndex = clamped.tiktokPhotoIndex;
+    room.tiktokPhotoMaxIndex = clamped.tiktokPhotoMaxIndex;
 }

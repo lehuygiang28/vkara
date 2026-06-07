@@ -8,6 +8,7 @@ import { hasBrowseFeedSources } from '@vkara/personalization';
 import { CuratedPlaylistsPanel } from '@/components/curated-playlists/curated-playlists-panel';
 import { useScopedI18n } from '@/locales/client';
 import { useBrowseFeed } from '@/hooks/use-browse-feed';
+import { isTikTokProviderActive } from '@/lib/video-provider';
 import { useShowCuratedStarters } from '@/hooks/use-curated-starter-visibility';
 import { usePersonalizationStore } from '@/store/personalizationStore';
 import { useSearchStore } from '@/store/searchStore';
@@ -70,7 +71,9 @@ export function BrowseSuggestionsList({ className }: BrowseSuggestionsListProps)
         [playingNow, historyQueue],
     );
 
-    const showCuratedStarters = useShowCuratedStarters(profile, room);
+    const hideYoutubeOnlyFlows = isTikTokProviderActive();
+    const curatedStartersEligible = useShowCuratedStarters(profile, room);
+    const showCuratedStarters = !hideYoutubeOnlyFlows && curatedStartersEligible;
     const hasFeedSources = hasBrowseFeedSources(profile, room);
 
     const { videos, isLoading, isLoadingMore, hasMore, loadError, loadMore, refresh } =

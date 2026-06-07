@@ -30,6 +30,8 @@ describe('normalizePersistedRoom', () => {
             playingNow: null,
             isPlaying: false,
             currentTime: 0,
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
             creatorId: '',
         });
         expect(normalized?.lastActivity).toEqual(expect.any(Number));

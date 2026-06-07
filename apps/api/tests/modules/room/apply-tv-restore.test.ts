@@ -19,6 +19,8 @@ describe('apply-tv-restore', () => {
             captionsLanguage: 'en',
             captionTracks: [{ languageCode: 'en', displayName: 'English' }],
             captionTracksVideoId: 'v1',
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
         };
 
         const clamped = clampRestoreState(restore);
@@ -46,6 +48,8 @@ describe('apply-tv-restore', () => {
             creatorId: 'c1',
             isPlaying: false,
             currentTime: 0,
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
         };
 
         applyTvRestoreToRoom(room, {
@@ -59,6 +63,8 @@ describe('apply-tv-restore', () => {
             captionsLanguage: 'en',
             captionTracks: [],
             captionTracksVideoId: 'now',
+            tiktokPhotoIndex: 2,
+            tiktokPhotoMaxIndex: 4,
         });
 
         expect(room.historyQueue).toEqual([]);
@@ -69,6 +75,8 @@ describe('apply-tv-restore', () => {
         expect(room.volume).toBe(80);
         expect(room.showQRInPlayer).toBe(false);
         expect(room.captionsEnabled).toBe(true);
+        expect(room.tiktokPhotoIndex).toBe(2);
+        expect(room.tiktokPhotoMaxIndex).toBe(4);
     });
 
     it('clamps caption track list length', () => {
@@ -87,6 +95,8 @@ describe('apply-tv-restore', () => {
             captionsLanguage: 'vi',
             captionTracks: tracks,
             captionTracksVideoId: null,
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
         });
 
         expect(clamped.captionTracks).toHaveLength(64);
@@ -110,9 +120,13 @@ describe('apply-tv-restore', () => {
                 },
             ],
             captionTracksVideoId: null,
+            tiktokPhotoIndex: -3,
+            tiktokPhotoMaxIndex: 1.8,
         });
 
         expect(Number.isNaN(clamped.currentTime)).toBe(true);
+        expect(clamped.tiktokPhotoIndex).toBe(0);
+        expect(clamped.tiktokPhotoMaxIndex).toBe(1);
         expect(clamped.volume).toBe(100);
         expect(clamped.captionTracks).toHaveLength(1);
         expect(clamped.captionTracks[0]?.languageCode.length).toBeGreaterThan(64);

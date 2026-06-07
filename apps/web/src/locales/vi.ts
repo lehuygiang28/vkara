@@ -56,6 +56,8 @@ export default {
     'youtubePage.play': 'Phát',
     'youtubePage.pause': 'Tạm dừng',
     'youtubePage.next': 'Tiếp theo',
+    'youtubePage.tiktokPhotoPrev': 'Ảnh trước',
+    'youtubePage.tiktokPhotoNext': 'Ảnh sau',
     'youtubePage.replay': 'Phát lại',
     'youtubePage.mute': 'Tắt tiếng',
     'youtubePage.unmute': 'Bật tiếng',
@@ -101,6 +103,9 @@ export default {
     'youtubePage.captionsLanguage': 'Ngôn ngữ phụ đề',
     'youtubePage.captionsTracksLoading': 'Đang tải phụ đề…',
     'youtubePage.captionsNoTracks': 'Video này không có phụ đề',
+    'youtubePage.tiktokUtilitiesGroup': 'Tùy chọn phát TikTok',
+    'youtubePage.tiktokSoundOn': 'Bật tiếng',
+    'youtubePage.tiktokSoundOff': 'Tắt tiếng',
     'youtubePage.skipBack10': 'Lùi 10 giây',
     'youtubePage.skipForward10': 'Tới 10 giây',
     'youtubePage.controlsEmptyTitle': 'Chưa có bài nào đang phát',
@@ -136,6 +141,19 @@ export default {
     'voiceSearchSettings.useWhisper': 'Dùng Whisper (AI)',
     'voiceSearchSettings.useWhisperHint':
         'Tốt cho tiếng Việt; sau khi nói xong có thể chờ vài giây.',
+
+    'experimentsSettings.sectionTitle': 'Thử nghiệm',
+    'experimentsSettings.sectionHint': 'Tính năng chưa ổn định, chỉ để test',
+    'experimentsSettings.scopeDevice': 'Thiết bị này',
+    'experimentsSettings.warning': 'Tính năng thử nghiệm có thể lỗi hoặc thay đổi bất cứ lúc nào.',
+    'experimentsSettings.videoProvider': 'Nguồn video',
+    'experimentsSettings.videoProviderGroup': 'Chọn nguồn video',
+    'experimentsSettings.videoProviderHint': 'Chọn nguồn tìm kiếm video trên thiết bị này.',
+    'experimentsSettings.providerYoutube': 'YouTube',
+    'experimentsSettings.providerTiktok': 'TikTok',
+
+    'experimentsSettings.tiktokVolumeHint':
+        'TikTok chỉ hỗ trợ tắt/bật tiếng, không chỉnh âm lượng chi tiết.',
 
     'roomSettings.title': 'Cài đặt Phòng',
     'roomSettings.roomId': 'ID Phòng',
@@ -322,8 +340,7 @@ export default {
     'joinLobby.modeHint': 'Chọn sai chế độ? Đổi ở đây để quay lại màn hình phù hợp.',
 
     'tvLobby.title': 'Tạo hoặc tham gia phòng',
-    'tvLobby.subtitle':
-        'Tạo phòng mới cho TV này, hoặc nhập mã để tham gia phòng đang có.',
+    'tvLobby.subtitle': 'Tạo phòng mới cho TV này, hoặc nhập mã để tham gia phòng đang có.',
     'tvLobby.createButton': 'Tạo phòng mới',
     'tvLobby.openSettings': 'Cài đặt phòng',
     'tvLobby.or': 'hoặc',

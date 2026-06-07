@@ -2,7 +2,7 @@
 
 import { Search, SlidersVertical } from 'lucide-react';
 
-import { getYouTubeThumbnailUrl } from '@vkara/youtube';
+import { getVideoThumbnailUrl } from '@vkara/tiktok';
 import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
@@ -61,7 +61,7 @@ export function PlayerControlsTabs() {
         <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden">
             {showBackdrop ? (
                 <ControlsAmbientBackdrop
-                    src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
+                    src={getVideoThumbnailUrl({ video: playing, size: 'large' })}
                     videoId={playing.id}
                 />
             ) : null}

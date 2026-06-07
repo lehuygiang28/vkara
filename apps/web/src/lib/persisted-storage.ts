@@ -48,6 +48,9 @@ function normalizePersistedYouTubeVideo(video: unknown): YouTubeVideo | null {
         channels: normalizeVideoChannels(candidate),
         thumbnails: Array.isArray(candidate.thumbnails) ? candidate.thumbnails : [],
         ...(candidate.isLive === undefined ? {} : { isLive: candidate.isLive }),
+        ...(candidate.source === 'tiktok' || candidate.source === 'youtube'
+            ? { source: candidate.source }
+            : {}),
     };
 }
 

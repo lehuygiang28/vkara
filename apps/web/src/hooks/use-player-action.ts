@@ -10,12 +10,20 @@ import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { useWebSocket } from '@/providers/websocket-provider';
 import {
-    applySeekToPlayer,
+    applyPlaybackIntent,
+    applyPlaybackSeek,
+    applyPlaybackVolume,
+    isTikTokPlayback,
+    readPlaybackPositionSeconds,
+} from '@/lib/active-playback';
+import { clearTikTokBackgroundResumeIntent } from '@/lib/tiktok-room-playback';
+import {
     getCurrentSeekGeneration,
     markServerPlaybackCommand,
     markUserSeekTarget,
 } from '@/lib/youtube-playback-sync';
 import { useYouTubeStore } from '@/store/youtubeStore';
+import { getTikTokPhotoMaxIndex } from '@vkara/tiktok';
 import type { YouTubeVideo } from '@vkara/youtube';
 
 const ACTION_FEEDBACK_DURATION_MS = 2000;
@@ -26,6 +34,7 @@ export type PlayerAction = {
     handleReplayVideo: () => void;
     handleSeekToSeconds: (seconds: number) => void;
     handleSeekRelative: (deltaSeconds: number) => void;
+    handleTikTokPhotoNavigate: (delta: -1 | 1) => void;
     handlePlayVideoNow: (video: YouTubeVideo) => void;
     handleAddVideoToQueue: (video: YouTubeVideo) => void;
     handlePlayNextVideo: () => void;
@@ -214,9 +223,13 @@ export const usePlayerAction = (): PlayerAction => {
     const handleSetVideoVolume = useCallback(
         async (volume: number) => {
             const clamped = Math.min(100, Math.max(0, volume));
-            const { setVolume, player } = useYouTubeStore.getState();
+            const { setVolume, player, room } = useYouTubeStore.getState();
             setVolume(clamped);
-            player?.setVolume(clamped);
+            applyPlaybackVolume({
+                video: room?.playingNow,
+                youtubePlayer: player,
+                volume: clamped,
+            });
             if (!(await ensureRoomReady())) return;
             ensureConnectedAndSend({ type: 'setVolume', volume: clamped });
         },
@@ -226,14 +239,29 @@ export const usePlayerAction = (): PlayerAction => {
     const handlePlayerPlay = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         markServerPlaybackCommand();
-        useYouTubeStore.getState().setIsPlaying(true);
+        const { room, player, setIsPlaying } = useYouTubeStore.getState();
+        applyPlaybackIntent({
+            video: room?.playingNow,
+            youtubePlayer: player,
+            isPlaying: true,
+        });
+        setIsPlaying(true);
         ensureConnectedAndSend({ type: 'play' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 
     const handlePlayerPause = useCallback(async () => {
         if (!(await ensureRoomReady())) return;
         markServerPlaybackCommand();
-        useYouTubeStore.getState().setIsPlaying(false);
+        const { room, player, setIsPlaying } = useYouTubeStore.getState();
+        if (isTikTokPlayback({ video: room?.playingNow })) {
+            clearTikTokBackgroundResumeIntent();
+        }
+        applyPlaybackIntent({
+            video: room?.playingNow,
+            youtubePlayer: player,
+            isPlaying: false,
+        });
+        setIsPlaying(false);
         ensureConnectedAndSend({ type: 'pause' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 
@@ -244,8 +272,12 @@ export const usePlayerAction = (): PlayerAction => {
         useYouTubeStore.setState((state) => ({
             room: state.room ? { ...state.room, currentTime: 0, isPlaying: true } : null,
         }));
-        const player = useYouTubeStore.getState().player;
-        player?.seekTo(0, true);
+        const { player, room } = useYouTubeStore.getState();
+        applyPlaybackSeek({
+            video: room?.playingNow,
+            youtubePlayer: player,
+            seconds: 0,
+        });
         ensureConnectedAndSend({ type: 'replay' });
     }, [ensureRoomReady, ensureConnectedAndSend]);
 
@@ -263,18 +295,35 @@ export const usePlayerAction = (): PlayerAction => {
         return clamped;
     }, []);
 
+    const getSeekBaseSeconds = useCallback((): number => {
+        const { room, player } = useYouTubeStore.getState();
+        if (!room?.playingNow) {
+            return 0;
+        }
+        return (
+            readPlaybackPositionSeconds({
+                video: room.playingNow,
+                youtubePlayer: player,
+                roomIsPlaying: room.isPlaying ?? false,
+                roomCurrentTime: room.currentTime ?? 0,
+            }) ?? room.currentTime ?? 0
+        );
+    }, []);
+
     const applyUserSeekLocally = useCallback((clamped: number): number => {
-        const previous = useYouTubeStore.getState().room?.currentTime ?? 0;
+        const previous = getSeekBaseSeconds();
         const generation = markUserSeekTarget(clamped, previous);
         useYouTubeStore.setState((state) => ({
             room: state.room ? { ...state.room, currentTime: clamped } : null,
         }));
-        const player = useYouTubeStore.getState().player;
-        if (player) {
-            applySeekToPlayer(player, clamped);
-        }
+        const { player, room } = useYouTubeStore.getState();
+        applyPlaybackSeek({
+            video: room?.playingNow,
+            youtubePlayer: player,
+            seconds: clamped,
+        });
         return generation;
-    }, []);
+    }, [getSeekBaseSeconds]);
 
     const sendSeekToRoom = useCallback(
         async (fallbackTime: number, generation: number) => {
@@ -303,9 +352,48 @@ export const usePlayerAction = (): PlayerAction => {
         [applyUserSeekLocally, clampSeekSeconds, sendSeekToRoom],
     );
 
+    const handleTikTokPhotoNavigate = useCallback(
+        async (delta: -1 | 1) => {
+            if (!(await ensureRoomReady())) {
+                return;
+            }
+
+            const { room } = useYouTubeStore.getState();
+            const playing = room?.playingNow;
+            if (!playing) {
+                return;
+            }
+
+            const current = room.tiktokPhotoIndex ?? 0;
+            const next = current + delta;
+            if (next < 0) {
+                return;
+            }
+
+            const maxIndex = getTikTokPhotoMaxIndex({
+                video: playing,
+                roomMaxIndex: room.tiktokPhotoMaxIndex ?? 0,
+            });
+            if (maxIndex > 0 && next > maxIndex) {
+                return;
+            }
+
+            useYouTubeStore.setState((state) => ({
+                room: state.room ? { ...state.room, tiktokPhotoIndex: next } : null,
+            }));
+
+            ensureConnectedAndSend({
+                type: 'tiktokNavigatePhoto',
+                index: next,
+                videoId: playing.id,
+            });
+        },
+        [ensureRoomReady, ensureConnectedAndSend],
+    );
+
     const handleSeekRelative = useCallback(
         (deltaSeconds: number) => {
-            const base = useYouTubeStore.getState().room?.currentTime ?? 0;
+            const base = getSeekBaseSeconds();
             const clamped = clampSeekSeconds(base + deltaSeconds);
             if (clamped === null) {
                 return;
@@ -314,7 +402,7 @@ export const usePlayerAction = (): PlayerAction => {
             const generation = applyUserSeekLocally(clamped);
             void sendSeekToRoom(clamped, generation);
         },
-        [applyUserSeekLocally, clampSeekSeconds, sendSeekToRoom],
+        [applyUserSeekLocally, clampSeekSeconds, getSeekBaseSeconds, sendSeekToRoom],
     );
 
     const handleMoveVideoToTop = useCallback(
@@ -394,6 +482,7 @@ export const usePlayerAction = (): PlayerAction => {
         handleReplayVideo,
         handleSeekToSeconds,
         handleSeekRelative,
+        handleTikTokPhotoNavigate,
         handlePlayVideoNow,
         handleAddVideoToQueue,
         handlePlayNextVideo,

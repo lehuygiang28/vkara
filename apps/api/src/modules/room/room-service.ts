@@ -6,7 +6,12 @@ import {
     shuffleArray,
 } from '@/utils/common';
 import { roomLogger, createContextLogger } from '@/utils/logger';
-import { DEFAULT_CAPTION_LANGUAGE, type CaptionTrack, type YouTubeVideo } from '@vkara/youtube';
+import {
+    DEFAULT_CAPTION_LANGUAGE,
+    type CaptionTrack,
+    type YouTubeVideo,
+} from '@vkara/youtube';
+import { getTikTokPhotoMaxIndex, isTikTokVideo } from '@vkara/tiktok';
 import {
     ErrorCode,
     RoomError,
@@ -43,6 +48,11 @@ const MAX_CAPTION_TRACKS = 64;
 function markCaptionTracksPending(room: Room, videoId: string | null): void {
     room.captionTracks = [];
     room.captionTracksVideoId = videoId;
+}
+
+function resetTikTokPhotoIndex(room: Room): void {
+    room.tiktokPhotoIndex = 0;
+    room.tiktokPhotoMaxIndex = getTikTokPhotoMaxIndex({ video: room.playingNow, roomMaxIndex: 0 });
 }
 
 function clampCaptionTracks(tracks: CaptionTrack[]): CaptionTrack[] {
@@ -196,6 +206,8 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             creatorId: ws.id,
             isPlaying: false,
             currentTime: 0,
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
         };
 
         if (restore) {
@@ -268,7 +280,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         const roomId = await validateClientInRoom(ws);
 
         try {
-            if (!(await checkEmbeddable(redis, video.id))) {
+            if (!isTikTokVideo(video) && !(await checkEmbeddable(redis, video.id))) {
                 throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
             }
 
@@ -281,6 +293,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     room.playingNow = video;
                     room.isPlaying = true;
                     room.currentTime = 0;
+                    resetTikTokPhotoIndex(room);
                     markCaptionTracksPending(room, video.id);
                     lastPlaybackBroadcastByRoom.delete(roomId);
                 } else {
@@ -304,6 +317,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 throw new RoomError(ErrorCode.INVALID_MESSAGE, 'No video is currently playing');
             }
             room.currentTime = 0;
+            resetTikTokPhotoIndex(room);
             room.isPlaying = true;
             lastPlaybackBroadcastByRoom.delete(roomId);
         });
@@ -315,7 +329,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     async function playVideoNow(ws: ElysiaWS, video: YouTubeVideo) {
         const roomId = await validateClientInRoom(ws);
 
-        if (!(await checkEmbeddable(redis, video.id))) {
+        if (!isTikTokVideo(video) && !(await checkEmbeddable(redis, video.id))) {
             throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
         }
 
@@ -325,6 +339,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 restartedSameVideo = true;
                 room.isPlaying = true;
                 room.currentTime = 0;
+                resetTikTokPhotoIndex(room);
                 lastPlaybackBroadcastByRoom.delete(roomId);
                 return;
             }
@@ -342,6 +357,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             room.playingNow = video;
             room.isPlaying = true;
             room.currentTime = 0;
+            resetTikTokPhotoIndex(room);
             markCaptionTracksPending(room, video.id);
             lastPlaybackBroadcastByRoom.delete(roomId);
         });
@@ -394,11 +410,13 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     room.playingNow = nextPlayable;
                     room.isPlaying = true;
                     room.currentTime = 0;
+                    resetTikTokPhotoIndex(room);
                     markCaptionTracksPending(room, nextPlayable.id);
                 } else {
                     room.playingNow = null;
                     room.isPlaying = false;
                     room.currentTime = 0;
+                    resetTikTokPhotoIndex(room);
                     markCaptionTracksPending(room, null);
                 }
 
@@ -538,6 +556,84 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         });
     }
 
+    async function tiktokNavigatePhoto(ws: ElysiaWS, index: number, videoId: string) {
+        const roomId = await validateClientInRoom(ws);
+        const targetIndex = Math.max(0, Math.floor(index));
+        let playingVideoId: string | null = null;
+        let maxIndex = 0;
+
+        await mutateRoom(roomId, (room) => {
+            if (!room.playingNow || room.playingNow.id !== videoId) {
+                throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Photo navigation video mismatch');
+            }
+            const effectiveMax = getTikTokPhotoMaxIndex({
+                video: room.playingNow,
+                roomMaxIndex: room.tiktokPhotoMaxIndex,
+            });
+            if (effectiveMax > 0 && targetIndex > effectiveMax) {
+                throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Photo index out of range');
+            }
+            room.tiktokPhotoIndex = targetIndex;
+            room.tiktokPhotoMaxIndex = effectiveMax;
+            playingVideoId = room.playingNow.id;
+            maxIndex = effectiveMax;
+        });
+
+        publishToRoom(roomId, {
+            type: 'tiktokPhotoIndexChanged',
+            index: targetIndex,
+            maxIndex,
+            videoId: playingVideoId,
+        });
+    }
+
+    async function syncTikTokPhotoIndex(
+        ws: ElysiaWS,
+        index: number,
+        maxIndex: number,
+        videoId: string,
+    ) {
+        const roomId = await validateClientInRoom(ws);
+        const targetIndex = Math.max(0, Math.floor(index));
+        const targetMaxIndex = Math.max(0, Math.floor(maxIndex), targetIndex);
+        let playingVideoId: string | null = null;
+        let accepted = false;
+
+        await mutateRoom(roomId, (room) => {
+            if (!room.playingNow || room.playingNow.id !== videoId) {
+                return;
+            }
+            playingVideoId = room.playingNow.id;
+            if (
+                room.tiktokPhotoIndex === targetIndex &&
+                room.tiktokPhotoMaxIndex === targetMaxIndex
+            ) {
+                return;
+            }
+            room.tiktokPhotoIndex = targetIndex;
+            room.tiktokPhotoMaxIndex = getTikTokPhotoMaxIndex({
+                video: room.playingNow,
+                roomMaxIndex: Math.max(room.tiktokPhotoMaxIndex, targetMaxIndex),
+            });
+            accepted = true;
+        });
+
+        if (!accepted || !playingVideoId) {
+            return;
+        }
+
+        const room = await requireRoom(roomId);
+        publishToRoom(roomId, {
+            type: 'tiktokPhotoIndexChanged',
+            index: room.tiktokPhotoIndex,
+            maxIndex: getTikTokPhotoMaxIndex({
+                video: room.playingNow,
+                roomMaxIndex: room.tiktokPhotoMaxIndex,
+            }),
+            videoId: playingVideoId,
+        });
+    }
+
     async function syncPlaybackPosition(
         ws: ElysiaWS,
         time: number,
@@ -641,7 +737,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     async function addVideoAndMoveToTop(ws: ElysiaWS, video: YouTubeVideo) {
         const roomId = await validateClientInRoom(ws);
 
-        if (!(await checkEmbeddable(redis, video.id))) {
+        if (!isTikTokVideo(video) && !(await checkEmbeddable(redis, video.id))) {
             throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
         }
 
@@ -658,6 +754,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 room.playingNow = video;
                 room.isPlaying = true;
                 room.currentTime = 0;
+                resetTikTokPhotoIndex(room);
                 lastPlaybackBroadcastByRoom.delete(roomId);
             } else {
                 room.videoQueue = [video, ...room.videoQueue];
@@ -820,6 +917,22 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid time value');
                 }
                 await seek(ws, message.time);
+                break;
+            case 'tiktokNavigatePhoto':
+                if (typeof message.index !== 'number' || typeof message.videoId !== 'string') {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid photo navigation');
+                }
+                await tiktokNavigatePhoto(ws, message.index, message.videoId);
+                break;
+            case 'syncTikTokPhotoIndex':
+                if (
+                    typeof message.index !== 'number' ||
+                    typeof message.maxIndex !== 'number' ||
+                    typeof message.videoId !== 'string'
+                ) {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid photo index sync');
+                }
+                await syncTikTokPhotoIndex(ws, message.index, message.maxIndex, message.videoId);
                 break;
             case 'syncPlaybackPosition':
                 if (typeof message.time !== 'number') {

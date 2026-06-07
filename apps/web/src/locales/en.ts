@@ -57,6 +57,8 @@ export default {
     'youtubePage.play': 'Play',
     'youtubePage.pause': 'Pause',
     'youtubePage.next': 'Next',
+    'youtubePage.tiktokPhotoPrev': 'Previous image',
+    'youtubePage.tiktokPhotoNext': 'Next image',
     'youtubePage.replay': 'Replay',
     'youtubePage.mute': 'Mute',
     'youtubePage.unmute': 'Unmute',
@@ -101,6 +103,9 @@ export default {
     'youtubePage.captionsLanguage': 'Subtitle language',
     'youtubePage.captionsTracksLoading': 'Loading subtitles…',
     'youtubePage.captionsNoTracks': 'No subtitles for this video',
+    'youtubePage.tiktokUtilitiesGroup': 'TikTok playback options',
+    'youtubePage.tiktokSoundOn': 'Sound on',
+    'youtubePage.tiktokSoundOff': 'Muted',
     'youtubePage.skipBack10': 'Back 10 seconds',
     'youtubePage.skipForward10': 'Forward 10 seconds',
     'youtubePage.controlsEmptyTitle': 'Nothing playing',
@@ -136,6 +141,19 @@ export default {
     'voiceSearchSettings.useWhisper': 'Use Whisper (AI)',
     'voiceSearchSettings.useWhisperHint':
         'Better for Vietnamese; may take a few seconds after you stop speaking.',
+
+    'experimentsSettings.sectionTitle': 'Experiments',
+    'experimentsSettings.sectionHint': 'Unstable features for testing only',
+    'experimentsSettings.scopeDevice': 'This device',
+    'experimentsSettings.warning': 'Experimental features may break or change without notice.',
+    'experimentsSettings.videoProvider': 'Video source',
+    'experimentsSettings.videoProviderGroup': 'Select video source',
+    'experimentsSettings.videoProviderHint': 'Choose where search videos from on this device.',
+    'experimentsSettings.providerYoutube': 'YouTube',
+    'experimentsSettings.providerTiktok': 'TikTok',
+
+    'experimentsSettings.tiktokVolumeHint':
+        'TikTok only supports mute and unmute, not fine volume control.',
 
     'roomSettings.title': 'Room Settings',
     'roomSettings.roomId': 'Room ID',

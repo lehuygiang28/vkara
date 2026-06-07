@@ -36,6 +36,8 @@ function room(overrides: Partial<Room> = {}): Room {
         creatorId: 'c1',
         isPlaying: false,
         currentTime: 0,
+        tiktokPhotoIndex: 0,
+        tiktokPhotoMaxIndex: 0,
         ...overrides,
     };
 }

@@ -130,6 +130,26 @@ describe('wsClientMessageSchema', () => {
         ).toBe(false);
     });
 
+    it('accepts TikTok photo navigation messages', () => {
+        expect(
+            check({
+                ...base,
+                type: 'tiktokNavigatePhoto',
+                index: 2,
+                videoId: '7123456789012345678',
+            }),
+        ).toBe(true);
+        expect(
+            check({
+                ...base,
+                type: 'syncTikTokPhotoIndex',
+                index: 1,
+                maxIndex: 3,
+                videoId: '7123456789012345678',
+            }),
+        ).toBe(true);
+    });
+
     it('accepts well-formed addVideo payload', () => {
         expect(
             check({

@@ -3,7 +3,11 @@
 import Image, { type ImageProps } from 'next/image';
 import { useCallback, useEffect, useState } from 'react';
 
-import { getNextYouTubeThumbnailFallback, isYouTubeThumbnailPlaceholder } from '@vkara/youtube';
+import {
+    getNextYouTubeThumbnailFallback,
+    isYouTubeThumbnailHost,
+    isYouTubeThumbnailPlaceholder,
+} from '@vkara/youtube';
 
 type YouTubeThumbnailImageProps = Omit<ImageProps, 'src' | 'onError' | 'onLoad'> & {
     src: string;
@@ -32,6 +36,9 @@ export function YouTubeThumbnailImage({
 
     const fallbackToNext = useCallback(
         (currentUrl: string) => {
+            if (!isYouTubeThumbnailHost(currentUrl)) {
+                return false;
+            }
             const next = getNextYouTubeThumbnailFallback(currentUrl, videoId, size);
             if (next && next !== currentUrl) {
                 setSrcSet(undefined);
@@ -55,7 +62,10 @@ export function YouTubeThumbnailImage({
         (event: React.SyntheticEvent<HTMLImageElement>) => {
             const img = event.currentTarget;
             const loadedUrl = img.currentSrc || img.src;
-            if (isYouTubeThumbnailPlaceholder(img.naturalWidth, loadedUrl)) {
+            if (
+                isYouTubeThumbnailHost(loadedUrl) &&
+                isYouTubeThumbnailPlaceholder(img.naturalWidth, loadedUrl)
+            ) {
                 fallbackToNext(loadedUrl);
             }
         },

@@ -34,6 +34,7 @@
         "zod": "^3.24.0",
         "@vkara/personalization": "workspace:*",
         "@vkara/room": "workspace:*",
+        "@vkara/tiktok": "workspace:*",
         "@vkara/validators": "workspace:*",
         "@vkara/youtube": "workspace:*",
         "class-variance-authority": "^0.7.1",

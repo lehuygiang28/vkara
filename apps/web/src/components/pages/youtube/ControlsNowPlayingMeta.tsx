@@ -1,12 +1,11 @@
 'use client';
 
-import { getYouTubeThumbnailUrl, getYouTubeThumbnailSrcSet } from '@vkara/youtube';
+import { getVideoThumbnailSrcSet, getVideoThumbnailUrl, isVideoLive } from '@vkara/tiktok';
 import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';
 
 import { ControlsStageThumbnail } from '@/components/pages/youtube/ControlsStageThumbnail';
-import { isVideoLive } from '@/lib/youtube-video';
 
 interface ControlsNowPlayingMetaProps {
     className?: string;
@@ -22,7 +21,7 @@ export function ControlsNowPlayingMeta({ className }: ControlsNowPlayingMetaProp
         return null;
     }
 
-    const isLive = isVideoLive(playing);
+    const isLive = isVideoLive({ video: playing });
 
     return (
         <section
@@ -31,9 +30,9 @@ export function ControlsNowPlayingMeta({ className }: ControlsNowPlayingMetaProp
         >
             <div className="flex min-h-0 flex-1 items-center justify-center px-1 py-2 short-viewport:py-1">
                 <ControlsStageThumbnail
-                    src={getYouTubeThumbnailUrl(playing.thumbnails, 'large', playing.id)}
+                    src={getVideoThumbnailUrl({ video: playing, size: 'large' })}
                     videoId={playing.id}
-                    srcSet={getYouTubeThumbnailSrcSet(playing.thumbnails, playing.id)}
+                    srcSet={getVideoThumbnailSrcSet({ video: playing })}
                     title={playing.title}
                     isLive={isLive}
                 />
