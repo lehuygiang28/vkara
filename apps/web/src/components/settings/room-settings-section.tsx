@@ -45,7 +45,7 @@ type RoomSettingsSectionProps = {
 };
 
 export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps) {
-    const { wsId, room, setRoom } = useYouTubeStore();
+    const { wsId, room, setRoom, enterTvLobby } = useYouTubeStore();
     const { ensureConnectedAndSend, connectionStatus } = useWebSocket();
     const {
         roomPassword,
@@ -116,16 +116,24 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
     const leaveRoom = useCallback(() => {
         if (room?.id) {
             ensureConnectedAndSend({ type: 'leaveRoom' });
-            setRoom(null);
+            if (isRemoteLayout) {
+                setRoom(null);
+            } else {
+                enterTvLobby();
+            }
         }
-    }, [ensureConnectedAndSend, room?.id, setRoom]);
+    }, [ensureConnectedAndSend, room?.id, isRemoteLayout, setRoom, enterTvLobby]);
 
     const closeRoom = useCallback(() => {
         if (room?.id) {
             ensureConnectedAndSend({ type: 'closeRoom' });
-            setRoom(null);
+            if (isRemoteLayout) {
+                setRoom(null);
+            } else {
+                enterTvLobby();
+            }
         }
-    }, [ensureConnectedAndSend, room?.id, setRoom]);
+    }, [ensureConnectedAndSend, room?.id, isRemoteLayout, setRoom, enterTvLobby]);
 
     return (
         <SettingsSection

@@ -318,6 +318,17 @@ export default {
     'joinLobby.joinRequiredTitle': 'Hãy tham gia phòng trước',
     'joinLobby.joinRequiredDescription': 'Nhập mã phòng hoặc quét QR trước khi thêm bài hát.',
 
+    'tvLobby.title': 'Tạo hoặc tham gia phòng',
+    'tvLobby.subtitle':
+        'Tạo phòng mới cho TV này, hoặc nhập mã để tham gia phòng đang có.',
+    'tvLobby.createButton': 'Tạo phòng mới',
+    'tvLobby.openSettings': 'Cài đặt phòng',
+    'tvLobby.or': 'hoặc',
+    'tvLobby.roomIdLabel': 'Mã phòng',
+    'tvLobby.passwordLabel': 'Mật khẩu phòng (tùy chọn)',
+    'tvLobby.passwordPlaceholder': 'Nhập mật khẩu phòng',
+    'tvLobby.joinButton': 'Tham gia phòng',
+
     'seo.title': 'vkara - Hát karaoke cùng nhau trực tuyến',
     'seo.description':
         'vkara là ứng dụng hát karaoke trực tuyến miễn phí. Tạo phòng, mời bạn bè và hát cùng nhau mọi lúc mọi nơi qua YouTube.',

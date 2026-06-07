@@ -60,7 +60,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const isMessagePending = useWebSocketStore((s) => s.isMessagePending);
     const getPendingMessages = useWebSocketStore((s) => s.getPendingMessages);
 
-    const { room, layoutMode, layoutModeSource, setRoom } = useYouTubeStore();
+    const { room, layoutMode, layoutModeSource, setRoom, enterTvLobby, tvSuppressAutoCreate } =
+        useYouTubeStore();
     const viewportWidth = useViewportWidth();
 
     const wsInitialized = useRef(false);
@@ -166,7 +167,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             return;
         }
 
-        if (isTvLayout) {
+        if (isTvLayout && !tvSuppressAutoCreate) {
             ensureConnectedAndSend({ type: 'createRoom' });
         }
     }, [
@@ -178,6 +179,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         room?.id,
         room?.password,
         isTvLayout,
+        tvSuppressAutoCreate,
         ensureConnectedAndSend,
     ]);
 
@@ -233,8 +235,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     useEffect(() => {
         if (lastMessage?.type === 'roomClosed') {
+            lastSyncedEpoch.current = -1;
             if (isTvLayout) {
-                beginTvRecovery(useYouTubeStore.getState().room);
+                enterTvLobby();
             } else {
                 setRoom(null);
             }
@@ -274,6 +277,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         ensureConnectedAndSend,
         isTvLayout,
         setRoom,
+        enterTvLobby,
         room?.id,
         room?.password,
         beginTvRecovery,

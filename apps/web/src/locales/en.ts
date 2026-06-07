@@ -322,6 +322,16 @@ export default {
     'joinLobby.joinRequiredDescription':
         'Enter a room code or scan the QR code before adding songs.',
 
+    'tvLobby.title': 'Start or join a room',
+    'tvLobby.subtitle': 'Create a new room for this TV, or enter a code to join an existing one.',
+    'tvLobby.createButton': 'Create new room',
+    'tvLobby.openSettings': 'Room settings',
+    'tvLobby.or': 'or',
+    'tvLobby.roomIdLabel': 'Room code',
+    'tvLobby.passwordLabel': 'Room password (optional)',
+    'tvLobby.passwordPlaceholder': 'Enter room password',
+    'tvLobby.joinButton': 'Join room',
+
     'seo.title': 'vkara - Sing karaoke together online',
     'seo.description':
         'vkara is a free online karaoke app. Create a room, invite friends, and sing together anytime with YouTube videos.',

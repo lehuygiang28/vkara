@@ -35,6 +35,8 @@ interface YouTubeState {
     error: string | null;
     layoutMode: YouTubeStoreLayoutMode;
     layoutModeSource: LayoutModeSource;
+    /** When true, TV mode skips auto createRoom and shows the lobby instead. */
+    tvSuppressAutoCreate: boolean;
 
     setWsId: (wsId: string | null) => void;
     setPlayer: (player: YT.Player) => void;
@@ -46,6 +48,7 @@ interface YouTubeState {
     setLayoutMode: (mode: YouTubeStoreLayoutMode, source?: LayoutModeSource) => void;
     enableAutoLayoutMode: () => void;
     applyAutoLayoutMode: (suggested: YouTubeStoreLayoutMode) => void;
+    enterTvLobby: () => void;
 
     addVideo: (video: YouTubeVideo) => void;
     removeVideo: (videoId: string) => void;
@@ -71,6 +74,7 @@ export const useYouTubeStore = create(
             error: null,
             layoutMode: 'remote',
             layoutModeSource: 'auto',
+            tvSuppressAutoCreate: false,
 
             setWsId: (wsId) => set({ wsId }),
             setPlayer: (player) => set({ player }),
@@ -81,7 +85,11 @@ export const useYouTubeStore = create(
                 curated.setImportPlaylistPanelOpen(false);
                 curated.closeCuratedPreview({ restoreReturnTo: false });
             },
-            setRoom: (room) => set({ room: room ? normalizePersistedRoom(room) : null }),
+            setRoom: (room) =>
+                set({
+                    room: room ? normalizePersistedRoom(room) : null,
+                    ...(room ? {} : { player: null }),
+                }),
             setIsLoading: (isLoading) => set({ isLoading }),
             setError: (error) => set({ error }),
             setLayoutMode: (layoutMode, source = 'user') => {
@@ -101,6 +109,7 @@ export const useYouTubeStore = create(
                     }
                     return { layoutMode: suggested };
                 }),
+            enterTvLobby: () => set({ room: null, player: null, tvSuppressAutoCreate: true }),
 
             addVideo: (video) =>
                 set((state) => ({
@@ -207,9 +216,20 @@ export const useYouTubeStore = create(
                         });
                         break;
                     case 'leftRoom':
-                        set({ room: null });
+                        set((state) => ({
+                            room: null,
+                            player: null,
+                            tvSuppressAutoCreate:
+                                state.tvSuppressAutoCreate || Boolean(options?.isTvLayout),
+                        }));
                         break;
                     case 'roomClosed':
+                        set((state) => ({
+                            room: null,
+                            player: null,
+                            tvSuppressAutoCreate:
+                                state.tvSuppressAutoCreate || Boolean(options?.isTvLayout),
+                        }));
                         if (!isTvLayout) {
                             toast({
                                 id: 'room-closed',
@@ -405,12 +425,17 @@ export const useYouTubeStore = create(
             storage: createJSONStorage(() => createMigratingPersistStorage()),
             partialize: (state) => {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { player, layoutMode, ...rest } = state;
+                const { player, layoutMode, tvSuppressAutoCreate, ...rest } = state;
                 // Auto mode is re-derived from viewport on load; persisting layoutMode causes remote→TV flicker.
                 if (state.layoutModeSource === 'auto') {
-                    return { ...rest, player: null, layoutMode: state.layoutMode };
+                    return {
+                        ...rest,
+                        player: null,
+                        layoutMode: state.layoutMode,
+                        tvSuppressAutoCreate: false,
+                    };
                 }
-                return { ...rest, player: null, layoutMode };
+                return { ...rest, player: null, layoutMode, tvSuppressAutoCreate: false };
             },
             merge: (persistedState, currentState) => {
                 const persisted = persistedState as Partial<YouTubeState>;
@@ -422,6 +447,7 @@ export const useYouTubeStore = create(
                     room,
                     player: null,
                     layoutModeSource,
+                    tvSuppressAutoCreate: false,
                 };
 
                 if (layoutModeSource === 'auto') {

@@ -18,7 +18,6 @@ export function shouldRecoverTvRoom(
     isTvLayout: boolean,
 ): boolean {
     if (!isTvLayout) return false;
-    if (messageType === 'roomClosed') return true;
     return messageType === 'errorWithCode' && code === ErrorCode.REJOIN_ROOM_NOT_FOUND;
 }
 

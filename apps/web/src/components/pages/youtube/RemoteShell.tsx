@@ -46,10 +46,14 @@ export function RemoteShell() {
     const setCurrentTab = useYouTubeStore((state) => state.setCurrentTab);
     const hasPlaying = useYouTubeStore((state) => Boolean(state.room?.playingNow));
     const room = useYouTubeStore((state) => state.room);
+    const tvSuppressAutoCreate = useYouTubeStore((state) => state.tvSuppressAutoCreate);
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
     const showNowPlayingBar = hasPlaying && currentTab !== 'controls';
 
-    const showJoinLobby = effectiveLayoutMode === 'remote' && !room;
+    const showJoinLobby =
+        !room &&
+        (effectiveLayoutMode === 'remote' ||
+            (effectiveLayoutMode === 'both' && tvSuppressAutoCreate));
 
     useEffect(() => {
         if (currentTab === 'related') {
@@ -61,7 +65,7 @@ export function RemoteShell() {
         return (
             <TooltipProvider delayDuration={400}>
                 <div className="flex h-full min-h-0 flex-col">
-                    <RemoteJoinLobby />
+                    <RemoteJoinLobby allowCreateRoom={effectiveLayoutMode === 'both'} />
                 </div>
             </TooltipProvider>
         );

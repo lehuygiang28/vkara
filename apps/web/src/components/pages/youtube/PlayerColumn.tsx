@@ -38,6 +38,7 @@ import { LanguageSwitcher } from '@/components/language-switcher';
 import { ControlsStageThumbnail } from './ControlsStageThumbnail';
 import { TvIdleLayoutSwitch } from './TvIdleLayoutSwitch';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
+import { TvRoomLobby } from './TvRoomLobby';
 
 const YoutubeTvEmbed = dynamic(
     () => import('./youtube-tv-embed').then((mod) => mod.YoutubeTvEmbed),
@@ -59,7 +60,8 @@ export function PlayerColumn({
     onOpenSettingsAction,
     onSettingsPrefetchAction: onSettingsPrefetch,
 }: PlayerColumnProps) {
-    const { room, setPlayer, setVolume, nextVideo, setIsPlaying } = useYouTubeStore();
+    const { room, setPlayer, setVolume, nextVideo, setIsPlaying, tvSuppressAutoCreate } =
+        useYouTubeStore();
     const t = useScopedI18n('youtubePage');
     const locale = useCurrentLocale();
     const shouldShowTimer = useCountdownStore((state) => state.shouldShowTimer);
@@ -333,9 +335,15 @@ export function PlayerColumn({
                     <div className="absolute inset-0 bg-zinc-950" aria-hidden />
                 )}
 
-                {isTvPlayerIdle && !room?.id && (
-                    <div className="absolute inset-0 z-[5] bg-zinc-950" aria-hidden>
+                {isTvPlayerIdle && !room?.id && tvSuppressAutoCreate && (
+                    <div className="absolute inset-0 z-[5] flex items-center justify-center bg-zinc-950">
                         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
+                        <div className="pointer-events-auto relative z-[1] max-h-full overflow-y-auto py-safe-offset">
+                            <TvRoomLobby
+                                compact={isBothIdleLayout}
+                                onOpenSettingsAction={onOpenSettingsAction}
+                            />
+                        </div>
                     </div>
                 )}
 

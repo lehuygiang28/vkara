@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 
 import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
@@ -8,6 +8,7 @@ import { roomCodeFieldProps, roomCodeOtpSlotClassName, roomSecretFieldProps } fr
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useScopedI18n } from '@/locales/client';
 import { useJoinRoom } from '@/hooks/use-join-room';
+import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { QRScanner } from '@/components/qr-scanner';
@@ -20,10 +21,16 @@ import {
     InputOTPSlot,
 } from '@/components/ui/input-otp';
 
-export function RemoteJoinLobby() {
+type RemoteJoinLobbyProps = {
+    allowCreateRoom?: boolean;
+};
+
+export function RemoteJoinLobby({ allowCreateRoom = false }: RemoteJoinLobbyProps) {
     const t = useScopedI18n('joinLobby');
+    const tRoom = useScopedI18n('roomSettings');
     const searchParams = useSearchParams();
-    const { connectionStatus } = useWebSocket();
+    const { connectionStatus, ensureConnectedAndSend } = useWebSocket();
+    const { roomPassword, setRoomPassword, resetJoinFormState } = useRoomSettingsStore();
     const {
         joinRoom,
         joinFromScan,
@@ -34,6 +41,15 @@ export function RemoteJoinLobby() {
     } = useJoinRoom();
 
     const isConnected = connectionStatus === 'OPEN';
+
+    const createRoom = useCallback(() => {
+        const password = roomPassword.trim();
+        ensureConnectedAndSend({
+            type: 'createRoom',
+            password: password || undefined,
+        });
+        resetJoinFormState();
+    }, [roomPassword, ensureConnectedAndSend, resetJoinFormState]);
 
     useEffect(() => {
         const roomIdParam = searchParams.get('roomId');
@@ -121,6 +137,47 @@ export function RemoteJoinLobby() {
                 <div className="flex flex-col items-center gap-2">
                     <QRScanner onScan={joinFromScan} buttonClassName="w-full" />
                 </div>
+
+                {allowCreateRoom ? (
+                    <>
+                        <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                                <span className="w-full border-t" />
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-background px-2 text-muted-foreground">
+                                    {t('or')}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="lobby-create-room-password">
+                                    {tRoom('roomPassword.label')}
+                                </Label>
+                                <Input
+                                    id="lobby-create-room-password"
+                                    type="password"
+                                    value={roomPassword}
+                                    onChange={(e) => setRoomPassword(e.target.value)}
+                                    placeholder={tRoom('roomPassword.placeholder')}
+                                    {...roomSecretFieldProps}
+                                />
+                            </div>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                disabled={!isConnected}
+                                className="w-full"
+                                size="lg"
+                                onClick={createRoom}
+                            >
+                                {tRoom('createRoom')}
+                            </Button>
+                        </div>
+                    </>
+                ) : null}
             </div>
             </div>
         </div>

@@ -40,7 +40,7 @@ describe('tv-room-recovery', () => {
         expect(
             shouldRecoverTvRoom('errorWithCode', ErrorCode.REJOIN_ROOM_NOT_FOUND, false),
         ).toBe(false);
-        expect(shouldRecoverTvRoom('roomClosed', undefined, true)).toBe(true);
+        expect(shouldRecoverTvRoom('roomClosed', undefined, true)).toBe(false);
     });
 
     it('does not recover for unrelated error codes on TV', () => {
