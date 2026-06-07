@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 
 import {
     applyRoomPlaybackToTikTok,
     applySeekToTikTok,
     applyTikTokVolume,
     buildTikTokPlayerSrc,
+    getTikTokEmbedIsPlaying,
     handleTikTokPlayerMessage,
     registerTikTokIframe,
     resetTikTokPlaybackState,
@@ -30,7 +31,11 @@ type TikTokTvEmbedProps = {
     onReadyAction?: () => void;
     onEndedAction?: () => void;
     onPlayerErrorAction?: () => void;
-    onPlayingChangeAction?: (playing: boolean) => void;
+    onPlayingChangeAction?: (detail: {
+        playing: boolean;
+        /** Captured when embed reports pause (TikTok auto-pauses on tab hide). */
+        pausedWhileHidden?: boolean;
+    }) => void;
 };
 
 export function TikTokTvEmbed({
@@ -63,6 +68,13 @@ export function TikTokTvEmbed({
     onEndedRef.current = onEndedAction;
     onPlayerErrorRef.current = onPlayerErrorAction;
     onPlayingChangeRef.current = onPlayingChangeAction;
+
+    // autoplay=1 only in the initial src per video (new load). Same-video pause/resume uses postMessage
+    // so toggling roomIsPlaying does not reload the embed (TikTok 403).
+    const playerSrc = useMemo(
+        () => buildTikTokPlayerSrc(videoId, { closedCaption, autoplay: true }),
+        [videoId, closedCaption],
+    );
 
     useEffect(() => {
         endedRef.current = false;
@@ -109,11 +121,15 @@ export function TikTokTvEmbed({
 
             if (data.type === 'onStateChange') {
                 if (data.value === 1) {
-                    onPlayingChangeRef.current?.(true);
+                    onPlayingChangeRef.current?.({ playing: true });
                 }
                 if (data.value === 2) {
+                    const pausedWhileHidden = isPlayerPageHidden();
                     scheduleTikTokEmbedPauseSync(() => {
-                        onPlayingChangeRef.current?.(false);
+                        if (getTikTokEmbedIsPlaying()) {
+                            return;
+                        }
+                        onPlayingChangeRef.current?.({ playing: false, pausedWhileHidden });
                     });
                 }
             }
@@ -137,7 +153,7 @@ export function TikTokTvEmbed({
             return;
         }
         applyRoomPlaybackToTikTok(autoplay);
-    }, [autoplay]);
+    }, [autoplay, videoId]);
 
     useEffect(() => {
         applyTikTokVolume(volume);
@@ -152,7 +168,7 @@ export function TikTokTvEmbed({
             ref={iframeRef}
             key={`${videoId}-cc-${closedCaption ? 1 : 0}`}
             title={`TikTok video ${videoId}`}
-            src={buildTikTokPlayerSrc(videoId, { autoplay, closedCaption })}
+            src={playerSrc}
             allow="autoplay; fullscreen; encrypted-media"
             onLoad={handleIframeLoad}
             className={cn('h-full w-full border-0 bg-black', className)}

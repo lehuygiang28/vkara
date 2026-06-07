@@ -230,6 +230,16 @@ export function isTikTokPlayerReady(): boolean {
     return ready && iframe !== null;
 }
 
+/** Whether the embed last reported playing (onStateChange = 1). */
+export function getTikTokEmbedIsPlaying(): boolean {
+    return embedPlayerState === 1;
+}
+
+/** Whether the embed last reported paused (onStateChange = 2). */
+export function getTikTokEmbedIsPaused(): boolean {
+    return embedPlayerState === 2;
+}
+
 export function getTikTokCurrentTime(): number {
     return currentTimeSec;
 }

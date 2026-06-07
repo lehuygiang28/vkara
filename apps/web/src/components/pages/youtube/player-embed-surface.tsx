@@ -92,7 +92,7 @@ function PlayerEmbedSurface({
                     startSeconds={currentTime}
                     volume={volume}
                     className="absolute inset-0"
-                    onPlayingChangeAction={(playing) => {
+                    onPlayingChangeAction={({ playing, pausedWhileHidden }) => {
                         if (effectiveLayoutMode === 'remote' || !roomId) {
                             return;
                         }
@@ -106,8 +106,12 @@ function PlayerEmbedSurface({
                             broadcastTikTokPauseToRoom({
                                 videoId: playingNow.id,
                                 ensureConnectedAndSend,
-                                resumeWhenVisible: isPlayerPageHidden(),
+                                resumeWhenVisible: pausedWhileHidden === true,
                             });
+                            return;
+                        }
+
+                        if (isPlayerPageHidden()) {
                             return;
                         }
 

@@ -20,6 +20,7 @@ vi.hoisted(() => {
 
 import {
     broadcastTikTokPauseToRoom,
+    clearPendingTikTokVisibilityResumeForTests,
     clearTikTokBackgroundResumeIntent,
     getTikTokBackgroundResumeVideoIdForTests,
     rejectTikTokPlayWhileHidden,
@@ -51,7 +52,9 @@ describe('rejectTikTokPlayWhileHidden', () => {
     afterEach(() => {
         resetTikTokPlaybackStateForTests();
         clearTikTokBackgroundResumeIntent();
+        clearPendingTikTokVisibilityResumeForTests();
         useYouTubeStore.setState({ room: null });
+        vi.useRealTimers();
     });
 
     it('returns false when the player page is visible', () => {
@@ -110,12 +113,14 @@ describe('rejectTikTokPlayWhileHidden', () => {
             force: true,
         });
         expect(send).toHaveBeenNthCalledWith(2, { type: 'pause' });
+        expect(getTikTokBackgroundResumeVideoIdForTests()).toBe('vid-1');
     });
 });
 
 describe('broadcastTikTokPauseToRoom', () => {
     afterEach(() => {
         clearTikTokBackgroundResumeIntent();
+        clearPendingTikTokVisibilityResumeForTests();
         useYouTubeStore.setState({ room: null });
     });
 
@@ -165,22 +170,21 @@ describe('resumeTikTokAfterBackgroundIfNeeded', () => {
     afterEach(() => {
         resetTikTokPlaybackStateForTests();
         clearTikTokBackgroundResumeIntent();
+        clearPendingTikTokVisibilityResumeForTests();
         useYouTubeStore.setState({ room: null });
+        vi.useRealTimers();
     });
 
     it('resumes play when the tab is visible and background pause was remembered', () => {
+        vi.useFakeTimers();
         vi.stubGlobal('document', { visibilityState: 'visible' });
-        vi.stubGlobal('window', {
-            setTimeout: (fn: () => void) => {
-                fn();
-                return 0;
-            },
-        });
+        vi.stubGlobal('window', { setTimeout: vi.fn((fn: () => void) => fn()) });
         const postMessage = vi.fn();
         registerTikTokIframe({
             contentWindow: { postMessage },
         } as unknown as HTMLIFrameElement);
         handleTikTokPlayerMessage({ type: 'onPlayerReady', 'x-tiktok-player': true });
+        handleTikTokPlayerMessage({ type: 'onStateChange', value: 2, 'x-tiktok-player': true });
 
         const send = vi.fn();
         useYouTubeStore.setState({
@@ -207,13 +211,23 @@ describe('resumeTikTokAfterBackgroundIfNeeded', () => {
             }),
         ).toBe(true);
 
+        expect(postMessage).not.toHaveBeenCalled();
+        expect(send).not.toHaveBeenCalled();
+
+        vi.advanceTimersByTime(150);
+
         expect(getTikTokBackgroundResumeVideoIdForTests()).toBeNull();
         expect(useYouTubeStore.getState().room?.isPlaying).toBe(true);
         expect(send).toHaveBeenCalledWith({ type: 'play' });
+        expect(postMessage).toHaveBeenCalledWith(
+            { type: 'seekTo', value: 10, 'x-tiktok-player': true },
+            '*',
+        );
         expect(postMessage).toHaveBeenCalledWith({ type: 'play', 'x-tiktok-player': true }, '*');
     });
 
     it('does not resume after a manual pause (no background flag)', () => {
+        vi.useFakeTimers();
         vi.stubGlobal('document', { visibilityState: 'visible' });
         const send = vi.fn();
 
@@ -223,6 +237,28 @@ describe('resumeTikTokAfterBackgroundIfNeeded', () => {
                 ensureConnectedAndSend: send,
             }),
         ).toBe(false);
+        vi.advanceTimersByTime(200);
         expect(send).not.toHaveBeenCalled();
+    });
+
+    it('skips duplicate pause broadcasts but keeps background resume intent', () => {
+        const send = vi.fn();
+        useYouTubeStore.setState({
+            room: createTestPersistedRoom({
+                isPlaying: false,
+                currentTime: 10,
+                playingNow: samplePlayingNow,
+            }),
+        });
+
+        broadcastTikTokPauseToRoom({
+            videoId: 'vid-1',
+            ensureConnectedAndSend: send,
+            anchorSeconds: 12,
+            resumeWhenVisible: true,
+        });
+
+        expect(send).not.toHaveBeenCalled();
+        expect(getTikTokBackgroundResumeVideoIdForTests()).toBe('vid-1');
     });
 });
