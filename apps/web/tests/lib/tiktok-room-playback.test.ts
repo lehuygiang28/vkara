@@ -31,6 +31,7 @@ import {
     resetTikTokPlaybackStateForTests,
 } from '@/lib/tiktok-playback-sync';
 import { useYouTubeStore } from '@/store/youtubeStore';
+import type { Room } from '@vkara/room';
 
 const samplePlayingNow = {
     id: 'vid-1',
@@ -46,6 +47,28 @@ const samplePlayingNow = {
     source: 'tiktok' as const,
 };
 
+function testRoom(overrides: Partial<Omit<Room, 'clients'>> = {}): Omit<Room, 'clients'> {
+    return {
+        id: 'room-1',
+        videoQueue: [],
+        historyQueue: [],
+        volume: 100,
+        showQRInPlayer: true,
+        captionsEnabled: false,
+        captionsLanguage: 'vi',
+        captionTracks: [],
+        captionTracksVideoId: null,
+        playingNow: null,
+        lastActivity: 0,
+        creatorId: 'c1',
+        isPlaying: false,
+        currentTime: 0,
+        tiktokPhotoIndex: 0,
+        tiktokPhotoMaxIndex: 0,
+        ...overrides,
+    };
+}
+
 describe('rejectTikTokPlayWhileHidden', () => {
     afterEach(() => {
         resetTikTokPlaybackStateForTests();
@@ -58,13 +81,11 @@ describe('rejectTikTokPlayWhileHidden', () => {
         const send = vi.fn();
 
         useYouTubeStore.setState({
-            room: {
-                id: 'room-1',
+            room: testRoom({
                 isPlaying: true,
                 currentTime: 12,
                 playingNow: samplePlayingNow,
-                videoQueue: [],
-            },
+            }),
         });
 
         expect(
@@ -87,13 +108,11 @@ describe('rejectTikTokPlayWhileHidden', () => {
         });
 
         useYouTubeStore.setState({
-            room: {
-                id: 'room-1',
+            room: testRoom({
                 isPlaying: true,
                 currentTime: 12,
                 playingNow: samplePlayingNow,
-                videoQueue: [],
-            },
+            }),
         });
 
         expect(
@@ -125,13 +144,11 @@ describe('broadcastTikTokPauseToRoom', () => {
     it('updates room state and sends sync + pause', () => {
         const send = vi.fn();
         useYouTubeStore.setState({
-            room: {
-                id: 'room-1',
+            room: testRoom({
                 isPlaying: true,
                 currentTime: 0,
                 playingNow: samplePlayingNow,
-                videoQueue: [],
-            },
+            }),
         });
 
         const seconds = broadcastTikTokPauseToRoom({
@@ -148,13 +165,11 @@ describe('broadcastTikTokPauseToRoom', () => {
     it('marks background resume when resumeWhenVisible is set', () => {
         const send = vi.fn();
         useYouTubeStore.setState({
-            room: {
-                id: 'room-1',
+            room: testRoom({
                 isPlaying: true,
                 currentTime: 0,
                 playingNow: samplePlayingNow,
-                videoQueue: [],
-            },
+            }),
         });
 
         broadcastTikTokPauseToRoom({
@@ -191,13 +206,11 @@ describe('resumeTikTokAfterBackgroundIfNeeded', () => {
 
         const send = vi.fn();
         useYouTubeStore.setState({
-            room: {
-                id: 'room-1',
+            room: testRoom({
                 isPlaying: false,
                 currentTime: 10,
                 playingNow: samplePlayingNow,
-                videoQueue: [],
-            },
+            }),
         });
 
         broadcastTikTokPauseToRoom({
