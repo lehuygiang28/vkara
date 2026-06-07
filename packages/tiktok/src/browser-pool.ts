@@ -50,7 +50,7 @@ const SESSION_TTL_MS = 5 * 60 * 1000;
 /** Items returned to the client per search page. */
 const CLIENT_PAGE_SIZE = 12;
 /** Videos fetched from TikTok in one signed request (served in chunks). */
-const PREFETCH_COUNT = 100;
+const PREFETCH_COUNT = 60;
 
 export type TikTokSearchOptions = {
     keyword: string;
