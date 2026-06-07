@@ -1,7 +1,21 @@
 import type { Browser, BrowserContext, Page } from 'playwright';
 
 import { parseVideos } from './parse-videos';
+import { playwrightProxyFromEnv } from './playwright-proxy';
 import type { SearchResponse, TikTokVideo } from './types';
+
+function logProxyConfig(): void {
+    const proxy = playwrightProxyFromEnv();
+    if (!proxy) {
+        console.info('[TikTokBrowserPool] No Playwright proxy configured');
+        return;
+    }
+
+    console.info('[TikTokBrowserPool] Playwright proxy configured', {
+        server: proxy.server,
+        hasAuth: Boolean(proxy.username && proxy.password),
+    });
+}
 
 const BROWSER_UA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0';
@@ -157,14 +171,17 @@ async function prefetchSearchVideos(
     tiktokHasMore: boolean;
 }> {
     const signedUrlPromise = waitForSignedSearchUrl(page, keyword);
-    const navigation = page.goto(`https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}`, {
-        waitUntil: 'domcontentloaded',
-        timeout: 30_000,
-    });
+    const navigation = page
+        .goto(`https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}`, {
+            waitUntil: 'domcontentloaded',
+            timeout: 30_000,
+        })
+        // TikTok often returns non-2xx on the search document while still issuing signed API requests.
+        .catch(() => undefined);
 
     const signedUrl = await signedUrlPromise;
 
-    await Promise.race([navigation.catch(() => {}), page.waitForTimeout(NAV_DRAIN_MS)]);
+    await Promise.race([navigation, page.waitForTimeout(NAV_DRAIN_MS)]);
 
     const json = await fetchSearchJson(page, withPrefetchCount(signedUrl));
     const parsed = parseSearchResponse(json);
@@ -210,8 +227,12 @@ export class TikTokBrowserPool {
         const start = performance.now();
         const { chromium } = await import('playwright');
 
+        logProxyConfig();
+
         this.browser = await chromium.launch(chromiumLaunchOptions());
+        const proxy = playwrightProxyFromEnv();
         this.context = await this.browser.newContext({
+            ...(proxy ? { proxy } : {}),
             userAgent: BROWSER_UA,
             locale: 'en-US',
             viewport: { width: 1280, height: 800 },

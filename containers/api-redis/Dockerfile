@@ -79,11 +79,22 @@ ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
     PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 RUN apk update && \
-    apk add --no-cache supervisor redis
+    apk add --no-cache supervisor redis wget
+
+RUN ARCH="$(uname -m)" && \
+    case "${ARCH}" in \
+        x86_64) CF_ARCH=amd64 ;; \
+        aarch64|arm64) CF_ARCH=arm64 ;; \
+        *) echo "unsupported architecture: ${ARCH}" >&2; exit 1 ;; \
+    esac && \
+    wget -qO /usr/local/bin/cloudflared \
+        "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${CF_ARCH}" && \
+    chmod 755 /usr/local/bin/cloudflared
 
 COPY --chown=bun:bun ./containers/api-redis/supervisord.conf ./supervisord.conf
 COPY --chown=bun:bun ./containers/api-redis/entrypoint.sh ./entrypoint.sh
-RUN chmod +x ./entrypoint.sh
+COPY --chown=bun:bun ./containers/api-redis/start-api.sh ./start-api.sh
+RUN chmod +x ./entrypoint.sh ./start-api.sh
 
 RUN touch /app/supervisord.pid && \
     chown bun:bun /app/supervisord.pid && \

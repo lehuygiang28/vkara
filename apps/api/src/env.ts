@@ -4,12 +4,20 @@ import {
     envSkipValidation,
     experimentsEnv,
     loggerEnv,
+    playwrightProxyEnv,
     redisEnv,
     serverEnv,
 } from '@vkara/env';
 
 export const env = createEnv({
-    extends: [embedEnv(), experimentsEnv(), redisEnv(), serverEnv(), loggerEnv()],
+    extends: [
+        embedEnv(),
+        experimentsEnv(),
+        playwrightProxyEnv(),
+        redisEnv(),
+        serverEnv(),
+        loggerEnv(),
+    ],
     server: {},
     runtimeEnv: process.env,
     emptyStringAsUndefined: true,

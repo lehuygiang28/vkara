@@ -104,16 +104,6 @@ export const wsServer = new Elysia({
     }))
     .listen(env.PORT);
 
-process.on('beforeExit', async () => {
-    serverLogger.info('Server stopping due to beforeExit event');
-    await redis.quit().catch((error) => {
-        serverLogger.error('Error closing Redis connection', { error });
-    });
-    await wsServer.stop().catch((error) => {
-        serverLogger.error('Error stopping WebSocket server', { error });
-    });
-});
-
 ['SIGINT', 'SIGTERM', 'SIGQUIT'].forEach((signal) => {
     process.on(signal, async () => {
         serverLogger.info(`Server stopping due to ${signal} signal`);
