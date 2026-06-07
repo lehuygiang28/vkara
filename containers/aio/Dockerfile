@@ -57,6 +57,7 @@ COPY apps/web ./apps/web
 COPY packages/env ./packages/env
 COPY packages/validators ./packages/validators
 COPY packages/youtube ./packages/youtube
+COPY packages/tiktok ./packages/tiktok
 COPY packages/room ./packages/room
 COPY packages/personalization ./packages/personalization
 COPY packages/curated-playlists ./packages/curated-playlists

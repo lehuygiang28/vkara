@@ -13,6 +13,7 @@ COPY packages/cache-redis/package.json ./packages/cache-redis/package.json
 COPY packages/validators/package.json ./packages/validators/package.json
 COPY packages/youtube/package.json ./packages/youtube/package.json
 COPY packages/room/package.json ./packages/room/package.json
+COPY packages/tiktok/package.json ./packages/tiktok/package.json
 COPY packages/personalization/package.json ./packages/personalization/package.json
 COPY packages/curated-playlists/package.json ./packages/curated-playlists/package.json
 
@@ -22,6 +23,7 @@ RUN bun install --frozen-lockfile \
     --filter '@vkara/validators' \
     --filter '@vkara/youtube' \
     --filter '@vkara/room' \
+    --filter '@vkara/tiktok' \
     --filter '@vkara/personalization' \
     --filter '@vkara/curated-playlists' \
     && bun add --dev typescript@5.7.3
@@ -31,6 +33,7 @@ COPY packages/env ./packages/env
 COPY packages/validators ./packages/validators
 COPY packages/youtube ./packages/youtube
 COPY packages/room ./packages/room
+COPY packages/tiktok ./packages/tiktok
 COPY packages/personalization ./packages/personalization
 COPY packages/curated-playlists ./packages/curated-playlists
 
