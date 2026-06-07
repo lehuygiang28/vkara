@@ -11,7 +11,8 @@
     "exports": {
         ".": "./src/index.ts",
         "./errors": "./src/errors.ts",
-        "./websocket": "./src/websocket.ts"
+        "./websocket": "./src/websocket.ts",
+        "./test-fixtures": "./src/test-fixtures.ts"
     },
     "dependencies": {
         "@vkara/validators": "workspace:*",

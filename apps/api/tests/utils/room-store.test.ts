@@ -1,5 +1,5 @@
 import type { YouTubeVideo } from '@vkara/youtube';
-import type { Room } from '@vkara/room';
+import { createTestRoom } from '@vkara/room/test-fixtures';
 import { describe, expect, it } from 'vitest';
 
 import { isVideoAlreadyInRoom } from '@/utils/room-store';
@@ -19,27 +19,8 @@ function video(id: string): YouTubeVideo {
     };
 }
 
-function room(overrides: Partial<Room> = {}): Room {
-    return {
-        id: '1234',
-        clients: [],
-        videoQueue: [],
-        historyQueue: [],
-        volume: 100,
-        showQRInPlayer: true,
-        captionsEnabled: false,
-        captionsLanguage: 'vi',
-        captionTracks: [],
-        captionTracksVideoId: null,
-        playingNow: null,
-        lastActivity: 0,
-        creatorId: 'c1',
-        isPlaying: false,
-        currentTime: 0,
-        tiktokPhotoIndex: 0,
-        tiktokPhotoMaxIndex: 0,
-        ...overrides,
-    };
+function room(overrides: Parameters<typeof createTestRoom>[0] = {}) {
+    return createTestRoom({ id: '1234', ...overrides });
 }
 
 describe('isVideoAlreadyInRoom', () => {

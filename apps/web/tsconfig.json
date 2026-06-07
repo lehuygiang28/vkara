@@ -27,6 +27,7 @@
             "@vkara/personalization/*": ["../../packages/personalization/src/*"],
             "@vkara/room": ["../../packages/room/src/index.ts"],
             "@vkara/room/*": ["../../packages/room/src/*"],
+            "@vkara/room/test-fixtures": ["../../packages/room/src/test-fixtures.ts"],
             "@vkara/validators": ["../../packages/validators/src/index.ts"],
             "@vkara/validators/*": ["../../packages/validators/src/*"],
             "@vkara/youtube": ["../../packages/youtube/src/index.ts"],

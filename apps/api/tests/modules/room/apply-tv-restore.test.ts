@@ -1,4 +1,5 @@
 import type { Room } from '@vkara/room';
+import { createTestRoom } from '@vkara/room/test-fixtures';
 import type { TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 import { describe, expect, it } from 'vitest';
 
@@ -32,25 +33,9 @@ describe('apply-tv-restore', () => {
     });
 
     it('applies restore without history', () => {
-        const room: Room = {
-            id: '1234',
-            clients: [],
-            videoQueue: [],
+        const room = createTestRoom({
             historyQueue: [{ id: 'old' } as Room['historyQueue'][0]],
-            volume: 50,
-            showQRInPlayer: true,
-            captionsEnabled: false,
-            captionsLanguage: 'vi',
-            captionTracks: [],
-            captionTracksVideoId: null,
-            playingNow: null,
-            lastActivity: 0,
-            creatorId: 'c1',
-            isPlaying: false,
-            currentTime: 0,
-            tiktokPhotoIndex: 0,
-            tiktokPhotoMaxIndex: 0,
-        };
+        });
 
         applyTvRestoreToRoom(room, {
             videoQueue: [{ id: 'q1' } as Room['videoQueue'][0]],

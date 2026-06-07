@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest';
 
 import {
     getTikTokThumbnailUrl,
-    getVideoThumbnailUrl,
     normalizeTikTokThumbnails,
     pickTikTokThumbnailUrl,
 } from '../src/thumbnails';

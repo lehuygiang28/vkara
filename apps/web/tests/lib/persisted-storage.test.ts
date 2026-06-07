@@ -29,6 +29,8 @@ describe('normalizePersistedRoom', () => {
             captionsLanguage: DEFAULT_CAPTION_LANGUAGE,
             captionTracks: [],
             captionTracksVideoId: null,
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
         });
     });
 
@@ -79,6 +81,8 @@ describe('createMigratingPersistStorage', () => {
         expect(parsed.version).toBe(1);
         expect(parsed.state.room.captionTracks).toEqual([]);
         expect(parsed.state.room.captionsLanguage).toBe(DEFAULT_CAPTION_LANGUAGE);
+        expect(parsed.state.room.tiktokPhotoIndex).toBe(0);
+        expect(parsed.state.room.tiktokPhotoMaxIndex).toBe(0);
     });
 
     it('removes corrupt entries instead of throwing', () => {

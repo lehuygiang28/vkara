@@ -1,5 +1,5 @@
 import type { YouTubeVideo } from '@vkara/youtube';
-import type { Room } from '@vkara/room';
+import { createTestRoom } from '@vkara/room/test-fixtures';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
@@ -97,25 +97,14 @@ describe('sanitizeVideoForClient', () => {
 
 describe('cleanUpRoomField', () => {
     it('strips clients and sanitizes queue videos', () => {
-        const room: Room = {
+        const room = createTestRoom({
             id: '1234',
             clients: ['ws1'],
             videoQueue: [video('q1')],
-            historyQueue: [],
-            volume: 50,
-            showQRInPlayer: true,
-            captionsEnabled: false,
-            captionsLanguage: 'vi',
-            captionTracks: [],
-            captionTracksVideoId: null,
             playingNow: video('now'),
-            lastActivity: 0,
-            creatorId: 'c1',
+            volume: 50,
             isPlaying: true,
-            currentTime: 0,
-            tiktokPhotoIndex: 0,
-            tiktokPhotoMaxIndex: 0,
-        };
+        });
 
         const cleaned = cleanUpRoomField(room);
 

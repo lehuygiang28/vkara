@@ -1,4 +1,5 @@
 import { ErrorCode } from '@vkara/room';
+import { createTestPersistedRoom } from '@vkara/room/test-fixtures';
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -10,25 +11,15 @@ import {
 
 describe('tv-room-recovery', () => {
     it('captures snapshot with previous room id', () => {
-        const snapshot = captureTvRoomSnapshot({
-            id: '5678',
-            password: 'secret',
-            videoQueue: [{ id: 'a' } as never],
-            historyQueue: [{ id: 'h' } as never],
-            volume: 70,
-            showQRInPlayer: true,
-            captionsEnabled: false,
-            captionsLanguage: 'vi',
-            captionTracks: [],
-            captionTracksVideoId: null,
-            playingNow: null,
-            lastActivity: 0,
-            creatorId: 'x',
-            isPlaying: false,
-            currentTime: 0,
-            tiktokPhotoIndex: 0,
-            tiktokPhotoMaxIndex: 0,
-        });
+        const snapshot = captureTvRoomSnapshot(
+            createTestPersistedRoom({
+                id: '5678',
+                password: 'secret',
+                videoQueue: [{ id: 'a' } as never],
+                historyQueue: [{ id: 'h' } as never],
+                volume: 70,
+            }),
+        );
 
         expect(snapshot?.previousRoomId).toBe('5678');
         expect(snapshot?.restore.videoQueue).toHaveLength(1);
