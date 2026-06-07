@@ -21,6 +21,8 @@ type TvPlayerQrZoneProps = {
     isIdle: boolean;
     /** Side-by-side “this device” layout: smaller QR, no phone-only steps. */
     compact?: boolean;
+    /** Room for sticky mode switch on narrow viewports. */
+    reserveFooterSpace?: boolean;
     onOpenSettingsAction: () => void;
 };
 
@@ -46,6 +48,7 @@ export function TvPlayerQrZone({
     showQR,
     isIdle,
     compact = false,
+    reserveFooterSpace = false,
     onOpenSettingsAction: onOpenSettings,
 }: TvPlayerQrZoneProps) {
     const t = useScopedI18n('youtubePage');
@@ -146,41 +149,44 @@ export function TvPlayerQrZone({
         return (
             <div
                 className={cn(
-                    'absolute inset-0 z-[5] flex items-center justify-center overflow-y-auto bg-zinc-950 px-4 py-6 sm:px-8 sm:py-8',
-                    compact && 'lg:items-center lg:px-10 lg:py-10',
+                    'absolute inset-0 z-[5] flex overflow-y-auto overscroll-y-contain bg-zinc-950 px-4 py-safe-offset sm:px-8',
+                    compact
+                        ? 'items-start justify-center lg:items-center lg:px-10 lg:py-10'
+                        : 'items-start justify-center pt-4 sm:items-center sm:justify-center sm:py-8',
+                    reserveFooterSpace && 'pb-28',
                 )}
             >
-                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
+                <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,rgb(39_39_42_/_0.55),transparent_65%)]" />
 
                 <motion.div
                     layout
                     className={cn(
                         'relative z-[1] flex w-full flex-col items-center text-center',
-                        compact ? 'max-w-sm' : 'max-w-xl',
+                        compact ? 'max-w-sm py-2 lg:py-0' : 'max-w-xl py-2 sm:py-0',
                     )}
                 >
                     <div
                         className={cn(
-                            'flex flex-col items-center gap-3',
-                            compact ? 'mb-5' : 'mb-6 sm:mb-8 sm:gap-4',
+                            'flex flex-col items-center gap-2 sm:gap-3',
+                            compact ? 'mb-4 sm:mb-5' : 'mb-5 sm:mb-8',
                         )}
                     >
                         <h1
                             className={cn(
                                 'text-balance font-semibold leading-tight tracking-tight text-zinc-50',
                                 compact
-                                    ? 'max-w-[18ch] text-2xl lg:text-[1.65rem]'
-                                    : 'max-w-[16ch] text-3xl sm:max-w-none sm:text-4xl',
+                                    ? 'max-w-[20ch] text-xl sm:text-2xl lg:text-[1.65rem]'
+                                    : 'max-w-[22ch] text-2xl sm:max-w-none sm:text-4xl',
                             )}
                         >
                             {idleTitle}
                         </h1>
                         <p
                             className={cn(
-                                'max-w-md text-pretty leading-relaxed text-zinc-400',
+                                'max-w-sm text-pretty leading-relaxed text-zinc-400 sm:max-w-md',
                                 compact
                                     ? 'text-sm lg:text-[0.9375rem]'
-                                    : 'hidden text-base sm:block sm:text-lg',
+                                    : 'text-sm sm:text-base lg:text-lg',
                             )}
                         >
                             {idleSubtitle}
@@ -205,9 +211,9 @@ export function TvPlayerQrZone({
                             {t('tvIdleBothInvite')}
                         </p>
                     ) : (
-                        <motion.ol className="mt-6 w-full max-w-md space-y-4 text-left sm:mt-10 sm:space-y-5">
+                        <motion.ol className="mt-5 w-full max-w-md space-y-3 text-left sm:mt-10 sm:space-y-5">
                             {steps.map((step, index) => (
-                                <li key={step} className="flex items-start gap-4">
+                                <li key={step} className="flex items-start gap-3 sm:gap-4">
                                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-zinc-700/90 text-sm font-medium text-zinc-300">
                                         {index + 1}
                                     </span>

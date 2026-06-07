@@ -73,6 +73,7 @@ export default {
     'youtubePage.layoutAutoDesc':
         'Điện thoại → chế độ điều khiển. Màn hình lớn → TV (video full màn).',
     'youtubePage.layoutRemote': 'Điện thoại · Điều khiển',
+    'youtubePage.layoutRemoteShort': 'Điện thoại',
     'youtubePage.layoutRemoteDesc':
         'Tìm bài, quản lý hàng chờ và điều khiển phát — không hiện video trên máy này.',
     'youtubePage.layoutPlayer': 'TV',
@@ -125,6 +126,7 @@ export default {
     'youtubePage.tvEmptySubtitleBoth':
         'Tìm bài ở cột bên phải, hoặc mời mọi người quét mã để điều khiển từ điện thoại.',
     'youtubePage.tvIdleBothInvite': 'Mã QR vẫn dùng được nếu bạn muốn remote từ điện thoại.',
+    'youtubePage.tvIdleModeHint': 'Chọn sai chế độ? Đổi bên dưới.',
 
     'voiceSearchSettings.title': 'Tìm kiếm bằng giọng nói',
     'voiceSearchSettings.descriptionWithBrowser':
@@ -317,6 +319,7 @@ export default {
     'joinLobby.or': 'hoặc',
     'joinLobby.joinRequiredTitle': 'Hãy tham gia phòng trước',
     'joinLobby.joinRequiredDescription': 'Nhập mã phòng hoặc quét QR trước khi thêm bài hát.',
+    'joinLobby.modeHint': 'Chọn sai chế độ? Đổi ở đây để quay lại màn hình phù hợp.',
 
     'tvLobby.title': 'Tạo hoặc tham gia phòng',
     'tvLobby.subtitle':

@@ -29,6 +29,7 @@ import {
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
 import { isVideoLive } from '@/lib/youtube-video';
+import { cn } from '@/lib/utils';
 import type { YouTubeStoreLayoutMode } from '@/store/youtubeStore';
 
 import { CountdownTimer } from '@/components/countdown-timer';
@@ -36,6 +37,9 @@ import { VideoChannels } from '@/components/video-channels';
 import { Button } from '@/components/ui/button';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { ControlsStageThumbnail } from './ControlsStageThumbnail';
+import { LayoutModeSwitch, RECOVERY_MODE_CHOICES } from '@/components/layout-mode-switch';
+import { useViewportWidth } from '@/hooks/use-viewport-layout';
+import { TV_MIN_WIDTH_PX } from '@/lib/layout-mode';
 import { TvIdleLayoutSwitch } from './TvIdleLayoutSwitch';
 import { TvPlayerQrZone } from './TvPlayerQrZone';
 import { TvRoomLobby } from './TvRoomLobby';
@@ -86,6 +90,15 @@ export function PlayerColumn({
     const captionsLanguage = room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE;
     const showPlayerSettingsButton =
         effectiveLayoutMode === 'player' && !isTvPlayerIdle && hasFinePointer;
+
+    const viewportWidth = useViewportWidth();
+    const isNarrowViewport = viewportWidth > 0 && viewportWidth < TV_MIN_WIDTH_PX;
+    const needsModeRecovery =
+        effectiveLayoutMode === 'player' && (isNarrowViewport || !hasFinePointer);
+    const showRecoveryModeBar =
+        needsModeRecovery && (isTvPlayerIdle || Boolean(room?.playingNow));
+    const showCornerTvSwitch =
+        isTvPlayerIdle && hasFinePointer && !isNarrowViewport && !needsModeRecovery;
 
     useEffect(() => {
         resetCountdown();
@@ -338,7 +351,12 @@ export function PlayerColumn({
                 {isTvPlayerIdle && !room?.id && tvSuppressAutoCreate && (
                     <div className="absolute inset-0 z-[5] flex items-center justify-center bg-zinc-950">
                         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
-                        <div className="pointer-events-auto relative z-[1] max-h-full overflow-y-auto py-safe-offset">
+                        <div
+                            className={cn(
+                                'pointer-events-auto relative z-[1] max-h-full overflow-y-auto py-safe-offset',
+                                showRecoveryModeBar && 'pb-28',
+                            )}
+                        >
                             <TvRoomLobby
                                 compact={isBothIdleLayout}
                                 onOpenSettingsAction={onOpenSettingsAction}
@@ -355,18 +373,32 @@ export function PlayerColumn({
                         showQR={showQRInPlayer}
                         isIdle
                         compact={isBothIdleLayout}
+                        reserveFooterSpace={showRecoveryModeBar}
                         onOpenSettingsAction={onOpenSettingsAction}
                     />
                 )}
 
                 {isTvPlayerIdle && (
                     <div className="pointer-events-auto absolute right-safe-offset top-safe-offset z-[6] flex items-center gap-3 sm:gap-4">
-                        {hasFinePointer ? (
+                        {showCornerTvSwitch ? (
                             <TvIdleLayoutSwitch effectiveLayoutMode={effectiveLayoutMode} />
                         ) : null}
                         <LanguageSwitcher variant="overlay" />
                     </div>
                 )}
+
+                {showRecoveryModeBar ? (
+                    <div className="pointer-events-auto absolute inset-x-0 bottom-0 z-[6] border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 pb-safe-offset backdrop-blur-sm">
+                        <p className="mb-2 text-center text-xs text-zinc-500">
+                            {t('tvIdleModeHint')}
+                        </p>
+                        <LayoutModeSwitch
+                            tone="overlay-visible"
+                            className="w-full"
+                            choices={RECOVERY_MODE_CHOICES}
+                        />
+                    </div>
+                ) : null}
 
                 {room?.playingNow && shouldShowTimer && room.videoQueue.length > 0 && (
                     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black/85 p-4 text-center">

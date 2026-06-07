@@ -77,6 +77,7 @@ export default {
     'youtubePage.layoutAuto': 'Automatic',
     'youtubePage.layoutAutoDesc': 'Phone → remote. Large screen → TV (full-screen video).',
     'youtubePage.layoutRemote': 'Mobile · Remote',
+    'youtubePage.layoutRemoteShort': 'Mobile',
     'youtubePage.layoutRemoteDesc':
         'Search, queue, and playback controls — no video on this device.',
     'youtubePage.layoutPlayer': 'TV',
@@ -125,6 +126,7 @@ export default {
     'youtubePage.tvEmptySubtitleBoth':
         'Search on the right, or share the code so others can control from their phones.',
     'youtubePage.tvIdleBothInvite': 'The QR code still works if you want a phone remote.',
+    'youtubePage.tvIdleModeHint': 'Wrong device mode? Switch below.',
 
     'voiceSearchSettings.title': 'Voice search',
     'voiceSearchSettings.descriptionWithBrowser':
@@ -321,6 +323,7 @@ export default {
     'joinLobby.joinRequiredTitle': 'Join a room first',
     'joinLobby.joinRequiredDescription':
         'Enter a room code or scan the QR code before adding songs.',
+    'joinLobby.modeHint': 'Wrong device mode? Switch here to get back to the right screen.',
 
     'tvLobby.title': 'Start or join a room',
     'tvLobby.subtitle': 'Create a new room for this TV, or enter a code to join an existing one.',

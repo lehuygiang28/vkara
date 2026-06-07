@@ -8,6 +8,7 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useScopedI18n } from '@/locales/client';
 import { cn } from '@/lib/utils';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
+import { LayoutModeSwitch, RECOVERY_MODE_CHOICES } from '@/components/layout-mode-switch';
 import { useLayoutChunkPrefetch, prefetchRemoteShell } from '@/hooks/use-layout-chunk-prefetch';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { useWebSocket } from '@/providers/websocket-provider';
@@ -92,6 +93,13 @@ export default function YoutubePlayerPage() {
                 aria-busy="true"
             >
                 <ConnectionStatusToast />
+                <div className="pointer-events-auto absolute inset-x-0 bottom-0 border-t border-zinc-800/80 bg-zinc-950/95 px-4 py-3 pb-safe-offset backdrop-blur-sm">
+                    <LayoutModeSwitch
+                        tone="overlay-visible"
+                        className="w-full"
+                        choices={RECOVERY_MODE_CHOICES}
+                    />
+                </div>
             </div>
         );
     }
@@ -111,7 +119,8 @@ export default function YoutubePlayerPage() {
                             'relative min-h-0 w-full',
                             useTvIdleShell ? 'bg-zinc-950' : 'bg-black',
                             effectiveLayoutMode === 'both' && 'md:h-full md:w-2/3 lg:w-3/4',
-                            effectiveLayoutMode === 'player' && 'h-[42dvh] md:h-full',
+                            effectiveLayoutMode === 'player' &&
+                                (useTvIdleShell ? 'h-full' : 'h-[42dvh] md:h-full'),
                             isRemoteOnly && 'hidden',
                         )}
                     >
@@ -130,7 +139,8 @@ export default function YoutubePlayerPage() {
                         className={cn(
                             'flex h-full min-h-0 w-full flex-1 flex-col',
                             effectiveLayoutMode === 'both' && 'md:w-1/3 md:border-l lg:w-1/4',
-                            isRemoteOnly && 'mx-auto max-w-lg',
+                            isRemoteOnly &&
+                                'mx-auto w-full max-w-md border-border/40 sm:max-w-[26rem] lg:border-x',
                         )}
                     >
                         <RemoteShell />
