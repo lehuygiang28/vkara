@@ -52,6 +52,10 @@ RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
     TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
     bunx turbo run build --filter='@vkara/api' --force
 
+RUN mkdir -p /runtime/node_modules && \
+    cp -r /repo/node_modules/.bun/playwright@*/node_modules/playwright /runtime/node_modules/ && \
+    cp -r /repo/node_modules/.bun/playwright-core@*/node_modules/playwright-core /runtime/node_modules/
+
 FROM deps AS build-web
 COPY apps/web ./apps/web
 COPY packages/env ./packages/env
@@ -97,7 +101,20 @@ COPY --from=build-web /repo/apps/web/public ./apps/web/public
 
 # Copy compiled API last; --force build avoids glibc remote-cache binary on Alpine.
 COPY --from=build-api /repo/apps/api/dist/server ./server
+COPY --from=build-api /runtime/node_modules ./node_modules
 RUN chmod +x ./server
+
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont \
+    font-noto-emoji
+
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
+    PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 COPY ./containers/aio/Caddyfile ./Caddyfile
 COPY ./containers/aio/supervisord.conf ./supervisord.conf

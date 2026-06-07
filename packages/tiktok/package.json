@@ -13,9 +13,7 @@
         "./browser-pool": "./src/browser-pool.ts"
     },
     "dependencies": {
-        "@vkara/youtube": "workspace:*"
-    },
-    "devDependencies": {
+        "@vkara/youtube": "workspace:*",
         "playwright": "^1.52.0"
     }
 }

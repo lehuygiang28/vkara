@@ -12,6 +12,22 @@ const CHROMIUM_ARGS = [
     '--disable-blink-features=AutomationControlled',
 ] as const;
 
+function chromiumLaunchOptions(): {
+    headless: true;
+    args: string[];
+    executablePath?: string;
+} {
+    const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?.trim();
+    return {
+        headless: true,
+        args: [
+            ...CHROMIUM_ARGS,
+            ...(executablePath ? ['--no-sandbox', '--disable-setuid-sandbox'] : []),
+        ],
+        ...(executablePath ? { executablePath } : {}),
+    };
+}
+
 const SIGNED_URL_TIMEOUT_MS = 20_000;
 const WARMUP_SETTLE_MS = 800;
 const FETCH_RETRY_DELAY_MS = 700;
@@ -194,10 +210,7 @@ export class TikTokBrowserPool {
         const start = performance.now();
         const { chromium } = await import('playwright');
 
-        this.browser = await chromium.launch({
-            headless: true,
-            args: [...CHROMIUM_ARGS],
-        });
+        this.browser = await chromium.launch(chromiumLaunchOptions());
         this.context = await this.browser.newContext({
             userAgent: BROWSER_UA,
             locale: 'en-US',

@@ -250,4 +250,6 @@ TikTok search is gated behind `VKARA_EXPERIMENTS=1` on the API and `NEXT_PUBLIC_
 cd apps/api && bunx playwright install chromium
 ```
 
-**Docker:** published API images are distroless/minimal and do not bundle Chromium. Enabling `VKARA_EXPERIMENTS` in a container requires a custom image with Playwright browser deps, or run the API on the host for TikTok testing. YouTube-only deployments are unaffected when the flag is unset.
+**Docker (bundle / aio):** images copy the external `playwright` npm package beside the compiled API binary and use Alpine system Chromium (`PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser`). Set `VKARA_EXPERIMENTS=1` on the API.
+
+**Docker (standalone `apps/api` distroless):** no Chromium — use profile `bundle` or `aio` for TikTok search.
