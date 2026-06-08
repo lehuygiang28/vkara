@@ -93,18 +93,28 @@ const lastPlaybackBroadcastByRoom = new Map<string, PlaybackTimeSyncState>();
 const advanceInFlightByRoom = new Map<string, Promise<void>>();
 
 export function createRoomService({ wsConnections, sendToClient }: RoomServiceDeps) {
-    async function leaveCurrentRoom(ws: ElysiaWS) {
+    async function leaveCurrentRoom(ws: ElysiaWS): Promise<string | null> {
         const clientInfo = await getClientInfo(ws.id);
-        if (!clientInfo?.roomId) return;
+        if (!clientInfo?.roomId) return null;
 
-        ws.unsubscribe(clientInfo.roomId);
-        await mutateRoom(clientInfo.roomId, (room) => {
+        const { roomId } = clientInfo;
+
+        ws.unsubscribe(roomId);
+        const room = await mutateRoom(roomId, (room) => {
             room.clients = room.clients.filter((id) => id !== ws.id);
             if (room.clients.length === 0) {
                 room.emptySince = Date.now();
             }
         });
         await redis.hdel(`client:${ws.id}`, 'roomId');
+
+        roomLogger.info('Client left room', {
+            clientId: ws.id,
+            roomId,
+            remainingClients: room.clients.length,
+        });
+
+        return roomId;
     }
 
     async function joinRoomInternal(ws: ElysiaWS, roomId: string) {
@@ -122,6 +132,13 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         ws.subscribe(roomId);
         await redis.hset(`client:${ws.id}`, 'roomId', roomId);
         sendToClient(ws, { type: 'roomJoined', yourId: ws.id, room: cleanUpRoomField(room) });
+
+        roomLogger.info('Client joined room', {
+            clientId: ws.id,
+            roomId,
+            clientCount: room.clients.length,
+            isCreator: room.creatorId === ws.id,
+        });
     }
 
     async function generateAvailableRoomId(): Promise<string> {
@@ -204,6 +221,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     }
 
     async function joinRoom(ws: ElysiaWS, roomId: string, password?: string, isRejoin = false) {
+        roomLogger.info(isRejoin ? 'Client rejoining room' : 'Client joining room', {
+            clientId: ws.id,
+            roomId,
+            isRejoin,
+        });
+
         const room = await requireRoom(roomId, isRejoin);
 
         const expectedPassword = normalizeRoomPassword(room.password);
@@ -247,6 +270,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         if (room.creatorId !== ws.id) {
             throw new RoomError(ErrorCode.NOT_CREATOR_OF_ROOM);
         }
+
+        roomLogger.info('Room closed by creator', {
+            roomId,
+            creatorId: ws.id,
+            clientCount: room.clients.length,
+        });
 
         await closeRoom(roomId);
     }

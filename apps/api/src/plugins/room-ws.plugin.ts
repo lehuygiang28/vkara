@@ -60,14 +60,17 @@ export const createRoomWsPlugin = ({
             );
         },
         open(ws) {
-            wsLogger.info('Client connected', { clientId: ws.id });
+            wsLogger.info('WebSocket connected', {
+                clientId: ws.id,
+                remoteAddress: ws.remoteAddress,
+            });
             wsConnections.set(ws.id, ws);
             sendToClient(ws, { type: 'pong' });
         },
         async close(ws) {
-            wsLogger.info('Client disconnected', { clientId: ws.id });
+            let roomId: string | null = null;
             try {
-                await roomService.leaveCurrentRoom(ws);
+                roomId = await roomService.leaveCurrentRoom(ws);
             } catch (error) {
                 wsLogger.error('Error during client disconnect cleanup', {
                     clientId: ws.id,
@@ -76,6 +79,11 @@ export const createRoomWsPlugin = ({
             } finally {
                 wsConnections.delete(ws.id);
             }
+
+            wsLogger.info('WebSocket disconnected', {
+                clientId: ws.id,
+                roomId,
+            });
         },
         async message(ws, message) {
             try {
