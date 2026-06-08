@@ -32,6 +32,17 @@ export function parseEnvPositiveIntValue(raw: string | undefined, defaultValue: 
     return parsed;
 }
 
+/** Comma-separated list of origins (e.g. `https://a.com, http://localhost:3000`). */
+export function parseEnvOriginList(raw: string | undefined): string[] {
+    if (!raw?.trim()) {
+        return [];
+    }
+    return raw
+        .split(',')
+        .map((part) => part.trim())
+        .filter(Boolean);
+}
+
 export function envSkipValidation(): boolean {
     return (
         !!process.env.CI ||

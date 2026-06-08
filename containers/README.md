@@ -186,6 +186,7 @@ See `apps/api/.env.example`. Required for production:
 | `PORT`                                         | Listen port (default `8000`)                                           |
 | `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD` | Redis connection                                                       |
 | `PUBLIC_APP_URL`                               | Web origin for YouTube embed checks (e.g. `https://vkara.example.com`) |
+| `CORS_ORIGINS`                                 | Comma-separated browser origins for API CORS (unset = allow all)       |
 
 ### `apps/web` (standalone web)
 
@@ -231,7 +232,7 @@ Redis credentials are fixed inside the image (`127.0.0.1:6379`, password `giang`
 
 | Symptom                                | Check                                                                          |
 | -------------------------------------- | ------------------------------------------------------------------------------ |
-| Web cannot reach API                   | `NEXT_PUBLIC_API_URL` / WS URL; CORS is open on API but URLs must match        |
+| Web cannot reach API                   | `NEXT_PUBLIC_API_URL` / WS URL; add web origin to `CORS_ORIGINS` on API        |
 | AIO `/` errors                         | Hard-refresh browser (old redirects may be cached)                             |
 | Build fails on `npm` / TypeScript      | Build from repo root; aio Dockerfile installs workspace filters + `typescript` |
 | Redis connection refused (api profile) | API image has no Redis - use `bundle` or external Redis                        |

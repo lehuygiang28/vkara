@@ -1,6 +1,6 @@
 import { Elysia } from 'elysia';
 import type { ElysiaWS } from 'elysia/ws';
-import cors from '@elysiajs/cors';
+import cors, { type CORSConfig } from '@elysiajs/cors';
 import { openapi } from '@elysiajs/openapi';
 import type { ZodType } from 'zod';
 import { zodToJsonSchema } from 'zod-to-json-schema';
@@ -16,6 +16,7 @@ import { createContextLogger } from '@/utils/logger';
 import type { ServerMessage } from '@vkara/room';
 
 import { isExperimentsEnabled } from '@vkara/env';
+import { resolveCorsConfig } from '@vkara/env/server';
 
 import { env } from './env';
 import { redis } from './redis';
@@ -75,7 +76,7 @@ export const wsServer = new Elysia({
             sendToClient,
         }),
     )
-    .use(cors())
+    .use(cors(resolveCorsConfig(env.CORS_ORIGINS) satisfies CORSConfig))
     .use(
         openapi({
             mapJsonSchema: {
