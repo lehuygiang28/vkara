@@ -25,9 +25,11 @@ export function ExperimentsSettingsSection() {
 
         setVideoProvider(next);
 
-        const query = useSearchStore.getState().searchQuery.trim();
+        const search = useSearchStore.getState();
+        search.clearSearchResultsForProviderSwitch();
+        const query = search.searchQuery.trim();
         if (query) {
-            void useSearchStore.getState().performSearch(query);
+            void search.performSearch(query);
         }
     };
 

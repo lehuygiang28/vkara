@@ -46,6 +46,8 @@ interface SearchState {
     fetchSuggestions: (query: string) => Promise<void>;
     clearSuggestions: () => void;
     requestSearchOverlay: () => void;
+    /** Drop in-memory results when falling back from TikTok (experiments off or provider switch). */
+    clearSearchResultsForProviderSwitch: () => void;
 }
 
 let suggestionsAbort: AbortController | null = null;
@@ -262,6 +264,20 @@ export const useSearchStore = create(
 
             requestSearchOverlay: () =>
                 set((state) => ({ searchOverlayRequestId: state.searchOverlayRequestId + 1 })),
+
+            clearSearchResultsForProviderSwitch: () => {
+                searchAbort?.abort();
+                searchGeneration += 1;
+                set({
+                    searchResults: [],
+                    nextToken: null,
+                    tiktokSearchId: null,
+                    error: null,
+                    loadMoreFailed: false,
+                    isLoading: false,
+                    isLoadingMore: false,
+                });
+            },
         }),
         {
             name: 'search-store',

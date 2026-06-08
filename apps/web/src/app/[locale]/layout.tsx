@@ -14,6 +14,7 @@ import { WebSocketProvider } from '@/providers/websocket-provider';
 import { I18nProvider } from '@/providers/i18n-provider';
 import { ActionFeedbackHost } from '@/components/action-feedback';
 import { Toaster } from '@/components/ui/toaster';
+import { ExperimentsProviderReconciliation } from '@/components/experiments-provider-reconciliation';
 import { ServiceWorkerCleanup } from '@/components/service-worker-cleanup';
 import { JsonLd } from '@/components/seo/json-ld';
 import { isAppLocale, type AppLocale } from '@/lib/locale-path';
@@ -101,6 +102,7 @@ export default async function RootLayout({
                         <Suspense fallback={null}>
                             <WebSocketProvider>
                                 <ServiceWorkerCleanup />
+                                <ExperimentsProviderReconciliation />
                                 {children}
                                 <ActionFeedbackHost />
                                 <Toaster />

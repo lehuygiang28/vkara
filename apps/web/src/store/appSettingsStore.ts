@@ -19,7 +19,13 @@ export const useAppSettingsStore = create<AppSettingsState>()(
             useWhisperVoiceSearch: false,
             videoProvider: 'youtube',
             setUseWhisperVoiceSearch: (enabled) => set({ useWhisperVoiceSearch: enabled }),
-            setVideoProvider: (provider) => set({ videoProvider: provider }),
+            setVideoProvider: (provider) => {
+                if (provider === 'tiktok' && !isExperimentsEnabled()) {
+                    set({ videoProvider: 'youtube' });
+                    return;
+                }
+                set({ videoProvider: provider });
+            },
             getEffectiveVideoProvider: () => {
                 if (!isExperimentsEnabled()) {
                     return 'youtube';
