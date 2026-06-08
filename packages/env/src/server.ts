@@ -28,24 +28,69 @@ export function serverEnv() {
 /** Subset of `@elysiajs/cors` `CORSConfig` used by the API (`origin: true` or `origin: string[]`). */
 export type CorsConfigInput = { origin: true } | { origin: string[] };
 
-/**
- * Build `@elysiajs/cors` options from `CORS_ORIGINS` (comma-separated).
- * Unset → `{ origin: true }` (plugin default: reflect any request origin).
- * Set → `{ origin: string[] }` (plugin matches `Origin` against the list).
- */
-export function resolveCorsConfig(corsOrigins: string | undefined): CorsConfigInput {
-    const allowed = parseEnvOriginList(corsOrigins);
-    if (allowed.length === 0) {
-        return { origin: true };
-    }
-
-    for (const origin of allowed) {
+function validateCorsOriginUrls(origins: string[]): string[] {
+    for (const origin of origins) {
         try {
             new URL(origin);
         } catch {
             throw new Error(`Invalid CORS origin: ${origin}`);
         }
     }
+    return origins;
+}
 
-    return { origin: allowed };
+/** `null` = allow any origin (CORS_ORIGINS unset). */
+export function getCorsOriginAllowlist(corsOrigins: string | undefined): string[] | null {
+    const allowed = parseEnvOriginList(corsOrigins);
+    if (allowed.length === 0) {
+        return null;
+    }
+    return validateCorsOriginUrls(allowed);
+}
+
+/** Shared HTTP + WebSocket origin gate from `CORS_ORIGINS`. */
+export function isCorsOriginAllowed(
+    requestOrigin: string | null | undefined,
+    corsOrigins: string | undefined,
+): boolean {
+    const allowlist = getCorsOriginAllowlist(corsOrigins);
+    if (allowlist === null) {
+        return true;
+    }
+    if (!requestOrigin) {
+        return false;
+    }
+    return allowlist.includes(requestOrigin);
+}
+
+/**
+ * CORS response headers for the WebSocket upgrade handshake (`upgrade` hook).
+ * `@elysiajs/cors` only runs on HTTP lifecycle hooks and does not cover WS upgrades.
+ */
+export function resolveWsUpgradeCorsHeaders(
+    requestOrigin: string | null,
+    corsOrigins: string | undefined,
+): Record<string, string> {
+    if (!requestOrigin || !isCorsOriginAllowed(requestOrigin, corsOrigins)) {
+        return {};
+    }
+
+    return {
+        'access-control-allow-origin': requestOrigin,
+        vary: 'Origin',
+        'access-control-allow-credentials': 'true',
+    };
+}
+
+/**
+ * Build `@elysiajs/cors` options from `CORS_ORIGINS` (comma-separated).
+ * Unset → `{ origin: true }` (plugin default: reflect any request origin).
+ * Set → `{ origin: string[] }` (plugin matches `Origin` against the list).
+ */
+export function resolveCorsConfig(corsOrigins: string | undefined): CorsConfigInput {
+    const allowlist = getCorsOriginAllowlist(corsOrigins);
+    if (allowlist === null) {
+        return { origin: true };
+    }
+    return { origin: allowlist };
 }

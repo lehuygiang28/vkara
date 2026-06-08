@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { parseEnvOriginList } from '../src/base';
-import { resolveCorsConfig } from '../src/server';
+import {
+    isCorsOriginAllowed,
+    resolveCorsConfig,
+    resolveWsUpgradeCorsHeaders,
+} from '../src/server';
 
 describe('parseEnvOriginList', () => {
     it('returns empty array when unset', () => {
@@ -35,5 +39,40 @@ describe('resolveCorsConfig', () => {
 
     it('rejects invalid origins at config time', () => {
         expect(() => resolveCorsConfig('not-a-url')).toThrow(/Invalid CORS origin/);
+    });
+});
+
+describe('isCorsOriginAllowed', () => {
+    it('allows any origin when CORS_ORIGINS is unset', () => {
+        expect(isCorsOriginAllowed('https://vkara.example.com', undefined)).toBe(true);
+        expect(isCorsOriginAllowed(null, undefined)).toBe(true);
+    });
+
+    it('allows only listed origins when CORS_ORIGINS is set', () => {
+        const corsOrigins = 'https://vkara-local.giang.io.vn,http://localhost:3000';
+        expect(isCorsOriginAllowed('https://vkara-local.giang.io.vn', corsOrigins)).toBe(true);
+        expect(isCorsOriginAllowed('https://evil.example.com', corsOrigins)).toBe(false);
+        expect(isCorsOriginAllowed(null, corsOrigins)).toBe(false);
+    });
+});
+
+describe('resolveWsUpgradeCorsHeaders', () => {
+    it('reflects allowed origin on upgrade', () => {
+        expect(
+            resolveWsUpgradeCorsHeaders(
+                'https://vkara-local.giang.io.vn',
+                'https://vkara-local.giang.io.vn',
+            ),
+        ).toEqual({
+            'access-control-allow-origin': 'https://vkara-local.giang.io.vn',
+            vary: 'Origin',
+            'access-control-allow-credentials': 'true',
+        });
+    });
+
+    it('returns no headers for disallowed origin', () => {
+        expect(
+            resolveWsUpgradeCorsHeaders('https://evil.example.com', 'https://vkara-local.giang.io.vn'),
+        ).toEqual({});
     });
 });

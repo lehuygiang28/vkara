@@ -1,5 +1,6 @@
 import { Elysia } from 'elysia';
 import type { ElysiaWS } from 'elysia/ws';
+import { isCorsOriginAllowed, resolveWsUpgradeCorsHeaders } from '@vkara/env/server';
 
 import { createRoomService, type RoomService } from '@/modules/room/room-service';
 import { RoomError, type ServerMessage } from '@vkara/room';
@@ -12,6 +13,8 @@ export type RoomWsPluginOptions = {
     roomService: RoomService;
     wsConnections: Map<string, ElysiaWS>;
     sendToClient: (ws: ElysiaWS, message: ServerMessage) => void;
+    /** Same value as API `CORS_ORIGINS` — WebSocket upgrades validate `Origin` separately. */
+    corsOrigins?: string;
 };
 
 function handleWsError(
@@ -39,9 +42,23 @@ export const createRoomWsPlugin = ({
     roomService,
     wsConnections,
     sendToClient,
+    corsOrigins,
 }: RoomWsPluginOptions) =>
     new Elysia({ name: 'room-ws' }).ws('/ws', {
         body: wsClientMessageSchema,
+        beforeHandle({ request, set }) {
+            const origin = request.headers.get('origin');
+            if (!isCorsOriginAllowed(origin, corsOrigins)) {
+                set.status = 403;
+                throw new Error('Forbidden: origin not allowed');
+            }
+        },
+        upgrade({ request, set }) {
+            Object.assign(
+                set.headers,
+                resolveWsUpgradeCorsHeaders(request.headers.get('origin'), corsOrigins),
+            );
+        },
         open(ws) {
             wsLogger.info('Client connected', { clientId: ws.id });
             wsConnections.set(ws.id, ws);

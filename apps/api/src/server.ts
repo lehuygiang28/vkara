@@ -69,14 +69,15 @@ export const wsServer = new Elysia({
         }
     })
     .state('wsConnections', wsConnections)
+    .use(cors(resolveCorsConfig(env.CORS_ORIGINS) satisfies CORSConfig))
     .use(
         createRoomWsPlugin({
             roomService,
             wsConnections,
             sendToClient,
+            corsOrigins: env.CORS_ORIGINS,
         }),
     )
-    .use(cors(resolveCorsConfig(env.CORS_ORIGINS) satisfies CORSConfig))
     .use(
         openapi({
             mapJsonSchema: {
