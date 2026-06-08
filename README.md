@@ -39,6 +39,7 @@
   <a href="#why-vkara">Why vkara</a> ·
   <a href="#usage">How to use</a> ·
   <a href="#self-host">Self-host</a> ·
+  <a href="#copyright--legal-notice">Copyright</a> ·
   <a href="#for-developers">Developers</a>
 </p>
 
@@ -116,6 +117,21 @@ The player screen is for watching. Phones are for searching and controlling - so
 
 **Can I host my own copy?**  
 Yes. See [Self-host](#self-host) below or the full guide in [containers/README.md](containers/README.md).
+
+## Copyright and legal notice
+
+vkara is open-source software under the MIT License, intended for personal, non-commercial karaoke via YouTube's embedded player. It does not store, download, or distribute music or video files on its servers. The project does not commercialize content or provide music licensing.
+
+- vkara is not affiliated with YouTube and has no music licensing agreements.
+- Playback runs inside YouTube's iframe; the project does not re-stream content independently.
+- YouTube allows personal, non-commercial viewing and embeddable playback; public commercial use is the responsibility of users and deployers under applicable law and [YouTube's Terms of Service](https://www.youtube.com/t/terms).
+- The project disclaims responsibility when third parties use vkara for commercial purposes without proper authorization.
+
+Self-hosting deployers are responsible for how they configure and operate their instance. End users must comply with YouTube's Terms and copyright law where they live.
+
+Full disclaimer: [docs/DISCLAIMER.md](docs/DISCLAIMER.md) (English), [docs/vi/DISCLAIMER.md](docs/vi/DISCLAIMER.md) (Tiếng Việt).
+
+Copyright complaints, takedown requests, and support: [lehuygiang28@gmail.com](mailto:lehuygiang28@gmail.com)
 
 ---
 

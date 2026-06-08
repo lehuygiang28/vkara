@@ -39,6 +39,7 @@
   <a href="#tai-sao-vkara">Tại sao vkara?</a> ·
   <a href="#cach-dung">Cách dùng</a> ·
   <a href="#tu-chay-vkara">Tự chạy vkara</a> ·
+  <a href="#ban-quyen-va-mien-tru">Bản quyền</a> ·
   <a href="#danh-cho-dev">Dành cho dev</a>
 </p>
 
@@ -116,6 +117,21 @@ Màn hình lớn dùng để xem và nghe. Điện thoại dùng để tìm bài
 
 **Tôi có thể tự chạy vkara không?**  
 Có. Xem phần [Tự chạy vkara](#tu-chay-vkara) bên dưới, hoặc đọc hướng dẫn đầy đủ tại [containers/README.md](../../containers/README.md) bằng tiếng Anh.
+
+<h2 id="ban-quyen-va-mien-tru">Thông báo bản quyền và tuyên bố pháp lý</h2>
+
+vkara là phần mềm mã nguồn mở theo giấy phép MIT, dùng cho karaoke cá nhân, phi thương mại qua trình phát nhúng YouTube. Ứng dụng không lưu trữ, tải xuống hay phân phối file âm thanh/video trên máy chủ. Dự án không thương mại hóa nội dung và không cung cấp dịch vụ cấp phép âm nhạc.
+
+- vkara không thuộc YouTube và không có thỏa thuận cấp phép âm nhạc.
+- Video phát trong iframe của YouTube; Dự án không phát lại độc lập ngoài trình nhúng.
+- YouTube cho phép xem/nghe cá nhân, phi thương mại và phát qua embed; sử dụng thương mại công cộng thuộc trách nhiệm của người dùng và người triển khai theo pháp luật áp dụng và [Điều khoản dịch vụ YouTube](https://www.youtube.com/t/terms).
+- Dự án từ chối trách nhiệm khi bên thứ ba dùng vkara cho mục đích thương mại mà không có cơ sở pháp lý phù hợp.
+
+Người triển khai tự host chịu trách nhiệm về cách cấu hình và vận hành phiên bản của mình. Người sử dụng cuối phải tuân thủ Điều khoản YouTube và pháp luật về quyền tác giả tại nơi sử dụng.
+
+Tuyên bố đầy đủ: [DISCLAIMER.md](DISCLAIMER.md) (Tiếng Việt), [English](../../docs/DISCLAIMER.md).
+
+Khiếu nại bản quyền, yêu cầu gỡ bỏ và hỗ trợ: [lehuygiang28@gmail.com](mailto:lehuygiang28@gmail.com)
 
 ---
 
