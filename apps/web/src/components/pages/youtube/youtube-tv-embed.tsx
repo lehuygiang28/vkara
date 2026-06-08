@@ -12,7 +12,7 @@ type YoutubeTvEmbedProps = {
     onStateChangeAction: (event: YT.PlayerEvent) => void;
     onErrorAction: (event: YT.OnErrorEvent) => void;
     className?: string;
-    /** TV: no iframe controls, pointer blocked. Laptop: native YouTube controls. */
+    /** TV: no iframe controls (`controls=0`). Laptop: native YouTube controls. */
     variant?: 'tv' | 'laptop';
 };
 
@@ -60,7 +60,6 @@ export function YoutubeTvEmbed({
                 onStateChange={onStateChangeAction}
                 onError={onErrorAction}
             />
-            {!isLaptop ? <div className="absolute inset-0 z-10" aria-hidden /> : null}
         </div>
     );
 }
