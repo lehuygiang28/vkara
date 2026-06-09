@@ -1,12 +1,13 @@
 'use client';
 
-import { ReactNode, useEffect, useRef } from 'react';
+import { ReactNode, useEffect, useRef, type RefObject } from 'react';
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 import {
     useFocusable,
     type UseFocusableConfig,
 } from '@noriginmedia/norigin-spatial-navigation-react';
 import { cn } from '@/lib/utils';
+import { scrollTvSettingsItemIntoView } from '@/lib/tv-settings-scroll';
 import { tvDefaultFocusLeaf } from '@/lib/tv-focus-styles';
 
 type TvFocusableProps<P = object> = {
@@ -22,6 +23,8 @@ type TvFocusableProps<P = object> = {
     extraProps?: P;
     /** When true, scrolls the element into view on focus (settings lists). */
     scrollIntoViewOnFocus?: boolean;
+    /** Scroll parent for settings rail (uses precise in-container scroll). */
+    scrollContainerRef?: RefObject<HTMLElement | null>;
     /** Item supplies its own focus styling (queue shell, transport shell). */
     suppressFocusChrome?: boolean;
 };
@@ -38,6 +41,7 @@ export function TvFocusable<P = object>({
     accessibilityLabel,
     extraProps,
     scrollIntoViewOnFocus = false,
+    scrollContainerRef,
     suppressFocusChrome = false,
 }: TvFocusableProps<P>) {
     const mountedFocusRef = useRef(false);
@@ -49,15 +53,24 @@ export function TvFocusable<P = object>({
         onArrowPress,
         onFocus: () => {
             onFocus?.();
-            if (scrollIntoViewOnFocus) {
-                requestAnimationFrame(() => {
-                    const node = (ref as React.RefObject<HTMLDivElement | null>).current;
-                    node?.scrollIntoView({
-                        block: 'nearest',
-                        behavior: 'smooth',
-                    });
-                });
+            if (!scrollIntoViewOnFocus) {
+                return;
             }
+
+            requestAnimationFrame(() => {
+                const node = (ref as React.RefObject<HTMLDivElement | null>).current;
+                const container = scrollContainerRef?.current ?? null;
+
+                if (container && node) {
+                    scrollTvSettingsItemIntoView(container, node);
+                    return;
+                }
+
+                node?.scrollIntoView({
+                    block: 'nearest',
+                    behavior: 'smooth',
+                });
+            });
         },
         extraProps,
         accessibilityLabel,

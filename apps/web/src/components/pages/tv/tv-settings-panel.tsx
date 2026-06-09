@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 import { Check, ChevronDown, DoorClosed, Languages, LogIn, LogOut, Plus, QrCode, X } from 'lucide-react';
@@ -18,6 +18,7 @@ import {
     roomSecretFieldProps,
 } from '@/lib/room-field-autofill';
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { peekTvSettingsScrollUp } from '@/lib/tv-settings-scroll';
 import {
     tvSettingsIconPlate,
     tvSettingsLabel,
@@ -39,6 +40,11 @@ function SettingsSectionLabel({ children }: { children: ReactNode }) {
     return <p className={tvSettingsSectionLabel()}>{children}</p>;
 }
 
+type SettingsScrollProps = {
+    scrollContainerRef: RefObject<HTMLDivElement | null>;
+    handleUpPeekScroll: (direction: string) => boolean;
+};
+
 function SettingsRow({
     focusKey,
     label,
@@ -48,6 +54,9 @@ function SettingsRow({
     onEnterPress,
     disabled,
     destructive,
+    scrollContainerRef,
+    handleUpPeekScroll,
+    peekScrollUpOnUp = false,
 }: {
     focusKey: string;
     label: string;
@@ -57,7 +66,8 @@ function SettingsRow({
     onEnterPress?: () => void;
     disabled?: boolean;
     destructive?: boolean;
-}) {
+    peekScrollUpOnUp?: boolean;
+} & SettingsScrollProps) {
     return (
         <TvFocusable
             focusKey={focusKey}
@@ -65,7 +75,14 @@ function SettingsRow({
             disabled={disabled}
             suppressFocusChrome
             scrollIntoViewOnFocus
+            scrollContainerRef={scrollContainerRef}
             onEnterPress={onEnterPress}
+            onArrowPress={(direction) => {
+                if (direction === 'up' && peekScrollUpOnUp) {
+                    return handleUpPeekScroll(direction);
+                }
+                return true;
+            }}
             className={({ focused }) =>
                 cn(
                     tvSettingsRow(focused, { destructive, selected }),
@@ -109,6 +126,9 @@ function SettingsDropdown<T extends string>({
     value,
     options,
     onChangeAction,
+    scrollContainerRef,
+    handleUpPeekScroll,
+    peekScrollUpOnUp = false,
 }: {
     focusKey: string;
     sectionLabel: string;
@@ -116,7 +136,8 @@ function SettingsDropdown<T extends string>({
     value: T;
     options: { value: T; label: string }[];
     onChangeAction: (next: T) => void;
-}) {
+    peekScrollUpOnUp?: boolean;
+} & SettingsScrollProps) {
     const [open, setOpen] = useState(false);
 
     const currentLabel = options.find((option) => option.value === value)?.label ?? value;
@@ -167,11 +188,15 @@ function SettingsDropdown<T extends string>({
                 accessibilityLabel={`${sectionLabel}: ${currentLabel}`}
                 suppressFocusChrome
                 scrollIntoViewOnFocus
+                scrollContainerRef={scrollContainerRef}
                 onEnterPress={() => setOpen((prev) => !prev)}
                 onArrowPress={(direction) => {
                     if (direction === 'up' && open) {
                         closeDropdown();
                         return false;
+                    }
+                    if (direction === 'up' && !open && peekScrollUpOnUp) {
+                        return handleUpPeekScroll(direction);
                     }
                     return true;
                 }}
@@ -216,6 +241,7 @@ function SettingsDropdown<T extends string>({
                             accessibilityLabel={option.label}
                             suppressFocusChrome
                             scrollIntoViewOnFocus
+                            scrollContainerRef={scrollContainerRef}
                             onEnterPress={() => handleSelect(option.value)}
                             onArrowPress={(direction) => {
                                 if (direction === 'up' && option.value === firstOptionValue) {
@@ -332,33 +358,50 @@ export function TvSettingsPanel({
         : TV_FOCUS_KEYS.settingsCreate;
 
     const isRail = variant === 'rail';
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    const handleUpPeekScroll = useCallback((direction: string) => {
+        if (direction !== 'up') {
+            return true;
+        }
+        return peekTvSettingsScrollUp(scrollRef.current);
+    }, []);
+
+    const scrollProps: SettingsScrollProps = {
+        scrollContainerRef: scrollRef,
+        handleUpPeekScroll,
+    };
 
     return (
         <div
             className={cn(
-                'absolute z-40 min-h-0',
+                'absolute z-40 flex min-h-0 flex-col',
                 isRail
-                    ? 'tv-settings-rail inset-y-0 right-0 flex w-full max-w-[22rem] flex-col shadow-[-16px_0_48px_rgb(0_0_0_0.35)] sm:max-w-md xl:max-w-lg'
-                    : 'tv-settings-fullscreen inset-0 flex flex-col',
+                    ? 'tv-settings-rail inset-y-0 right-0 w-full max-w-[22rem] shadow-[-16px_0_48px_rgb(0_0_0_0.35)] sm:max-w-md xl:max-w-lg'
+                    : 'tv-settings-fullscreen inset-0',
             )}
         >
+            <header
+                className={cn(
+                    'tv-settings-header shrink-0',
+                    isRail ? 'px-6 pt-8 md:px-7 md:pt-9' : 'px-8 pt-10 md:px-16 md:pt-12',
+                    !isRail && 'mx-auto w-full max-w-3xl',
+                )}
+            >
+                <h1 className="tv-settings-panel-title">{tTv('settings')}</h1>
+            </header>
+
             <TvSpatialOverlayShell
                 focusKey={TV_FOCUS_KEYS.settingsPanel}
                 preferredChildFocusKey={preferredFocusKey}
                 trapFocus
+                containerRef={scrollRef}
                 className={cn(
                     'tv-settings-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain',
-                    isRail ? 'px-6 py-8 md:px-7 md:py-9' : 'px-8 py-10 md:px-16 md:py-12',
+                    isRail ? 'px-6 pb-8 md:px-7 md:pb-9' : 'px-8 pb-10 md:px-16 md:pb-12',
                 )}
                 aria-label={tTv('settings')}
             >
-                <header className={cn('mb-8 shrink-0', !isRail && 'max-w-3xl')}>
-                    <h1 className="tv-settings-panel-title">{tTv('settings')}</h1>
-                    <p className="tv-settings-panel-hint mt-3">
-                        {room ? tTv('settingsHint') : tTv('settingsLobbyHint')}
-                    </p>
-                </header>
-
                 <div className={cn('flex w-full flex-col gap-8', !isRail && 'mx-auto max-w-3xl')}>
                     {room ? (
                         <>
@@ -370,6 +413,8 @@ export function TvSettingsPanel({
                             </section>
 
                             <SettingsDropdown
+                                {...scrollProps}
+                                peekScrollUpOnUp
                                 focusKey={TV_FOCUS_KEYS.settingsQrToggle}
                                 sectionLabel={tRoom('showQRInPlayer')}
                                 icon={<QrCode className="h-6 w-6" strokeWidth={2.5} aria-hidden />}
@@ -382,6 +427,7 @@ export function TvSettingsPanel({
                             />
 
                             <SettingsDropdown
+                                {...scrollProps}
                                 focusKey={TV_FOCUS_KEYS.settingsLocale}
                                 sectionLabel={tAppearance('language')}
                                 icon={<Languages className="h-6 w-6" strokeWidth={2.5} aria-hidden />}
@@ -395,6 +441,7 @@ export function TvSettingsPanel({
 
                             <section className="space-y-3 border-t border-white/15 pt-6">
                                 <SettingsRow
+                                    {...scrollProps}
                                     focusKey={TV_FOCUS_KEYS.settingsLeave}
                                     label={tRoom('leaveRoom')}
                                     icon={<LogOut className="h-6 w-6" strokeWidth={2.5} />}
@@ -403,6 +450,7 @@ export function TvSettingsPanel({
 
                                 {room.creatorId === wsId ? (
                                     <SettingsRow
+                                        {...scrollProps}
                                         focusKey={TV_FOCUS_KEYS.settingsCloseRoom}
                                         label={tRoom('closeRoom')}
                                         destructive
@@ -416,6 +464,8 @@ export function TvSettingsPanel({
                         <>
                             <section>
                                 <SettingsRow
+                                    {...scrollProps}
+                                    peekScrollUpOnUp
                                     focusKey={TV_FOCUS_KEYS.settingsCreate}
                                     label={tLobby('createButton')}
                                     description={tTv('settingsCreateHint')}
@@ -438,6 +488,7 @@ export function TvSettingsPanel({
                             </div>
 
                             <SettingsDropdown
+                                {...scrollProps}
                                 focusKey={TV_FOCUS_KEYS.settingsLocale}
                                 sectionLabel={tAppearance('language')}
                                 icon={<Languages className="h-6 w-6" strokeWidth={2.5} aria-hidden />}
@@ -499,6 +550,7 @@ export function TvSettingsPanel({
                                     </div>
 
                                     <SettingsRow
+                                        {...scrollProps}
                                         focusKey={TV_FOCUS_KEYS.settingsJoin}
                                         label={tLobby('joinButton')}
                                         icon={<LogIn className="h-6 w-6" strokeWidth={2.5} />}
@@ -517,6 +569,7 @@ export function TvSettingsPanel({
 
                 <div className={cn('mt-8 shrink-0', !isRail && 'mx-auto w-full max-w-3xl')}>
                     <SettingsRow
+                        {...scrollProps}
                         focusKey={TV_FOCUS_KEYS.settingsClose}
                         label={tTv('close')}
                         icon={<X className="h-6 w-6" strokeWidth={2.5} />}

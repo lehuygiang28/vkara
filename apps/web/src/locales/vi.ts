@@ -365,8 +365,6 @@ export default {
     'tvPage.queueEmpty': 'Chưa có bài trong hàng chờ. Thêm bài từ điện thoại.',
     'tvPage.queueCount': '{count} video',
     'tvPage.nowPlaying': 'Đang phát',
-    'tvPage.settingsHint': 'Nhấn Back trên remote để quay lại phát video.',
-    'tvPage.settingsLobbyHint': 'Nhấn Back trên remote để quay lại màn hình chính.',
     'tvPage.settingsCreateHint': 'Tạo phòng xem chung mới trên TV này.',
     'tvPage.controlsHint': 'Nhấn phím mũi tên trên remote để hiện điều khiển.',
     'tvPage.offlineHint': 'Không kết nối được server. Chạy API: bun run dev:api',

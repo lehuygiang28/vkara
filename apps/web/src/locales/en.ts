@@ -369,8 +369,6 @@ export default {
     'tvPage.queueEmpty': 'Queue is empty. Add songs from your phone.',
     'tvPage.queueCount': '{count} videos',
     'tvPage.nowPlaying': 'Now playing',
-    'tvPage.settingsHint': 'Press Back on your remote to return to playback.',
-    'tvPage.settingsLobbyHint': 'Press Back on your remote to return to the home screen.',
     'tvPage.settingsCreateHint': 'Start a new watch party room on this TV.',
     'tvPage.controlsHint': 'Press arrow keys on your remote to show controls.',
     'tvPage.offlineHint': 'Cannot reach the server. Start the API with: bun run dev:api',

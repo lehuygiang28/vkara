@@ -186,9 +186,17 @@
     backdrop-filter: blur(14px);
 }
 
+/** Pinned settings header — always visible above scroll body. */
+[data-tv-route] .tv-settings-header {
+    flex-shrink: 0;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+
 /** Scrollable settings body — safe bottom inset; scrollbars hidden on TV. */
 [data-tv-route] .tv-settings-scroll {
     min-height: 0;
+    padding-top: 1.25rem;
     padding-bottom: calc(var(--tv-safe-bottom) + 2.5rem);
     scroll-padding-block-start: 1.5rem;
     scroll-padding-block-end: calc(var(--tv-safe-bottom) + 3rem);
@@ -245,12 +253,6 @@
     letter-spacing: -0.02em;
     color: rgb(255 255 255);
     text-shadow: 0 1px 12px rgb(0 0 0 / 0.45);
-}
-
-[data-tv-route] .tv-settings-panel-hint {
-    font-size: 1rem;
-    line-height: 1.5;
-    color: rgb(228 228 231);
 }
 
 [data-tv-route] .tv-settings-section-label {
@@ -333,10 +335,6 @@
 
 [data-tv-route] .tv-settings-fullscreen .tv-settings-panel-title {
     font-size: 2.5rem;
-}
-
-[data-tv-route] .tv-settings-fullscreen .tv-settings-panel-hint {
-    font-size: 1.125rem;
 }
 
 @media (min-width: 768px) {

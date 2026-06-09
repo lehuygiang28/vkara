@@ -1,6 +1,6 @@
 'use client';
 
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, type RefObject } from 'react';
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation-react';
 
@@ -18,6 +18,8 @@ type TvSpatialOverlayShellProps = {
     className?: string;
     children: ReactNode;
     'aria-label'?: string;
+    /** Optional ref to the shell root (e.g. settings scroll container). */
+    containerRef?: RefObject<HTMLDivElement | null>;
 };
 
 export function TvSpatialOverlayShell({
@@ -30,6 +32,7 @@ export function TvSpatialOverlayShell({
     className,
     children,
     'aria-label': ariaLabel,
+    containerRef,
 }: TvSpatialOverlayShellProps) {
     const { ref, focusKey: overlayFocusKey, focusSelf } = useFocusable({
         focusKey,
@@ -72,9 +75,16 @@ export function TvSpatialOverlayShell({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [onMountFocus]);
 
+    const setRef = (node: HTMLDivElement | null) => {
+        (ref as React.MutableRefObject<HTMLDivElement | null>).current = node;
+        if (containerRef) {
+            containerRef.current = node;
+        }
+    };
+
     return (
         <FocusContext.Provider value={overlayFocusKey}>
-            <div ref={ref} className={cn(className)} aria-label={ariaLabel}>
+            <div ref={setRef} className={cn(className)} aria-label={ariaLabel}>
                 {children}
             </div>
         </FocusContext.Provider>
