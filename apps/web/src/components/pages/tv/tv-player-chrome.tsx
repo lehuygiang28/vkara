@@ -54,13 +54,14 @@ export function TvPlayerChrome({
     }, [visible, settingsOpen, focusSelf]);
 
     return (
-        <div
-            className={cn(
-                'absolute inset-0 z-30 transition-opacity duration-300',
-                visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
-            )}
-            aria-hidden={!visible}
-        >
+        <>
+            <div
+                className={cn(
+                    'absolute inset-0 z-30 transition-opacity duration-300',
+                    visible ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0',
+                )}
+                aria-hidden={!visible && !settingsOpen}
+            >
             <div
                 className={cn(
                     'absolute inset-0',
@@ -107,10 +108,11 @@ export function TvPlayerChrome({
                     </div>
                 </FocusContext.Provider>
             ) : null}
+            </div>
 
             {settingsOpen ? (
                 <TvSettingsPanel onCloseAction={onCloseSettingsAction} variant="rail" />
             ) : null}
-        </div>
+        </>
     );
 }

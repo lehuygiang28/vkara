@@ -23,6 +23,9 @@
     --tv-motion-shelf: 420ms cubic-bezier(0.22, 1, 0.36, 1);
     --tv-motion-scroll: 520ms cubic-bezier(0.22, 1, 0.36, 1);
     --tv-motion-meta: 360ms cubic-bezier(0.22, 1, 0.36, 1);
+    --tv-settings-row-min: 5rem;
+    --tv-settings-label: 1.375rem;
+    --tv-settings-label-md: 1.5rem;
 }
 
 [data-tv-route] .tv-queue-card[data-focused='true'] {
@@ -165,6 +168,181 @@
 /** Title row — reserve space when fixed QR is shown. */
 [data-tv-route] .tv-player-top-bar--qr-visible {
     padding-left: var(--tv-fixed-qr-reserve);
+}
+
+/** Settings rail — solid enough for readable type at 10-foot. */
+[data-tv-route] .tv-settings-rail {
+    background: linear-gradient(
+        270deg,
+        rgb(12 12 14 / 0.94) 0%,
+        rgb(12 12 14 / 0.88) 55%,
+        rgb(12 12 14 / 0.55) 100%
+    );
+    backdrop-filter: blur(14px);
+}
+
+[data-tv-route] .tv-settings-fullscreen {
+    background: rgb(12 12 14 / 0.92);
+    backdrop-filter: blur(14px);
+}
+
+/** Scrollable settings body — safe bottom inset; scrollbars hidden on TV. */
+[data-tv-route] .tv-settings-scroll {
+    min-height: 0;
+    padding-bottom: calc(var(--tv-safe-bottom) + 2.5rem);
+    scroll-padding-block-start: 1.5rem;
+    scroll-padding-block-end: calc(var(--tv-safe-bottom) + 3rem);
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+[data-tv-route] .tv-settings-scroll::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+}
+
+[data-tv-route] .tv-settings-dropdown-trigger--open:not([data-focused='true']) {
+    border-color: rgb(255 255 255 / 0.22);
+    background-color: rgb(255 255 255 / 0.24);
+}
+
+[data-tv-route] .tv-settings-dropdown-value {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: rgb(228 228 231);
+}
+
+[data-tv-route] .tv-settings-dropdown-chevron {
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-tv-route] .tv-settings-dropdown-chevron--open {
+    transform: rotate(180deg);
+}
+
+[data-tv-route] .tv-settings-dropdown-menu {
+    margin-top: 0.5rem;
+    overflow: hidden;
+    border-radius: 1rem;
+    border: 4px solid rgb(255 255 255 / 0.15);
+    background: rgb(0 0 0 / 0.35);
+}
+
+[data-tv-route] .tv-settings-dropdown-option {
+    border-radius: 0;
+    border-width: 0;
+    box-shadow: none;
+}
+
+[data-tv-route] .tv-settings-dropdown-option + .tv-settings-dropdown-option {
+    border-top: 1px solid rgb(255 255 255 / 0.1);
+}
+
+[data-tv-route] .tv-settings-panel-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: rgb(255 255 255);
+    text-shadow: 0 1px 12px rgb(0 0 0 / 0.45);
+}
+
+[data-tv-route] .tv-settings-panel-hint {
+    font-size: 1rem;
+    line-height: 1.5;
+    color: rgb(228 228 231);
+}
+
+[data-tv-route] .tv-settings-section-label {
+    margin-bottom: 0.75rem;
+    padding-inline: 0.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: rgb(244 244 245);
+    text-shadow: 0 1px 8px rgb(0 0 0 / 0.35);
+}
+
+[data-tv-route] .tv-settings-room-id {
+    border-radius: 1rem;
+    border: 4px solid rgb(255 255 255 / 0.18);
+    background: rgb(255 255 255 / 0.14);
+    padding: 1.25rem 1rem;
+    text-align: center;
+}
+
+[data-tv-route] .tv-settings-room-id__digits {
+    font-family: ui-monospace, monospace;
+    font-size: 2.75rem;
+    font-weight: 700;
+    letter-spacing: 0.32em;
+    color: rgb(255 255 255);
+    text-shadow: 0 2px 16px rgb(0 0 0 / 0.4);
+}
+
+[data-tv-route] .tv-settings-row {
+    min-height: var(--tv-settings-row-min);
+}
+
+[data-tv-route] .tv-settings-row[data-focused='true'] {
+    background-color: #3ea6ff;
+    color: rgb(255 255 255);
+    box-shadow: 0 10px 28px rgb(0 0 0 / 0.35);
+}
+
+[data-tv-route] .tv-settings-row[data-focused='true'] .tv-settings-label {
+    color: rgb(255 255 255);
+    font-weight: 700;
+}
+
+[data-tv-route] .tv-settings-row.tv-settings-row--selected:not([data-focused='true']) {
+    background-color: rgb(255 255 255 / 0.28);
+    border-color: rgb(255 255 255 / 0.22);
+}
+
+[data-tv-route] .tv-settings-label {
+    font-size: var(--tv-settings-label);
+    font-weight: 600;
+    line-height: 1.25;
+    color: rgb(250 250 250);
+    text-shadow: 0 1px 6px rgb(0 0 0 / 0.3);
+}
+
+[data-tv-route] .tv-settings-row[data-focused='true'] .tv-settings-desc {
+    color: rgb(255 255 255 / 0.92);
+}
+
+[data-tv-route] .tv-settings-desc {
+    font-size: 1rem;
+    color: rgb(212 212 216);
+}
+
+@media (min-width: 768px) {
+    [data-tv-route] .tv-settings-panel-title {
+        font-size: 2rem;
+    }
+
+    [data-tv-route] .tv-settings-label {
+        font-size: var(--tv-settings-label-md);
+    }
+
+    [data-tv-route] .tv-settings-room-id__digits {
+        font-size: 3.25rem;
+    }
+}
+
+[data-tv-route] .tv-settings-fullscreen .tv-settings-panel-title {
+    font-size: 2.5rem;
+}
+
+[data-tv-route] .tv-settings-fullscreen .tv-settings-panel-hint {
+    font-size: 1.125rem;
+}
+
+@media (min-width: 768px) {
+    [data-tv-route] .tv-settings-fullscreen .tv-settings-panel-title {
+        font-size: 3rem;
+    }
 }
 
 /** Queue shelf — no own background; scrim above handles fade. */

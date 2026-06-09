@@ -95,72 +95,77 @@ export function tvDefaultFocusLeaf(focused: boolean, className?: string): string
     );
 }
 
-/** Settings list row — blue background plate when focused. */
+/** Settings list row — accent plate on focus; high-contrast type for TV. */
 export function tvSettingsRow(
     focused: boolean,
     options?: { destructive?: boolean; selected?: boolean },
     className?: string,
 ): string {
     return cn(
-        'flex min-h-[5.25rem] w-full items-center gap-4 rounded-2xl px-5 outline-none',
+        'tv-settings-row flex w-full items-center gap-4 rounded-2xl px-5 py-3.5 outline-none',
         TV_BORDER_STABLE,
-        'transition-[background-color,border-color,box-shadow,color] duration-150',
+        'transition-[background-color,border-color,box-shadow,color] duration-200',
         focused
-            ? cn('border-[#3ea6ff] bg-[#3ea6ff]/40 text-white', TV_FOCUS_HALO_SOFT)
+            ? cn(
+                  'border-transparent bg-[#3ea6ff] text-white shadow-lg shadow-black/35',
+                  options?.destructive && 'bg-red-600 text-white',
+              )
             : options?.selected
-              ? 'border-[#3ea6ff]/50 bg-[#3ea6ff]/25 text-white'
+              ? 'border-white/20 bg-white/28 text-white'
               : cn(
-                    'border-transparent bg-zinc-700/70 text-zinc-100',
-                    'hover:bg-zinc-600/80',
+                    'border-transparent bg-white/20 text-zinc-50',
+                    'hover:bg-white/26',
+                    options?.destructive && 'text-red-200',
                 ),
-        options?.destructive && !focused && 'text-red-300',
+        className,
+    );
+}
+
+export function tvSettingsLabel(
+    focused: boolean,
+    options?: { destructive?: boolean; selected?: boolean },
+    className?: string,
+): string {
+    return cn(
+        'tv-settings-label',
+        focused ? 'text-white' : options?.selected ? 'text-white' : 'text-zinc-50',
+        !focused && options?.destructive && 'text-red-200',
         className,
     );
 }
 
 export function tvSettingsIconPlate(focused: boolean, className?: string): string {
     return cn(
-        'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors duration-150',
-        focused ? 'bg-black/25 text-white' : 'bg-zinc-800/90 text-zinc-200',
+        'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors duration-200',
+        focused ? 'bg-black/25 text-white' : 'bg-white/16 text-white',
         className,
     );
 }
 
-/** Segmented toggle option (QR show/hide). */
+/** Segmented / toggle option — same plate language as settings rows. */
 export function tvSettingsSegment(
     focused: boolean,
     selected: boolean,
     className?: string,
 ): string {
+    return tvSettingsRow(focused, { selected }, cn('justify-center px-5', className));
+}
+
+export function tvSettingsCloseButton(focused: boolean, className?: string): string {
+    return tvSettingsRow(focused, undefined, cn('justify-center', className));
+}
+
+/** Room ID readout — non-interactive. */
+export function tvSettingsRoomIdDisplay(className?: string): string {
     return cn(
-        'flex h-16 items-center justify-center rounded-2xl text-lg font-bold outline-none',
-        TV_BORDER_STABLE,
-        'transition-[background-color,border-color,box-shadow,color] duration-150',
-        focused
-            ? cn('border-[#3ea6ff] bg-[#3ea6ff] text-white', TV_FOCUS_HALO_SOFT)
-            : selected
-              ? 'border-[#3ea6ff]/60 bg-[#3ea6ff]/30 text-white'
-              : cn(
-                    'border-transparent bg-zinc-700/70 text-zinc-300',
-                    'hover:bg-zinc-600/80',
-                ),
+        'rounded-2xl border-4 border-transparent bg-white/12 px-5 py-5 text-center',
         className,
     );
 }
 
-export function tvSettingsCloseButton(focused: boolean, className?: string): string {
-    return cn(
-        'flex h-[4.5rem] w-full items-center justify-center rounded-2xl text-xl font-bold outline-none',
-        TV_BORDER_STABLE,
-        'transition-[background-color,border-color,box-shadow,color] duration-150',
-        focused
-            ? cn('border-[#3ea6ff] bg-[#3ea6ff] text-white', TV_FOCUS_HALO_SOFT)
-            : cn(
-                  'border-transparent bg-zinc-700/70 text-zinc-200',
-                  'hover:bg-zinc-600/80',
-              ),
-        className,
-    );
+/** Settings section eyebrow. */
+export function tvSettingsSectionLabel(className?: string): string {
+    return cn('tv-settings-section-label', className);
 }
 
 export function tvLobbyButton(

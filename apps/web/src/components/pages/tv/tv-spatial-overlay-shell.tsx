@@ -1,8 +1,8 @@
 'use client';
 
 import { ReactNode, useEffect } from 'react';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation-react';
-import { pause, resume } from '@noriginmedia/norigin-spatial-navigation-core';
 
 import { cn } from '@/lib/utils';
 
@@ -12,7 +12,7 @@ type TvSpatialOverlayShellProps = {
     /** When set, pressing this direction closes the overlay (e.g. `up` for bottom panels). */
     dismissDirection?: 'up' | 'down' | 'left' | 'right';
     onDismissAction?: () => void;
-    /** Trap focus inside overlay (settings). Queue chrome allows vertical escape to control bar. */
+    /** Keep focus inside overlay (settings). Uses focus boundary — does not pause spatial nav. */
     trapFocus?: boolean;
     onMountFocus?: boolean;
     className?: string;
@@ -47,18 +47,30 @@ export function TvSpatialOverlayShell({
     });
 
     useEffect(() => {
-        if (trapFocus) {
-            pause();
+        if (!onMountFocus) {
+            return;
         }
-        if (onMountFocus) {
-            focusSelf();
+
+        focusSelf();
+
+        if (!preferredChildFocusKey) {
+            return;
         }
-        return () => {
-            if (trapFocus) {
-                resume();
-            }
-        };
-    }, [trapFocus, onMountFocus, focusSelf]);
+
+        const frame = requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                try {
+                    setFocus(preferredChildFocusKey);
+                } catch {
+                    // Spatial tree may not be ready on first paint.
+                }
+            });
+        });
+
+        return () => cancelAnimationFrame(frame);
+        // Seed focus once when overlay mounts.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [onMountFocus]);
 
     return (
         <FocusContext.Provider value={overlayFocusKey}>

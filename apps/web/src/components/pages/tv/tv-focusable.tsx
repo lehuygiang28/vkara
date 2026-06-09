@@ -20,6 +20,8 @@ type TvFocusableProps<P = object> = {
     disabled?: boolean;
     accessibilityLabel?: string;
     extraProps?: P;
+    /** When true, scrolls the element into view on focus (settings lists). */
+    scrollIntoViewOnFocus?: boolean;
     /** Item supplies its own focus styling (queue shell, transport shell). */
     suppressFocusChrome?: boolean;
 };
@@ -35,19 +37,36 @@ export function TvFocusable<P = object>({
     disabled = false,
     accessibilityLabel,
     extraProps,
+    scrollIntoViewOnFocus = false,
     suppressFocusChrome = false,
 }: TvFocusableProps<P>) {
     const mountedFocusRef = useRef(false);
+    const nodeRef = useRef<HTMLDivElement | null>(null);
 
     const { ref, focused, focusKey } = useFocusable<P>({
         focusKey: propFocusKey,
         focusable: !disabled,
         onEnterPress,
         onArrowPress,
-        onFocus: onFocus ? () => onFocus() : undefined,
+        onFocus: () => {
+            onFocus?.();
+            if (scrollIntoViewOnFocus && nodeRef.current) {
+                requestAnimationFrame(() => {
+                    nodeRef.current?.scrollIntoView({
+                        block: 'nearest',
+                        behavior: 'smooth',
+                    });
+                });
+            }
+        },
         extraProps,
         accessibilityLabel,
     });
+
+    const setRef = (node: HTMLDivElement | null) => {
+        nodeRef.current = node;
+        ref.current = node;
+    };
 
     useEffect(() => {
         if (!focusOnMount || disabled || mountedFocusRef.current) {
@@ -75,7 +94,7 @@ export function TvFocusable<P = object>({
 
     return (
         <div
-            ref={ref}
+            ref={setRef}
             data-focused={focused ? 'true' : 'false'}
             className={cn(
                 'outline-none',

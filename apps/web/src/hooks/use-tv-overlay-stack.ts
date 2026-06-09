@@ -19,7 +19,9 @@ export function useTvOverlayStack({ controlsEnabled = true }: UseTvOverlayStackO
     const [queueExpanded, setQueueExpanded] = useState(false);
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const controlsVisibleRef = useRef(controlsVisible);
+    const settingsOpenRef = useRef(settingsOpen);
     controlsVisibleRef.current = controlsVisible;
+    settingsOpenRef.current = settingsOpen;
 
     const drawerOpen = settingsOpen;
 
@@ -90,6 +92,19 @@ export function useTvOverlayStack({ controlsEnabled = true }: UseTvOverlayStackO
             setControlsVisible(true);
         }
         clearHideTimer();
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                try {
+                    setFocus(`${TV_FOCUS_KEYS.settingsQrToggle}_show`);
+                } catch {
+                    try {
+                        setFocus(TV_FOCUS_KEYS.settingsCreate);
+                    } catch {
+                        // Settings tree may not be mounted yet.
+                    }
+                }
+            });
+        });
     }, [controlsEnabled, clearHideTimer]);
 
     const closeSettings = useCallback(() => {
@@ -158,6 +173,10 @@ export function useTvOverlayStack({ controlsEnabled = true }: UseTvOverlayStackO
             }
 
             if (isTvRevealKey(event.key)) {
+                if (settingsOpenRef.current) {
+                    return;
+                }
+
                 const wasHidden = !controlsVisibleRef.current;
                 revealControls();
 

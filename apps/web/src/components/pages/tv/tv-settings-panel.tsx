@@ -1,14 +1,16 @@
 'use client';
 
-import { useCallback, type ReactNode } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
-import { LogOut, DoorClosed, Plus, LogIn } from 'lucide-react';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
+import { Check, ChevronDown, DoorClosed, Languages, LogIn, LogOut, Plus, QrCode, X } from 'lucide-react';
 
 import { useJoinRoom } from '@/hooks/use-join-room';
+import { useChangeLocale } from '@/hooks/use-change-locale';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { useI18n, useScopedI18n } from '@/locales/client';
+import { useI18n, useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import {
     roomCodeFieldProps,
@@ -17,10 +19,10 @@ import {
 } from '@/lib/room-field-autofill';
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 import {
-    tvSettingsCloseButton,
     tvSettingsIconPlate,
+    tvSettingsLabel,
     tvSettingsRow,
-    tvSettingsSegment,
+    tvSettingsSectionLabel,
 } from '@/lib/tv-focus-styles';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { cn } from '@/lib/utils';
@@ -34,9 +36,7 @@ type TvSettingsPanelProps = {
 };
 
 function SettingsSectionLabel({ children }: { children: ReactNode }) {
-    return (
-        <p className="mb-3 px-1 text-sm font-semibold text-zinc-300">{children}</p>
-    );
+    return <p className={tvSettingsSectionLabel()}>{children}</p>;
 }
 
 function SettingsRow({
@@ -44,6 +44,7 @@ function SettingsRow({
     label,
     description,
     icon,
+    selected,
     onEnterPress,
     disabled,
     destructive,
@@ -52,6 +53,7 @@ function SettingsRow({
     label: string;
     description?: string;
     icon?: ReactNode;
+    selected?: boolean;
     onEnterPress?: () => void;
     disabled?: boolean;
     destructive?: boolean;
@@ -62,73 +64,195 @@ function SettingsRow({
             accessibilityLabel={label}
             disabled={disabled}
             suppressFocusChrome
+            scrollIntoViewOnFocus
             onEnterPress={onEnterPress}
-            className="w-full"
+            className={({ focused }) =>
+                cn(
+                    tvSettingsRow(focused, { destructive, selected }),
+                    selected && 'tv-settings-row--selected',
+                )
+            }
         >
             {({ focused }) => (
-                <div className={tvSettingsRow(focused, { destructive })}>
+                <>
                     {icon ? (
                         <span className={tvSettingsIconPlate(focused)}>{icon}</span>
+                    ) : selected !== undefined ? (
+                        <span className={tvSettingsIconPlate(focused)}>
+                            {selected ? (
+                                <Check className="h-6 w-6" strokeWidth={2.5} aria-hidden />
+                            ) : (
+                                <span className="block h-6 w-6" aria-hidden />
+                            )}
+                        </span>
                     ) : null}
-                    <div className="min-w-0 flex-1">
-                        <p className="text-xl font-bold leading-tight">{label}</p>
+                    <div className="min-w-0 flex-1 text-left">
+                        <p className={tvSettingsLabel(focused, { destructive, selected })}>
+                            {label}
+                        </p>
                         {description ? (
-                            <p
-                                className={cn(
-                                    'mt-1 text-base',
-                                    focused ? 'text-white/85' : 'text-zinc-400',
-                                )}
-                            >
+                            <p className={cn('tv-settings-desc mt-1.5', focused && 'text-white/90')}>
                                 {description}
                             </p>
                         ) : null}
                     </div>
-                </div>
+                </>
             )}
         </TvFocusable>
     );
 }
 
-function QrToggleRow({
-    showQRInPlayer,
+function SettingsDropdown<T extends string>({
+    focusKey,
+    sectionLabel,
+    icon,
+    value,
+    options,
     onChangeAction,
-    showLabel,
-    hideLabel,
 }: {
-    showQRInPlayer: boolean;
-    onChangeAction: (show: boolean) => void;
-    showLabel: string;
-    hideLabel: string;
+    focusKey: string;
+    sectionLabel: string;
+    icon: ReactNode;
+    value: T;
+    options: { value: T; label: string }[];
+    onChangeAction: (next: T) => void;
 }) {
+    const [open, setOpen] = useState(false);
+
+    const currentLabel = options.find((option) => option.value === value)?.label ?? value;
+
+    const closeDropdown = useCallback(() => {
+        setOpen(false);
+        requestAnimationFrame(() => {
+            try {
+                setFocus(focusKey);
+            } catch {
+                // Spatial tree may not be ready.
+            }
+        });
+    }, [focusKey]);
+
+    useEffect(() => {
+        if (!open) {
+            return;
+        }
+
+        const frame = requestAnimationFrame(() => {
+            try {
+                setFocus(`${focusKey}_${value}`);
+            } catch {
+                // Spatial tree may not be ready.
+            }
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, [open, focusKey, value]);
+
+    const handleSelect = useCallback(
+        (next: T) => {
+            onChangeAction(next);
+            closeDropdown();
+        },
+        [closeDropdown, onChangeAction],
+    );
+
+    const firstOptionValue = options[0]?.value;
+
     return (
-        <div className="grid grid-cols-2 gap-4">
+        <section>
+            <SettingsSectionLabel>{sectionLabel}</SettingsSectionLabel>
+
             <TvFocusable
-                focusKey={`${TV_FOCUS_KEYS.settingsQrToggle}_show`}
-                accessibilityLabel={showLabel}
+                focusKey={focusKey}
+                accessibilityLabel={`${sectionLabel}: ${currentLabel}`}
                 suppressFocusChrome
-                onEnterPress={() => onChangeAction(true)}
-                className="w-full"
+                scrollIntoViewOnFocus
+                onEnterPress={() => setOpen((prev) => !prev)}
+                onArrowPress={(direction) => {
+                    if (direction === 'up' && open) {
+                        closeDropdown();
+                        return false;
+                    }
+                    return true;
+                }}
+                className={({ focused }) =>
+                    cn(
+                        tvSettingsRow(focused),
+                        'tv-settings-dropdown-trigger',
+                        open && !focused && 'tv-settings-dropdown-trigger--open',
+                    )
+                }
             >
                 {({ focused }) => (
-                    <div className={tvSettingsSegment(focused, showQRInPlayer)}>
-                        {showLabel}
-                    </div>
+                    <>
+                        <span className={tvSettingsIconPlate(focused)}>{icon}</span>
+                        <div className="min-w-0 flex-1 text-left">
+                            <p className={tvSettingsLabel(focused)}>{sectionLabel}</p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2">
+                            <span className={cn('tv-settings-dropdown-value', focused && 'text-white')}>
+                                {currentLabel}
+                            </span>
+                            <ChevronDown
+                                className={cn(
+                                    'tv-settings-dropdown-chevron h-6 w-6 shrink-0',
+                                    open && 'tv-settings-dropdown-chevron--open',
+                                    focused ? 'text-white' : 'text-zinc-300',
+                                )}
+                                strokeWidth={2.5}
+                                aria-hidden
+                            />
+                        </div>
+                    </>
                 )}
             </TvFocusable>
-            <TvFocusable
-                focusKey={`${TV_FOCUS_KEYS.settingsQrToggle}_hide`}
-                accessibilityLabel={hideLabel}
-                suppressFocusChrome
-                onEnterPress={() => onChangeAction(false)}
-                className="w-full"
-            >
-                {({ focused }) => (
-                    <div className={tvSettingsSegment(focused, !showQRInPlayer)}>
-                        {hideLabel}
-                    </div>
-                )}
-            </TvFocusable>
-        </div>
+
+            {open ? (
+                <div className="tv-settings-dropdown-menu" role="listbox" aria-label={sectionLabel}>
+                    {options.map((option) => (
+                        <TvFocusable
+                            key={option.value}
+                            focusKey={`${focusKey}_${option.value}`}
+                            accessibilityLabel={option.label}
+                            suppressFocusChrome
+                            scrollIntoViewOnFocus
+                            onEnterPress={() => handleSelect(option.value)}
+                            onArrowPress={(direction) => {
+                                if (direction === 'up' && option.value === firstOptionValue) {
+                                    closeDropdown();
+                                    return false;
+                                }
+                                return true;
+                            }}
+                            className={({ focused }) =>
+                                cn(
+                                    tvSettingsRow(focused, {
+                                        selected: value === option.value,
+                                    }),
+                                    'tv-settings-dropdown-option',
+                                    value === option.value && 'tv-settings-row--selected',
+                                )
+                            }
+                        >
+                            {({ focused }) => (
+                                <>
+                                    <span className={tvSettingsIconPlate(focused)}>
+                                        {value === option.value ? (
+                                            <Check className="h-6 w-6" strokeWidth={2.5} aria-hidden />
+                                        ) : (
+                                            <span className="block h-6 w-6" aria-hidden />
+                                        )}
+                                    </span>
+                                    <p className={tvSettingsLabel(focused, { selected: value === option.value })}>
+                                        {option.label}
+                                    </p>
+                                </>
+                            )}
+                        </TvFocusable>
+                    ))}
+                </div>
+            ) : null}
+        </section>
     );
 }
 
@@ -137,9 +261,13 @@ export function TvSettingsPanel({
     variant = 'rail',
 }: TvSettingsPanelProps) {
     const t = useI18n();
+    const tAppearance = useScopedI18n('appearance');
     const tRoom = useScopedI18n('roomSettings');
     const tTv = useScopedI18n('tvPage');
     const tLobby = useScopedI18n('tvLobby');
+
+    const locale = useCurrentLocale();
+    const changeLocale = useChangeLocale({ preserveSearchParams: true });
 
     const { wsId, room, enterTvLobby } = useYouTubeStore();
     const { connectionStatus, ensureConnectedAndSend } = useWebSocket();
@@ -200,7 +328,7 @@ export function TvSettingsPanel({
     );
 
     const preferredFocusKey = room
-        ? `${TV_FOCUS_KEYS.settingsQrToggle}_show`
+        ? TV_FOCUS_KEYS.settingsQrToggle
         : TV_FOCUS_KEYS.settingsCreate;
 
     const isRail = variant === 'rail';
@@ -208,84 +336,78 @@ export function TvSettingsPanel({
     return (
         <div
             className={cn(
-                'absolute z-40',
+                'absolute z-40 min-h-0',
                 isRail
-                    ? 'inset-y-0 right-0 flex w-full max-w-md border-l-4 border-[#3ea6ff]/30 bg-zinc-900/95 shadow-[-24px_0_80px_rgba(0,0,0,0.55)] xl:max-w-lg'
-                    : 'inset-0 bg-zinc-950/95 backdrop-blur-md',
+                    ? 'tv-settings-rail inset-y-0 right-0 flex w-full max-w-[22rem] flex-col shadow-[-16px_0_48px_rgb(0_0_0_0.35)] sm:max-w-md xl:max-w-lg'
+                    : 'tv-settings-fullscreen inset-0 flex flex-col',
             )}
         >
             <TvSpatialOverlayShell
                 focusKey={TV_FOCUS_KEYS.settingsPanel}
                 preferredChildFocusKey={preferredFocusKey}
-                dismissDirection={isRail ? 'left' : undefined}
-                onDismissAction={isRail ? onCloseAction : undefined}
                 trapFocus
                 className={cn(
-                    'flex h-full flex-col overflow-y-auto',
-                    isRail ? 'px-7 py-9' : 'px-8 py-10 md:px-16 md:py-12',
+                    'tv-settings-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-y-contain',
+                    isRail ? 'px-6 py-8 md:px-7 md:py-9' : 'px-8 py-10 md:px-16 md:py-12',
                 )}
                 aria-label={tTv('settings')}
             >
-                <header className={cn('mb-10', !isRail && 'max-w-3xl')}>
-                    <h1
-                        className={cn(
-                            'font-bold tracking-tight text-white',
-                            isRail ? 'text-3xl' : 'text-4xl md:text-5xl',
-                        )}
-                    >
-                        {tTv('settings')}
-                    </h1>
-                    <p className="mt-3 text-base text-zinc-300 md:text-lg">{tTv('settingsHint')}</p>
+                <header className={cn('mb-8 shrink-0', !isRail && 'max-w-3xl')}>
+                    <h1 className="tv-settings-panel-title">{tTv('settings')}</h1>
+                    <p className="tv-settings-panel-hint mt-3">{tTv('settingsHint')}</p>
                 </header>
 
-                <div className={cn('w-full space-y-10', !isRail && 'mx-auto max-w-3xl')}>
+                <div className={cn('flex w-full flex-col gap-8', !isRail && 'mx-auto max-w-3xl')}>
                     {room ? (
                         <>
                             <section>
                                 <SettingsSectionLabel>{tRoom('roomId')}</SettingsSectionLabel>
-                                <div className="rounded-2xl border-4 border-zinc-600 bg-zinc-700/50 px-6 py-8 text-center">
-                                    <p
-                                        className={cn(
-                                            'font-mono font-bold tabular-nums tracking-[0.35em] text-white',
-                                            isRail ? 'text-5xl' : 'text-6xl md:text-7xl',
-                                        )}
-                                    >
-                                        {room.id}
-                                    </p>
+                                <div className="tv-settings-room-id">
+                                    <p className="tv-settings-room-id__digits">{room.id}</p>
                                 </div>
                             </section>
 
-                            <section>
-                                <SettingsSectionLabel>{tRoom('showQRInPlayer')}</SettingsSectionLabel>
-                                <QrToggleRow
-                                    showQRInPlayer={showQRInPlayer}
-                                    onChangeAction={handleShowQrChange}
-                                    showLabel={tRoom('show')}
-                                    hideLabel={tRoom('hide')}
+                            <SettingsDropdown
+                                focusKey={TV_FOCUS_KEYS.settingsQrToggle}
+                                sectionLabel={tRoom('showQRInPlayer')}
+                                icon={<QrCode className="h-6 w-6" strokeWidth={2.5} aria-hidden />}
+                                value={showQRInPlayer ? 'show' : 'hide'}
+                                options={[
+                                    { value: 'show', label: tRoom('show') },
+                                    { value: 'hide', label: tRoom('hide') },
+                                ]}
+                                onChangeAction={(next) => handleShowQrChange(next === 'show')}
+                            />
+
+                            <SettingsDropdown
+                                focusKey={TV_FOCUS_KEYS.settingsLocale}
+                                sectionLabel={tAppearance('language')}
+                                icon={<Languages className="h-6 w-6" strokeWidth={2.5} aria-hidden />}
+                                value={locale}
+                                options={[
+                                    { value: 'vi', label: tAppearance('languageVietnamese') },
+                                    { value: 'en', label: tAppearance('languageEnglish') },
+                                ]}
+                                onChangeAction={changeLocale}
+                            />
+
+                            <section className="space-y-3 border-t border-white/15 pt-6">
+                                <SettingsRow
+                                    focusKey={TV_FOCUS_KEYS.settingsLeave}
+                                    label={tRoom('leaveRoom')}
+                                    icon={<LogOut className="h-6 w-6" strokeWidth={2.5} />}
+                                    onEnterPress={leaveRoom}
                                 />
-                            </section>
 
-                            <section className="border-t border-zinc-600/60 pt-8">
-                                <div className="space-y-4">
+                                {room.creatorId === wsId ? (
                                     <SettingsRow
-                                        focusKey={TV_FOCUS_KEYS.settingsLeave}
-                                        label={tRoom('leaveRoom')}
-                                        icon={<LogOut className="h-6 w-6" strokeWidth={2.5} />}
-                                        onEnterPress={leaveRoom}
+                                        focusKey={TV_FOCUS_KEYS.settingsCloseRoom}
+                                        label={tRoom('closeRoom')}
+                                        destructive
+                                        icon={<DoorClosed className="h-6 w-6" strokeWidth={2.5} />}
+                                        onEnterPress={closeRoom}
                                     />
-
-                                    {room.creatorId === wsId ? (
-                                        <SettingsRow
-                                            focusKey={TV_FOCUS_KEYS.settingsCloseRoom}
-                                            label={tRoom('closeRoom')}
-                                            destructive
-                                            icon={
-                                                <DoorClosed className="h-6 w-6" strokeWidth={2.5} />
-                                            }
-                                            onEnterPress={closeRoom}
-                                        />
-                                    ) : null}
-                                </div>
+                                ) : null}
                             </section>
                         </>
                     ) : (
@@ -305,16 +427,30 @@ export function TvSettingsPanel({
                                 />
                             </section>
 
-                            <div className="flex items-center gap-4 py-1">
-                                <div className="h-px flex-1 bg-zinc-600" />
-                                <p className="text-sm font-medium text-zinc-400">{tLobby('or')}</p>
-                                <div className="h-px flex-1 bg-zinc-600" />
+                            <div className="flex items-center gap-3">
+                                <div className="h-px flex-1 bg-white/10" />
+                                <p className="text-sm font-semibold uppercase tracking-wider text-zinc-300">
+                                    {tLobby('or')}
+                                </p>
+                                <div className="h-px flex-1 bg-white/10" />
                             </div>
+
+                            <SettingsDropdown
+                                focusKey={TV_FOCUS_KEYS.settingsLocale}
+                                sectionLabel={tAppearance('language')}
+                                icon={<Languages className="h-6 w-6" strokeWidth={2.5} aria-hidden />}
+                                value={locale}
+                                options={[
+                                    { value: 'vi', label: tAppearance('languageVietnamese') },
+                                    { value: 'en', label: tAppearance('languageEnglish') },
+                                ]}
+                                onChangeAction={changeLocale}
+                            />
 
                             <section>
                                 <SettingsSectionLabel>{tLobby('joinButton')}</SettingsSectionLabel>
-                                <div className="space-y-6 rounded-2xl border-4 border-zinc-600/80 bg-zinc-700/40 p-7">
-                                    <p className="text-xl font-semibold text-zinc-100">
+                                <div className="space-y-5 rounded-2xl border-4 border-white/15 bg-white/14 p-5 md:p-6">
+                                    <p className="text-lg font-semibold text-zinc-100">
                                         {tLobby('roomIdLabel')}
                                     </p>
                                     <div className="flex justify-center">
@@ -333,7 +469,7 @@ export function TvSettingsPanel({
                                                             index={index}
                                                             className={cn(
                                                                 roomCodeOtpSlotClassName,
-                                                                'h-[4.5rem] w-16 border-4 border-zinc-500 bg-zinc-800 text-3xl font-bold text-white',
+                                                                'h-[4.5rem] w-[3.75rem] border-4 border-white/25 bg-white/14 text-3xl font-bold text-white md:h-20 md:w-[4.25rem] md:text-4xl',
                                                             )}
                                                         />
                                                     ),
@@ -342,7 +478,7 @@ export function TvSettingsPanel({
                                         </InputOTP>
                                     </div>
 
-                                    <div className="space-y-3">
+                                    <div className="space-y-2">
                                         <label
                                             htmlFor="tv-settings-join-password"
                                             className="text-base font-semibold text-zinc-200"
@@ -355,7 +491,7 @@ export function TvSettingsPanel({
                                             value={joinRoomPassword}
                                             onChange={(e) => setJoinRoomPassword(e.target.value)}
                                             placeholder={tLobby('passwordPlaceholder')}
-                                            className="h-16 w-full rounded-2xl border-4 border-zinc-500 bg-zinc-800 px-5 text-xl text-zinc-100 placeholder:text-zinc-500"
+                                            className="h-16 w-full rounded-2xl border-4 border-white/25 bg-white/14 px-5 text-xl text-white placeholder:text-zinc-400 md:h-[4.5rem] md:text-2xl"
                                             {...roomSecretFieldProps}
                                         />
                                     </div>
@@ -377,18 +513,13 @@ export function TvSettingsPanel({
                     )}
                 </div>
 
-                <div className={cn('mt-auto pt-10', !isRail && 'mx-auto w-full max-w-3xl')}>
-                    <TvFocusable
+                <div className={cn('mt-8 shrink-0', !isRail && 'mx-auto w-full max-w-3xl')}>
+                    <SettingsRow
                         focusKey={TV_FOCUS_KEYS.settingsClose}
-                        accessibilityLabel={tTv('close')}
-                        suppressFocusChrome
+                        label={tTv('close')}
+                        icon={<X className="h-6 w-6" strokeWidth={2.5} />}
                         onEnterPress={onCloseAction}
-                        className="w-full"
-                    >
-                        {({ focused }) => (
-                            <div className={tvSettingsCloseButton(focused)}>{tTv('close')}</div>
-                        )}
-                    </TvFocusable>
+                    />
                 </div>
             </TvSpatialOverlayShell>
         </div>
