@@ -17,6 +17,8 @@
     --tv-transport-icon-primary: 1.5rem;
     --tv-queue-peek-thumb: 4.75rem;
     --tv-safe-bottom: 1.5rem;
+    --tv-fixed-qr-size: 4.5rem;
+    --tv-fixed-qr-reserve: calc(var(--tv-fixed-qr-size) + 1.5rem);
     --tv-queue-expanded-height: 24rem;
     --tv-motion-shelf: 420ms cubic-bezier(0.22, 1, 0.36, 1);
     --tv-motion-scroll: 520ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -113,6 +115,7 @@
         --tv-transport-icon-primary: 1.625rem;
         --tv-queue-peek-thumb: 5.25rem;
         --tv-safe-bottom: 2rem;
+        --tv-fixed-qr-reserve: calc(var(--tv-fixed-qr-size) + 2rem);
         --tv-queue-expanded-height: 28rem;
     }
 }
@@ -136,6 +139,32 @@
 
 [data-tv-route] .tv-player-scrim--settings {
     background: rgb(0 0 0 / 0.28);
+}
+
+/** Fixed corner QR — always visible during playback unless hidden in settings. */
+[data-tv-route] .tv-player-fixed-qr {
+    position: fixed;
+    z-index: 40;
+    top: max(2rem, env(safe-area-inset-top, 0px));
+    left: max(2rem, env(safe-area-inset-left, 0px));
+}
+
+@media (min-width: 768px) {
+    [data-tv-route] .tv-player-fixed-qr {
+        top: max(2.5rem, env(safe-area-inset-top, 0px));
+        left: max(3rem, env(safe-area-inset-left, 0px));
+    }
+}
+
+@media (min-width: 1024px) {
+    [data-tv-route] .tv-player-fixed-qr {
+        left: max(4rem, env(safe-area-inset-left, 0px));
+    }
+}
+
+/** Title row — reserve space when fixed QR is shown. */
+[data-tv-route] .tv-player-top-bar--qr-visible {
+    padding-left: var(--tv-fixed-qr-reserve);
 }
 
 /** Queue shelf — no own background; scrim above handles fade. */

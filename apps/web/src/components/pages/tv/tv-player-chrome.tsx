@@ -16,7 +16,6 @@ type TvPlayerChromeProps = {
     visible: boolean;
     settingsOpen: boolean;
     queueExpanded: boolean;
-    showQrInPlayer?: boolean;
     onRevealAction: () => void;
     onQueueFocusAction: () => void;
     onQueueCollapseAction: () => void;
@@ -29,7 +28,6 @@ export function TvPlayerChrome({
     visible,
     settingsOpen,
     queueExpanded,
-    showQrInPlayer = false,
     onRevealAction,
     onQueueFocusAction,
     onQueueCollapseAction,
@@ -75,10 +73,7 @@ export function TvPlayerChrome({
                 <FocusContext.Provider value={focusKey}>
                     <div ref={ref} className="relative flex h-full flex-col">
                         <div className="flex min-h-0 flex-1 flex-col justify-between px-8 pb-4 pt-8 md:px-12 md:pt-10 lg:px-16">
-                            <TvPlayerTopBar
-                                showQrInPlayer={showQrInPlayer}
-                                onOpenSettingsAction={onOpenSettingsAction}
-                            />
+                            <TvPlayerTopBar />
 
                             <div className="w-full space-y-7 pb-2 md:space-y-8">
                                 <TvPlaybackProgress />

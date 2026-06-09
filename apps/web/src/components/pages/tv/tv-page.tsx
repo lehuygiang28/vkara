@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 
-import { useScopedI18n } from '@/locales/client';
+import { useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useWebSocketStore } from '@/store/websocketStore';
@@ -17,6 +17,7 @@ import { ConnectionStatusToast } from '@/components/connection-status-toast';
 import { TvSpatialRoot } from './tv-spatial-root';
 import { TvPlayerHost } from './tv-player-host';
 import { TvPlayerChrome } from './tv-player-chrome';
+import { TvPlayerFixedQr } from './tv-player-fixed-qr';
 import { TvSettingsPanel } from './tv-settings-panel';
 import { TvSpatialLobby } from './tv-spatial-lobby';
 
@@ -28,7 +29,9 @@ export default function TvPage() {
     useTikTokPhotoIndexSync();
 
     const tToast = useScopedI18n('toast');
+    const locale = useCurrentLocale();
     const roomId = useYouTubeStore((s) => s.room?.id);
+    const roomPassword = useYouTubeStore((s) => s.room?.password);
     const playingNow = useYouTubeStore((s) => s.room?.playingNow);
     const showQRInPlayer = useYouTubeStore((s) => s.room?.showQRInPlayer ?? true);
     const tvSuppressAutoCreate = useYouTubeStore((s) => s.tvSuppressAutoCreate);
@@ -81,11 +84,19 @@ export default function TvPage() {
                                 controlsVisible={controlsVisible}
                             />
 
+                            {playingNow && showQRInPlayer && roomId ? (
+                                <TvPlayerFixedQr
+                                    roomId={roomId}
+                                    roomPassword={roomPassword}
+                                    locale={locale}
+                                    onOpenSettingsAction={openSettings}
+                                />
+                            ) : null}
+
                             <TvPlayerChrome
                                 visible={controlsVisible}
                                 settingsOpen={settingsOpen}
                                 queueExpanded={queueExpanded}
-                                showQrInPlayer={showQRInPlayer}
                                 onRevealAction={revealControls}
                                 onQueueFocusAction={focusQueue}
                                 onQueueCollapseAction={collapseQueue}
