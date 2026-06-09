@@ -6,7 +6,6 @@ import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 import { useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useWebSocket } from '@/providers/websocket-provider';
-import { useWebSocketStore } from '@/store/websocketStore';
 import { useTvRouteBootstrap } from '@/hooks/use-tv-route-bootstrap';
 import { useTvOverlayStack } from '@/hooks/use-tv-overlay-stack';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
@@ -21,7 +20,7 @@ import { TvPlayerHost } from './tv-player-host';
 import { TvPlayerChrome } from './tv-player-chrome';
 import { TvPlayerFixedQr } from './tv-player-fixed-qr';
 import { TvSettingsPanel } from './tv-settings-panel';
-import { TvSpatialLobby } from './tv-spatial-lobby';
+import { TvLobby } from './tv-lobby';
 
 export default function TvPage() {
     useTvRouteBootstrap();
@@ -37,7 +36,6 @@ export default function TvPage() {
     const playingNow = useYouTubeStore((s) => s.room?.playingNow);
     const showQRInPlayer = useYouTubeStore((s) => s.room?.showQRInPlayer ?? true);
     const tvSuppressAutoCreate = useYouTubeStore((s) => s.tvSuppressAutoCreate);
-    const connectionStatus = useWebSocketStore((s) => s.connectionStatus);
 
     const { lastMessage } = useWebSocket();
 
@@ -70,8 +68,6 @@ export default function TvPage() {
         }
         useYouTubeStore.getState().handleServerMessage(lastMessage, tToast, { isTvLayout: true });
     }, [lastMessage, tToast]);
-
-    const isOffline = connectionStatus !== 'OPEN';
 
     useEffect(() => {
         if (!showLobby) {
@@ -108,12 +104,11 @@ export default function TvPage() {
                 <ConnectionStatusToast />
                 <main className="relative h-full w-full overflow-hidden">
                     {showLobby ? (
-                        <TvSpatialLobby isOffline={isOffline} />
+                        <TvLobby />
                     ) : (
                         <>
                             <TvPlayerHost
                                 onOpenSettingsAction={openSettings}
-                                isOffline={isOffline}
                                 controlsVisible={controlsVisible}
                             />
 
@@ -138,10 +133,7 @@ export default function TvPage() {
                                     onCloseSettingsAction={closeSettings}
                                 />
                             ) : settingsOpen ? (
-                                <TvSettingsPanel
-                                    onCloseAction={closeSettings}
-                                    variant="rail"
-                                />
+                                <TvSettingsPanel onCloseAction={closeSettings} />
                             ) : null}
 
                             {!controlsVisible && playingNow ? (

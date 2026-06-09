@@ -19,8 +19,6 @@ export const TV_FOCUS_KEYS = {
     settingsLocale: 'TV_SETTINGS_LOCALE',
     settingsLeave: 'TV_SETTINGS_LEAVE',
     settingsCloseRoom: 'TV_SETTINGS_CLOSE_ROOM',
-    settingsCreate: 'TV_SETTINGS_CREATE',
-    settingsJoin: 'TV_SETTINGS_JOIN',
     lobby: 'TV_LOBBY',
     lobbyCreate: 'TV_LOBBY_CREATE',
     lobbySettings: 'TV_LOBBY_SETTINGS',

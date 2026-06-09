@@ -181,11 +181,6 @@
     backdrop-filter: blur(14px);
 }
 
-[data-tv-route] .tv-settings-fullscreen {
-    background: rgb(12 12 14 / 0.92);
-    backdrop-filter: blur(14px);
-}
-
 /** Pinned settings header — always visible above scroll body. */
 [data-tv-route] .tv-settings-header {
     flex-shrink: 0;
@@ -330,16 +325,6 @@
 
     [data-tv-route] .tv-settings-room-id__digits {
         font-size: 3.25rem;
-    }
-}
-
-[data-tv-route] .tv-settings-fullscreen .tv-settings-panel-title {
-    font-size: 2.5rem;
-}
-
-@media (min-width: 768px) {
-    [data-tv-route] .tv-settings-fullscreen .tv-settings-panel-title {
-        font-size: 3rem;
     }
 }
 
@@ -597,12 +582,6 @@
     text-shadow: 0 2px 16px rgb(0 0 0 / 0.45);
 }
 
-[data-tv-route] .tv-lobby-offline {
-    margin-top: 0.5rem;
-    font-size: 0.875rem;
-    color: rgb(251 191 36);
-}
-
 [data-tv-route] .tv-lobby-action {
     min-height: clamp(3.25rem, 7vh, 4rem);
 }
@@ -646,12 +625,6 @@
     font-size: clamp(1.75rem, 4vh, 2.25rem);
     font-weight: 700;
     color: rgb(255 255 255);
-}
-
-[data-tv-route] .tv-lobby-code-hint {
-    text-align: center;
-    font-size: 0.8125rem;
-    color: rgb(161 161 170);
 }
 
 [data-tv-route] .tv-lobby-password {
@@ -711,12 +684,6 @@
         border-left: 4px solid rgb(255 255 255 / 0.08);
         border-top-left-radius: 0;
         border-bottom-left-radius: 0;
-    }
-}
-
-@media (max-height: 640px) {
-    [data-tv-route] .tv-lobby-code-hint {
-        display: none;
     }
 }
 

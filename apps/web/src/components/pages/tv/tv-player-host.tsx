@@ -40,13 +40,11 @@ const EMPTY_VIDEO_QUEUE: import('@vkara/youtube').YouTubeVideo[] = [];
 
 type TvPlayerHostProps = {
     onOpenSettingsAction: () => void;
-    isOffline?: boolean;
     controlsVisible?: boolean;
 };
 
 function TvPlayerHostInner({
     onOpenSettingsAction,
-    isOffline = false,
     controlsVisible = false,
 }: TvPlayerHostProps) {
     const {
@@ -88,7 +86,6 @@ function TvPlayerHostInner({
     );
 
     const t = useScopedI18n('youtubePage');
-    const tTv = useScopedI18n('tvPage');
     const locale = useCurrentLocale();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown, resetCountdown } =
         useCountdownStore(
@@ -427,7 +424,6 @@ function TvPlayerHostInner({
                     disableLayoutMorph
                     spatialFocusKey={TV_FOCUS_KEYS.idleQr}
                     spatialFocusOnMount
-                    statusBanner={isOffline ? tTv('offlineHint') : undefined}
                     onOpenSettingsAction={onOpenSettingsAction}
                 />
             ) : null}

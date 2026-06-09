@@ -342,17 +342,13 @@ export default {
     'tvLobby.title': 'Tạo hoặc tham gia phòng',
     'tvLobby.subtitle': 'Tạo phòng mới cho TV này, hoặc nhập mã để tham gia phòng đang có.',
     'tvLobby.createButton': 'Tạo phòng mới',
-    'tvLobby.createPanelLabel': 'Tạo phòng',
-    'tvLobby.createPanelDesc': 'Bắt đầu phòng xem chung mới trên TV này.',
     'tvLobby.openSettings': 'Cài đặt phòng',
     'tvLobby.joinPanelLabel': 'Tham gia phòng',
-    'tvLobby.joinPanelDesc': 'Nhập mã phòng từ TV hoặc điện thoại khác.',
     'tvLobby.or': 'hoặc',
     'tvLobby.roomIdLabel': 'Mã phòng',
     'tvLobby.passwordLabel': 'Mật khẩu phòng (tùy chọn)',
     'tvLobby.passwordPlaceholder': 'Nhập mật khẩu phòng',
     'tvLobby.joinButton': 'Tham gia phòng',
-    'tvLobby.roomCodeHint': '↑↓ đổi số · ←→ chuyển ô · OK sang ô tiếp',
 
     'tvPage.play': 'Phát',
     'tvPage.pause': 'Tạm dừng',
@@ -365,9 +361,6 @@ export default {
     'tvPage.queueEmpty': 'Chưa có bài trong hàng chờ. Thêm bài từ điện thoại.',
     'tvPage.queueCount': '{count} video',
     'tvPage.nowPlaying': 'Đang phát',
-    'tvPage.settingsCreateHint': 'Tạo phòng xem chung mới trên TV này.',
-    'tvPage.controlsHint': 'Nhấn phím mũi tên trên remote để hiện điều khiển.',
-    'tvPage.offlineHint': 'Không kết nối được server. Chạy API: bun run dev:api',
 
     'seo.title': 'vkara - Hát karaoke cùng nhau trực tuyến',
     'seo.description':

@@ -22,10 +22,6 @@ import { TvFocusable } from './tv-focusable';
 import { TvRoomCodeInput } from './tv-room-code-input';
 import { TvSpatialOverlayShell } from './tv-spatial-overlay-shell';
 
-type TvLobbyProps = {
-    isOffline?: boolean;
-};
-
 function LobbyActionRow({
     focusKey,
     label,
@@ -61,9 +57,8 @@ function LobbyActionRow({
     );
 }
 
-export function TvLobby({ isOffline = false }: TvLobbyProps) {
+export function TvLobby() {
     const t = useScopedI18n('tvLobby');
-    const tTv = useScopedI18n('tvPage');
     const { connectionStatus, ensureConnectedAndSend } = useWebSocket();
     const { roomPassword, resetJoinFormState } = useRoomSettingsStore();
     const { joinRoom, joinRoomId, joinRoomPassword, setJoinRoomId, setJoinRoomPassword } =
@@ -101,9 +96,6 @@ export function TvLobby({ isOffline = false }: TvLobbyProps) {
                 <div className="tv-lobby-grid">
                     <header className="tv-lobby-grid__header">
                         <h1 className="tv-lobby-title">{t('title')}</h1>
-                        {isOffline ? (
-                            <p className="tv-lobby-offline">{tTv('offlineHint')}</p>
-                        ) : null}
                     </header>
 
                     <TvFocusable
@@ -141,7 +133,6 @@ export function TvLobby({ isOffline = false }: TvLobbyProps) {
                                 value={joinRoomId}
                                 onChangeAction={setJoinRoomId}
                             />
-                            <p className="tv-lobby-code-hint">{t('roomCodeHint')}</p>
                         </div>
 
                         <div className="tv-lobby-join-block">

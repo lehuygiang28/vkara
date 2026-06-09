@@ -111,7 +111,7 @@ export function TvPlayerChrome({
             </div>
 
             {settingsOpen ? (
-                <TvSettingsPanel onCloseAction={onCloseSettingsAction} variant="rail" />
+                <TvSettingsPanel onCloseAction={onCloseSettingsAction} />
             ) : null}
         </>
     );

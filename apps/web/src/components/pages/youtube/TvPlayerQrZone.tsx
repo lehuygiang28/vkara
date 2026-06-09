@@ -32,8 +32,6 @@ type TvPlayerQrZoneProps = {
     /** Spatial navigation focus key for idle QR anchor. */
     spatialFocusKey?: string;
     spatialFocusOnMount?: boolean;
-    /** Optional status banner above idle content (e.g. offline). */
-    statusBanner?: string;
     onOpenSettingsAction: () => void;
 };
 
@@ -64,7 +62,6 @@ export function TvPlayerQrZone({
     forceCornerVisible = false,
     spatialFocusKey,
     spatialFocusOnMount = false,
-    statusBanner,
     onOpenSettingsAction: onOpenSettings,
 }: TvPlayerQrZoneProps) {
     const t = useScopedI18n('youtubePage');
@@ -209,12 +206,6 @@ export function TvPlayerQrZone({
                         compact ? 'max-w-sm py-2 lg:py-0' : 'max-w-xl py-2 sm:py-0',
                     )}
                 >
-                    {statusBanner ? (
-                        <p className="mb-6 rounded-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
-                            {statusBanner}
-                        </p>
-                    ) : null}
-
                     <div
                         className={cn(
                             'flex flex-col items-center gap-2 sm:gap-3',
