@@ -170,7 +170,16 @@ export function TvPlayerQrZone({
         </Shell>
     );
 
-    const idleQrAnchor = (
+    const idleQrAnchor = spatialFocusKey ? (
+        <Shell
+            {...shellMotionProps}
+            {...(staticLayout ? {} : { layoutId: 'tv-player-qr-anchor' })}
+            className="group flex flex-col items-center rounded-2xl outline-none"
+        >
+            {qrShell}
+            {roomLabel}
+        </Shell>
+    ) : (
         <ShellButton
             type="button"
             {...shellMotionProps}
@@ -241,7 +250,6 @@ export function TvPlayerQrZone({
                             focusOnMount={spatialFocusOnMount}
                             accessibilityLabel={t('tvEmptyQrAria')}
                             onEnterPress={onOpenSettings}
-                            suppressFocusChrome
                             className={({ focused }) =>
                                 tvDefaultFocusLeaf(focused, 'mt-0 rounded-2xl p-2')
                             }

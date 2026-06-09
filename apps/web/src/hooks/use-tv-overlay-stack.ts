@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 
-import { isTvBackKey, isTvRevealKey, TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { isTvBackKey, isTvNavigationKey, isTvRevealKey, TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 const HIDE_DELAY_MS = 5000;
@@ -15,12 +15,15 @@ type UseTvOverlayStackOptions = {
     settingsOpenFocusKey?: string;
     /** Focus target when closing settings. */
     settingsCloseFocusKey?: string;
+    /** In-room idle: re-seed this leaf when D-pad is pressed and controls are hidden. */
+    idleFocusKey?: string;
 };
 
 export function useTvOverlayStack({
     controlsEnabled = true,
     settingsOpenFocusKey = TV_FOCUS_KEYS.settingsQrToggle,
     settingsCloseFocusKey = TV_FOCUS_KEYS.ctrlPlayPause,
+    idleFocusKey,
 }: UseTvOverlayStackOptions = {}) {
     const [controlsVisible, setControlsVisible] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -29,9 +32,11 @@ export function useTvOverlayStack({
     const controlsVisibleRef = useRef(controlsVisible);
     const settingsOpenRef = useRef(settingsOpen);
     const controlsEnabledRef = useRef(controlsEnabled);
+    const idleFocusKeyRef = useRef(idleFocusKey);
     controlsVisibleRef.current = controlsVisible;
     settingsOpenRef.current = settingsOpen;
     controlsEnabledRef.current = controlsEnabled;
+    idleFocusKeyRef.current = idleFocusKey;
 
     const drawerOpen = settingsOpen;
 
@@ -191,8 +196,19 @@ export function useTvOverlayStack({
                     return;
                 }
 
-                // Lobby — spatial nav owns arrow/enter; do not steal focus.
+                // Lobby / idle — spatial nav owns arrows; idle re-seeds QR when focus was lost.
                 if (!controlsEnabledRef.current) {
+                    if (
+                        idleFocusKeyRef.current &&
+                        !settingsOpenRef.current &&
+                        isTvNavigationKey(event.key)
+                    ) {
+                        try {
+                            setFocus(idleFocusKeyRef.current);
+                        } catch {
+                            // Spatial tree may not be ready yet.
+                        }
+                    }
                     return;
                 }
 

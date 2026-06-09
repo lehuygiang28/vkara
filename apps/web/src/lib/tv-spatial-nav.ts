@@ -84,3 +84,15 @@ export function isTvRevealKey(key: string): boolean {
 export function isTvBackKey(key: string): boolean {
     return TV_BACK_KEYS.has(key);
 }
+
+/** D-pad / OK — used to seed idle focus when spatial tree has no active leaf. */
+export function isTvNavigationKey(key: string): boolean {
+    return (
+        key === 'ArrowUp' ||
+        key === 'ArrowDown' ||
+        key === 'ArrowLeft' ||
+        key === 'ArrowRight' ||
+        key === 'Enter' ||
+        key === ' '
+    );
+}

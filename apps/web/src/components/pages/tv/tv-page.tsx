@@ -55,12 +55,15 @@ export default function TvPage() {
         hideControls,
     } = useTvOverlayStack({
         controlsEnabled: isPlayerActive,
+        idleFocusKey: inRoom && !isPlayerActive ? TV_FOCUS_KEYS.idleQr : undefined,
         settingsCloseFocusKey: showLobby
             ? TV_FOCUS_KEYS.lobbyCreate
             : isPlayerActive
               ? TV_FOCUS_KEYS.ctrlPlayPause
               : TV_FOCUS_KEYS.idleQr,
     });
+
+    const isIdleScreen = inRoom && !isPlayerActive && !settingsOpen;
 
     useEffect(() => {
         if (!lastMessage) {
@@ -89,6 +92,24 @@ export default function TvPage() {
 
         return () => cancelAnimationFrame(frame);
     }, [showLobby, hideControls, closeSettings]);
+
+    useEffect(() => {
+        if (!isIdleScreen) {
+            return;
+        }
+
+        const frame = requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                try {
+                    setFocus(TV_FOCUS_KEYS.idleQr);
+                } catch {
+                    // Spatial tree may not be ready on first paint.
+                }
+            });
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, [isIdleScreen]);
 
     useEffect(() => {
         if (isPlayerActive) {
