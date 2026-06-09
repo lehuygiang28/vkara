@@ -15,12 +15,12 @@ Default host mapping: API **8000** only. Redis runs inside the container and is 
 
 ## Files
 
-| File               | Role                                                      |
-| ------------------ | --------------------------------------------------------- |
+| File               | Role                                                                    |
+| ------------------ | ----------------------------------------------------------------------- |
 | `Dockerfile`       | Build API from monorepo; runtime with Redis + supervisord + cloudflared |
-| `supervisord.conf` | Runs `redis-server` and `/app/start-api.sh`               |
-| `entrypoint.sh`    | Optional `cloudflared access tcp`; starts supervisord     |
-| `start-api.sh`     | Redis defaults + exec compiled API binary                 |
+| `supervisord.conf` | Runs `redis-server` and `/app/start-api.sh`                             |
+| `entrypoint.sh`    | Optional `cloudflared access tcp`; starts supervisord                   |
+| `start-api.sh`     | Redis defaults + exec compiled API binary                               |
 
 ## Playwright proxy (TikTok experiments)
 
@@ -37,4 +37,3 @@ Entrypoint starts `cloudflared access tcp` and defaults `PLAYWRIGHT_PROXY_SERVER
 Home gost (HTTP `:3128`) must match the Cloudflare Tunnel TCP route.
 
 See [../README.md](../README.md#experiments-vkara_experiments).
-

@@ -43,10 +43,7 @@ type TvPlayerHostProps = {
     controlsVisible?: boolean;
 };
 
-function TvPlayerHostInner({
-    onOpenSettingsAction,
-    controlsVisible = false,
-}: TvPlayerHostProps) {
+function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: TvPlayerHostProps) {
     const {
         playingNow,
         roomId,
@@ -455,7 +452,6 @@ function TvPlayerHostInner({
                     </div>
                 </div>
             ) : null}
-
         </div>
     );
 }

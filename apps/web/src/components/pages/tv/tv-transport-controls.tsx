@@ -125,9 +125,7 @@ export function TvTransportControls({
                                 handleReplayVideo();
                             }
                         }}
-                        icon={
-                            <RotateCcw className={tvTransportIconClass()} strokeWidth={2.5} />
-                        }
+                        icon={<RotateCcw className={tvTransportIconClass()} strokeWidth={2.5} />}
                     />
 
                     <TransportControl
@@ -171,9 +169,7 @@ export function TvTransportControls({
                                 handlePlayNextVideo();
                             }
                         }}
-                        icon={
-                            <SkipForward className={tvTransportIconClass()} strokeWidth={2.5} />
-                        }
+                        icon={<SkipForward className={tvTransportIconClass()} strokeWidth={2.5} />}
                     />
                 </div>
 

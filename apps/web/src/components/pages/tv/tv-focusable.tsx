@@ -97,8 +97,7 @@ export function TvFocusable<P = object>({
     }, [focusOnMount, disabled, focusKey]);
 
     const content = typeof children === 'function' ? children({ focused }) : children;
-    const resolvedClassName =
-        typeof className === 'function' ? className({ focused }) : className;
+    const resolvedClassName = typeof className === 'function' ? className({ focused }) : className;
 
     return (
         <div

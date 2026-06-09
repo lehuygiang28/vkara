@@ -2,9 +2,7 @@ import type { PersistedRoom } from './persisted-room';
 import type { Room } from './websocket';
 
 /** Full persisted room defaults for tests (`Omit<Room, 'clients'>`). */
-export function createTestPersistedRoom(
-    overrides: Partial<PersistedRoom> = {},
-): PersistedRoom {
+export function createTestPersistedRoom(overrides: Partial<PersistedRoom> = {}): PersistedRoom {
     return {
         id: '1234',
         videoQueue: [],

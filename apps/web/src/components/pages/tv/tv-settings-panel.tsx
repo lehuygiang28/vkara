@@ -198,7 +198,12 @@ function SettingsDropdown<T extends string>({
                             <p className={tvSettingsLabel(focused)}>{sectionLabel}</p>
                         </div>
                         <div className="flex shrink-0 items-center gap-2">
-                            <span className={cn('tv-settings-dropdown-value', focused && 'text-white')}>
+                            <span
+                                className={cn(
+                                    'tv-settings-dropdown-value',
+                                    focused && 'text-white',
+                                )}
+                            >
                                 {currentLabel}
                             </span>
                             <ChevronDown
@@ -247,12 +252,20 @@ function SettingsDropdown<T extends string>({
                                 <>
                                     <span className={tvSettingsIconPlate(focused)}>
                                         {value === option.value ? (
-                                            <Check className="h-6 w-6" strokeWidth={2.5} aria-hidden />
+                                            <Check
+                                                className="h-6 w-6"
+                                                strokeWidth={2.5}
+                                                aria-hidden
+                                            />
                                         ) : (
                                             <span className="block h-6 w-6" aria-hidden />
                                         )}
                                     </span>
-                                    <p className={tvSettingsLabel(focused, { selected: value === option.value })}>
+                                    <p
+                                        className={tvSettingsLabel(focused, {
+                                            selected: value === option.value,
+                                        })}
+                                    >
                                         {option.label}
                                     </p>
                                 </>

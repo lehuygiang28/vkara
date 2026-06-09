@@ -62,11 +62,5 @@ export function TvEmbedFocusGuard({ controlsVisible }: TvEmbedFocusGuardProps) {
         return () => document.removeEventListener('focusin', onFocusIn, true);
     }, [controlsVisible]);
 
-    return (
-        <div
-            className="pointer-events-none absolute inset-0 z-[6]"
-            aria-hidden
-            tabIndex={-1}
-        />
-    );
+    return <div className="pointer-events-none absolute inset-0 z-[6]" aria-hidden tabIndex={-1} />;
 }

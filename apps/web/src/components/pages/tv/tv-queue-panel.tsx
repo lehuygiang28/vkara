@@ -32,9 +32,7 @@ export function TvQueuePanel({
     const t = useScopedI18n('tvPage');
     const tSearch = useScopedI18n('videoSearch');
     const playingNow = useYouTubeStore((s) => s.room?.playingNow);
-    const videoQueue = useYouTubeStore(
-        (s) => s.room?.videoQueue ?? EMPTY_VIDEO_QUEUE,
-    );
+    const videoQueue = useYouTubeStore((s) => s.room?.videoQueue ?? EMPTY_VIDEO_QUEUE);
     const { handlePlayVideoNow } = usePlayerAction();
 
     const allItems = useMemo(
@@ -62,8 +60,7 @@ export function TvQueuePanel({
             className={cn(
                 'tv-queue-panel shrink-0 px-8 pt-4 md:px-12 lg:px-16',
                 embedded ? 'pb-2' : 'pb-8 pt-5',
-                embedded &&
-                    'tv-queue-panel--embedded',
+                embedded && 'tv-queue-panel--embedded',
                 embedded && (expanded ? 'tv-queue-panel--expanded' : 'tv-queue-panel--peek'),
                 !embedded &&
                     'border-t border-white/15 bg-gradient-to-t from-black/55 via-black/45 to-black/35',

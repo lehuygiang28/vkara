@@ -46,10 +46,7 @@ export function tvFocusShellRect(focused: boolean, className?: string): string {
         TV_BORDER_STABLE,
         focused
             ? 'border-transparent bg-white/90 shadow-lg shadow-black/25'
-            : cn(
-                  'border-transparent bg-white/15',
-                  'hover:bg-white/25',
-              ),
+            : cn('border-transparent bg-white/15', 'hover:bg-white/25'),
         className,
     );
 }
@@ -143,11 +140,7 @@ export function tvSettingsIconPlate(focused: boolean, className?: string): strin
 }
 
 /** Segmented / toggle option — same plate language as settings rows. */
-export function tvSettingsSegment(
-    focused: boolean,
-    selected: boolean,
-    className?: string,
-): string {
+export function tvSettingsSegment(focused: boolean, selected: boolean, className?: string): string {
     return tvSettingsRow(focused, { selected }, cn('justify-center px-5', className));
 }
 
@@ -189,17 +182,17 @@ export function tvLobbyButton(
                 'h-12 text-base',
                 focused
                     ? cn('border-[#3ea6ff] bg-[#3ea6ff]/40 text-white', TV_FOCUS_HALO_SOFT)
-                    : cn(
-                          'border-transparent bg-zinc-700/70 text-white',
-                          'hover:bg-zinc-600/80',
-                      ),
+                    : cn('border-transparent bg-zinc-700/70 text-white', 'hover:bg-zinc-600/80'),
             ),
         variant === 'ghost' &&
             cn(
                 'h-11 text-base',
                 focused
                     ? cn('border-transparent bg-[#3ea6ff]/30 text-white', TV_FOCUS_HALO_SOFT)
-                    : cn('border-transparent text-zinc-400', 'hover:bg-white/10 hover:text-zinc-200'),
+                    : cn(
+                          'border-transparent text-zinc-400',
+                          'hover:bg-white/10 hover:text-zinc-200',
+                      ),
             ),
         className,
     );

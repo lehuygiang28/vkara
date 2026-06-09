@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { parseEnvOriginList } from '../src/base';
-import {
-    isCorsOriginAllowed,
-    resolveCorsConfig,
-    resolveWsUpgradeCorsHeaders,
-} from '../src/server';
+import { isCorsOriginAllowed, resolveCorsConfig, resolveWsUpgradeCorsHeaders } from '../src/server';
 
 describe('parseEnvOriginList', () => {
     it('returns empty array when unset', () => {
@@ -16,7 +12,9 @@ describe('parseEnvOriginList', () => {
 
     it('parses comma-separated origins', () => {
         expect(
-            parseEnvOriginList('http://localhost:3000, https://vkara.example.com ,https://www.vkara.example.com'),
+            parseEnvOriginList(
+                'http://localhost:3000, https://vkara.example.com ,https://www.vkara.example.com',
+            ),
         ).toEqual([
             'http://localhost:3000',
             'https://vkara.example.com',
@@ -72,7 +70,10 @@ describe('resolveWsUpgradeCorsHeaders', () => {
 
     it('returns no headers for disallowed origin', () => {
         expect(
-            resolveWsUpgradeCorsHeaders('https://evil.example.com', 'https://vkara-local.giang.io.vn'),
+            resolveWsUpgradeCorsHeaders(
+                'https://evil.example.com',
+                'https://vkara-local.giang.io.vn',
+            ),
         ).toEqual({});
     });
 });

@@ -34,7 +34,11 @@ export function TvSpatialOverlayShell({
     'aria-label': ariaLabel,
     containerRef,
 }: TvSpatialOverlayShellProps) {
-    const { ref, focusKey: overlayFocusKey, focusSelf } = useFocusable({
+    const {
+        ref,
+        focusKey: overlayFocusKey,
+        focusSelf,
+    } = useFocusable({
         focusKey,
         trackChildren: true,
         preferredChildFocusKey,

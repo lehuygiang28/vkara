@@ -11,11 +11,7 @@ import { useScopedI18n } from '@/locales/client';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
 import { roomSecretFieldProps } from '@/lib/room-field-autofill';
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
-import {
-    tvSettingsIconPlate,
-    tvSettingsLabel,
-    tvSettingsRow,
-} from '@/lib/tv-focus-styles';
+import { tvSettingsIconPlate, tvSettingsLabel, tvSettingsRow } from '@/lib/tv-focus-styles';
 import { cn } from '@/lib/utils';
 
 import { TvFocusable } from './tv-focusable';
@@ -50,7 +46,9 @@ function LobbyActionRow({
             {({ focused }) => (
                 <>
                     <span className={tvSettingsIconPlate(focused)}>{icon}</span>
-                    <p className={cn('min-w-0 flex-1 text-left', tvSettingsLabel(focused))}>{label}</p>
+                    <p className={cn('min-w-0 flex-1 text-left', tvSettingsLabel(focused))}>
+                        {label}
+                    </p>
                 </>
             )}
         </TvFocusable>
@@ -106,7 +104,10 @@ export function TvLobby() {
                         onEnterPress={createRoom}
                         onArrowPress={focusJoinSection}
                         className={({ focused }) =>
-                            cn('tv-lobby-grid__create tv-lobby-create-hero', focused && 'tv-lobby-create-hero--focused')
+                            cn(
+                                'tv-lobby-grid__create tv-lobby-create-hero',
+                                focused && 'tv-lobby-create-hero--focused',
+                            )
                         }
                     >
                         <span className="tv-lobby-create-hero__icon" aria-hidden>
@@ -129,10 +130,7 @@ export function TvLobby() {
 
                         <div className="tv-lobby-join-block">
                             <p className="tv-settings-desc">{t('roomIdLabel')}</p>
-                            <TvRoomCodeInput
-                                value={joinRoomId}
-                                onChangeAction={setJoinRoomId}
-                            />
+                            <TvRoomCodeInput value={joinRoomId} onChangeAction={setJoinRoomId} />
                         </div>
 
                         <div className="tv-lobby-join-block">

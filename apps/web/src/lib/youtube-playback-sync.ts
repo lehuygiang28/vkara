@@ -13,7 +13,9 @@ export function isYoutubePlayerUsable(player: YT.Player | null | undefined): pla
 
     try {
         const iframe = player.getIframe();
-        return iframe != null && (typeof document === 'undefined' || document.body.contains(iframe));
+        return (
+            iframe != null && (typeof document === 'undefined' || document.body.contains(iframe))
+        );
     } catch {
         return false;
     }

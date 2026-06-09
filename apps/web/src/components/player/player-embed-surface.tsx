@@ -64,8 +64,7 @@ function PlayerEmbedSurface({
     ensureConnectedAndSend,
     embedVariant,
 }: PlayerEmbedSurfaceProps) {
-    const variant =
-        embedVariant ?? (effectiveLayoutMode === 'both' ? 'laptop' : 'tv');
+    const variant = embedVariant ?? (effectiveLayoutMode === 'both' ? 'laptop' : 'tv');
 
     return (
         <>

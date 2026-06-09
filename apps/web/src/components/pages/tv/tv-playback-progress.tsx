@@ -28,8 +28,7 @@ export function TvPlaybackProgress({ className }: TvPlaybackProgressProps) {
 
     const clampedTime = Math.min(displayTime, duration);
     const progress = duration > 0 ? (clampedTime / duration) * 100 : 0;
-    const durationLabel =
-        playingNow.duration_formatted ?? formatPlaybackSeconds(duration);
+    const durationLabel = playingNow.duration_formatted ?? formatPlaybackSeconds(duration);
 
     return (
         <div className={cn('w-full', className)} role="group" aria-label="Playback progress">
