@@ -58,6 +58,8 @@
       "version": "0.0.0",
       "dependencies": {
         "@next/third-parties": "15.5.18",
+        "@noriginmedia/norigin-spatial-navigation-core": "^3.1.0",
+        "@noriginmedia/norigin-spatial-navigation-react": "^3.1.0",
         "@radix-ui/react-dialog": "^1.1.4",
         "@radix-ui/react-dropdown-menu": "^2.1.4",
         "@radix-ui/react-label": "^2.1.1",
@@ -166,8 +168,6 @@
       "version": "0.0.1",
       "dependencies": {
         "@vkara/youtube": "workspace:*",
-      },
-      "devDependencies": {
         "playwright": "^1.52.0",
       },
     },
@@ -399,6 +399,10 @@
     "@nodelib/fs.walk": ["@nodelib/fs.walk@1.2.8", "", { "dependencies": { "@nodelib/fs.scandir": "2.1.5", "fastq": "^1.6.0" } }, "sha512-oGB+UxlgWcgQkgwo8GcEGwemoTFt3FIO9ababBmaGwXIoBKZ+GTy0pP185beGg7Llih/NSHSV2XAs1lnznocSg=="],
 
     "@nolyfill/is-core-module": ["@nolyfill/is-core-module@1.0.39", "", {}, "sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA=="],
+
+    "@noriginmedia/norigin-spatial-navigation-core": ["@noriginmedia/norigin-spatial-navigation-core@3.1.0", "", { "dependencies": { "lodash-es": "^4.17.21" } }, "sha512-AFxJHurTqy+I3NLnaXsLUBa9FZjUryMNFEdLpPrITSqDjk525aINeLMOK1PN7WTiK5xpHL0pbpw0+uVOfWgp4w=="],
+
+    "@noriginmedia/norigin-spatial-navigation-react": ["@noriginmedia/norigin-spatial-navigation-react@3.1.0", "", { "dependencies": { "@noriginmedia/norigin-spatial-navigation-core": "^3.1.0", "lodash-es": "^4.17.21" }, "peerDependencies": { "react": ">=16.8.0" } }, "sha512-F2PIqzTnlYbbc+oRdIQfBf7e1VcA1uhyjze4uOal8FHI8tZs1U8nomH84+2KcM6G3EM/XGexgQsPy5f5dtrmUA=="],
 
     "@polka/url": ["@polka/url@1.0.0-next.29", "", {}, "sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww=="],
 
@@ -1143,6 +1147,8 @@
     "locate-chrome": ["locate-chrome@0.1.1", "", { "dependencies": { "es6-promise": "^2.0.0", "queue-async": "^1.0.0", "userhome": "^1.0.0" }, "bin": { "locate-chrome": "bin.js" } }, "sha512-87n87RotxqHb/TJoSgW1ayezxZtuki3+QGtfKbTDfjOS0OSKX9xHJv7IW+OK1XPAVl+RVo4M1J4xe7rBmLNsVA=="],
 
     "locate-path": ["locate-path@6.0.0", "", { "dependencies": { "p-locate": "^5.0.0" } }, "sha512-iPZK6eYjbxRu3uB4/WZ3EsEIMJFMqAoopl3R+zuq0UjcAm/MO6KCweDgPfP3elTztoKP3KtnVHxTn2NHBSDVUw=="],
+
+    "lodash-es": ["lodash-es@4.18.1", "", {}, "sha512-J8xewKD/Gk22OZbhpOVSwcs60zhd95ESDwezOFuA3/099925PdHJ7OFHNTGtajL3AlZkykD32HykiMo+BIBI8A=="],
 
     "lodash.defaults": ["lodash.defaults@4.2.0", "", {}, "sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ=="],
 

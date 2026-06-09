@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useRef, useCallback, useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 import { isValidRoomId, resolveWebSocketEndpoint } from '@vkara/room';
 
@@ -9,6 +9,7 @@ import { env } from '@/env';
 import { ErrorCode } from '@vkara/room';
 import type { WebSocketState } from '@/types/websocket.type';
 import { getEffectiveLayoutMode } from '@/lib/layout-mode';
+import { isDedicatedTvRoute } from '@/lib/tv-route';
 import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
 import { useIsRoomSessionReady } from '@/hooks/use-room-session-ready';
 import { useViewportWidth } from '@/hooks/use-viewport-layout';
@@ -46,6 +47,7 @@ export const useWebSocket = (): EnhancedWebSocketState => {
 };
 
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const pathname = usePathname();
     const searchParams = useSearchParams();
     const connectionStatus = useWebSocketStore((s) => s.connectionStatus);
     const connectionEpoch = useWebSocketStore((s) => s.connectionEpoch);
@@ -84,7 +86,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         viewportWidth,
     });
 
-    const isTvLayout = effectiveLayoutMode !== 'remote';
+    const isDedicatedTv = isDedicatedTvRoute(pathname);
+    const isTvLayout = isDedicatedTv || effectiveLayoutMode !== 'remote';
 
     const isRoomSessionReady = useIsRoomSessionReady();
 

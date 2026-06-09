@@ -1,16 +1,12 @@
 'use client';
 
 import { memo, useCallback, useEffect, useRef, useState } from 'react';
-
-import { Settings } from 'lucide-react';
-import { LayoutGroup } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 
-import { type CaptionTrack, type YouTubeVideo } from '@vkara/youtube';
+import { type CaptionTrack, DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
 import { getVideoThumbnailSrcSet, getVideoThumbnailUrl } from '@vkara/tiktok';
-import { useYouTubeStore } from '@/store/youtubeStore';
-import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
 import { needsPlaybackSeekCorrection } from '@vkara/room';
+import { isVideoLive } from '@vkara/tiktok';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
@@ -31,42 +27,28 @@ import {
     shouldSuppressPlaybackBroadcast,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
-import { isVideoLive } from '@vkara/tiktok';
-import { cn } from '@/lib/utils';
-import type { YouTubeStoreLayoutMode } from '@/store/youtubeStore';
-
+import { useYouTubeStore } from '@/store/youtubeStore';
 import { CountdownTimer } from '@/components/countdown-timer';
-import { VideoChannels } from '@/components/video-channels';
-import { Button } from '@/components/ui/button';
-import { LanguageSwitcher } from '@/components/language-switcher';
-import { ControlsStageThumbnail } from './ControlsStageThumbnail';
-import { LayoutModeSwitch, RECOVERY_MODE_CHOICES } from '@/components/layout-mode-switch';
-import { useViewportWidth } from '@/hooks/use-viewport-layout';
-import { TV_MIN_WIDTH_PX } from '@/lib/layout-mode';
-import { TvIdleLayoutSwitch } from './TvIdleLayoutSwitch';
-import { TvPlayerQrZone } from './TvPlayerQrZone';
-import { TvRoomLobby } from './TvRoomLobby';
 import { PlayerEmbedSurfaceMemo } from '@/components/player/player-embed-surface';
+import { ControlsStageThumbnail } from '@/components/pages/youtube/ControlsStageThumbnail';
+import { TvPlayerQrZone } from '@/components/pages/youtube/TvPlayerQrZone';
+import { TvEmbedFocusGuard } from '@/components/pages/tv/tv-embed-focus-guard';
+import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 
-/** Stable fallbacks — `?? []` in selectors creates new refs and loops with useShallow. */
-const EMPTY_VIDEO_QUEUE: YouTubeVideo[] = [];
 const EMPTY_CAPTION_TRACKS: CaptionTrack[] = [];
+const EMPTY_VIDEO_QUEUE: import('@vkara/youtube').YouTubeVideo[] = [];
 
-type PlayerColumnProps = {
-    effectiveLayoutMode: YouTubeStoreLayoutMode;
-    isTvViewport: boolean;
-    hasFinePointer: boolean;
+type TvPlayerHostProps = {
     onOpenSettingsAction: () => void;
-    onSettingsPrefetchAction?: () => void;
+    isOffline?: boolean;
+    controlsVisible?: boolean;
 };
 
-function PlayerColumnInner({
-    effectiveLayoutMode,
-    isTvViewport,
-    hasFinePointer,
+function TvPlayerHostInner({
     onOpenSettingsAction,
-    onSettingsPrefetchAction: onSettingsPrefetch,
-}: PlayerColumnProps) {
+    isOffline = false,
+    controlsVisible = false,
+}: TvPlayerHostProps) {
     const {
         playingNow,
         roomId,
@@ -80,7 +62,6 @@ function PlayerColumnInner({
         captionTracks,
         captionTracksVideoId,
         volume,
-        tvSuppressAutoCreate,
         setPlayer,
         setVolume,
         nextVideo,
@@ -99,14 +80,15 @@ function PlayerColumnInner({
             captionTracks: s.room?.captionTracks ?? EMPTY_CAPTION_TRACKS,
             captionTracksVideoId: s.room?.captionTracksVideoId,
             volume: s.volume,
-            tvSuppressAutoCreate: s.tvSuppressAutoCreate,
             setPlayer: s.setPlayer,
             setVolume: s.setVolume,
             nextVideo: s.nextVideo,
             setIsPlaying: s.setIsPlaying,
         })),
     );
+
     const t = useScopedI18n('youtubePage');
+    const tTv = useScopedI18n('tvPage');
     const locale = useCurrentLocale();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown, resetCountdown } =
         useCountdownStore(
@@ -123,25 +105,12 @@ function PlayerColumnInner({
     const endedForVideoIdRef = useRef<string | null>(null);
     const captionSyncCleanupRef = useRef<(() => void) | null>(null);
     const prevPlayingNowIdRef = useRef<string | null>(null);
-    /** Frozen `videoId` prop — track advances use `loadVideoById`, not react-youtube reset. */
     const embedSeedVideoIdRef = useRef<string | null>(null);
-    /** Keep the YouTube iframe mounted (hidden) while TikTok plays so mixed queues can resume. */
     const [youtubeEmbedMounted, setYoutubeEmbedMounted] = useState(false);
 
-    const showsPlayer = effectiveLayoutMode === 'player' || effectiveLayoutMode === 'both';
-    const isTvPlayerIdle = Boolean(isTvViewport && showsPlayer && !playingNow);
-    const isTvIdle = Boolean(isTvPlayerIdle && roomId);
-    const isBothIdleLayout = effectiveLayoutMode === 'both' && isTvIdle;
-    const showPlayerSettingsButton =
-        effectiveLayoutMode === 'player' && !isTvPlayerIdle && hasFinePointer;
-
-    const viewportWidth = useViewportWidth();
-    const isNarrowViewport = viewportWidth > 0 && viewportWidth < TV_MIN_WIDTH_PX;
-    const needsModeRecovery =
-        effectiveLayoutMode === 'player' && (isNarrowViewport || !hasFinePointer);
-    const showRecoveryModeBar = needsModeRecovery && (isTvPlayerIdle || Boolean(playingNow));
-    const showCornerTvSwitch =
-        isTvPlayerIdle && hasFinePointer && !isNarrowViewport && !needsModeRecovery;
+    const isTvIdle = Boolean(roomId && !playingNow);
+    const playingNowId = playingNow?.id;
+    const isTikTokNow = isTikTokPlayback({ video: playingNow });
 
     useEffect(() => {
         resetCountdown();
@@ -154,11 +123,8 @@ function PlayerColumnInner({
         captionSyncCleanupRef.current = null;
     }, [playingNow?.id]);
 
-    const playingNowId = playingNow?.id;
-    const isTikTokNow = isTikTokPlayback({ video: playingNow });
-
     useEffect(() => {
-        if (effectiveLayoutMode === 'remote' || !roomId || !playingNowId) {
+        if (!roomId || !playingNowId) {
             return;
         }
         if (isTikTokNow) {
@@ -182,7 +148,7 @@ function PlayerColumnInner({
             youtubePlayer: player,
             isPlaying: roomIsPlaying,
         });
-    }, [effectiveLayoutMode, roomId, playingNowId, roomIsPlaying, isTikTokNow, playingNow]);
+    }, [roomId, playingNowId, roomIsPlaying, isTikTokNow, playingNow]);
 
     const syncCaptionTracksFromPlayer = useCallback(
         (player: YT.Player) => {
@@ -218,7 +184,6 @@ function PlayerColumnInner({
                 player,
                 syncCaptionTracksFromPlayer,
             );
-
             applyRoomPlaybackToPlayer(player, shouldPlay);
         },
         [syncCaptionTracksFromPlayer],
@@ -321,7 +286,7 @@ function PlayerColumnInner({
     const onPlayerStateChange = (event: YT.PlayerEvent) => {
         const playerState = event.target.getPlayerState();
 
-        if (effectiveLayoutMode !== 'remote' && roomId && !shouldSuppressPlaybackBroadcast()) {
+        if (roomId && !shouldSuppressPlaybackBroadcast()) {
             const serverPlaying = useYouTubeStore.getState().room?.isPlaying ?? false;
 
             if (isYoutubePlaybackIntentState(playerState)) {
@@ -425,12 +390,12 @@ function PlayerColumnInner({
         [ensureConnectedAndSend, roomId],
     );
 
-    const playerSurface = (
-        <div className="relative h-full w-full">
+    return (
+        <div className="absolute inset-0 bg-black">
             {playingNow ? (
                 <PlayerEmbedSurfaceMemo
                     playingNow={playingNow}
-                    effectiveLayoutMode={effectiveLayoutMode}
+                    effectiveLayoutMode="player"
                     roomId={roomId}
                     roomIsPlaying={roomIsPlaying}
                     currentTime={currentTime}
@@ -446,158 +411,57 @@ function PlayerColumnInner({
                     onSkipUnplayableAction={handleSkipUnplayable}
                     setIsPlaying={setIsPlaying}
                     ensureConnectedAndSend={ensureConnectedAndSend}
+                    embedVariant="tv"
                 />
             ) : (
-                <div className="absolute inset-0 bg-zinc-950" aria-hidden />
+                <div className="absolute inset-0 bg-[#0f0f0f]" aria-hidden />
             )}
 
-            {isTvPlayerIdle && !roomId && tvSuppressAutoCreate && (
-                <div className="absolute inset-0 z-[5] flex items-center justify-center bg-zinc-950">
-                    {!isTvViewport ? (
-                        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
-                    ) : null}
-                    <div
-                        className={cn(
-                            'pointer-events-auto relative z-[1] max-h-full overflow-y-auto py-safe-offset',
-                            showRecoveryModeBar && 'pb-28',
-                        )}
-                    >
-                        <TvRoomLobby
-                            compact={isBothIdleLayout}
-                            onOpenSettingsAction={onOpenSettingsAction}
-                        />
-                    </div>
-                </div>
-            )}
-
-            {isTvIdle && roomId && (
+            {isTvIdle && roomId ? (
                 <TvPlayerQrZone
                     roomId={roomId}
                     roomPassword={roomPassword}
-                    disableLayoutMorph={isTvViewport}
                     locale={locale}
                     showQR={showQRInPlayer}
                     isIdle
-                    compact={isBothIdleLayout}
-                    reserveFooterSpace={showRecoveryModeBar}
+                    disableLayoutMorph
+                    spatialFocusKey={TV_FOCUS_KEYS.idleQr}
+                    spatialFocusOnMount
+                    statusBanner={isOffline ? tTv('offlineHint') : undefined}
                     onOpenSettingsAction={onOpenSettingsAction}
                 />
-            )}
-
-            {isTvPlayerIdle && (
-                <div className="pointer-events-auto absolute right-safe-offset top-safe-offset z-[6] flex items-center gap-3 sm:gap-4">
-                    {showCornerTvSwitch ? (
-                        <TvIdleLayoutSwitch effectiveLayoutMode={effectiveLayoutMode} />
-                    ) : null}
-                    <LanguageSwitcher variant="overlay" />
-                </div>
-            )}
-
-            {showRecoveryModeBar ? (
-                <div
-                    className={cn(
-                        'pointer-events-auto absolute inset-x-0 bottom-0 z-[6] border-t border-zinc-800/80 px-4 py-3 pb-safe-offset',
-                        isTvViewport ? 'bg-zinc-950' : 'bg-zinc-950/95 backdrop-blur-sm',
-                    )}
-                >
-                    <p
-                        className={cn(
-                            'mb-2 text-center',
-                            isTvViewport ? 'text-sm text-zinc-300' : 'text-xs text-zinc-500',
-                        )}
-                    >
-                        {t('tvIdleModeHint')}
-                    </p>
-                    <LayoutModeSwitch
-                        tone="overlay-visible"
-                        className="w-full"
-                        choices={RECOVERY_MODE_CHOICES}
-                    />
-                </div>
             ) : null}
 
-            {playingNow && shouldShowTimer && videoQueue.length > 0 && (
-                <div
-                    className={cn(
-                        'absolute inset-0 z-10 flex flex-col items-center justify-center p-4 text-center',
-                        isTvViewport ? 'bg-black' : 'bg-black/85',
-                    )}
-                >
-                    <h3 className="mb-4 text-xl font-semibold">{t('nextUp')}</h3>
+            {playingNow ? <TvEmbedFocusGuard controlsVisible={controlsVisible} /> : null}
+
+            {playingNow && shouldShowTimer && videoQueue.length > 0 ? (
+                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black p-4 text-center">
+                    <h3 className="mb-4 text-xl font-semibold text-white">{t('nextUp')}</h3>
                     <div className="flex w-full max-w-lg flex-col items-center gap-4 px-2">
                         <ControlsStageThumbnail
                             src={getVideoThumbnailUrl({ video: videoQueue[0], size: 'large' })}
                             videoId={videoQueue[0].id}
                             srcSet={getVideoThumbnailSrcSet({ video: videoQueue[0] })}
                             title={videoQueue[0].title}
-                            flatOnTv={isTvViewport}
+                            flatOnTv
                         />
-                        <div className="space-y-2">
-                            <p
-                                className={cn(
-                                    'line-clamp-2 font-medium',
-                                    isTvViewport && 'text-base text-white',
-                                )}
-                            >
-                                {videoQueue[0].title}
-                            </p>
-                            <VideoChannels video={videoQueue[0]} tone="inverse" align="center" />
-                            <p
-                                className={cn(
-                                    'text-sm',
-                                    isTvViewport ? 'text-zinc-200' : 'text-muted-foreground',
-                                )}
-                            >
-                                {t('startingIn')}:{' '}
-                                <CountdownTimer
-                                    classNames="text-sm font-medium text-white"
-                                    initialSeconds={NEXT_VIDEO_COUNTDOWN_SECONDS}
-                                    onCountdownComplete={handleVideoFinished}
-                                />
-                            </p>
-                        </div>
+                        <p className="line-clamp-2 text-base font-medium text-white">
+                            {videoQueue[0].title}
+                        </p>
+                        <p className="text-sm text-zinc-200">
+                            {t('startingIn')}:{' '}
+                            <CountdownTimer
+                                classNames="text-sm font-medium text-white"
+                                initialSeconds={NEXT_VIDEO_COUNTDOWN_SECONDS}
+                                onCountdownComplete={handleVideoFinished}
+                            />
+                        </p>
                     </div>
                 </div>
-            )}
+            ) : null}
 
-            <div className="absolute left-safe-offset top-safe-offset z-10 flex flex-col items-start gap-2.5">
-                {!isTvPlayerIdle && roomId && isTvViewport && showQRInPlayer && (
-                    <TvPlayerQrZone
-                        roomId={roomId}
-                        roomPassword={roomPassword}
-                        locale={locale}
-                        showQR={showQRInPlayer}
-                        isIdle={false}
-                        disableLayoutMorph
-                        onOpenSettingsAction={onOpenSettingsAction}
-                    />
-                )}
-            </div>
-
-            {showPlayerSettingsButton && (
-                <div className="player-settings-button pointer-events-auto absolute right-safe-offset top-safe-offset z-20">
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        size="icon"
-                        className="h-10 w-10 rounded-full border-0 bg-black/55 text-white shadow-md backdrop-blur-sm hover:bg-black/75"
-                        onClick={onOpenSettingsAction}
-                        onMouseEnter={onSettingsPrefetch}
-                        onFocus={onSettingsPrefetch}
-                        aria-label={t('settings')}
-                    >
-                        <Settings className="h-5 w-5" />
-                    </Button>
-                </div>
-            )}
         </div>
     );
-
-    if (isTvViewport) {
-        return playerSurface;
-    }
-
-    return <LayoutGroup id="tv-player-qr">{playerSurface}</LayoutGroup>;
 }
 
-export const PlayerColumn = memo(PlayerColumnInner);
+export const TvPlayerHost = memo(TvPlayerHostInner);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback } from 'react';
+import { useCallback, type ReactNode } from 'react';
 
 import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
 import {
@@ -17,13 +17,68 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
+import { TvFocusable } from '@/components/pages/tv/tv-focusable';
+import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { tvLobbyButton } from '@/lib/tv-focus-styles';
 
 type TvRoomLobbyProps = {
     onOpenSettingsAction?: () => void;
     compact?: boolean;
+    /** D-pad spatial navigation for dedicated `/tv` route. */
+    spatial?: boolean;
 };
 
-export function TvRoomLobby({ onOpenSettingsAction, compact = false }: TvRoomLobbyProps) {
+function SpatialActionButton({
+    focusKey,
+    label,
+    onPress,
+    disabled,
+    variant = 'primary',
+    type = 'button',
+    className,
+    children,
+}: {
+    focusKey: string;
+    label: string;
+    onPress?: () => void;
+    disabled?: boolean;
+    variant?: 'primary' | 'secondary' | 'ghost';
+    type?: 'button' | 'submit';
+    className?: string;
+    children: ReactNode;
+}) {
+    return (
+        <TvFocusable
+            focusKey={focusKey}
+            accessibilityLabel={label}
+            disabled={disabled}
+            suppressFocusChrome
+            onEnterPress={() => {
+                if (!disabled) {
+                    onPress?.();
+                }
+            }}
+            className="w-full"
+        >
+            {({ focused }) => (
+                <button
+                    type={type}
+                    tabIndex={-1}
+                    disabled={disabled}
+                    className={tvLobbyButton(focused, variant, className)}
+                >
+                    {children}
+                </button>
+            )}
+        </TvFocusable>
+    );
+}
+
+export function TvRoomLobby({
+    onOpenSettingsAction,
+    compact = false,
+    spatial = false,
+}: TvRoomLobbyProps) {
     const t = useScopedI18n('tvLobby');
     const { connectionStatus, ensureConnectedAndSend } = useWebSocket();
     const { roomPassword, resetJoinFormState } = useRoomSettingsStore();
@@ -65,25 +120,47 @@ export function TvRoomLobby({ onOpenSettingsAction, compact = false }: TvRoomLob
             </div>
 
             <div className="space-y-3">
-                <Button
-                    type="button"
-                    size="lg"
-                    disabled={!isConnected}
-                    className="h-12 w-full text-base"
-                    onClick={createRoom}
-                >
-                    {t('createButton')}
-                </Button>
-                {onOpenSettingsAction ? (
+                {spatial ? (
+                    <SpatialActionButton
+                        focusKey={TV_FOCUS_KEYS.lobbyCreate}
+                        label={t('createButton')}
+                        disabled={!isConnected}
+                        onPress={createRoom}
+                    >
+                        {t('createButton')}
+                    </SpatialActionButton>
+                ) : (
                     <Button
                         type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="w-full text-zinc-400 hover:text-zinc-200"
-                        onClick={onOpenSettingsAction}
+                        size="lg"
+                        disabled={!isConnected}
+                        className="h-12 w-full text-base"
+                        onClick={createRoom}
                     >
-                        {t('openSettings')}
+                        {t('createButton')}
                     </Button>
+                )}
+                {onOpenSettingsAction ? (
+                    spatial ? (
+                        <SpatialActionButton
+                            focusKey={TV_FOCUS_KEYS.lobbySettings}
+                            label={t('openSettings')}
+                            variant="ghost"
+                            onPress={onOpenSettingsAction}
+                        >
+                            {t('openSettings')}
+                        </SpatialActionButton>
+                    ) : (
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="w-full text-zinc-400 hover:text-zinc-200"
+                            onClick={onOpenSettingsAction}
+                        >
+                            {t('openSettings')}
+                        </Button>
+                    )
                 ) : null}
             </div>
 
@@ -135,14 +212,27 @@ export function TvRoomLobby({ onOpenSettingsAction, compact = false }: TvRoomLob
                     />
                 </div>
 
-                <Button
-                    type="submit"
-                    variant="secondary"
-                    disabled={!isConnected || !isValidRoomId(joinRoomId)}
-                    className="h-11 w-full"
-                >
-                    {t('joinButton')}
-                </Button>
+                {spatial ? (
+                    <SpatialActionButton
+                        focusKey={TV_FOCUS_KEYS.lobbyJoin}
+                        label={t('joinButton')}
+                        type="submit"
+                        variant="secondary"
+                        disabled={!isConnected || !isValidRoomId(joinRoomId)}
+                        onPress={joinRoom}
+                    >
+                        {t('joinButton')}
+                    </SpatialActionButton>
+                ) : (
+                    <Button
+                        type="submit"
+                        variant="secondary"
+                        disabled={!isConnected || !isValidRoomId(joinRoomId)}
+                        className="h-11 w-full"
+                    >
+                        {t('joinButton')}
+                    </Button>
+                )}
             </form>
         </div>
     );

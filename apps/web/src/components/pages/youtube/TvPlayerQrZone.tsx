@@ -7,6 +7,8 @@ import { generateShareableUrl } from '@/lib/room-share';
 import { resolveRoomPasswordForShare } from '@vkara/room';
 import { useScopedI18n } from '@/locales/client';
 import { cn } from '@/lib/utils';
+import { TvFocusable } from '@/components/pages/tv/tv-focusable';
+import { tvDefaultFocusLeaf } from '@/lib/tv-focus-styles';
 
 const IDLE_QR_SIZE = 200;
 const IDLE_QR_SIZE_LG = 240;
@@ -25,6 +27,13 @@ type TvPlayerQrZoneProps = {
     reserveFooterSpace?: boolean;
     /** TV / reduced-motion path: static layout without framer layout morph. */
     disableLayoutMorph?: boolean;
+    /** Dedicated `/tv` route: always show corner QR (not only lg+). */
+    forceCornerVisible?: boolean;
+    /** Spatial navigation focus key for idle QR anchor. */
+    spatialFocusKey?: string;
+    spatialFocusOnMount?: boolean;
+    /** Optional status banner above idle content (e.g. offline). */
+    statusBanner?: string;
     onOpenSettingsAction: () => void;
 };
 
@@ -52,6 +61,10 @@ export function TvPlayerQrZone({
     compact = false,
     reserveFooterSpace = false,
     disableLayoutMorph = false,
+    forceCornerVisible = false,
+    spatialFocusKey,
+    spatialFocusOnMount = false,
+    statusBanner,
     onOpenSettingsAction: onOpenSettings,
 }: TvPlayerQrZoneProps) {
     const t = useScopedI18n('youtubePage');
@@ -160,6 +173,20 @@ export function TvPlayerQrZone({
         </Shell>
     );
 
+    const idleQrAnchor = (
+        <ShellButton
+            type="button"
+            {...shellMotionProps}
+            {...(staticLayout ? {} : { layoutId: 'tv-player-qr-anchor' })}
+            onClick={onOpenSettings}
+            className="group flex flex-col items-center rounded-2xl outline-none"
+            aria-label={t('tvEmptyQrAria')}
+        >
+            {qrShell}
+            {roomLabel}
+        </ShellButton>
+    );
+
     if (isIdle) {
         return (
             <div
@@ -182,6 +209,12 @@ export function TvPlayerQrZone({
                         compact ? 'max-w-sm py-2 lg:py-0' : 'max-w-xl py-2 sm:py-0',
                     )}
                 >
+                    {statusBanner ? (
+                        <p className="mb-6 rounded-full border border-amber-500/40 bg-amber-500/10 px-4 py-2 text-sm text-amber-200">
+                            {statusBanner}
+                        </p>
+                    ) : null}
+
                     <div
                         className={cn(
                             'flex flex-col items-center gap-2 sm:gap-3',
@@ -211,17 +244,22 @@ export function TvPlayerQrZone({
                         </p>
                     </div>
 
-                    <ShellButton
-                        type="button"
-                        {...shellMotionProps}
-                        {...(staticLayout ? {} : { layoutId: 'tv-player-qr-anchor' })}
-                        onClick={onOpenSettings}
-                        className="group flex flex-col items-center rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950"
-                        aria-label={t('tvEmptyQrAria')}
-                    >
-                        {qrShell}
-                        {roomLabel}
-                    </ShellButton>
+                    {spatialFocusKey ? (
+                        <TvFocusable
+                            focusKey={spatialFocusKey}
+                            focusOnMount={spatialFocusOnMount}
+                            accessibilityLabel={t('tvEmptyQrAria')}
+                            onEnterPress={onOpenSettings}
+                            suppressFocusChrome
+                            className={({ focused }) =>
+                                tvDefaultFocusLeaf(focused, 'mt-0 rounded-2xl p-2')
+                            }
+                        >
+                            {idleQrAnchor}
+                        </TvFocusable>
+                    ) : (
+                        idleQrAnchor
+                    )}
 
                     {compact ? (
                         <p
@@ -260,11 +298,11 @@ export function TvPlayerQrZone({
         <Shell
             {...shellMotionProps}
             {...(staticLayout ? {} : { layoutId: 'tv-player-qr-anchor' })}
-            className="hidden lg:block"
+            className={forceCornerVisible ? 'block' : 'hidden lg:block'}
         >
             <div
                 className={cn(
-                    'player-qr-zone flex flex-col items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-black/40',
+                    'player-qr-zone flex flex-col items-center rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-[#3ea6ff] focus-visible:ring-offset-2 focus-visible:ring-offset-black/40',
                 )}
                 onClick={onOpenSettings}
                 onKeyDown={(e) => e.key === 'Enter' && onOpenSettings()}

@@ -353,6 +353,22 @@ export default {
     'tvLobby.passwordPlaceholder': 'Enter room password',
     'tvLobby.joinButton': 'Join room',
 
+    'tvPage.play': 'Play',
+    'tvPage.pause': 'Pause',
+    'tvPage.next': 'Next',
+    'tvPage.replay': 'Replay',
+    'tvPage.queue': 'Queue',
+    'tvPage.settings': 'Settings',
+    'tvPage.controls': 'Playback controls',
+    'tvPage.close': 'Close',
+    'tvPage.queueEmpty': 'Queue is empty. Add songs from your phone.',
+    'tvPage.queueCount': '{count} videos',
+    'tvPage.nowPlaying': 'Now playing',
+    'tvPage.settingsHint': 'Press Back on your remote to return to playback.',
+    'tvPage.settingsCreateHint': 'Start a new watch party room on this TV.',
+    'tvPage.controlsHint': 'Press arrow keys on your remote to show controls.',
+    'tvPage.offlineHint': 'Cannot reach the server. Start the API with: bun run dev:api',
+
     'seo.title': 'vkara - Sing karaoke together online',
     'seo.description':
         'vkara is a free online karaoke app. Create a room, invite friends, and sing together anytime with YouTube videos.',

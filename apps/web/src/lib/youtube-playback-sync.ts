@@ -1,8 +1,29 @@
 /** >1080p (1440p/4K when available); YouTube may downgrade based on bandwidth. */
 export const PREFERRED_PLAYBACK_QUALITY: YT.SuggestedVideoQuality = 'highres';
 
+/** True when the IFrame API player still has a live iframe (store can hold stale refs after unmount). */
+export function isYoutubePlayerUsable(player: YT.Player | null | undefined): player is YT.Player {
+    if (!player) {
+        return false;
+    }
+
+    if (typeof player.getIframe !== 'function') {
+        return true;
+    }
+
+    try {
+        const iframe = player.getIframe();
+        return iframe != null && (typeof document === 'undefined' || document.body.contains(iframe));
+    } catch {
+        return false;
+    }
+}
+
 /** Request highest quality so YouTube can auto-adjust downward. */
 export function applyPreferredPlaybackQuality(player: YT.Player): void {
+    if (!isYoutubePlayerUsable(player)) {
+        return;
+    }
     if (typeof player.setPlaybackQuality !== 'function') {
         return;
     }
@@ -169,6 +190,9 @@ export function shouldApplyRemoteCurrentTime(
 
 /** Seek the embed immediately when this client initiated the seek. */
 export function applySeekToPlayer(player: YT.Player, targetSeconds: number): void {
+    if (!isYoutubePlayerUsable(player)) {
+        return;
+    }
     player.seekTo(Math.max(0, Math.floor(targetSeconds)), true);
 }
 
@@ -184,6 +208,9 @@ export function resetPlaybackSyncForTests(): void {
  * leaves the store pointing at a destroyed player while UI state says "playing".
  */
 export function loadTrackOnPlayer(player: YT.Player, videoId: string, shouldPlay: boolean): void {
+    if (!isYoutubePlayerUsable(player)) {
+        return;
+    }
     markPlaybackTrackChange();
     if (shouldPlay) {
         player.loadVideoById(videoId);
@@ -194,6 +221,10 @@ export function loadTrackOnPlayer(player: YT.Player, videoId: string, shouldPlay
 
 /** Align the YouTube iframe with room `isPlaying` (marks server echo to avoid WS feedback). */
 export function applyRoomPlaybackToPlayer(player: YT.Player, shouldPlay: boolean): void {
+    if (!isYoutubePlayerUsable(player)) {
+        return;
+    }
+
     const playerState = player.getPlayerState();
 
     if (shouldPlay) {
@@ -212,6 +243,9 @@ export function applyRoomPlaybackToPlayer(player: YT.Player, shouldPlay: boolean
 
 /** Read whether the embed is actively playing (includes buffering). */
 export function isPlayerActuallyPlaying(player: YT.Player): boolean {
+    if (!isYoutubePlayerUsable(player)) {
+        return false;
+    }
     const state = player.getPlayerState();
     return state !== undefined && isYoutubeActivelyPlaying(state);
 }

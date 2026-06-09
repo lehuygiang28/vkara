@@ -349,6 +349,22 @@ export default {
     'tvLobby.passwordPlaceholder': 'Nhập mật khẩu phòng',
     'tvLobby.joinButton': 'Tham gia phòng',
 
+    'tvPage.play': 'Phát',
+    'tvPage.pause': 'Tạm dừng',
+    'tvPage.next': 'Tiếp theo',
+    'tvPage.replay': 'Phát lại',
+    'tvPage.queue': 'Hàng chờ',
+    'tvPage.settings': 'Cài đặt',
+    'tvPage.controls': 'Điều khiển phát',
+    'tvPage.close': 'Đóng',
+    'tvPage.queueEmpty': 'Chưa có bài trong hàng chờ. Thêm bài từ điện thoại.',
+    'tvPage.queueCount': '{count} video',
+    'tvPage.nowPlaying': 'Đang phát',
+    'tvPage.settingsHint': 'Nhấn Back trên remote để quay lại phát video.',
+    'tvPage.settingsCreateHint': 'Tạo phòng xem chung mới trên TV này.',
+    'tvPage.controlsHint': 'Nhấn phím mũi tên trên remote để hiện điều khiển.',
+    'tvPage.offlineHint': 'Không kết nối được server. Chạy API: bun run dev:api',
+
     'seo.title': 'vkara - Hát karaoke cùng nhau trực tuyến',
     'seo.description':
         'vkara là ứng dụng hát karaoke trực tuyến miễn phí. Tạo phòng, mời bạn bè và hát cùng nhau mọi lúc mọi nơi qua YouTube.',

@@ -10,7 +10,11 @@ import {
     navigateTikTokPhotoTo,
 } from '@/lib/tiktok-playback-sync';
 import { isPlayerPageHidden } from '@/lib/tiktok-room-playback';
-import { applyRoomPlaybackToPlayer, applySeekToPlayer } from '@/lib/youtube-playback-sync';
+import {
+    applyRoomPlaybackToPlayer,
+    applySeekToPlayer,
+    isYoutubePlayerUsable,
+} from '@/lib/youtube-playback-sync';
 
 export type ActivePlaybackVideo = Pick<YouTubeVideo, 'source' | 'url'> | null | undefined;
 
@@ -36,7 +40,7 @@ export function applyPlaybackIntent({
         applyRoomPlaybackToTikTok(isPlaying);
         return;
     }
-    if (youtubePlayer) {
+    if (isYoutubePlayerUsable(youtubePlayer)) {
         applyRoomPlaybackToPlayer(youtubePlayer, isPlaying);
     }
 }
@@ -50,7 +54,9 @@ export function applyPlaybackVolume({
         applyTikTokVolume(volume);
         return;
     }
-    youtubePlayer?.setVolume(volume);
+    if (isYoutubePlayerUsable(youtubePlayer)) {
+        youtubePlayer.setVolume(volume);
+    }
 }
 
 export function applyPlaybackSeek({
@@ -62,7 +68,7 @@ export function applyPlaybackSeek({
         applySeekToTikTok(seconds);
         return;
     }
-    if (youtubePlayer) {
+    if (isYoutubePlayerUsable(youtubePlayer)) {
         applySeekToPlayer(youtubePlayer, seconds);
     }
 }

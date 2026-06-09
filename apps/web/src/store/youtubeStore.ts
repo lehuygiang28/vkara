@@ -47,7 +47,7 @@ interface YouTubeState {
     tvSuppressAutoCreate: boolean;
 
     setWsId: (wsId: string | null) => void;
-    setPlayer: (player: YT.Player) => void;
+    setPlayer: (player: YT.Player | null) => void;
     setVolume: (volume: number) => void;
     setCurrentTab: (currentTab: string) => void;
     setRoom: (room: Omit<Room, 'clients'> | null) => void;

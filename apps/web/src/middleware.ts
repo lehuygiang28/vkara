@@ -40,6 +40,18 @@ export function middleware(request: NextRequest) {
         return response;
     }
 
+    // Default locale (vi) Smart TV display at `/tv` without locale prefix.
+    if (pathname === '/tv' || pathname.startsWith('/tv/')) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${DEFAULT_APP_LOCALE}${pathname}`;
+        const response = NextResponse.rewrite(url);
+        response.cookies.set(LOCALE_COOKIE_NAME, DEFAULT_APP_LOCALE, {
+            sameSite: 'strict',
+            path: '/',
+        });
+        return response;
+    }
+
     const localeSegment = pathname.split('/').filter(Boolean)[0];
     if (localeSegment === 'en') {
         const response = NextResponse.next();

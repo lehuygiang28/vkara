@@ -123,3 +123,9 @@ export function buildLocalePrefixedPath(pathname: string, locale: AppLocale): st
 export function buildLocaleSharePath(locale: AppLocale): string {
     return getLocalePublicPath(locale);
 }
+
+/** Public URL for the Smart TV display route. */
+export function buildTvPublicPath(locale: AppLocale): string {
+    const root = getLocalePublicPath(locale);
+    return root === '/' ? '/tv' : `${root}/tv`;
+}

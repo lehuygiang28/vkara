@@ -18,7 +18,12 @@ const nextConfig: NextConfig = {
     // Trace deps from monorepo root — avoids bloated standalone node_modules.
     outputFileTracingRoot: path.join(__dirname, '../..'),
     experimental: {
-        optimizePackageImports: ['lucide-react', 'framer-motion'],
+        optimizePackageImports: [
+            'lucide-react',
+            'framer-motion',
+            '@noriginmedia/norigin-spatial-navigation-react',
+            '@noriginmedia/norigin-spatial-navigation-core',
+        ],
     },
     async redirects() {
         return [

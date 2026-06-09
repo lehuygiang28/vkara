@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
     applyPreferredPlaybackQuality,
     applyRoomPlaybackToPlayer,
+    isYoutubePlayerUsable,
     loadTrackOnPlayer,
     clearPlaybackBroadcastSuppression,
     hasPendingUserSeek,
@@ -79,6 +80,18 @@ describe('applyRoomPlaybackToPlayer', () => {
         applyRoomPlaybackToPlayer(player, false);
         expect(player.pauseVideo).toHaveBeenCalledTimes(1);
         expect(player.playVideo).not.toHaveBeenCalled();
+    });
+
+    it('no-ops when iframe is detached', () => {
+        const player = {
+            getIframe: () => null,
+            getPlayerState: () => YT.PlayerState.PLAYING,
+            playVideo: vi.fn(),
+            pauseVideo: vi.fn(),
+        } as unknown as YT.Player;
+
+        applyRoomPlaybackToPlayer(player, false);
+        expect(player.pauseVideo).not.toHaveBeenCalled();
     });
 
     it('does not pause when embed is already paused', () => {
@@ -217,6 +230,29 @@ describe('youtube player state helpers', () => {
 
         expect(isPlayerActuallyPlaying(playing)).toBe(true);
         expect(isPlayerActuallyPlaying(paused)).toBe(false);
+    });
+});
+
+describe('isYoutubePlayerUsable', () => {
+    it('rejects null and detached iframe players', () => {
+        expect(isYoutubePlayerUsable(null)).toBe(false);
+
+        const detached = {
+            getIframe: () => document.createElement('iframe'),
+        } as unknown as YT.Player;
+        expect(isYoutubePlayerUsable(detached)).toBe(false);
+    });
+
+    it('accepts players with iframe in the document', () => {
+        const iframe = document.createElement('iframe');
+        document.body.appendChild(iframe);
+
+        const attached = {
+            getIframe: () => iframe,
+        } as unknown as YT.Player;
+        expect(isYoutubePlayerUsable(attached)).toBe(true);
+
+        iframe.remove();
     });
 });
 
