@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 
 import { useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -12,13 +13,13 @@ import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 import { useTikTokHiddenPlayGuard } from '@/hooks/use-tiktok-hidden-play-guard';
 import { useTikTokPhotoIndexSync } from '@/hooks/use-tiktok-photo-index-sync';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
+import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 import { ConnectionStatusToast } from '@/components/connection-status-toast';
 
 import { TvSpatialRoot } from './tv-spatial-root';
 import { TvPlayerHost } from './tv-player-host';
 import { TvPlayerChrome } from './tv-player-chrome';
 import { TvPlayerFixedQr } from './tv-player-fixed-qr';
-import { TvSettingsPanel } from './tv-settings-panel';
 import { TvSpatialLobby } from './tv-spatial-lobby';
 
 export default function TvPage() {
@@ -50,7 +51,12 @@ export default function TvPage() {
         focusQueue,
         collapseQueue,
         closeSettings,
-    } = useTvOverlayStack({ controlsEnabled: !showLobby });
+    } = useTvOverlayStack({
+        controlsEnabled: !showLobby,
+        settingsCloseFocusKey: showLobby
+            ? TV_FOCUS_KEYS.lobbyCreate
+            : TV_FOCUS_KEYS.ctrlPlayPause,
+    });
 
     useEffect(() => {
         if (!lastMessage) {
@@ -61,21 +67,31 @@ export default function TvPage() {
 
     const isOffline = connectionStatus !== 'OPEN';
 
+    useEffect(() => {
+        if (!showLobby) {
+            return;
+        }
+
+        const frame = requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                try {
+                    setFocus(TV_FOCUS_KEYS.lobbyCreate);
+                } catch {
+                    // Spatial tree may not be ready.
+                }
+            });
+        });
+
+        return () => cancelAnimationFrame(frame);
+    }, [showLobby]);
+
     return (
         <TvSpatialRoot>
             <div className="relative h-[100dvh] w-full overflow-hidden bg-zinc-950 text-zinc-100">
                 <ConnectionStatusToast />
                 <main className="relative h-full w-full overflow-hidden">
                     {showLobby ? (
-                        <div className="flex h-full items-center justify-center px-4 py-8">
-                            <TvSpatialLobby onOpenSettingsAction={openSettings} />
-                            {settingsOpen ? (
-                                <TvSettingsPanel
-                                    onCloseAction={closeSettings}
-                                    variant="fullscreen"
-                                />
-                            ) : null}
-                        </div>
+                        <TvSpatialLobby isOffline={isOffline} />
                     ) : (
                         <>
                             <TvPlayerHost

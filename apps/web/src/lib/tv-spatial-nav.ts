@@ -25,6 +25,8 @@ export const TV_FOCUS_KEYS = {
     lobbyCreate: 'TV_LOBBY_CREATE',
     lobbySettings: 'TV_LOBBY_SETTINGS',
     lobbyJoin: 'TV_LOBBY_JOIN',
+    lobbyPassword: 'TV_LOBBY_PASSWORD',
+    lobbyCodeDigit: (index: number) => `TV_LOBBY_CODE_${index}`,
     queueItem: (videoId: string) => `TV_QUEUE_${videoId}`,
 } as const;
 

@@ -41,7 +41,6 @@ export function TvFocusable<P = object>({
     suppressFocusChrome = false,
 }: TvFocusableProps<P>) {
     const mountedFocusRef = useRef(false);
-    const nodeRef = useRef<HTMLDivElement | null>(null);
 
     const { ref, focused, focusKey } = useFocusable<P>({
         focusKey: propFocusKey,
@@ -50,9 +49,10 @@ export function TvFocusable<P = object>({
         onArrowPress,
         onFocus: () => {
             onFocus?.();
-            if (scrollIntoViewOnFocus && nodeRef.current) {
+            if (scrollIntoViewOnFocus) {
                 requestAnimationFrame(() => {
-                    nodeRef.current?.scrollIntoView({
+                    const node = (ref as React.RefObject<HTMLDivElement | null>).current;
+                    node?.scrollIntoView({
                         block: 'nearest',
                         behavior: 'smooth',
                     });
@@ -62,11 +62,6 @@ export function TvFocusable<P = object>({
         extraProps,
         accessibilityLabel,
     });
-
-    const setRef = (node: HTMLDivElement | null) => {
-        nodeRef.current = node;
-        ref.current = node;
-    };
 
     useEffect(() => {
         if (!focusOnMount || disabled || mountedFocusRef.current) {
@@ -94,7 +89,7 @@ export function TvFocusable<P = object>({
 
     return (
         <div
-            ref={setRef}
+            ref={ref}
             data-focused={focused ? 'true' : 'false'}
             className={cn(
                 'outline-none',

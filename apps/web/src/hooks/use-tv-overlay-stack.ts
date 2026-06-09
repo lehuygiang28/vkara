@@ -11,17 +11,27 @@ const HIDE_DELAY_MS = 5000;
 type UseTvOverlayStackOptions = {
     /** Player mode: auto-hide control bar. Lobby still uses settings/back stack. */
     controlsEnabled?: boolean;
+    /** Focus target when opening settings (lobby vs in-room). */
+    settingsOpenFocusKey?: string;
+    /** Focus target when closing settings. */
+    settingsCloseFocusKey?: string;
 };
 
-export function useTvOverlayStack({ controlsEnabled = true }: UseTvOverlayStackOptions = {}) {
+export function useTvOverlayStack({
+    controlsEnabled = true,
+    settingsOpenFocusKey = TV_FOCUS_KEYS.settingsQrToggle,
+    settingsCloseFocusKey = TV_FOCUS_KEYS.ctrlPlayPause,
+}: UseTvOverlayStackOptions = {}) {
     const [controlsVisible, setControlsVisible] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [queueExpanded, setQueueExpanded] = useState(false);
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const controlsVisibleRef = useRef(controlsVisible);
     const settingsOpenRef = useRef(settingsOpen);
+    const controlsEnabledRef = useRef(controlsEnabled);
     controlsVisibleRef.current = controlsVisible;
     settingsOpenRef.current = settingsOpen;
+    controlsEnabledRef.current = controlsEnabled;
 
     const drawerOpen = settingsOpen;
 
@@ -95,24 +105,28 @@ export function useTvOverlayStack({ controlsEnabled = true }: UseTvOverlayStackO
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 try {
-                    setFocus(`${TV_FOCUS_KEYS.settingsQrToggle}_show`);
+                    setFocus(settingsOpenFocusKey);
                 } catch {
-                    try {
-                        setFocus(TV_FOCUS_KEYS.settingsCreate);
-                    } catch {
-                        // Settings tree may not be mounted yet.
-                    }
+                    // Settings tree may not be mounted yet.
                 }
             });
         });
-    }, [controlsEnabled, clearHideTimer]);
+    }, [controlsEnabled, clearHideTimer, settingsOpenFocusKey]);
 
     const closeSettings = useCallback(() => {
         setSettingsOpen(false);
         setQueueExpanded(false);
-        revealControls();
-        requestAnimationFrame(() => setFocus(TV_FOCUS_KEYS.ctrlPlayPause));
-    }, [revealControls]);
+        if (controlsEnabled) {
+            revealControls();
+        }
+        requestAnimationFrame(() => {
+            try {
+                setFocus(settingsCloseFocusKey);
+            } catch {
+                // Spatial tree may not be mounted yet.
+            }
+        });
+    }, [controlsEnabled, revealControls, settingsCloseFocusKey]);
 
     const toggleSettings = useCallback(() => {
         if (settingsOpen) {
@@ -174,6 +188,11 @@ export function useTvOverlayStack({ controlsEnabled = true }: UseTvOverlayStackO
 
             if (isTvRevealKey(event.key)) {
                 if (settingsOpenRef.current) {
+                    return;
+                }
+
+                // Lobby — spatial nav owns arrow/enter; do not steal focus.
+                if (!controlsEnabledRef.current) {
                     return;
                 }
 

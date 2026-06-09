@@ -354,7 +354,9 @@ export function TvSettingsPanel({
             >
                 <header className={cn('mb-8 shrink-0', !isRail && 'max-w-3xl')}>
                     <h1 className="tv-settings-panel-title">{tTv('settings')}</h1>
-                    <p className="tv-settings-panel-hint mt-3">{tTv('settingsHint')}</p>
+                    <p className="tv-settings-panel-hint mt-3">
+                        {room ? tTv('settingsHint') : tTv('settingsLobbyHint')}
+                    </p>
                 </header>
 
                 <div className={cn('flex w-full flex-col gap-8', !isRail && 'mx-auto max-w-3xl')}>
