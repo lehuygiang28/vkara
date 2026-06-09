@@ -20,6 +20,7 @@ import { TvSpatialRoot } from './tv-spatial-root';
 import { TvPlayerHost } from './tv-player-host';
 import { TvPlayerChrome } from './tv-player-chrome';
 import { TvPlayerFixedQr } from './tv-player-fixed-qr';
+import { TvSettingsPanel } from './tv-settings-panel';
 import { TvSpatialLobby } from './tv-spatial-lobby';
 
 export default function TvPage() {
@@ -41,6 +42,8 @@ export default function TvPage() {
     const { lastMessage } = useWebSocket();
 
     const showLobby = !roomId && tvSuppressAutoCreate;
+    const inRoom = Boolean(roomId) && !showLobby;
+    const isPlayerActive = inRoom && Boolean(playingNow);
 
     const {
         controlsVisible,
@@ -51,11 +54,14 @@ export default function TvPage() {
         focusQueue,
         collapseQueue,
         closeSettings,
+        hideControls,
     } = useTvOverlayStack({
-        controlsEnabled: !showLobby,
+        controlsEnabled: isPlayerActive,
         settingsCloseFocusKey: showLobby
             ? TV_FOCUS_KEYS.lobbyCreate
-            : TV_FOCUS_KEYS.ctrlPlayPause,
+            : isPlayerActive
+              ? TV_FOCUS_KEYS.ctrlPlayPause
+              : TV_FOCUS_KEYS.idleQr,
     });
 
     useEffect(() => {
@@ -72,6 +78,9 @@ export default function TvPage() {
             return;
         }
 
+        hideControls();
+        closeSettings();
+
         const frame = requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 try {
@@ -83,7 +92,15 @@ export default function TvPage() {
         });
 
         return () => cancelAnimationFrame(frame);
-    }, [showLobby]);
+    }, [showLobby, hideControls, closeSettings]);
+
+    useEffect(() => {
+        if (isPlayerActive) {
+            return;
+        }
+
+        hideControls();
+    }, [isPlayerActive, hideControls]);
 
     return (
         <TvSpatialRoot>
@@ -109,16 +126,23 @@ export default function TvPage() {
                                 />
                             ) : null}
 
-                            <TvPlayerChrome
-                                visible={controlsVisible}
-                                settingsOpen={settingsOpen}
-                                queueExpanded={queueExpanded}
-                                onRevealAction={revealControls}
-                                onQueueFocusAction={focusQueue}
-                                onQueueCollapseAction={collapseQueue}
-                                onOpenSettingsAction={openSettings}
-                                onCloseSettingsAction={closeSettings}
-                            />
+                            {isPlayerActive ? (
+                                <TvPlayerChrome
+                                    visible={controlsVisible}
+                                    settingsOpen={settingsOpen}
+                                    queueExpanded={queueExpanded}
+                                    onRevealAction={revealControls}
+                                    onQueueFocusAction={focusQueue}
+                                    onQueueCollapseAction={collapseQueue}
+                                    onOpenSettingsAction={openSettings}
+                                    onCloseSettingsAction={closeSettings}
+                                />
+                            ) : settingsOpen ? (
+                                <TvSettingsPanel
+                                    onCloseAction={closeSettings}
+                                    variant="rail"
+                                />
+                            ) : null}
 
                             {!controlsVisible && playingNow ? (
                                 <div

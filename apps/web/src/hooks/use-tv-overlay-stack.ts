@@ -159,7 +159,7 @@ export function useTvOverlayStack({
     useEffect(() => {
         if (!controlsEnabled) {
             setControlsVisible(false);
-            setSettingsOpen(false);
+            setQueueExpanded(false);
             clearHideTimer();
         }
     }, [controlsEnabled, clearHideTimer]);
