@@ -234,25 +234,38 @@ describe('youtube player state helpers', () => {
 });
 
 describe('isYoutubePlayerUsable', () => {
+    const containsMock = vi.fn();
+
+    beforeEach(() => {
+        vi.stubGlobal('document', {
+            body: { contains: containsMock },
+        });
+    });
+
+    afterEach(() => {
+        vi.unstubAllGlobals();
+        containsMock.mockReset();
+    });
+
     it('rejects null and detached iframe players', () => {
         expect(isYoutubePlayerUsable(null)).toBe(false);
 
+        const iframe = {} as HTMLIFrameElement;
+        containsMock.mockReturnValue(false);
         const detached = {
-            getIframe: () => document.createElement('iframe'),
+            getIframe: () => iframe,
         } as unknown as YT.Player;
         expect(isYoutubePlayerUsable(detached)).toBe(false);
     });
 
     it('accepts players with iframe in the document', () => {
-        const iframe = document.createElement('iframe');
-        document.body.appendChild(iframe);
+        const iframe = {} as HTMLIFrameElement;
+        containsMock.mockReturnValue(true);
 
         const attached = {
             getIframe: () => iframe,
         } as unknown as YT.Player;
         expect(isYoutubePlayerUsable(attached)).toBe(true);
-
-        iframe.remove();
     });
 });
 

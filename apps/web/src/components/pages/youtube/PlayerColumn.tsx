@@ -258,7 +258,7 @@ function PlayerColumnInner({
         }
 
         applyTrackToPlayer(player, playingNowId);
-    }, [playingNowId, isTikTokNow, youtubeEmbedMounted, applyTrackToPlayer]);
+    }, [playingNowId, isTikTokNow, youtubeEmbedMounted, applyTrackToPlayer, setPlayer]);
 
     useEffect(() => {
         if (!isTikTokNow || !youtubeEmbedMounted) {
