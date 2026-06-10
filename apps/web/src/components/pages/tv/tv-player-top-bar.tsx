@@ -42,22 +42,24 @@ export function TvPlayerTopBar({ className }: TvPlayerTopBarProps) {
             <h1 className="line-clamp-2 text-2xl font-semibold leading-tight tracking-tight text-white md:text-[1.85rem] lg:text-[2rem]">
                 {playingNow.title}
             </h1>
-            <div className="tv-player-top-bar__meta mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <VideoChannels
-                    video={playingNow}
-                    tone="inverse"
-                    maxLines={2}
-                    className="tv-player-top-bar__channels min-w-0 flex-1 text-base font-medium md:text-xl"
-                />
-                {isLive ? (
-                    <span className="shrink-0 text-base font-medium text-zinc-200 md:text-xl">
-                        · {tYoutube('liveNow')}
-                    </span>
-                ) : viewsLabel ? (
-                    <span className="shrink-0 text-base font-medium tabular-nums text-zinc-200 md:text-xl">
-                        · {viewsLabel}
-                    </span>
-                ) : null}
+            <div className="tv-player-top-bar__meta mt-2 min-w-0 max-w-full">
+                <div className="inline-flex min-w-0 max-w-full flex-wrap items-center gap-x-2 gap-y-1">
+                    <VideoChannels
+                        video={playingNow}
+                        tone="inverse"
+                        maxLines={2}
+                        className="tv-player-top-bar__channels w-auto min-w-0 text-base font-medium md:text-xl"
+                    />
+                    {isLive ? (
+                        <span className="shrink-0 text-base font-medium text-zinc-200 md:text-xl">
+                            · {tYoutube('liveNow')}
+                        </span>
+                    ) : viewsLabel ? (
+                        <span className="shrink-0 text-base font-medium tabular-nums text-zinc-200 md:text-xl">
+                            · {viewsLabel}
+                        </span>
+                    ) : null}
+                </div>
             </div>
         </header>
     );
