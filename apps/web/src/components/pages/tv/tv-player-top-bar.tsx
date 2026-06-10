@@ -44,7 +44,7 @@ export function TvPlayerTopBar({ className }: TvPlayerTopBarProps) {
     return (
         <header
             className={cn(
-                'tv-player-top-bar min-w-0 w-full pr-4 transition-[padding] duration-300 ease-out md:pr-8',
+                'tv-player-top-bar min-w-0 w-full pr-4 transition-[padding] duration-[280ms] ease-[cubic-bezier(0.22,1,0.36,1)] md:pr-8',
                 reserveQrSpace && 'tv-player-top-bar--qr-visible',
                 className,
             )}

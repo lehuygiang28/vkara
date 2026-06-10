@@ -138,6 +138,7 @@ export default function TvPage() {
                                     roomId={roomId}
                                     roomPassword={roomPassword}
                                     locale={locale}
+                                    expanded={controlsVisible && !settingsOpen}
                                     onOpenSettingsAction={openSettings}
                                 />
                             ) : null}
