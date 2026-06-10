@@ -9,15 +9,15 @@ import { needsPlaybackSeekCorrection } from '@vkara/room';
 import { isVideoLive } from '@vkara/tiktok';
 import { useCurrentLocale } from '@/locales/client';
 import { useCountdownStore } from '@/store/countdownTimersStore';
-import { useWebSocket } from '@/providers/websocket-provider';
 import { useTikTokHiddenPlayGuard } from '@/hooks/use-tiktok-hidden-play-guard';
 import { useTikTokPhotoIndexSync } from '@/hooks/use-tiktok-photo-index-sync';
+import { ensureConnectedAndSend } from '@/lib/ensure-ws-send';
 import {
     applyYoutubeCaptions,
     listYoutubeCaptionTracks,
     scheduleCaptionTrackSync,
 } from '@/lib/youtube-captions';
-import { applyPlaybackIntent, applyPlaybackSeek, isTikTokPlayback } from '@/lib/active-playback';
+import { applyPlaybackIntent, isTikTokPlayback } from '@/lib/active-playback';
 import {
     applyPreferredPlaybackQuality,
     applyRoomPlaybackToPlayer,
@@ -28,31 +28,22 @@ import {
     loadTrackOnPlayer,
     shouldSuppressPlaybackBroadcast,
     markServerPlaybackCommand,
-    markUserSeekTarget,
 } from '@/lib/youtube-playback-sync';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { PlayerEmbedSurfaceMemo } from '@/components/player/player-embed-surface';
-import { TvEmbedFocusGuard } from '@/components/pages/tv/tv-embed-focus-guard';
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 
 const TvPlayerQrZone = dynamic(
     () => import('@/components/pages/youtube/TvPlayerQrZone').then((m) => m.TvPlayerQrZone),
     { ssr: false },
 );
-const TvNextUpOverlay = dynamic(
-    () => import('./tv-next-up-overlay').then((m) => m.TvNextUpOverlay),
-    { ssr: false },
-);
-
 const EMPTY_CAPTION_TRACKS: CaptionTrack[] = [];
-const EMPTY_VIDEO_QUEUE: import('@vkara/youtube').YouTubeVideo[] = [];
 
 type TvPlayerHostProps = {
     onOpenSettingsAction: () => void;
-    controlsVisible?: boolean;
 };
 
-function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: TvPlayerHostProps) {
+function TvPlayerHostInner({ onOpenSettingsAction }: TvPlayerHostProps) {
     useTikTokHiddenPlayGuard();
     useTikTokPhotoIndexSync();
 
@@ -61,7 +52,6 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
         roomId,
         roomPassword,
         roomIsPlaying,
-        videoQueue,
         showQRInPlayer,
         captionsEnabled,
         captionsLanguage,
@@ -70,7 +60,6 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
         volume,
         setPlayer,
         setVolume,
-        nextVideo,
         setIsPlaying,
     } = useYouTubeStore(
         useShallow((s) => ({
@@ -78,7 +67,6 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
             roomId: s.room?.id,
             roomPassword: s.room?.password,
             roomIsPlaying: s.room?.isPlaying ?? false,
-            videoQueue: s.room?.videoQueue ?? EMPTY_VIDEO_QUEUE,
             showQRInPlayer: s.room?.showQRInPlayer ?? true,
             captionsEnabled: s.room?.captionsEnabled ?? false,
             captionsLanguage: s.room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE,
@@ -87,7 +75,6 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
             volume: s.volume,
             setPlayer: s.setPlayer,
             setVolume: s.setVolume,
-            nextVideo: s.nextVideo,
             setIsPlaying: s.setIsPlaying,
         })),
     );
@@ -101,19 +88,8 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
     });
 
     const locale = useCurrentLocale();
-    const { shouldShowTimer, setShouldShowTimer, cancelCountdown, resetCountdown } =
-        useCountdownStore(
-            useShallow((state) => ({
-                shouldShowTimer: state.shouldShowTimer,
-                setShouldShowTimer: state.setShouldShowTimer,
-                cancelCountdown: state.cancelCountdown,
-                resetCountdown: state.reset,
-            })),
-        );
-    const { ensureConnectedAndSend } = useWebSocket();
 
     const skippedUnplayableRef = useRef<string | null>(null);
-    const endedForVideoIdRef = useRef<string | null>(null);
     const captionSyncCleanupRef = useRef<(() => void) | null>(null);
     const prevPlayingNowIdRef = useRef<string | null>(null);
     const embedSeedVideoIdRef = useRef<string | null>(null);
@@ -124,15 +100,14 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
     const isTikTokNow = isTikTokPlayback({ video: playingNow });
 
     useEffect(() => {
-        resetCountdown();
-        endedForVideoIdRef.current = null;
-    }, [playingNow?.id, resetCountdown]);
+        useCountdownStore.getState().reset();
+    }, [playingNowId]);
 
     useEffect(() => {
         skippedUnplayableRef.current = null;
         captionSyncCleanupRef.current?.();
         captionSyncCleanupRef.current = null;
-    }, [playingNow?.id]);
+    }, [playingNowId]);
 
     useEffect(() => {
         if (!roomId || !playingNowId) {
@@ -176,7 +151,7 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
                 tracks,
             });
         },
-        [ensureConnectedAndSend],
+        [],
     );
 
     const applyTrackToPlayer = useCallback(
@@ -328,7 +303,7 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
             if (playerState === YT.PlayerState.PLAYING) {
                 clearPlaybackBroadcastSuppression();
                 applyPreferredPlaybackQuality(event.target);
-                cancelCountdown();
+                useCountdownStore.getState().cancelCountdown();
             }
 
             if (playerState === YT.PlayerState.ENDED) {
@@ -336,18 +311,10 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
                 if (!current || isVideoLive({ video: current })) {
                     return;
                 }
-                endedForVideoIdRef.current = current.id;
-                setShouldShowTimer(true);
+                useCountdownStore.getState().setShouldShowTimer(true);
             }
         },
-        [
-            roomId,
-            ensureConnectedAndSend,
-            setIsPlaying,
-            syncCaptionTracksFromPlayer,
-            cancelCountdown,
-            setShouldShowTimer,
-        ],
+        [roomId, setIsPlaying, syncCaptionTracksFromPlayer],
     );
 
     const onPlayerError = useCallback(
@@ -372,36 +339,16 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
 
             ensureConnectedAndSend({ type: 'skipUnplayableVideo', videoId: currentVideoId });
         },
-        [roomId, ensureConnectedAndSend],
+        [roomId],
     );
-
-    const handleVideoFinished = useCallback(() => {
-        const currentRoom = useYouTubeStore.getState().room;
-        const endedForId = endedForVideoIdRef.current;
-
-        if (!endedForId || currentRoom?.playingNow?.id !== endedForId) {
-            cancelCountdown();
-            endedForVideoIdRef.current = null;
-            return;
-        }
-
-        endedForVideoIdRef.current = null;
-
-        if (currentRoom) {
-            ensureConnectedAndSend({ type: 'videoFinished' });
-        } else {
-            nextVideo();
-        }
-    }, [cancelCountdown, ensureConnectedAndSend, nextVideo]);
 
     const handleEmbedEnded = useCallback(() => {
         const current = useYouTubeStore.getState().room?.playingNow;
         if (!current) {
             return;
         }
-        endedForVideoIdRef.current = current.id;
-        setShouldShowTimer(true);
-    }, [setShouldShowTimer]);
+        useCountdownStore.getState().setShouldShowTimer(true);
+    }, []);
 
     const handleSkipUnplayable = useCallback(
         (videoId: string) => {
@@ -416,34 +363,6 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
         },
         [ensureConnectedAndSend, roomId],
     );
-
-    const dismissNextUp = useCallback(() => {
-        cancelCountdown();
-        endedForVideoIdRef.current = null;
-    }, [cancelCountdown]);
-
-    const handleReplayVideo = useCallback(async () => {
-        const previous = useYouTubeStore.getState().room?.currentTime ?? 0;
-        markUserSeekTarget(0, previous);
-        useYouTubeStore.setState((state) => ({
-            room: state.room ? { ...state.room, currentTime: 0, isPlaying: true } : null,
-        }));
-        const { player, room } = useYouTubeStore.getState();
-        applyPlaybackSeek({
-            video: room?.playingNow,
-            youtubePlayer: player,
-            seconds: 0,
-        });
-        ensureConnectedAndSend({ type: 'replay' });
-    }, [ensureConnectedAndSend]);
-
-    const handleNextUpReplay = useCallback(() => {
-        dismissNextUp();
-        void handleReplayVideo();
-    }, [dismissNextUp, handleReplayVideo]);
-
-    const showNextUpOverlay = Boolean(playingNow && shouldShowTimer && videoQueue.length > 0);
-    const nextQueuedVideo = videoQueue[0];
 
     return (
         <div className="absolute inset-0 bg-black">
@@ -486,18 +405,6 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
                 />
             ) : null}
 
-            {playingNow ? (
-                <TvEmbedFocusGuard controlsVisible={controlsVisible && !showNextUpOverlay} />
-            ) : null}
-
-            {showNextUpOverlay && nextQueuedVideo ? (
-                <TvNextUpOverlay
-                    nextVideo={nextQueuedVideo}
-                    onPlayNextAction={handleVideoFinished}
-                    onReplayAction={handleNextUpReplay}
-                    onCountdownCompleteAction={handleVideoFinished}
-                />
-            ) : null}
         </div>
     );
 }

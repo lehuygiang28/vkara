@@ -14,10 +14,19 @@ import { useTvOverlayStack } from '@/hooks/use-tv-overlay-stack';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
-import { ConnectionStatusToast } from '@/components/connection-status-toast';
 
 import { TvSpatialRoot } from './tv-spatial-root';
 import { TvPlayerHost } from './tv-player-host';
+import { TvEmbedFocusGuard } from './tv-embed-focus-guard';
+import { TvNextUpGate } from './tv-next-up-gate';
+
+const ConnectionStatusToast = dynamic(
+    () =>
+        import('@/components/connection-status-toast').then((m) => ({
+            default: m.ConnectionStatusToast,
+        })),
+    { ssr: false },
+);
 
 const TvLobby = dynamic(() => import('./tv-lobby').then((m) => ({ default: m.TvLobby })), {
     ssr: false,
@@ -172,10 +181,15 @@ export default function TvPage() {
                         <TvLobby />
                     ) : (
                         <>
-                            <TvPlayerHost
-                                onOpenSettingsAction={openSettings}
-                                controlsVisible={controlsVisible}
-                            />
+                            <TvPlayerHost onOpenSettingsAction={openSettings} />
+
+                            {isPlayerActive && playingNow ? (
+                                <TvEmbedFocusGuard
+                                    controlsVisible={controlsVisible && !nextUpVisible}
+                                />
+                            ) : null}
+
+                            {isPlayerActive ? <TvNextUpGate /> : null}
 
                             {playingNow && showQRInPlayer && roomId && !nextUpVisible ? (
                                 <TvPlayerFixedQr

@@ -9,8 +9,7 @@ import {
     resumeTikTokAfterBackgroundIfNeeded,
     subscribeTikTokVisibilityPlayback,
 } from '@/lib/tiktok-room-playback';
-import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
-import { useWebSocket } from '@/providers/websocket-provider';
+import { ensureConnectedAndSend } from '@/lib/ensure-ws-send';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 /**
@@ -19,53 +18,51 @@ import { useYouTubeStore } from '@/store/youtubeStore';
  * - auto-resume when tab visible after a tab-hidden pause
  */
 export function useTikTokHiddenPlayGuard(): void {
-    const { effectiveLayoutMode } = useEffectiveLayoutMode();
-    const roomIsPlaying = useYouTubeStore((s) => s.room?.isPlaying ?? false);
-    const playingNow = useYouTubeStore((s) => s.room?.playingNow);
-    const roomId = useYouTubeStore((s) => s.room?.id);
-    const { ensureConnectedAndSend } = useWebSocket();
-
-    const playingNowId = playingNow?.id;
-    const isTikTokHost =
-        effectiveLayoutMode !== 'remote' &&
-        Boolean(roomId && playingNow && isTikTokPlayback({ video: playingNow }));
+    const tiktokHostContext = useYouTubeStore((s) => {
+        const roomId = s.room?.id;
+        const playingNow = s.room?.playingNow;
+        if (!roomId || !playingNow || !isTikTokPlayback({ video: playingNow })) {
+            return null;
+        }
+        return {
+            playingNowId: playingNow.id,
+            roomIsPlaying: s.room?.isPlaying ?? false,
+        };
+    });
 
     useEffect(() => {
-        if (!isTikTokHost || !playingNowId) {
+        if (!tiktokHostContext) {
             return;
         }
         clearTikTokBackgroundResumeIntent();
-    }, [isTikTokHost, playingNowId]);
+    }, [tiktokHostContext?.playingNowId, tiktokHostContext]);
 
     useEffect(() => {
-        if (!isTikTokHost || !playingNowId) {
-            return;
-        }
-        if (!roomIsPlaying) {
+        if (!tiktokHostContext?.roomIsPlaying) {
             return;
         }
 
         rejectTikTokPlayWhileHidden({
-            videoId: playingNowId,
+            videoId: tiktokHostContext.playingNowId,
             ensureConnectedAndSend,
         });
-    }, [isTikTokHost, playingNowId, roomIsPlaying, ensureConnectedAndSend]);
+    }, [tiktokHostContext]);
 
     useEffect(() => {
-        if (!isTikTokHost || !playingNowId) {
+        if (!tiktokHostContext) {
             return;
         }
 
         const unsubscribe = subscribeTikTokVisibilityPlayback({
-            videoId: playingNowId,
+            videoId: tiktokHostContext.playingNowId,
             ensureConnectedAndSend,
         });
 
         resumeTikTokAfterBackgroundIfNeeded({
-            videoId: playingNowId,
+            videoId: tiktokHostContext.playingNowId,
             ensureConnectedAndSend,
         });
 
         return unsubscribe;
-    }, [isTikTokHost, playingNowId, ensureConnectedAndSend]);
+    }, [tiktokHostContext]);
 }

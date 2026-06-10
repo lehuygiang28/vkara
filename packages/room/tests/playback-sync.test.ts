@@ -4,6 +4,7 @@ import {
     acceptSyncPlaybackPositionTime,
     computeExtrapolatedPlaybackSeconds,
     isPlaybackPositionForActiveVideo,
+    isRedundantPlaybackTimeStoreUpdate,
     needsPlaybackSeekCorrection,
     PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC,
     PLAYBACK_TIME_BROADCAST_MIN_DELTA_SEC,
@@ -24,6 +25,27 @@ describe('acceptSyncPlaybackPositionTime', () => {
 
     it('floors fractional seconds', () => {
         expect(acceptSyncPlaybackPositionTime(10.9, 10.2)).toBe(10);
+    });
+});
+
+describe('isRedundantPlaybackTimeStoreUpdate', () => {
+    it('is true when drift is within tolerance and no seek is needed', () => {
+        expect(isRedundantPlaybackTimeStoreUpdate(120, 121, false)).toBe(true);
+        expect(isRedundantPlaybackTimeStoreUpdate(120, 122, false)).toBe(true);
+    });
+
+    it('is false when a seek is required', () => {
+        expect(isRedundantPlaybackTimeStoreUpdate(120, 121, true)).toBe(false);
+    });
+
+    it('is false when drift exceeds tolerance', () => {
+        expect(
+            isRedundantPlaybackTimeStoreUpdate(
+                100,
+                100 + PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC + 1,
+                false,
+            ),
+        ).toBe(false);
     });
 });
 

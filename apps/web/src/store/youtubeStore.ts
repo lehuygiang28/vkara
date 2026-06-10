@@ -5,6 +5,7 @@ import {
     ErrorCode,
     normalizePersistedRoom,
     needsPlaybackSeekCorrection,
+    isRedundantPlaybackTimeStoreUpdate,
     type Room,
     type ServerMessage,
 } from '@vkara/room';
@@ -288,17 +289,18 @@ export const useYouTubeStore = create(
                                 }
 
                                 const playing = state.room?.playingNow;
+                                let needsSeek = false;
                                 if (playing) {
                                     const seekBase = isTikTokPlayback({ video: playing })
                                         ? getTikTokSeekBaseSeconds(state.room?.isPlaying ?? false)
                                         : (state.player?.getCurrentTime() ?? roomTime);
-                                    if (
+                                    needsSeek =
                                         needsPlaybackSeekCorrection(
                                             seekBase,
                                             message.currentTime,
                                         ) &&
-                                        (isTikTokPlayback({ video: playing }) || state.player)
-                                    ) {
+                                        (isTikTokPlayback({ video: playing }) || Boolean(state.player));
+                                    if (needsSeek) {
                                         markServerPlaybackCommand();
                                         applyPlaybackSeek({
                                             video: playing,
@@ -307,6 +309,19 @@ export const useYouTubeStore = create(
                                         });
                                     }
                                 }
+
+                                if (
+                                    isTvLayout &&
+                                    isRedundantPlaybackTimeStoreUpdate(
+                                        roomTime,
+                                        message.currentTime,
+                                        needsSeek,
+                                    )
+                                ) {
+                                    clearPlaybackBroadcastSuppression();
+                                    return state;
+                                }
+
                                 clearPlaybackBroadcastSuppression();
                                 return {
                                     ...state,

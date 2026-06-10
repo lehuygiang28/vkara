@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useRef } from 'react';
 
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { useWebSocket } from '@/providers/websocket-provider';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
+import { ensureConnectedAndSend } from '@/lib/ensure-ws-send';
 import { readPlaybackPositionSeconds } from '@/lib/active-playback';
 import { shouldSuppressPlaybackBroadcast } from '@/lib/youtube-playback-sync';
 import {
@@ -22,12 +22,13 @@ const PERIODIC_SYNC_INTERVAL_MS = PLAYBACK_TIME_BROADCAST_MIN_INTERVAL_MS;
  * Uses syncPlaybackPosition (not seek) so remotes get anchors without re-seeking the TV.
  */
 export function usePlaybackPositionSync(): void {
-    const { effectiveLayoutMode } = useEffectiveLayoutMode();
-    const playingNow = useYouTubeStore((s) => s.room?.playingNow);
+    const layoutModeSource = useYouTubeStore((s) => s.layoutModeSource);
+    const { effectiveLayoutMode: viewportLayoutMode } = useEffectiveLayoutMode();
+    const effectiveLayoutMode = layoutModeSource === 'url' ? 'player' : viewportLayoutMode;
+
+    const playingNowId = useYouTubeStore((s) => s.room?.playingNow?.id);
     const roomId = useYouTubeStore((s) => s.room?.id);
-    const playingNowId = playingNow?.id;
     const isPlaying = useYouTubeStore((s) => s.room?.isPlaying ?? false);
-    const { ensureConnectedAndSend } = useWebSocket();
     const isRoomSessionReady = useIsRoomSessionReady();
     const lastSentRef = useRef<PlaybackTimeSyncState | undefined>(undefined);
     const prevIsPlayingRef = useRef<boolean | undefined>(undefined);
@@ -69,7 +70,7 @@ export function usePlaybackPositionSync(): void {
                 force,
             });
         },
-        [roomId, isRoomSessionReady, playingNowId, ensureConnectedAndSend],
+        [roomId, isRoomSessionReady, playingNowId],
     );
 
     useEffect(() => {

@@ -287,32 +287,34 @@ export function TvSettingsPanel({ onCloseAction }: TvSettingsPanelProps) {
     const locale = useCurrentLocale();
     const changeLocale = useChangeLocale({ preserveSearchParams: true });
 
-    const { wsId, room, enterTvLobby } = useYouTubeStore();
+    const wsId = useYouTubeStore((s) => s.wsId);
+    const roomId = useYouTubeStore((s) => s.room?.id);
+    const roomCreatorId = useYouTubeStore((s) => s.room?.creatorId);
+    const showQRInPlayer = useYouTubeStore((s) => s.room?.showQRInPlayer ?? true);
+    const enterTvLobby = useYouTubeStore((s) => s.enterTvLobby);
     const { ensureConnectedAndSend } = useWebSocket();
 
-    const showQRInPlayer = room?.showQRInPlayer ?? true;
-
     const leaveRoom = useCallback(() => {
-        if (!room?.id) {
+        if (!roomId) {
             return;
         }
         ensureConnectedAndSend({ type: 'leaveRoom' });
         enterTvLobby();
         onCloseAction();
-    }, [ensureConnectedAndSend, room?.id, enterTvLobby, onCloseAction]);
+    }, [ensureConnectedAndSend, roomId, enterTvLobby, onCloseAction]);
 
     const closeRoom = useCallback(() => {
-        if (!room?.id) {
+        if (!roomId) {
             return;
         }
         ensureConnectedAndSend({ type: 'closeRoom' });
         enterTvLobby();
         onCloseAction();
-    }, [ensureConnectedAndSend, room?.id, enterTvLobby, onCloseAction]);
+    }, [ensureConnectedAndSend, roomId, enterTvLobby, onCloseAction]);
 
     const handleShowQrChange = useCallback(
         (show: boolean) => {
-            if (!room?.id) {
+            if (!roomId) {
                 toastSessionNotReady({
                     title: t('toast.sessionNotReady'),
                     description: t('toast.sessionNotReadyDescription'),
@@ -324,7 +326,7 @@ export function TvSettingsPanel({ onCloseAction }: TvSettingsPanelProps) {
                 show,
             });
         },
-        [room?.id, ensureConnectedAndSend, t],
+        [roomId, ensureConnectedAndSend, t],
     );
 
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -341,7 +343,7 @@ export function TvSettingsPanel({ onCloseAction }: TvSettingsPanelProps) {
         handleUpPeekScroll,
     };
 
-    if (!room) {
+    if (!roomId) {
         return null;
     }
 
@@ -363,7 +365,7 @@ export function TvSettingsPanel({ onCloseAction }: TvSettingsPanelProps) {
                     <section>
                         <SettingsSectionLabel>{tRoom('roomId')}</SettingsSectionLabel>
                         <div className="tv-settings-room-id">
-                            <p className="tv-settings-room-id__digits">{room.id}</p>
+                            <p className="tv-settings-room-id__digits">{roomId}</p>
                         </div>
                     </section>
 
@@ -403,7 +405,7 @@ export function TvSettingsPanel({ onCloseAction }: TvSettingsPanelProps) {
                             onEnterPress={leaveRoom}
                         />
 
-                        {room.creatorId === wsId ? (
+                        {roomCreatorId === wsId ? (
                             <SettingsRow
                                 {...scrollProps}
                                 focusKey={TV_FOCUS_KEYS.settingsCloseRoom}

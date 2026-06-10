@@ -70,6 +70,23 @@ export function needsPlaybackSeekCorrection(playerSeconds: number, targetSeconds
     return Math.abs(player - target) > PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC;
 }
 
+/**
+ * Skip cloning room state when a playback-time echo would not seek and is within drift tolerance.
+ * Used on dedicated TV hosts to avoid ~15s store churn from self-echoed `currentTimeChanged`.
+ */
+export function isRedundantPlaybackTimeStoreUpdate(
+    roomSeconds: number,
+    targetSeconds: number,
+    needsSeek: boolean,
+): boolean {
+    if (needsSeek) {
+        return false;
+    }
+    const room = Math.floor(roomSeconds);
+    const target = Math.floor(targetSeconds);
+    return Math.abs(target - room) <= PLAYBACK_PLAYER_DRIFT_TOLERANCE_SEC;
+}
+
 export function shouldBroadcastPlaybackTime(
     last: PlaybackTimeSyncState | undefined,
     nextSeconds: number,
