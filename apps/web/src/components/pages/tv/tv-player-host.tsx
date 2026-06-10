@@ -361,7 +361,7 @@ function TvPlayerHostInner({ onOpenSettingsAction }: TvPlayerHostProps) {
             skippedUnplayableRef.current = videoId;
             ensureConnectedAndSend({ type: 'skipUnplayableVideo', videoId });
         },
-        [ensureConnectedAndSend, roomId],
+        [roomId],
     );
 
     return (
