@@ -26,6 +26,9 @@ export const TV_FOCUS_KEYS = {
     lobbyPassword: 'TV_LOBBY_PASSWORD',
     lobbyCodeDigit: (index: number) => `TV_LOBBY_CODE_${index}`,
     queueItem: (videoId: string) => `TV_QUEUE_${videoId}`,
+    nextUpPanel: 'TV_NEXT_UP_PANEL',
+    nextUpPlayNext: 'TV_NEXT_UP_PLAY_NEXT',
+    nextUpReplay: 'TV_NEXT_UP_REPLAY',
 } as const;
 
 /** Keys that reveal the TV overlay chrome (YouTube TV style). */

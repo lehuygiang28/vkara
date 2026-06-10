@@ -361,6 +361,12 @@ export default {
     'tvPage.queueEmpty': 'Chưa có bài trong hàng chờ. Thêm bài từ điện thoại.',
     'tvPage.queueCount': '{count} video',
     'tvPage.nowPlaying': 'Đang phát',
+    'tvPage.nextUpTitle': 'Tiếp theo',
+    'tvPage.playNext': 'Phát bài tiếp theo',
+    'tvPage.playNextHint': 'Nhấn OK để phát ngay',
+    'tvPage.autoPlayIn': 'Tự động phát sau {seconds}s',
+    'tvPage.autoPlayLabel': 'Tự động phát tiếp',
+    'tvPage.nextUpActions': 'Tùy chọn bài tiếp theo',
 
     'seo.title': 'vkara - Hát karaoke cùng nhau trực tuyến',
     'seo.description':

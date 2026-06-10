@@ -4,11 +4,10 @@ import { memo, useCallback, useEffect, useRef, useState } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
 import { type CaptionTrack, DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
-import { getVideoThumbnailSrcSet, getVideoThumbnailUrl } from '@vkara/tiktok';
 import { needsPlaybackSeekCorrection } from '@vkara/room';
 import { isVideoLive } from '@vkara/tiktok';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
-import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
+import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import {
     applyYoutubeCaptions,
@@ -28,12 +27,12 @@ import {
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { CountdownTimer } from '@/components/countdown-timer';
 import { PlayerEmbedSurfaceMemo } from '@/components/player/player-embed-surface';
-import { ControlsStageThumbnail } from '@/components/pages/youtube/ControlsStageThumbnail';
 import { TvPlayerQrZone } from '@/components/pages/youtube/TvPlayerQrZone';
 import { TvEmbedFocusGuard } from '@/components/pages/tv/tv-embed-focus-guard';
+import { TvNextUpOverlay } from '@/components/pages/tv/tv-next-up-overlay';
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { usePlayerAction } from '@/hooks/use-player-action';
 
 const EMPTY_CAPTION_TRACKS: CaptionTrack[] = [];
 const EMPTY_VIDEO_QUEUE: import('@vkara/youtube').YouTubeVideo[] = [];
@@ -82,8 +81,8 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
         })),
     );
 
-    const t = useScopedI18n('youtubePage');
     const locale = useCurrentLocale();
+    const { handleReplayVideo } = usePlayerAction();
     const { shouldShowTimer, setShouldShowTimer, cancelCountdown, resetCountdown } =
         useCountdownStore(
             useShallow((state) => ({
@@ -384,6 +383,19 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
         [ensureConnectedAndSend, roomId],
     );
 
+    const dismissNextUp = useCallback(() => {
+        cancelCountdown();
+        endedForVideoIdRef.current = null;
+    }, [cancelCountdown]);
+
+    const handleNextUpReplay = useCallback(() => {
+        dismissNextUp();
+        handleReplayVideo();
+    }, [dismissNextUp, handleReplayVideo]);
+
+    const showNextUpOverlay = Boolean(playingNow && shouldShowTimer && videoQueue.length > 0);
+    const nextQueuedVideo = videoQueue[0];
+
     return (
         <div className="absolute inset-0 bg-black">
             {playingNow ? (
@@ -425,32 +437,17 @@ function TvPlayerHostInner({ onOpenSettingsAction, controlsVisible = false }: Tv
                 />
             ) : null}
 
-            {playingNow ? <TvEmbedFocusGuard controlsVisible={controlsVisible} /> : null}
+            {playingNow ? (
+                <TvEmbedFocusGuard controlsVisible={controlsVisible && !showNextUpOverlay} />
+            ) : null}
 
-            {playingNow && shouldShowTimer && videoQueue.length > 0 ? (
-                <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-black p-4 text-center">
-                    <h3 className="mb-4 text-xl font-semibold text-white">{t('nextUp')}</h3>
-                    <div className="flex w-full max-w-lg flex-col items-center gap-4 px-2">
-                        <ControlsStageThumbnail
-                            src={getVideoThumbnailUrl({ video: videoQueue[0], size: 'large' })}
-                            videoId={videoQueue[0].id}
-                            srcSet={getVideoThumbnailSrcSet({ video: videoQueue[0] })}
-                            title={videoQueue[0].title}
-                            flatOnTv
-                        />
-                        <p className="line-clamp-2 text-base font-medium text-white">
-                            {videoQueue[0].title}
-                        </p>
-                        <p className="text-sm text-zinc-200">
-                            {t('startingIn')}:{' '}
-                            <CountdownTimer
-                                classNames="text-sm font-medium text-white"
-                                initialSeconds={NEXT_VIDEO_COUNTDOWN_SECONDS}
-                                onCountdownComplete={handleVideoFinished}
-                            />
-                        </p>
-                    </div>
-                </div>
+            {showNextUpOverlay && nextQueuedVideo ? (
+                <TvNextUpOverlay
+                    nextVideo={nextQueuedVideo}
+                    onPlayNextAction={handleVideoFinished}
+                    onReplayAction={handleNextUpReplay}
+                    onCountdownCompleteAction={handleVideoFinished}
+                />
             ) : null}
         </div>
     );

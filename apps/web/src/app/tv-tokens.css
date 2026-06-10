@@ -738,7 +738,219 @@
     }
 }
 
+/** Up-next interstitial — 10-foot readable, D-pad actions. */
+[data-tv-route] .tv-next-up-overlay__scrim {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgb(0 0 0 / 0.92) 0%,
+        rgb(12 12 14 / 0.88) 45%,
+        rgb(0 0 0 / 0.94) 100%
+    );
+    backdrop-filter: blur(10px);
+}
+
+[data-tv-route] .tv-next-up-overlay__shell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100%;
+    padding: clamp(1.5rem, 4vh, 3rem) clamp(1.25rem, 4vw, 3.5rem);
+    box-sizing: border-box;
+}
+
+[data-tv-route] .tv-next-up-overlay__layout {
+    display: grid;
+    width: min(72rem, 100%);
+    gap: clamp(1.25rem, 3vw, 2rem);
+    align-items: center;
+}
+
+@media (min-width: 768px) {
+    [data-tv-route] .tv-next-up-overlay__layout {
+        grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+        gap: clamp(1.5rem, 3.5vw, 2.25rem);
+    }
+}
+
+[data-tv-route] .tv-next-up-overlay__content {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(1rem, 2.5vh, 1.375rem);
+    min-width: 0;
+}
+
+[data-tv-route] .tv-next-up-overlay__meta {
+    min-width: 0;
+}
+
+[data-tv-route] .tv-next-up-overlay__thumb-wrap {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    border-radius: 1.25rem;
+    background: rgb(24 24 27);
+    box-shadow: 0 24px 64px rgb(0 0 0 / 0.55);
+}
+
+[data-tv-route] .tv-next-up-overlay__eyebrow {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1rem, 2.2vh, 1.25rem);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--tv-accent);
+}
+
+[data-tv-route] .tv-next-up-overlay__title {
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.375rem, 3.2vh, 2rem);
+    font-weight: 700;
+    line-height: 1.22;
+    color: rgb(255 255 255);
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+[data-tv-route] .tv-next-up-overlay__channels {
+    margin: 0;
+    font-size: clamp(0.9375rem, 2vh, 1.125rem);
+}
+
+[data-tv-route] .tv-next-up-overlay__footer {
+    display: flex;
+    align-items: stretch;
+    gap: clamp(0.875rem, 2vw, 1.25rem);
+    padding: clamp(0.75rem, 1.8vh, 1rem) clamp(0.875rem, 2vw, 1.125rem);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    border-radius: 1.25rem;
+    background: linear-gradient(
+        135deg,
+        rgb(255 255 255 / 0.09) 0%,
+        rgb(255 255 255 / 0.04) 100%
+    );
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+[data-tv-route] .tv-next-up-countdown {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+[data-tv-route] .tv-next-up-countdown--compact {
+    flex-shrink: 0;
+    width: clamp(5.25rem, 11vh, 6.75rem);
+    padding-right: clamp(0.75rem, 1.5vw, 1rem);
+    border-right: 1px solid rgb(255 255 255 / 0.1);
+}
+
+[data-tv-route] .tv-next-up-countdown__ring {
+    position: relative;
+    width: clamp(6.5rem, 14vh, 8.5rem);
+    height: clamp(6.5rem, 14vh, 8.5rem);
+}
+
+[data-tv-route] .tv-next-up-countdown__svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+[data-tv-route] .tv-next-up-countdown__track {
+    stroke: rgb(255 255 255 / 0.18);
+}
+
+[data-tv-route] .tv-next-up-countdown__progress {
+    stroke: var(--tv-accent);
+    transition: stroke-dashoffset 1s linear;
+    filter: drop-shadow(0 0 10px rgb(62 166 255 / 0.55));
+}
+
+[data-tv-route] .tv-next-up-countdown__value {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: clamp(2rem, 5vh, 2.75rem);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+    color: rgb(255 255 255);
+    text-shadow: 0 2px 12px rgb(0 0 0 / 0.45);
+}
+
+[data-tv-route] .tv-next-up-countdown__label {
+    margin: 0;
+    font-size: clamp(0.8125rem, 1.6vh, 0.9375rem);
+    font-weight: 600;
+    line-height: 1.25;
+    color: rgb(161 161 170);
+    text-align: center;
+}
+
+[data-tv-route] .tv-next-up-countdown--compact .tv-next-up-countdown__ring {
+    width: clamp(4.75rem, 10vh, 6rem);
+    height: clamp(4.75rem, 10vh, 6rem);
+}
+
+[data-tv-route] .tv-next-up-countdown--compact .tv-next-up-countdown__value {
+    font-size: clamp(1.625rem, 4vh, 2.125rem);
+}
+
+[data-tv-route] .tv-next-up-overlay__actions {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.5rem;
+    min-width: 0;
+}
+
+[data-tv-route] .tv-next-up-action {
+    min-height: clamp(3.75rem, 8vh, var(--tv-settings-row-min));
+}
+
+[data-tv-route] .tv-next-up-action--primary:not([data-focused='true']) {
+    border-color: rgb(62 166 255 / 0.45);
+    background: rgb(62 166 255 / 0.22);
+}
+
+[data-tv-route] .tv-next-up-action--primary-focused {
+    border-color: transparent !important;
+    background: var(--tv-accent) !important;
+    color: #fff !important;
+    box-shadow:
+        0 0 0 2px rgb(0 0 0 / 0.8),
+        0 0 0 6px var(--tv-accent),
+        0 10px 28px rgb(0 0 0 / 0.35);
+}
+
+[data-tv-route] .tv-next-up-action__hint {
+    display: block;
+    margin-top: 0.125rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: rgb(255 255 255 / 0.72);
+}
+
+[data-tv-route] .tv-next-up-action--primary-focused .tv-next-up-action__hint {
+    color: rgb(255 255 255 / 0.88);
+}
+
 @media (prefers-reduced-motion: reduce) {
+    [data-tv-route] .tv-next-up-countdown__progress {
+        transition: none;
+    }
+
     [data-tv-route] .tv-queue-shelf__clip,
     [data-tv-route] .tv-queue-thumb,
     [data-tv-route] .tv-queue-card-meta,

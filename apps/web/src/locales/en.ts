@@ -365,6 +365,12 @@ export default {
     'tvPage.queueEmpty': 'Queue is empty. Add songs from your phone.',
     'tvPage.queueCount': '{count} videos',
     'tvPage.nowPlaying': 'Now playing',
+    'tvPage.nextUpTitle': 'Up next',
+    'tvPage.playNext': 'Play next',
+    'tvPage.playNextHint': 'Press OK to play now',
+    'tvPage.autoPlayIn': 'Auto-playing in {seconds}s',
+    'tvPage.autoPlayLabel': 'Auto-playing next',
+    'tvPage.nextUpActions': 'Up next options',
 
     'seo.title': 'vkara - Sing karaoke together online',
     'seo.description':

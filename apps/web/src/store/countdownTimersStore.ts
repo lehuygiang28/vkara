@@ -3,6 +3,27 @@ import { create } from 'zustand';
 /** Countdown before auto-advancing to the next queued video on the TV player. */
 export const NEXT_VIDEO_COUNTDOWN_SECONDS = 5;
 
+/**
+ * Ring progress for discrete second ticks (N…1 then complete).
+ * Maps N displayed values across N−1 intervals so the ring reaches 100% on the last second.
+ */
+export function getCountdownRingProgress(
+    remainingSeconds: number,
+    totalSeconds: number = NEXT_VIDEO_COUNTDOWN_SECONDS,
+): number {
+    const remaining = Math.max(0, Math.min(totalSeconds, remainingSeconds));
+
+    if (totalSeconds <= 1) {
+        return remaining <= 1 ? 1 : 0;
+    }
+
+    if (remaining <= 1) {
+        return 1;
+    }
+
+    return (totalSeconds - remaining) / (totalSeconds - 1);
+}
+
 interface CountdownStore {
     isActive: boolean;
     remainingSeconds: number;

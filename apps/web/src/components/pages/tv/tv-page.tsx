@@ -5,6 +5,7 @@ import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 
 import { useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
+import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import { useTvRouteBootstrap } from '@/hooks/use-tv-route-bootstrap';
 import { useTvOverlayStack } from '@/hooks/use-tv-overlay-stack';
@@ -35,13 +36,16 @@ export default function TvPage() {
     const roomPassword = useYouTubeStore((s) => s.room?.password);
     const playingNow = useYouTubeStore((s) => s.room?.playingNow);
     const showQRInPlayer = useYouTubeStore((s) => s.room?.showQRInPlayer ?? true);
+    const videoQueueLength = useYouTubeStore((s) => s.room?.videoQueue?.length ?? 0);
     const tvSuppressAutoCreate = useYouTubeStore((s) => s.tvSuppressAutoCreate);
+    const shouldShowNextUp = useCountdownStore((s) => s.shouldShowTimer);
 
     const { lastMessage } = useWebSocket();
 
     const showLobby = !roomId && tvSuppressAutoCreate;
     const inRoom = Boolean(roomId) && !showLobby;
     const isPlayerActive = inRoom && Boolean(playingNow);
+    const nextUpVisible = isPlayerActive && shouldShowNextUp && videoQueueLength > 0;
 
     const {
         controlsVisible,
@@ -54,7 +58,7 @@ export default function TvPage() {
         closeSettings,
         hideControls,
     } = useTvOverlayStack({
-        controlsEnabled: isPlayerActive,
+        controlsEnabled: isPlayerActive && !nextUpVisible,
         idleFocusKey: inRoom && !isPlayerActive ? TV_FOCUS_KEYS.idleQr : undefined,
         settingsCloseFocusKey: showLobby
             ? TV_FOCUS_KEYS.lobbyCreate
@@ -133,7 +137,7 @@ export default function TvPage() {
                                 controlsVisible={controlsVisible}
                             />
 
-                            {playingNow && showQRInPlayer && roomId ? (
+                            {playingNow && showQRInPlayer && roomId && !nextUpVisible ? (
                                 <TvPlayerFixedQr
                                     roomId={roomId}
                                     roomPassword={roomPassword}
@@ -143,7 +147,7 @@ export default function TvPage() {
                                 />
                             ) : null}
 
-                            {isPlayerActive ? (
+                            {isPlayerActive && !nextUpVisible ? (
                                 <TvPlayerChrome
                                     visible={controlsVisible}
                                     settingsOpen={settingsOpen}
