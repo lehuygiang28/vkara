@@ -1,5 +1,7 @@
 import { Client } from 'youtubei';
 
+import { ensureYoutubeiNativeFetch } from './youtubei-native-fetch';
+
 let client: Client | null = null;
 
 export function getYoutubeiClient(): Client {
@@ -9,6 +11,7 @@ export function getYoutubeiClient(): Client {
                 enabled: false,
             },
         });
+        ensureYoutubeiNativeFetch(client);
     }
     return client;
 }

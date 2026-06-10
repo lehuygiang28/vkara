@@ -6,6 +6,7 @@ import { createContextLogger } from '@/utils/logger';
 import { formatSeconds } from '@vkara/youtube';
 
 import { postInnertube } from './innertube-post';
+import { youtubeOutboundFetch } from './youtube-outbound-fetch';
 import { getYoutubeiClient } from './youtubei-client';
 import { asYoutubeRawData } from './youtubei-raw-data';
 import { mapYoutubeiFullVideo, mapYoutubeiVideo, mapYoutubeiThumbnails } from './video-mapper';
@@ -236,7 +237,7 @@ async function fetchMixPageHtml(fetchUrl: string): Promise<string | null> {
     const url = `${fetchUrl}${fetchUrl.includes('?') ? '&' : '?'}hl=en`;
 
     try {
-        const response = await fetch(url, {
+        const response = await youtubeOutboundFetch(url, {
             headers: {
                 'User-Agent':
                     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
