@@ -7,10 +7,11 @@ import type {
     YouTubeVideo,
 } from '@vkara/youtube';
 
+import { isCacheablePlaylistDetails } from '@vkara/youtube';
 import { createRedisJsonCache } from '@vkara/cache-redis';
 
 /** Curated / browse previews — balance freshness vs YouTube rate limits. */
-export const PLAYLIST_DETAILS_CACHE_TTL_SECONDS = 60 * 60;
+export const PLAYLIST_DETAILS_CACHE_TTL_SECONDS = 6 * 60 * 60;
 
 const PLAYLIST_DETAILS_CACHE_PREFIX = 'youtube-playlist-details:';
 
@@ -165,17 +166,31 @@ const playlistDetailsJsonCache = createRedisJsonCache<PlaylistDetailsResponse>(
     parsePlaylistDetailsResponse,
 );
 
-export type PlaylistDetailsCacheOptions = {
+export type PlaylistDetailsCacheScope = {
     videoLimit: number;
     fetchAll: boolean;
 };
 
 export function buildPlaylistDetailsCacheKey(
     listId: string,
-    options: PlaylistDetailsCacheOptions,
+    scope: PlaylistDetailsCacheScope,
 ): string {
-    const scope = options.fetchAll ? 'all' : `limit:${options.videoLimit}`;
-    return `${PLAYLIST_DETAILS_CACHE_PREFIX}${listId}:${scope}`;
+    const cacheScope = scope.fetchAll ? 'all' : `limit:${scope.videoLimit}`;
+    return `${PLAYLIST_DETAILS_CACHE_PREFIX}${listId}:${cacheScope}`;
+}
+
+export function buildFullPlaylistCacheKey(listId: string): string {
+    return buildPlaylistDetailsCacheKey(listId, { fetchAll: true, videoLimit: 200 });
+}
+
+export function slicePlaylistDetails(
+    details: PlaylistDetailsResponse,
+    videoLimit: number,
+): PlaylistDetailsResponse {
+    return {
+        playlist: details.playlist,
+        videos: details.videos.slice(0, videoLimit),
+    };
 }
 
 export async function getCachedPlaylistDetails(
@@ -196,4 +211,49 @@ export async function setCachedPlaylistDetails(
         details,
         PLAYLIST_DETAILS_CACHE_TTL_SECONDS,
     );
+}
+
+export async function storeFullPlaylistDetailsCache(
+    redisClient: Redis,
+    details: PlaylistDetailsResponse,
+): Promise<void> {
+    if (!isCacheablePlaylistDetails(details)) {
+        return;
+    }
+
+    await setCachedPlaylistDetails(
+        redisClient,
+        buildFullPlaylistCacheKey(details.playlist.id),
+        details,
+    );
+}
+
+export async function readCachedPlaylistDetails(
+    redisClient: Redis,
+    listId: string,
+    scope: PlaylistDetailsCacheScope,
+): Promise<PlaylistDetailsResponse | undefined> {
+    const scoped = await getCachedPlaylistDetails(
+        redisClient,
+        buildPlaylistDetailsCacheKey(listId, scope),
+    );
+    if (scoped && isCacheablePlaylistDetails(scoped)) {
+        return scoped;
+    }
+
+    if (scope.fetchAll) {
+        return undefined;
+    }
+
+    const full = await getCachedPlaylistDetails(redisClient, buildFullPlaylistCacheKey(listId));
+    if (!full || !isCacheablePlaylistDetails(full)) {
+        return undefined;
+    }
+
+    const sliced = slicePlaylistDetails(full, scope.videoLimit);
+    if (!isCacheablePlaylistDetails(sliced)) {
+        return undefined;
+    }
+
+    return sliced;
 }

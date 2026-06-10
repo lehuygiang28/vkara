@@ -1,11 +1,16 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-const { fetchYoutubePlaylistDetails, getCachedPlaylistDetails, setCachedPlaylistDetails } =
-    vi.hoisted(() => ({
-        fetchYoutubePlaylistDetails: vi.fn(),
-        getCachedPlaylistDetails: vi.fn(),
-        setCachedPlaylistDetails: vi.fn(),
-    }));
+const {
+    fetchYoutubePlaylistDetails,
+    readCachedPlaylistDetails,
+    setCachedPlaylistDetails,
+    storeFullPlaylistDetailsCache,
+} = vi.hoisted(() => ({
+    fetchYoutubePlaylistDetails: vi.fn(),
+    readCachedPlaylistDetails: vi.fn(),
+    setCachedPlaylistDetails: vi.fn(),
+    storeFullPlaylistDetailsCache: vi.fn(),
+}));
 
 vi.mock('@/modules/youtube/fetch-playlist-details', () => ({
     fetchYoutubePlaylistDetails,
@@ -16,8 +21,9 @@ vi.mock('@/modules/youtube/playlist-details-cache', async (importOriginal) => {
         await importOriginal<typeof import('@/modules/youtube/playlist-details-cache')>();
     return {
         ...actual,
-        getCachedPlaylistDetails,
+        readCachedPlaylistDetails,
         setCachedPlaylistDetails,
+        storeFullPlaylistDetailsCache,
     };
 });
 
@@ -25,7 +31,7 @@ vi.mock('@/modules/youtube/resolve-embed-playability', () => ({
     filterVideosForListPrefilter: vi.fn(async (_redis: unknown, videos: unknown[]) => videos),
 }));
 
-import { fetchYoutubePlaylistDetailsCached } from '@/modules/youtube/fetch-playlist-details-cached';
+import { resolvePlaylistDetails } from '@/modules/youtube/fetch-playlist-details-cached';
 
 const redis = {} as never;
 
@@ -60,19 +66,20 @@ const completeDetails = {
     ],
 };
 
-describe('fetchYoutubePlaylistDetailsCached', () => {
+describe('resolvePlaylistDetails', () => {
     beforeEach(() => {
         vi.clearAllMocks();
-        getCachedPlaylistDetails.mockResolvedValue(undefined);
+        readCachedPlaylistDetails.mockResolvedValue(undefined);
         setCachedPlaylistDetails.mockResolvedValue(undefined);
+        storeFullPlaylistDetailsCache.mockResolvedValue(undefined);
     });
 
     it('ignores cached metadata-only payloads and refetches', async () => {
-        getCachedPlaylistDetails.mockResolvedValueOnce(incompleteDetails);
+        readCachedPlaylistDetails.mockResolvedValueOnce(undefined);
         fetchYoutubePlaylistDetails.mockResolvedValue(completeDetails);
 
         await expect(
-            fetchYoutubePlaylistDetailsCached(redis, incompleteDetails.playlist.id, {
+            resolvePlaylistDetails(redis, incompleteDetails.playlist.id, {
                 videoLimit: 100,
             }),
         ).resolves.toEqual(completeDetails);
@@ -89,23 +96,41 @@ describe('fetchYoutubePlaylistDetailsCached', () => {
         fetchYoutubePlaylistDetails.mockResolvedValue(incompleteDetails);
 
         await expect(
-            fetchYoutubePlaylistDetailsCached(redis, incompleteDetails.playlist.id, {
+            resolvePlaylistDetails(redis, incompleteDetails.playlist.id, {
                 videoLimit: 100,
             }),
         ).resolves.toEqual(incompleteDetails);
 
         expect(setCachedPlaylistDetails).not.toHaveBeenCalled();
+        expect(storeFullPlaylistDetailsCache).not.toHaveBeenCalled();
     });
 
     it('serves complete cached payloads without refetching', async () => {
-        getCachedPlaylistDetails.mockResolvedValue(completeDetails);
+        readCachedPlaylistDetails.mockResolvedValue(completeDetails);
 
         await expect(
-            fetchYoutubePlaylistDetailsCached(redis, completeDetails.playlist.id, {
+            resolvePlaylistDetails(redis, completeDetails.playlist.id, {
                 videoLimit: 100,
             }),
         ).resolves.toEqual(completeDetails);
 
         expect(fetchYoutubePlaylistDetails).not.toHaveBeenCalled();
+    });
+
+    it('refresh mode fetches fresh and stores only the full playlist cache', async () => {
+        readCachedPlaylistDetails.mockResolvedValue(completeDetails);
+        fetchYoutubePlaylistDetails.mockResolvedValue(completeDetails);
+
+        await expect(
+            resolvePlaylistDetails(redis, completeDetails.playlist.id, {
+                fetchAll: true,
+                mode: 'refresh',
+            }),
+        ).resolves.toEqual(completeDetails);
+
+        expect(readCachedPlaylistDetails).not.toHaveBeenCalled();
+        expect(fetchYoutubePlaylistDetails).toHaveBeenCalledTimes(1);
+        expect(storeFullPlaylistDetailsCache).toHaveBeenCalledWith(redis, completeDetails);
+        expect(setCachedPlaylistDetails).not.toHaveBeenCalled();
     });
 });

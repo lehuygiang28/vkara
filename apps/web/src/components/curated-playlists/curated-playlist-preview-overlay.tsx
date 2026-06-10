@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useRef } from 'react';
 import { ListMusic } from 'lucide-react';
 
 import {
@@ -13,7 +13,7 @@ import { useVideoSearchListActions } from '@/components/pages/youtube/use-video-
 import { VideoSkeletonListForViewport } from '@/components/video-skeleton';
 import { Button } from '@/components/ui/button';
 import { useScopedI18n } from '@/locales/client';
-import { usePlaylistDetailsCache } from '@/hooks/use-playlist-details-cache';
+import { usePlaylistDetails } from '@/hooks/use-playlist-details';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { useCuratedStore } from '@/store/curatedStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
@@ -28,39 +28,15 @@ export function CuratedPlaylistPreviewOverlay({ listId }: CuratedPlaylistPreview
     const t = useScopedI18n('curatedPlaylists');
     const closeCuratedPreview = useCuratedStore((state) => state.closeCuratedPreview);
     const setCurrentTab = useYouTubeStore((state) => state.setCurrentTab);
-    const { load, getEntry } = usePlaylistDetailsCache();
+    const { details, error, isLoading } = usePlaylistDetails(listId, {
+        videoLimit: PREVIEW_VIDEO_LIMIT,
+    });
     const { handleImportPlaylist } = usePlayerAction();
     const renderActions = useVideoSearchListActions();
-
-    const [loading, setLoading] = useState(true);
-    const [loadError, setLoadError] = useState<string | null>(null);
     const skeletonScrollRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        let cancelled = false;
-        setLoading(true);
-        setLoadError(null);
-
-        void load(listId, { videoLimit: PREVIEW_VIDEO_LIMIT })
-            .catch(() => {
-                if (!cancelled) {
-                    setLoadError(t('previewLoadError'));
-                }
-            })
-            .finally(() => {
-                if (!cancelled) {
-                    setLoading(false);
-                }
-            });
-
-        return () => {
-            cancelled = true;
-        };
-    }, [listId, load, t]);
-
-    const entry = getEntry(listId);
-    const details = entry?.data;
     const videos = details?.videos ?? [];
+    const showSkeleton = isLoading && videos.length === 0;
 
     const handleClose = useCallback(() => {
         closeCuratedPreview();
@@ -71,8 +47,6 @@ export function CuratedPlaylistPreviewOverlay({ listId }: CuratedPlaylistPreview
         closeCuratedPreview({ restoreReturnTo: false });
         setCurrentTab('queue');
     }, [closeCuratedPreview, handleImportPlaylist, listId, setCurrentTab]);
-
-    const showSkeleton = loading && videos.length === 0;
 
     return (
         <RemotePanelOverlayShell
@@ -93,7 +67,7 @@ export function CuratedPlaylistPreviewOverlay({ listId }: CuratedPlaylistPreview
                             type="button"
                             className="min-h-11 shrink-0"
                             onClick={handleImportAll}
-                            disabled={loading}
+                            disabled={isLoading}
                         >
                             <ListMusic className="h-4 w-4" />
                             {t('addAll')}
@@ -115,9 +89,9 @@ export function CuratedPlaylistPreviewOverlay({ listId }: CuratedPlaylistPreview
                 <VideoList
                     videos={videos}
                     emptyState={
-                        loadError ? (
+                        error ? (
                             <div className="py-8 text-center text-sm text-muted-foreground">
-                                {loadError}
+                                {t('previewLoadError')}
                             </div>
                         ) : undefined
                     }

@@ -6,21 +6,25 @@ import { createInFlightDedup } from './in-flight-dedup';
 import { fetchYoutubePlaylistDetails } from './fetch-playlist-details';
 import {
     buildPlaylistDetailsCacheKey,
-    getCachedPlaylistDetails,
+    readCachedPlaylistDetails,
     setCachedPlaylistDetails,
-    type PlaylistDetailsCacheOptions,
+    storeFullPlaylistDetailsCache,
+    type PlaylistDetailsCacheScope,
 } from './playlist-details-cache';
 import { filterVideosForListPrefilter } from './resolve-embed-playability';
 
+export type PlaylistDetailsResolveMode = 'cached' | 'refresh';
+
 const inFlightByCacheKey = createInFlightDedup<string, PlaylistDetailsResponse>();
 
-function resolveCacheOptions(options?: {
+function resolveCacheScope(options?: {
     limit?: number;
     fetchAll?: boolean;
     videoLimit?: number;
-}): PlaylistDetailsCacheOptions {
+}): PlaylistDetailsCacheScope {
     const videoLimit = options?.videoLimit ?? options?.limit ?? 200;
-    const fetchAll = options?.fetchAll ?? options?.videoLimit === undefined;
+    const fetchAll =
+        options?.fetchAll ?? (options?.videoLimit === undefined && options?.limit === undefined);
     return { videoLimit, fetchAll };
 }
 
@@ -32,30 +36,65 @@ async function servePlaylistDetails(
     return { ...details, videos };
 }
 
-export async function fetchYoutubePlaylistDetailsCached(
+async function writePlaylistDetailsCache(
+    redisClient: Redis,
+    listId: string,
+    scope: PlaylistDetailsCacheScope,
+    details: PlaylistDetailsResponse,
+): Promise<void> {
+    if (!isCacheablePlaylistDetails(details)) {
+        return;
+    }
+
+    if (scope.fetchAll) {
+        await storeFullPlaylistDetailsCache(redisClient, details);
+        return;
+    }
+
+    await setCachedPlaylistDetails(
+        redisClient,
+        buildPlaylistDetailsCacheKey(listId, scope),
+        details,
+    );
+}
+
+export async function resolvePlaylistDetails(
     redisClient: Redis,
     playlistUrlOrId: string,
-    options?: { limit?: number; fetchAll?: boolean; videoLimit?: number },
+    options?: {
+        limit?: number;
+        fetchAll?: boolean;
+        videoLimit?: number;
+        mode?: PlaylistDetailsResolveMode;
+    },
 ): Promise<PlaylistDetailsResponse> {
     const parsed = parseYoutubePlaylistInput(playlistUrlOrId);
-    const cacheOptions = resolveCacheOptions(options);
-    const cacheKey = buildPlaylistDetailsCacheKey(parsed.listId, cacheOptions);
+    const scope = resolveCacheScope(options);
+    const mode = options?.mode ?? 'cached';
+    const cacheKey = buildPlaylistDetailsCacheKey(parsed.listId, scope);
 
-    const cached = await getCachedPlaylistDetails(redisClient, cacheKey);
-    if (cached && isCacheablePlaylistDetails(cached)) {
+    if (mode === 'refresh') {
+        const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, options);
+        await storeFullPlaylistDetailsCache(redisClient, details);
+        return servePlaylistDetails(redisClient, details);
+    }
+
+    const cached = await readCachedPlaylistDetails(redisClient, parsed.listId, scope);
+    if (cached) {
         return servePlaylistDetails(redisClient, cached);
     }
 
     return inFlightByCacheKey.run(cacheKey, async () => {
-        const cachedAgain = await getCachedPlaylistDetails(redisClient, cacheKey);
-        if (cachedAgain && isCacheablePlaylistDetails(cachedAgain)) {
+        const cachedAgain = await readCachedPlaylistDetails(redisClient, parsed.listId, scope);
+        if (cachedAgain) {
             return servePlaylistDetails(redisClient, cachedAgain);
         }
 
         const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, options);
-        if (isCacheablePlaylistDetails(details)) {
-            await setCachedPlaylistDetails(redisClient, cacheKey, details);
-        }
+        await writePlaylistDetailsCache(redisClient, parsed.listId, scope, details);
         return servePlaylistDetails(redisClient, details);
     });
 }
+
+/** @deprecated Use {@link resolvePlaylistDetails}. Kept for existing route imports. */
+export const fetchYoutubePlaylistDetailsCached = resolvePlaylistDetails;

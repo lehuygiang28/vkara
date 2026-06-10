@@ -18,7 +18,7 @@ import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
 import type { ClientMessage, TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 import { applyTvRestoreToRoom } from '@/modules/room/apply-tv-restore';
 import { publishToRoom } from '@/modules/room/room-broadcast';
-import { fetchYoutubePlaylistVideos } from '@/modules/youtube/fetch-playlist-videos';
+import { resolvePlaylistDetails } from '@/modules/youtube/fetch-playlist-details-cached';
 import {
     checkEmbeddable,
     filterYouTubeVideosByEmbeddability,
@@ -772,10 +772,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         try {
             // TODO(phase-2): Enrich via prepareYoutubeVideos after rate-limit/UX research
             // (view counts, channel verified). See fetch-playlist-videos.ts module note.
-            videos = await fetchYoutubePlaylistVideos(playlistUrlOrId, {
+            const details = await resolvePlaylistDetails(redis, playlistUrlOrId, {
                 fetchAll: true,
                 limit: 200,
+                mode: 'refresh',
             });
+            videos = details.videos;
         } catch (error) {
             serviceLogger.error('Import playlist failed', { error, playlistUrlOrId });
             throw new RoomError(

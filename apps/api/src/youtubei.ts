@@ -36,7 +36,7 @@ import {
 } from './modules/youtube/fetch-search-page';
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
 import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
-import { fetchYoutubePlaylistDetailsCached } from './modules/youtube/fetch-playlist-details-cached';
+import { resolvePlaylistDetails } from './modules/youtube/fetch-playlist-details-cached';
 import { getYoutubeiClient } from './modules/youtube/youtubei-client';
 
 const logger = createContextLogger('Search-Youtubei');
@@ -199,7 +199,7 @@ export const searchYoutubeiElysia = new Elysia({})
     .post(
         '/playlist',
         async ({ body: { playlistUrlOrId, videoLimit, fetchAll }, store: { redisClient } }) =>
-            fetchYoutubePlaylistDetailsCached(redisClient, playlistUrlOrId, {
+            resolvePlaylistDetails(redisClient, playlistUrlOrId, {
                 videoLimit,
                 fetchAll,
             }),

@@ -1,15 +1,16 @@
 'use client';
 
 import Image from 'next/image';
-import { useEffect } from 'react';
 import { ListMusic } from 'lucide-react';
 
 import { VIDEO_LIST_ROW_HEIGHT } from '@/components/pages/youtube/VideoListItem';
 import { VideoListThumbnail } from '@/components/pages/youtube/video-list-thumbnail';
 import { useScopedI18n } from '@/locales/client';
 import { resolveCuratedPlaylistThumbnail } from '@/lib/curated-playlist-thumbnail';
-import { usePlaylistDetailsCache } from '@/hooks/use-playlist-details-cache';
+import { usePlaylistDetails } from '@/hooks/use-playlist-details';
 import { cn } from '@/lib/utils';
+
+const CARD_PREVIEW_LIMIT = 5;
 
 type CuratedPlaylistCardProps = {
     listId: string;
@@ -78,19 +79,14 @@ export function CuratedPlaylistCard({
     className,
 }: CuratedPlaylistCardProps) {
     const t = useScopedI18n('curatedPlaylists');
-    const { getEntry, prefetch } = usePlaylistDetailsCache();
-    const entry = getEntry(listId);
+    const { details, error, isLoading } = usePlaylistDetails(listId, {
+        videoLimit: CARD_PREVIEW_LIMIT,
+    });
 
-    useEffect(() => {
-        void prefetch(listId, { videoLimit: 5 }).catch(() => undefined);
-    }, [listId, prefetch]);
-
-    const details = entry?.data;
     const title = details?.playlist.title;
     const videoCount = details?.playlist.videoCount;
     const thumbUrl = resolveCuratedPlaylistThumbnail(details, listId);
-    const isLoading = !details && !entry?.error;
-    const hasError = Boolean(entry?.error);
+    const hasError = Boolean(error);
     const ariaLabel = isLoading
         ? t('untitledPlaylist')
         : hasError

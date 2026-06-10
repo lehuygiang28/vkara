@@ -1,23 +1,27 @@
 import { describe, expect, it, vi } from 'vitest';
 
-import { getCachedPlaylistDetails } from '@/modules/youtube/playlist-details-cache';
+import {
+    getCachedPlaylistDetails,
+    readCachedPlaylistDetails,
+    storeFullPlaylistDetailsCache,
+} from '@/modules/youtube/playlist-details-cache';
+
+const video = {
+    id: 'vid1',
+    title: 'Song',
+    duration: 200,
+    duration_formatted: '3:20',
+    type: 'video',
+    uploadedAt: '2020-01-01',
+    url: 'https://www.youtube.com/watch?v=vid1',
+    views: 100,
+    channels: [{ name: 'Artist', verified: true }],
+    thumbnails: [{ url: 'https://i.ytimg.com/vi/vid1/default.jpg' }],
+};
 
 const validPayload = {
     playlist: { id: 'PLabc', title: 'Karaoke', videoCount: 1 },
-    videos: [
-        {
-            id: 'vid1',
-            title: 'Song',
-            duration: 200,
-            duration_formatted: '3:20',
-            type: 'video',
-            uploadedAt: '2020-01-01',
-            url: 'https://www.youtube.com/watch?v=vid1',
-            views: 100,
-            channels: [{ name: 'Artist', verified: true }],
-            thumbnails: [{ url: 'https://i.ytimg.com/vi/vid1/default.jpg' }],
-        },
-    ],
+    videos: [video],
 };
 
 describe('getCachedPlaylistDetails', () => {
@@ -64,5 +68,46 @@ describe('getCachedPlaylistDetails', () => {
         } as never;
 
         await expect(getCachedPlaylistDetails(redis, 'k')).resolves.toBeUndefined();
+    });
+});
+
+describe('readCachedPlaylistDetails', () => {
+    it('slices a full cached playlist for limited preview scopes', async () => {
+        const fullPayload = {
+            playlist: { id: 'PLabc', title: 'Karaoke', videoCount: 2 },
+            videos: [
+                video,
+                {
+                    ...video,
+                    id: 'vid2',
+                    url: 'https://www.youtube.com/watch?v=vid2',
+                },
+            ],
+        };
+        const redis = {
+            get: vi
+                .fn()
+                .mockResolvedValueOnce(null)
+                .mockResolvedValueOnce(JSON.stringify(fullPayload)),
+        } as never;
+
+        await expect(
+            readCachedPlaylistDetails(redis, 'PLabc', { fetchAll: false, videoLimit: 1 }),
+        ).resolves.toEqual({
+            playlist: fullPayload.playlist,
+            videos: [video],
+        });
+    });
+});
+
+describe('storeFullPlaylistDetailsCache', () => {
+    it('writes only the canonical full playlist cache key', async () => {
+        const set = vi.fn().mockResolvedValue('OK');
+        const redis = { set } as never;
+
+        await storeFullPlaylistDetailsCache(redis, validPayload);
+
+        expect(set).toHaveBeenCalledTimes(1);
+        expect(set.mock.calls[0]?.[0]).toBe('youtube-playlist-details:PLabc:all');
     });
 });
