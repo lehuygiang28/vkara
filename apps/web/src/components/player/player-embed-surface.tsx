@@ -65,6 +65,7 @@ function PlayerEmbedSurface({
     embedVariant,
 }: PlayerEmbedSurfaceProps) {
     const variant = embedVariant ?? (effectiveLayoutMode === 'both' ? 'laptop' : 'tv');
+    const lockIframePointer = embedVariant === 'tv';
 
     return (
         <>
@@ -75,7 +76,7 @@ function PlayerEmbedSurface({
                             ? 'pointer-events-none absolute inset-0 hidden'
                             : cn(
                                   'absolute inset-0',
-                                  variant === 'tv' &&
+                                  lockIframePointer &&
                                       'pointer-events-none [&_iframe]:pointer-events-none',
                               )
                     }
@@ -89,6 +90,7 @@ function PlayerEmbedSurface({
                         onErrorAction={onYoutubeErrorAction}
                         className="absolute inset-0"
                         variant={variant}
+                        lockPointerEvents={lockIframePointer}
                     />
                 </div>
             ) : null}
@@ -103,7 +105,7 @@ function PlayerEmbedSurface({
                     volume={volume}
                     className={cn(
                         'absolute inset-0',
-                        variant === 'tv' && 'pointer-events-none [&_iframe]:pointer-events-none',
+                        lockIframePointer && 'pointer-events-none [&_iframe]:pointer-events-none',
                     )}
                     onPlayingChangeAction={({ playing, pausedWhileHidden }) => {
                         if (effectiveLayoutMode === 'remote' || !roomId) {

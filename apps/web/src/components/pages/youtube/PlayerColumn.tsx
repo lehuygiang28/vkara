@@ -446,6 +446,12 @@ function PlayerColumnInner({
                     onSkipUnplayableAction={handleSkipUnplayable}
                     setIsPlaying={setIsPlaying}
                     ensureConnectedAndSend={ensureConnectedAndSend}
+                    embedVariant={
+                        effectiveLayoutMode === 'both' ||
+                        (effectiveLayoutMode === 'player' && hasFinePointer)
+                            ? 'laptop'
+                            : undefined
+                    }
                 />
             ) : (
                 <div className="absolute inset-0 bg-zinc-950" aria-hidden />
@@ -575,7 +581,7 @@ function PlayerColumnInner({
             </div>
 
             {showPlayerSettingsButton && (
-                <div className="player-settings-button pointer-events-auto absolute right-safe-offset top-safe-offset z-20">
+                <div className="player-settings-button pointer-events-auto absolute right-[max(var(--safe-right),0.375rem)] top-safe-offset z-20">
                     <Button
                         type="button"
                         variant="secondary"

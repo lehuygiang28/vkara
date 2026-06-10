@@ -14,6 +14,8 @@ type YoutubeTvEmbedProps = {
     className?: string;
     /** TV: no iframe controls (`controls=0`). Laptop: native YouTube controls. */
     variant?: 'tv' | 'laptop';
+    /** Block iframe clicks — dedicated `/tv` route only (D-pad overlay owns input). */
+    lockPointerEvents?: boolean;
 };
 
 const BASE_PLAYER_VARS = {
@@ -34,6 +36,7 @@ export function YoutubeTvEmbed({
     onErrorAction,
     className,
     variant = 'tv',
+    lockPointerEvents = false,
 }: YoutubeTvEmbedProps) {
     const playerOrigin = window.location.origin;
     const isLaptop = variant === 'laptop';
@@ -42,7 +45,10 @@ export function YoutubeTvEmbed({
         <div className={cn('relative', className)}>
             <YouTube
                 videoId={videoId}
-                className="h-full w-full [&>div]:h-full [&>div]:w-full [&_iframe]:h-full [&_iframe]:w-full [&_iframe]:pointer-events-none"
+                className={cn(
+                    'h-full w-full [&>div]:h-full [&>div]:w-full [&_iframe]:h-full [&_iframe]:w-full',
+                    lockPointerEvents && '[&_iframe]:pointer-events-none',
+                )}
                 opts={{
                     height: '100%',
                     width: '100%',
