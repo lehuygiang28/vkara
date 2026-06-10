@@ -1,3 +1,5 @@
+import { isTlsInsecureEnabled } from '@vkara/env';
+
 const TRANSIENT_FETCH_CODES = new Set([
     'UNKNOWN_CERTIFICATE_VERIFICATION_ERROR',
     'ECONNRESET',
@@ -11,6 +13,12 @@ const TRANSIENT_FETCH_CODES = new Set([
 const TRANSIENT_FETCH_MESSAGE = /certificate|socket connection was closed|tls|ssl|connection reset/i;
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+type BunTlsInit = {
+    tls?: {
+        rejectUnauthorized?: boolean;
+    };
+};
 
 function readErrorCode(error: unknown): string | undefined {
     if (!error || typeof error !== 'object') return undefined;
@@ -32,10 +40,19 @@ export function isTransientYoutubeFetchError(error: unknown): boolean {
     return TRANSIENT_FETCH_MESSAGE.test(error.message);
 }
 
-type YoutubeOutboundFetchOptions = RequestInit & {
-    /** Retry count after the first attempt (default 2 → 3 total tries). */
-    retries?: number;
-};
+export function getYoutubeOutboundTlsInit(): BunTlsInit {
+    if (!isTlsInsecureEnabled({ VKARA_TLS_INSECURE: process.env.VKARA_TLS_INSECURE })) {
+        return {};
+    }
+
+    return { tls: { rejectUnauthorized: false } };
+}
+
+type YoutubeOutboundFetchOptions = RequestInit &
+    BunTlsInit & {
+        /** Retry count after the first attempt (default 2 → 3 total tries). */
+        retries?: number;
+    };
 
 /**
  * Outbound fetch for YouTube / InnerTube with safe retry.
@@ -45,14 +62,16 @@ export async function youtubeOutboundFetch(
     url: string | URL,
     init: YoutubeOutboundFetchOptions = {},
 ): Promise<Response> {
-    const { retries = 2, ...requestInit } = init;
+    const { retries = 2, tls: requestTls, ...requestInit } = init;
     const maxAttempts = retries + 1;
+    const tls = requestTls ?? getYoutubeOutboundTlsInit().tls;
 
     let lastError: unknown;
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
         try {
             return await fetch(url, {
                 ...requestInit,
+                ...(tls ? { tls } : {}),
                 keepalive: attempt === 0 ? requestInit.keepalive : false,
             });
         } catch (error) {

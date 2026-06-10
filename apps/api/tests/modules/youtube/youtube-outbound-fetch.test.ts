@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+    getYoutubeOutboundTlsInit,
     isTransientYoutubeFetchError,
     youtubeOutboundFetch,
 } from '@/modules/youtube/youtube-outbound-fetch';
@@ -24,6 +25,15 @@ describe('isTransientYoutubeFetchError', () => {
 
     it('ignores non-network application errors', () => {
         expect(isTransientYoutubeFetchError(new Error('playlist not found'))).toBe(false);
+    });
+});
+
+describe('getYoutubeOutboundTlsInit', () => {
+    it('disables certificate verification when VKARA_TLS_INSECURE is enabled', () => {
+        const previous = process.env.VKARA_TLS_INSECURE;
+        process.env.VKARA_TLS_INSECURE = 'true';
+        expect(getYoutubeOutboundTlsInit()).toEqual({ tls: { rejectUnauthorized: false } });
+        process.env.VKARA_TLS_INSECURE = previous;
     });
 });
 

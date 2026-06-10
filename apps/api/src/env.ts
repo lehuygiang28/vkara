@@ -7,6 +7,7 @@ import {
     playwrightProxyEnv,
     redisEnv,
     serverEnv,
+    tlsEnv,
 } from '@vkara/env';
 
 export const env = createEnv({
@@ -16,6 +17,7 @@ export const env = createEnv({
         playwrightProxyEnv(),
         redisEnv(),
         serverEnv(),
+        tlsEnv(),
         loggerEnv(),
     ],
     server: {},

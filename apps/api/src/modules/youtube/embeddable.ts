@@ -1,6 +1,8 @@
 import { env } from '@/env';
 import { resolvePublicAppUrl } from '@vkara/env/embed';
 
+import { youtubeOutboundFetch } from './youtube-outbound-fetch';
+
 /** Status values YouTube returns when the embed iframe can play. */
 const EMBED_PLAYABLE_STATUSES = new Set(['OK', 'LIVE_STREAM']);
 
@@ -73,7 +75,7 @@ export async function fetchEmbeddableFromYoutube(videoId: string): Promise<boole
     const origin = getEmbedCheckOrigin();
     const url = `${nextEmbedCheckBaseUrl()}${videoId}?origin=${encodeURIComponent(origin)}&enablejsapi=1&playsinline=1`;
 
-    const raw = await fetch(url, {
+    const raw = await youtubeOutboundFetch(url, {
         method: 'GET',
         headers: {
             'User-Agent':

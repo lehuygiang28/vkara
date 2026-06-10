@@ -29,6 +29,13 @@ export const FLAG_DOCS = [
         description:
             'Enable experimental features (TikTok provider API, Experiments section in Settings).',
     },
+    {
+        name: 'VKARA_TLS_INSECURE',
+        default: false,
+        scope: 'api',
+        description:
+            'Disable TLS certificate verification for outbound YouTube HTTPS fetches (dev/WSL only).',
+    },
 ] as const satisfies readonly FlagDoc[];
 
 /** Non-boolean `VKARA_*` tunables (numeric config) — keep in sync with zod schemas and `.env.example`. */

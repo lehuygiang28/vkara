@@ -13,4 +13,8 @@ else
     echo "API proxy: not configured"
 fi
 
+if [ "${VKARA_TLS_INSECURE:-}" = "true" ] || [ "${VKARA_TLS_INSECURE:-}" = "1" ]; then
+    echo "TLS verify: disabled (VKARA_TLS_INSECURE)"
+fi
+
 exec /app/server

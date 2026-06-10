@@ -11,6 +11,10 @@ if [ -z "${PUBLIC_APP_URL:-}" ]; then
     export PUBLIC_APP_URL
 fi
 
+if [ -n "${SPACE_HOST:-}" ] && [ -z "${VKARA_TLS_INSECURE:-}" ]; then
+    export VKARA_TLS_INSECURE=true
+fi
+
 if [ -n "${CF_PROXY_TUNNEL_HOSTNAME:-}" ]; then
     LOCAL="${CF_PROXY_TUNNEL_LOCAL_URL:-127.0.0.1:1080}"
 

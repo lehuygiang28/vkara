@@ -15,7 +15,7 @@ import { scheduleHourlyReportJob } from '@/queues/hourly-report';
 import { createContextLogger } from '@/utils/logger';
 import type { ServerMessage } from '@vkara/room';
 
-import { isExperimentsEnabled } from '@vkara/env';
+import { applyTlsInsecureRuntime, isExperimentsEnabled } from '@vkara/env';
 import { resolveCorsConfig } from '@vkara/env/server';
 
 import { env } from './env';
@@ -24,6 +24,12 @@ import { searchTiktokElysia, shutdownTikTokPool } from './tiktok';
 import { searchYoutubeiElysia } from './youtubei';
 
 const serverLogger = createContextLogger('Server');
+
+if (applyTlsInsecureRuntime(env)) {
+    serverLogger.warn(
+        'VKARA_TLS_INSECURE is enabled — outbound TLS certificate verification is disabled',
+    );
+}
 
 export const wsConnections = new Map<string, ElysiaWS>();
 

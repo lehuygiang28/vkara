@@ -28,6 +28,25 @@ type YoutubeiHttpInternals = {
     [PATCHED]?: boolean;
 };
 
+export function joinYoutubeiRequestUrl(
+    baseUrl: string,
+    path: string,
+    params?: Record<string, string>,
+): string {
+    if (path.startsWith('http')) {
+        const url = new URL(path);
+        for (const [key, value] of Object.entries(params ?? {})) {
+            url.searchParams.set(key, value);
+        }
+        return url.toString();
+    }
+
+    const host = baseUrl.replace(/\/+$/, '');
+    const pathname = path.replace(/^\/+/, '');
+    const query = new URLSearchParams(params).toString();
+    return query ? `https://${host}/${pathname}?${query}` : `https://${host}/${pathname}`;
+}
+
 /**
  * youtubei uses node-fetch → Node http/https. Route through Bun native fetch
  * (correct SNI; see oven-sh/bun#27890) with transient-error retry + fresh
@@ -39,7 +58,8 @@ export function ensureYoutubeiNativeFetch(client: Client): void {
     http[PATCHED] = true;
 
     http.request = async (path, partialOptions) => {
-        const requiresAuth = new URL(`https://${http.baseUrl}/${path}`).pathname.endsWith('/player');
+        const urlString = joinYoutubeiRequestUrl(http.baseUrl, path, partialOptions.params);
+        const requiresAuth = new URL(urlString).pathname.endsWith('/player');
         if (http.authorizationPromise && requiresAuth) {
             await http.authorizationPromise;
         }
@@ -47,7 +67,7 @@ export function ensureYoutubeiNativeFetch(client: Client): void {
         const headers: Record<string, string> = {
             ...http.defaultHeaders,
             cookie: http.cookie,
-            referer: `https://${http.baseUrl}/`,
+            referer: `https://${http.baseUrl.replace(/\/+$/, '')}/`,
             ...partialOptions.headers,
             ...http.defaultFetchOptions.headers,
         };
@@ -59,17 +79,6 @@ export function ensureYoutubeiNativeFetch(client: Client): void {
                 headers.Authorization = `Bearer ${http.oauth.token}`;
                 delete headers.cookie;
             }
-        }
-
-        let urlString: string;
-        if (path.startsWith('http')) {
-            const url = new URL(path);
-            for (const [key, value] of Object.entries(partialOptions.params ?? {})) {
-                url.searchParams.set(key, value);
-            }
-            urlString = url.toString();
-        } else {
-            urlString = `https://${http.baseUrl}/${path}?${new URLSearchParams(partialOptions.params)}`;
         }
 
         const response = await youtubeOutboundFetch(urlString, {
