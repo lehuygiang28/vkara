@@ -1,46 +1,65 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
+import { useShallow } from 'zustand/react/shallow';
 
 import { useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useCountdownStore } from '@/store/countdownTimersStore';
-import { useWebSocket } from '@/providers/websocket-provider';
+import { useWebSocketStore } from '@/store/websocketStore';
 import { useTvRouteBootstrap } from '@/hooks/use-tv-route-bootstrap';
 import { useTvOverlayStack } from '@/hooks/use-tv-overlay-stack';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
-import { useTikTokHiddenPlayGuard } from '@/hooks/use-tiktok-hidden-play-guard';
-import { useTikTokPhotoIndexSync } from '@/hooks/use-tiktok-photo-index-sync';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 import { ConnectionStatusToast } from '@/components/connection-status-toast';
 
 import { TvSpatialRoot } from './tv-spatial-root';
 import { TvPlayerHost } from './tv-player-host';
-import { TvPlayerChrome } from './tv-player-chrome';
-import { TvPlayerFixedQr } from './tv-player-fixed-qr';
-import { TvSettingsPanel } from './tv-settings-panel';
-import { TvLobby } from './tv-lobby';
+
+const TvLobby = dynamic(() => import('./tv-lobby').then((m) => ({ default: m.TvLobby })), {
+    ssr: false,
+});
+const TvPlayerChrome = dynamic(
+    () => import('./tv-player-chrome').then((m) => ({ default: m.TvPlayerChrome })),
+    { ssr: false },
+);
+const TvPlayerFixedQr = dynamic(
+    () => import('./tv-player-fixed-qr').then((m) => ({ default: m.TvPlayerFixedQr })),
+    { ssr: false },
+);
+const TvSettingsPanel = dynamic(
+    () => import('./tv-settings-panel').then((m) => ({ default: m.TvSettingsPanel })),
+    { ssr: false },
+);
 
 export default function TvPage() {
     useTvRouteBootstrap();
     useStripRoomQueryFromUrl();
     usePlaybackPositionSync();
-    useTikTokHiddenPlayGuard();
-    useTikTokPhotoIndexSync();
 
     const tToast = useScopedI18n('toast');
     const locale = useCurrentLocale();
-    const roomId = useYouTubeStore((s) => s.room?.id);
-    const roomPassword = useYouTubeStore((s) => s.room?.password);
-    const playingNow = useYouTubeStore((s) => s.room?.playingNow);
-    const showQRInPlayer = useYouTubeStore((s) => s.room?.showQRInPlayer ?? true);
-    const videoQueueLength = useYouTubeStore((s) => s.room?.videoQueue?.length ?? 0);
-    const tvSuppressAutoCreate = useYouTubeStore((s) => s.tvSuppressAutoCreate);
+    const {
+        roomId,
+        roomPassword,
+        playingNow,
+        showQRInPlayer,
+        videoQueueLength,
+        tvSuppressAutoCreate,
+    } = useYouTubeStore(
+        useShallow((s) => ({
+            roomId: s.room?.id,
+            roomPassword: s.room?.password,
+            playingNow: s.room?.playingNow,
+            showQRInPlayer: s.room?.showQRInPlayer ?? true,
+            videoQueueLength: s.room?.videoQueue?.length ?? 0,
+            tvSuppressAutoCreate: s.tvSuppressAutoCreate,
+        })),
+    );
     const shouldShowNextUp = useCountdownStore((s) => s.shouldShowTimer);
-
-    const { lastMessage } = useWebSocket();
 
     const showLobby = !roomId && tvSuppressAutoCreate;
     const inRoom = Boolean(roomId) && !showLobby;
@@ -68,13 +87,34 @@ export default function TvPage() {
     });
 
     const isIdleScreen = inRoom && !isPlayerActive && !settingsOpen;
+    const chromeMounted =
+        isPlayerActive &&
+        !nextUpVisible &&
+        (controlsVisible || settingsOpen || queueExpanded);
 
     useEffect(() => {
-        if (!lastMessage) {
+        let prevLastMessage = useWebSocketStore.getState().lastMessage;
+        return useWebSocketStore.subscribe((state) => {
+            if (state.lastMessage === prevLastMessage) {
+                return;
+            }
+            prevLastMessage = state.lastMessage;
+            if (!state.lastMessage) {
+                return;
+            }
+            useYouTubeStore
+                .getState()
+                .handleServerMessage(state.lastMessage, tToast, { isTvLayout: true });
+        });
+    }, [tToast]);
+
+    useEffect(() => {
+        if (!isPlayerActive) {
             return;
         }
-        useYouTubeStore.getState().handleServerMessage(lastMessage, tToast, { isTvLayout: true });
-    }, [lastMessage, tToast]);
+        void import('./tv-player-chrome');
+        void import('./tv-player-fixed-qr');
+    }, [isPlayerActive]);
 
     useEffect(() => {
         if (!showLobby) {
@@ -147,7 +187,7 @@ export default function TvPage() {
                                 />
                             ) : null}
 
-                            {isPlayerActive && !nextUpVisible ? (
+                            {chromeMounted ? (
                                 <TvPlayerChrome
                                     visible={controlsVisible}
                                     settingsOpen={settingsOpen}

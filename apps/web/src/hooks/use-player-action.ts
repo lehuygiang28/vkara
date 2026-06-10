@@ -60,14 +60,15 @@ export const usePlayerAction = (): PlayerAction => {
     const t = useI18n();
     const tJoinLobby = useScopedI18n('joinLobby');
     const { ensureConnectedAndSend } = useWebSocket();
-    const { room } = useYouTubeStore();
+    const roomId = useYouTubeStore((s) => s.room?.id);
+    const playingNowId = useYouTubeStore((s) => s.room?.playingNow?.id);
     const { effectiveLayoutMode } = useEffectiveLayoutMode();
     const waitForRoomSession = useWaitForRoomSession();
     const actionCooldownRef = useRef<Map<string, number>>(new Map());
 
     useEffect(() => {
         actionCooldownRef.current.clear();
-    }, [room?.playingNow?.id]);
+    }, [playingNowId]);
 
     const isActionCoolingDown = useCallback((key: string) => {
         const until = actionCooldownRef.current.get(key) ?? 0;
@@ -86,7 +87,7 @@ export const usePlayerAction = (): PlayerAction => {
     }, [t]);
 
     const createRoomIfNeeded = useCallback(async (): Promise<boolean> => {
-        if (room?.id) return true;
+        if (roomId) return true;
 
         if (effectiveLayoutMode === 'remote') {
             toast({
@@ -127,10 +128,10 @@ export const usePlayerAction = (): PlayerAction => {
             notifySessionNotReady();
             return false;
         }
-    }, [room?.id, effectiveLayoutMode, ensureConnectedAndSend, tJoinLobby, notifySessionNotReady]);
+    }, [roomId, effectiveLayoutMode, ensureConnectedAndSend, tJoinLobby, notifySessionNotReady]);
 
     const ensureRoomReady = useCallback(async (): Promise<boolean> => {
-        if (room?.id) {
+        if (roomId) {
             if (!(await waitForRoomSession())) {
                 notifySessionNotReady();
                 return false;
@@ -139,7 +140,7 @@ export const usePlayerAction = (): PlayerAction => {
         }
 
         return createRoomIfNeeded();
-    }, [room?.id, waitForRoomSession, createRoomIfNeeded, notifySessionNotReady]);
+    }, [roomId, waitForRoomSession, createRoomIfNeeded, notifySessionNotReady]);
 
     const handlePlayVideoNow = useCallback(
         async (video: YouTubeVideo) => {

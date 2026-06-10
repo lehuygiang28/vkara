@@ -1,7 +1,7 @@
 'use client';
 
 import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation-react';
-import { useEffect, useRef } from 'react';
+import { memo, useEffect, useRef } from 'react';
 
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 import { cn } from '@/lib/utils';
@@ -23,7 +23,7 @@ type TvPlayerChromeProps = {
     onCloseSettingsAction: () => void;
 };
 
-export function TvPlayerChrome({
+function TvPlayerChromeInner({
     visible,
     settingsOpen,
     queueExpanded,
@@ -78,7 +78,7 @@ export function TvPlayerChrome({
                                 <TvPlayerTopBar />
 
                                 <div className="w-full space-y-7 pb-2 md:space-y-8">
-                                    <TvPlaybackProgress />
+                                    <TvPlaybackProgress enabled={visible && !settingsOpen} />
                                     <TvTransportControls
                                         visible={visible}
                                         settingsOpen={settingsOpen}
@@ -115,3 +115,5 @@ export function TvPlayerChrome({
         </>
     );
 }
+
+export const TvPlayerChrome = memo(TvPlayerChromeInner);

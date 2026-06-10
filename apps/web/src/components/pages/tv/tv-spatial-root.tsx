@@ -7,10 +7,6 @@ import { ensureTvSpatialNavInit, TV_APP_ROOT_KEY, TV_FOCUS_KEYS } from '@/lib/tv
 
 export { TV_APP_ROOT_KEY };
 
-if (typeof window !== 'undefined') {
-    ensureTvSpatialNavInit();
-}
-
 type TvSpatialRootProps = {
     children: ReactNode;
 };

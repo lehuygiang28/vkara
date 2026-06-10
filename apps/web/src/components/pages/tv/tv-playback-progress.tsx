@@ -9,11 +9,13 @@ import { cn } from '@/lib/utils';
 
 type TvPlaybackProgressProps = {
     className?: string;
+    /** When false, skips the 1 Hz extrapolation interval (controls hidden). */
+    enabled?: boolean;
 };
 
-export function TvPlaybackProgress({ className }: TvPlaybackProgressProps) {
+export function TvPlaybackProgress({ className, enabled = true }: TvPlaybackProgressProps) {
     const playingNow = useYouTubeStore((s) => s.room?.playingNow);
-    const displayTime = usePlaybackDisplayTime({ enabled: Boolean(playingNow) });
+    const displayTime = usePlaybackDisplayTime({ enabled: enabled && Boolean(playingNow) });
 
     if (!playingNow) {
         return null;
