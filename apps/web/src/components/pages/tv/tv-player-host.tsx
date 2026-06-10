@@ -6,7 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { type CaptionTrack, DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
 import { needsPlaybackSeekCorrection } from '@vkara/room';
 import { isVideoLive } from '@vkara/tiktok';
-import { useCurrentLocale, useScopedI18n } from '@/locales/client';
+import { useCurrentLocale } from '@/locales/client';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
 import {
