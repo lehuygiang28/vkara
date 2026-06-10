@@ -1,8 +1,9 @@
 'use client';
 
-import { coerceViewCount, formatViewCount, normalizeVideoChannels } from '@vkara/youtube';
+import { coerceViewCount, formatViewCount } from '@vkara/youtube';
 import { isVideoLive } from '@vkara/tiktok';
 
+import { VideoChannels } from '@/components/video-channels';
 import { useScopedI18n } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';
@@ -24,20 +25,9 @@ export function TvPlayerTopBar({ className }: TvPlayerTopBarProps) {
         return null;
     }
 
-    const channels = normalizeVideoChannels(playingNow);
-    const primaryChannel = channels[0]?.name;
     const views = coerceViewCount(playingNow.views);
     const isLive = isVideoLive({ video: playingNow });
-
-    const metaParts: string[] = [];
-    if (primaryChannel) {
-        metaParts.push(primaryChannel);
-    }
-    if (isLive) {
-        metaParts.push(tYoutube('liveNow'));
-    } else if (views > 0) {
-        metaParts.push(`${formatViewCount(views)} ${tSearch('views')}`);
-    }
+    const viewsLabel = views > 0 && !isLive ? `${formatViewCount(views)} ${tSearch('views')}` : null;
 
     const reserveQrSpace = Boolean(showQRInPlayer && roomId);
 
@@ -52,11 +42,23 @@ export function TvPlayerTopBar({ className }: TvPlayerTopBarProps) {
             <h1 className="line-clamp-2 text-2xl font-semibold leading-tight tracking-tight text-white md:text-[1.85rem] lg:text-[2rem]">
                 {playingNow.title}
             </h1>
-            {metaParts.length > 0 ? (
-                <p className="mt-2 line-clamp-1 text-base font-medium text-zinc-200 md:text-xl">
-                    {metaParts.join(' · ')}
-                </p>
-            ) : null}
+            <div className="tv-player-top-bar__meta mt-2 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
+                <VideoChannels
+                    video={playingNow}
+                    tone="inverse"
+                    maxLines={2}
+                    className="tv-player-top-bar__channels min-w-0 flex-1 text-base font-medium md:text-xl"
+                />
+                {isLive ? (
+                    <span className="shrink-0 text-base font-medium text-zinc-200 md:text-xl">
+                        · {tYoutube('liveNow')}
+                    </span>
+                ) : viewsLabel ? (
+                    <span className="shrink-0 text-base font-medium tabular-nums text-zinc-200 md:text-xl">
+                        · {viewsLabel}
+                    </span>
+                ) : null}
+            </div>
         </header>
     );
 }

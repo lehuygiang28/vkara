@@ -196,6 +196,31 @@
     padding-left: var(--tv-fixed-qr-reserve);
 }
 
+[data-tv-route] .tv-player-top-bar__channels {
+    line-height: 1.35;
+}
+
+/** TV verified badge — flat accent disc + white tick, no ring. */
+[data-tv-route] .tv-player-top-bar__channels [aria-label='Verified channel'],
+[data-tv-route] .tv-queue-card__channels [aria-label='Verified channel'] {
+    width: 0.95em;
+    height: 0.95em;
+    flex-shrink: 0;
+}
+
+[data-tv-route] .tv-player-top-bar__channels [aria-label='Verified channel'] path:first-of-type,
+[data-tv-route] .tv-queue-card__channels [aria-label='Verified channel'] path:first-of-type {
+    fill: var(--tv-accent);
+    stroke: none;
+}
+
+[data-tv-route] .tv-player-top-bar__channels [aria-label='Verified channel'] path:last-of-type,
+[data-tv-route] .tv-queue-card__channels [aria-label='Verified channel'] path:last-of-type {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 2;
+}
+
 /** Settings rail — solid enough for readable type at 10-foot. */
 [data-tv-route] .tv-settings-rail {
     background: linear-gradient(

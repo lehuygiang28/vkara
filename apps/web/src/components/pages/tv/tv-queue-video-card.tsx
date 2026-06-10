@@ -1,11 +1,12 @@
 'use client';
 
 import type { YouTubeVideo } from '@vkara/youtube';
-import { coerceViewCount, formatViewCount, normalizeVideoChannels } from '@vkara/youtube';
+import { coerceViewCount, formatViewCount } from '@vkara/youtube';
 import { getVideoThumbnailUrl, isVideoLive } from '@vkara/tiktok';
 import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 
 import { LiveBadge } from '@/components/youtube-live-badge';
+import { VideoChannels } from '@/components/video-channels';
 import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 import {
     tvFocusShellRect,
@@ -66,7 +67,6 @@ export function TvQueueVideoCard({
     const thumb = getVideoThumbnailUrl({ video, size: 'large' });
     const isLive = isVideoLive({ video });
     const views = coerceViewCount(video.views);
-    const channelName = normalizeVideoChannels(video)[0]?.name;
     const durationLabel = video.duration_formatted || formatDuration(video.duration) || undefined;
 
     const viewsLine = views > 0 && !isLive ? `${formatViewCount(views)} ${viewsLabel}` : null;
@@ -131,9 +131,15 @@ export function TvQueueVideoCard({
 
                     <div className="tv-queue-card-meta mt-3 space-y-1">
                         <h3 className={tvQueueTitle(focused)}>{video.title}</h3>
-                        {channelName ? (
-                            <p className={tvQueueMetaLine(focused)}>{channelName}</p>
-                        ) : null}
+                        <VideoChannels
+                            video={video}
+                            tone={focused ? 'emphasis' : 'muted'}
+                            maxLines={2}
+                            className={cn(
+                                'tv-queue-card__channels text-sm md:text-base',
+                                focused ? 'font-medium text-zinc-600' : 'text-zinc-400',
+                            )}
+                        />
                         {viewsLine ? (
                             <p className={cn(tvQueueMetaLine(focused), 'tabular-nums')}>
                                 {viewsLine}
