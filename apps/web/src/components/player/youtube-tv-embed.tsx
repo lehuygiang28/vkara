@@ -1,7 +1,10 @@
 'use client';
 
+import { useMemo } from 'react';
 import YouTube from 'react-youtube';
 
+import { youtubeEmbedHl } from '@/lib/youtube-embed-locale';
+import { useCurrentLocale } from '@/locales/client';
 import { cn } from '@/lib/utils';
 
 type YoutubeTvEmbedProps = {
@@ -38,12 +41,28 @@ export function YoutubeTvEmbed({
     variant = 'tv',
     lockPointerEvents = false,
 }: YoutubeTvEmbedProps) {
+    const locale = useCurrentLocale();
     const playerOrigin = window.location.origin;
     const isLaptop = variant === 'laptop';
+    const hl = youtubeEmbedHl(locale);
+
+    const playerVars = useMemo(
+        () => ({
+            origin: playerOrigin,
+            autoplay: autoplay ? 1 : 0,
+            hl,
+            ...BASE_PLAYER_VARS,
+            controls: isLaptop ? 1 : 0,
+            disablekb: isLaptop ? 0 : 1,
+            fs: isLaptop ? 1 : 0,
+        }),
+        [playerOrigin, autoplay, hl, isLaptop],
+    );
 
     return (
         <div className={cn('relative', className)}>
             <YouTube
+                key={`${videoId}-${hl}`}
                 videoId={videoId}
                 className={cn(
                     'h-full w-full [&>div]:h-full [&>div]:w-full [&_iframe]:h-full [&_iframe]:w-full',
@@ -53,14 +72,7 @@ export function YoutubeTvEmbed({
                     height: '100%',
                     width: '100%',
                     host: 'https://www.youtube-nocookie.com',
-                    playerVars: {
-                        origin: playerOrigin,
-                        autoplay: autoplay ? 1 : 0,
-                        ...BASE_PLAYER_VARS,
-                        controls: isLaptop ? 1 : 0,
-                        disablekb: isLaptop ? 0 : 1,
-                        fs: isLaptop ? 1 : 0,
-                    },
+                    playerVars,
                 }}
                 onReady={onReadyAction}
                 onStateChange={onStateChangeAction}
