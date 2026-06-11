@@ -3,7 +3,7 @@
 import { FocusContext, useFocusable } from '@noriginmedia/norigin-spatial-navigation-react';
 import { memo, useEffect, useRef } from 'react';
 
-import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { seedTvFocus, TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 import { cn } from '@/lib/utils';
 
 import { TvPlayerTopBar } from './tv-player-top-bar';
@@ -43,14 +43,18 @@ function TvPlayerChromeInner({
         saveLastFocusedChild: true,
     });
 
+    const showControlsLayer = visible && !settingsOpen;
+    const showQueueShelf = showControlsLayer || queueExpanded;
+
     useEffect(() => {
-        const becameVisible = visible && !settingsOpen && !wasVisibleRef.current;
-        wasVisibleRef.current = visible && !settingsOpen;
+        const becameVisible = showControlsLayer && !wasVisibleRef.current;
+        wasVisibleRef.current = showControlsLayer;
 
         if (becameVisible) {
             focusSelf();
+            seedTvFocus(TV_FOCUS_KEYS.ctrlPlayPause);
         }
-    }, [visible, settingsOpen, focusSelf]);
+    }, [showControlsLayer, focusSelf]);
 
     return (
         <>
@@ -75,12 +79,14 @@ function TvPlayerChromeInner({
                     <FocusContext.Provider value={focusKey}>
                         <div ref={ref} className="relative flex h-full flex-col">
                             <div className="flex min-h-0 flex-1 flex-col justify-between px-8 pb-4 pt-8 md:px-12 md:pt-10 lg:px-16">
-                                <TvPlayerTopBar />
+                                {showControlsLayer ? <TvPlayerTopBar /> : null}
 
                                 <div className="w-full space-y-7 pb-2 md:space-y-8">
-                                    <TvPlaybackProgress enabled={visible && !settingsOpen} />
+                                    {showControlsLayer ? (
+                                        <TvPlaybackProgress enabled />
+                                    ) : null}
                                     <TvTransportControls
-                                        visible={visible}
+                                        visible={showControlsLayer}
                                         settingsOpen={settingsOpen}
                                         onRevealAction={onRevealAction}
                                         onQueueFocusAction={onQueueFocusAction}
@@ -89,23 +95,25 @@ function TvPlayerChromeInner({
                                 </div>
                             </div>
 
-                            <div
-                                className={cn(
-                                    'tv-queue-shelf shrink-0',
-                                    queueExpanded
-                                        ? 'tv-queue-shelf--expanded'
-                                        : 'tv-queue-shelf--peek',
-                                )}
-                            >
-                                <div className="tv-queue-shelf__clip">
-                                    <TvQueuePanel
-                                        embedded
-                                        expanded={queueExpanded}
-                                        focusEnabled={visible && !settingsOpen && queueExpanded}
-                                        onLeaveQueueAction={onQueueCollapseAction}
-                                    />
+                            {showQueueShelf ? (
+                                <div
+                                    className={cn(
+                                        'tv-queue-shelf shrink-0',
+                                        queueExpanded
+                                            ? 'tv-queue-shelf--expanded'
+                                            : 'tv-queue-shelf--peek',
+                                    )}
+                                >
+                                    <div className="tv-queue-shelf__clip">
+                                        <TvQueuePanel
+                                            embedded
+                                            expanded={queueExpanded}
+                                            focusEnabled={showControlsLayer && queueExpanded}
+                                            onLeaveQueueAction={onQueueCollapseAction}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
+                            ) : null}
                         </div>
                     </FocusContext.Provider>
                 ) : null}

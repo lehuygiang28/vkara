@@ -1,4 +1,4 @@
-import { init, setKeyMap } from '@noriginmedia/norigin-spatial-navigation-core';
+import { init, setKeyMap, setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 
 /** App root — never use ROOT_FOCUS_KEY (`SN:ROOT`). */
 export const TV_APP_ROOT_KEY = 'TV_APP_ROOT';
@@ -98,4 +98,34 @@ export function isTvNavigationKey(key: string): boolean {
         key === 'Enter' ||
         key === ' '
     );
+}
+
+const DEFAULT_FOCUS_SEED_ATTEMPTS = 20;
+
+/**
+ * Focus a spatial leaf after lazy-mounted overlays register (dynamic import / mount-gate).
+ * Retries across animation frames until the focus key exists or attempts are exhausted.
+ */
+export function seedTvFocus(focusKey: string, maxAttempts = DEFAULT_FOCUS_SEED_ATTEMPTS): void {
+    if (typeof window === 'undefined') {
+        return;
+    }
+
+    let attempts = 0;
+
+    const attempt = () => {
+        try {
+            setFocus(focusKey);
+            return;
+        } catch {
+            // Focus target not registered yet.
+        }
+
+        attempts += 1;
+        if (attempts < maxAttempts) {
+            requestAnimationFrame(attempt);
+        }
+    };
+
+    requestAnimationFrame(attempt);
 }

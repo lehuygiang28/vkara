@@ -1,9 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
-
-import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { seedTvFocus, TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 
 function blurEmbeddedFrameFocus() {
     const active = document.activeElement;
@@ -31,13 +29,7 @@ export function TvEmbedFocusGuard({ controlsVisible }: TvEmbedFocusGuardProps) {
         wasControlsVisibleRef.current = controlsVisible;
 
         if (becameVisible) {
-            requestAnimationFrame(() => {
-                try {
-                    setFocus(TV_FOCUS_KEYS.ctrlPlayPause);
-                } catch {
-                    // Spatial tree may not be mounted yet.
-                }
-            });
+            seedTvFocus(TV_FOCUS_KEYS.ctrlPlayPause);
         }
     }, [controlsVisible]);
 
@@ -47,13 +39,7 @@ export function TvEmbedFocusGuard({ controlsVisible }: TvEmbedFocusGuardProps) {
                 event.preventDefault();
                 blurEmbeddedFrameFocus();
                 if (controlsVisible) {
-                    requestAnimationFrame(() => {
-                        try {
-                            setFocus(TV_FOCUS_KEYS.ctrlPlayPause);
-                        } catch {
-                            // ignore
-                        }
-                    });
+                    seedTvFocus(TV_FOCUS_KEYS.ctrlPlayPause);
                 }
             }
         };

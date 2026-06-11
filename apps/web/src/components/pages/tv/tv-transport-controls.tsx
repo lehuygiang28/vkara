@@ -7,7 +7,7 @@ import { useEffect, type ReactNode } from 'react';
 import { useScopedI18n } from '@/locales/client';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { useYouTubeStore } from '@/store/youtubeStore';
-import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { seedTvFocus, TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 import { tvTransportButton, tvTransportIconClass } from '@/lib/tv-focus-styles';
 
 import { TvFocusable } from './tv-focusable';
@@ -96,6 +96,7 @@ export function TvTransportControls({
     useEffect(() => {
         if (visible && !settingsOpen) {
             focusSelf();
+            seedTvFocus(TV_FOCUS_KEYS.ctrlPlayPause);
         }
     }, [visible, settingsOpen, focusSelf]);
 

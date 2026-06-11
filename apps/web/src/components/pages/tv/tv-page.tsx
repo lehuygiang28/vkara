@@ -2,7 +2,6 @@
 
 import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
-import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
 import { useShallow } from 'zustand/react/shallow';
 
 import { useScopedI18n, useCurrentLocale } from '@/locales/client';
@@ -13,7 +12,7 @@ import { useTvRouteBootstrap } from '@/hooks/use-tv-route-bootstrap';
 import { useTvOverlayStack } from '@/hooks/use-tv-overlay-stack';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
-import { TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { seedTvFocus, TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
 
 import { TvSpatialRoot } from './tv-spatial-root';
 import { TvPlayerHost } from './tv-player-host';
@@ -96,10 +95,8 @@ export default function TvPage() {
     });
 
     const isIdleScreen = inRoom && !isPlayerActive && !settingsOpen;
-    const chromeMounted =
-        isPlayerActive &&
-        !nextUpVisible &&
-        (controlsVisible || settingsOpen || queueExpanded);
+    /** Keep spatial tree mounted during playback so first D-pad reveal can focus immediately. */
+    const chromeMounted = isPlayerActive && !nextUpVisible;
 
     useEffect(() => {
         let prevLastMessage = useWebSocketStore.getState().lastMessage;
@@ -133,17 +130,7 @@ export default function TvPage() {
         hideControls();
         closeSettings();
 
-        const frame = requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                try {
-                    setFocus(TV_FOCUS_KEYS.lobbyCreate);
-                } catch {
-                    // Spatial tree may not be ready.
-                }
-            });
-        });
-
-        return () => cancelAnimationFrame(frame);
+        seedTvFocus(TV_FOCUS_KEYS.lobbyCreate);
     }, [showLobby, hideControls, closeSettings]);
 
     useEffect(() => {
@@ -151,17 +138,7 @@ export default function TvPage() {
             return;
         }
 
-        const frame = requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                try {
-                    setFocus(TV_FOCUS_KEYS.idleQr);
-                } catch {
-                    // Spatial tree may not be ready on first paint.
-                }
-            });
-        });
-
-        return () => cancelAnimationFrame(frame);
+        seedTvFocus(TV_FOCUS_KEYS.idleQr);
     }, [isIdleScreen]);
 
     useEffect(() => {

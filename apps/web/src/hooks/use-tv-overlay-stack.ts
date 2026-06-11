@@ -1,9 +1,13 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { setFocus } from '@noriginmedia/norigin-spatial-navigation-core';
-
-import { isTvBackKey, isTvNavigationKey, isTvRevealKey, TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import {
+    isTvBackKey,
+    isTvNavigationKey,
+    isTvRevealKey,
+    seedTvFocus,
+    TV_FOCUS_KEYS,
+} from '@/lib/tv-spatial-nav';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 const HIDE_DELAY_MS = 5000;
@@ -85,19 +89,17 @@ export function useTvOverlayStack({
         setControlsVisible(true);
         setQueueExpanded(true);
         clearHideTimer();
-        requestAnimationFrame(() => {
-            const playingId = useYouTubeStore.getState().room?.playingNow?.id;
-            if (playingId) {
-                setFocus(TV_FOCUS_KEYS.queueItem(playingId));
-                return;
-            }
-            const firstQueued = useYouTubeStore.getState().room?.videoQueue?.[0]?.id;
-            if (firstQueued) {
-                setFocus(TV_FOCUS_KEYS.queueItem(firstQueued));
-                return;
-            }
-            setFocus(TV_FOCUS_KEYS.queuePanel);
-        });
+        const playingId = useYouTubeStore.getState().room?.playingNow?.id;
+        if (playingId) {
+            seedTvFocus(TV_FOCUS_KEYS.queueItem(playingId));
+            return;
+        }
+        const firstQueued = useYouTubeStore.getState().room?.videoQueue?.[0]?.id;
+        if (firstQueued) {
+            seedTvFocus(TV_FOCUS_KEYS.queueItem(firstQueued));
+            return;
+        }
+        seedTvFocus(TV_FOCUS_KEYS.queuePanel);
     }, [controlsEnabled, clearHideTimer]);
 
     const openSettings = useCallback(() => {
@@ -107,15 +109,7 @@ export function useTvOverlayStack({
             setControlsVisible(true);
         }
         clearHideTimer();
-        requestAnimationFrame(() => {
-            requestAnimationFrame(() => {
-                try {
-                    setFocus(settingsOpenFocusKey);
-                } catch {
-                    // Settings tree may not be mounted yet.
-                }
-            });
-        });
+        seedTvFocus(settingsOpenFocusKey);
     }, [controlsEnabled, clearHideTimer, settingsOpenFocusKey]);
 
     const closeSettings = useCallback(() => {
@@ -124,13 +118,7 @@ export function useTvOverlayStack({
         if (controlsEnabled) {
             revealControls();
         }
-        requestAnimationFrame(() => {
-            try {
-                setFocus(settingsCloseFocusKey);
-            } catch {
-                // Spatial tree may not be mounted yet.
-            }
-        });
+        seedTvFocus(settingsCloseFocusKey);
     }, [controlsEnabled, revealControls, settingsCloseFocusKey]);
 
     const toggleSettings = useCallback(() => {
@@ -144,7 +132,7 @@ export function useTvOverlayStack({
     const closeDrawers = useCallback(() => {
         setSettingsOpen(false);
         revealControls();
-        requestAnimationFrame(() => setFocus(TV_FOCUS_KEYS.ctrlPlayPause));
+        seedTvFocus(TV_FOCUS_KEYS.ctrlPlayPause);
     }, [revealControls]);
 
     const handleBack = useCallback(() => {
@@ -203,11 +191,7 @@ export function useTvOverlayStack({
                         !settingsOpenRef.current &&
                         isTvNavigationKey(event.key)
                     ) {
-                        try {
-                            setFocus(idleFocusKeyRef.current);
-                        } catch {
-                            // Spatial tree may not be ready yet.
-                        }
+                        seedTvFocus(idleFocusKeyRef.current);
                     }
                     return;
                 }
@@ -218,26 +202,14 @@ export function useTvOverlayStack({
                 const active = document.activeElement;
                 if (active instanceof HTMLIFrameElement) {
                     active.blur();
-                    requestAnimationFrame(() => {
-                        try {
-                            setFocus(TV_FOCUS_KEYS.ctrlPlayPause);
-                        } catch {
-                            // Spatial tree may not be mounted yet.
-                        }
-                    });
+                    seedTvFocus(TV_FOCUS_KEYS.ctrlPlayPause);
                     return;
                 }
 
                 // Only seed focus when the overlay was hidden. While controls are
                 // already visible, let Norigin spatial nav handle arrows/enter.
                 if (wasHidden) {
-                    requestAnimationFrame(() => {
-                        try {
-                            setFocus(TV_FOCUS_KEYS.ctrlPlayPause);
-                        } catch {
-                            // Spatial tree may not be mounted yet.
-                        }
-                    });
+                    seedTvFocus(TV_FOCUS_KEYS.ctrlPlayPause);
                 }
             }
         };
