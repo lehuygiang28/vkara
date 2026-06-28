@@ -197,7 +197,7 @@ export function TvPlayerQrZone({
         return (
             <div
                 className={cn(
-                    'absolute inset-0 z-[5] flex overflow-y-auto overscroll-y-contain bg-zinc-950 px-4 py-safe-offset sm:px-8',
+                    'absolute inset-0 z-[5] flex overflow-y-auto overscroll-y-contain bg-background px-4 py-safe-offset sm:px-8',
                     compact
                         ? 'items-start justify-center lg:items-center lg:px-10 lg:py-10'
                         : 'items-start justify-center pt-4 sm:items-center sm:justify-center sm:py-8',

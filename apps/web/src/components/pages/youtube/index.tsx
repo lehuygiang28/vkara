@@ -93,11 +93,11 @@ export default function YoutubePlayerPage() {
     if (needsLayoutBootstrap) {
         return (
             <div
-                className="relative flex h-dvh-screen w-full flex-col overflow-hidden bg-zinc-950"
+                className="relative flex h-dvh-screen w-full flex-col overflow-hidden bg-background"
                 aria-busy="true"
             >
                 <ConnectionStatusToast />
-                <div className="pointer-events-auto absolute inset-x-0 bottom-0 border-t border-zinc-800/80 bg-zinc-950 px-4 py-3 pb-safe-offset">
+                <div className="pointer-events-auto absolute inset-x-0 bottom-0 border-t border-zinc-800/80 bg-background px-4 py-3 pb-safe-offset">
                     <LayoutModeSwitch
                         tone="overlay-visible"
                         className="w-full"
@@ -109,19 +109,14 @@ export default function YoutubePlayerPage() {
     }
 
     return (
-        <div
-            className={cn(
-                'flex h-dvh-screen w-full flex-col overflow-hidden',
-                useTvIdleShell ? 'bg-zinc-950' : 'bg-background',
-            )}
-        >
+        <div className={cn('flex h-dvh-screen w-full flex-col overflow-hidden', 'bg-background')}>
             <ConnectionStatusToast />
             <main className="flex min-h-0 flex-1 flex-col overflow-hidden md:h-full md:flex-row">
                 {showsPlayer && (
                     <div
                         className={cn(
                             'relative min-h-0 w-full',
-                            useTvIdleShell ? 'bg-zinc-950' : 'bg-black',
+                            useTvIdleShell ? 'bg-background' : 'bg-black',
                             effectiveLayoutMode === 'both' && 'md:h-full md:w-2/3 lg:w-3/4',
                             effectiveLayoutMode === 'player' &&
                                 (useTvIdleShell ? 'h-full' : 'h-[42dvh] md:h-full'),

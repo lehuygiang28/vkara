@@ -454,11 +454,11 @@ function PlayerColumnInner({
                     }
                 />
             ) : (
-                <div className="absolute inset-0 bg-zinc-950" aria-hidden />
+                <div className="absolute inset-0 bg-background" aria-hidden />
             )}
 
             {isTvPlayerIdle && !roomId && tvSuppressAutoCreate && (
-                <div className="absolute inset-0 z-[5] flex items-center justify-center bg-zinc-950">
+                <div className="absolute inset-0 z-[5] flex items-center justify-center bg-background">
                     {!isTvViewport ? (
                         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgb(39_39_42_/_0.55),transparent_62%)]" />
                     ) : null}

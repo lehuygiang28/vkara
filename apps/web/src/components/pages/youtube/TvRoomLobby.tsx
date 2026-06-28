@@ -169,7 +169,7 @@ export function TvRoomLobby({
                     <span className="w-full border-t border-zinc-800" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase tracking-wide">
-                    <span className="bg-zinc-950 px-3 text-zinc-500">{t('or')}</span>
+                    <span className="bg-background px-3 text-zinc-500">{t('or')}</span>
                 </div>
             </div>
 
