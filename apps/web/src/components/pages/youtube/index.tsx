@@ -14,8 +14,10 @@ import { useWebSocket } from '@/providers/websocket-provider';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 import { useTikTokHiddenPlayGuard } from '@/hooks/use-tiktok-hidden-play-guard';
 import { useTikTokPhotoIndexSync } from '@/hooks/use-tiktok-photo-index-sync';
+import { useTvKaraokeScore } from '@/hooks/use-tv-karaoke-score';
 
 import { ConnectionStatusToast } from '@/components/connection-status-toast';
+import { KaraokeResultOverlay } from '@/components/karaoke/karaoke-result-overlay';
 import {
     PlayerColumnSkeleton,
     RemoteShellSkeleton,
@@ -62,6 +64,9 @@ export default function YoutubePlayerPage() {
     usePlaybackPositionSync();
     useTikTokHiddenPlayGuard();
     useTikTokPhotoIndexSync();
+
+    // Show karaoke score overlay when this device is in TV/player mode
+    const { incomingScore, dismiss } = useTvKaraokeScore();
 
     const isTvLayout = effectiveLayoutMode !== 'remote';
 
@@ -111,6 +116,15 @@ export default function YoutubePlayerPage() {
     return (
         <div className={cn('flex h-dvh-screen w-full flex-col overflow-hidden', 'bg-background')}>
             <ConnectionStatusToast />
+
+            {/* Karaoke score overlay — visible when this device is in TV/player layout */}
+            {showsPlayer && incomingScore ? (
+                <KaraokeResultOverlay
+                    score={incomingScore.score}
+                    onDismiss={dismiss}
+                    dismissDuration={incomingScore.dismissDurationSec * 1000}
+                />
+            ) : null}
             <main className="flex min-h-0 flex-1 flex-col overflow-hidden md:h-full md:flex-row">
                 {showsPlayer && (
                     <div

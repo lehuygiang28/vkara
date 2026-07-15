@@ -5,6 +5,7 @@ import { SettingsGroup, SettingsSection } from '@/components/settings/settings-s
 import { SearchHistorySettingsRow } from '@/components/settings/search-history-settings-row';
 import { ExperimentsSettingsSection } from '@/components/settings/experiments-settings-section';
 import { VoiceSearchSettingsRow } from '@/components/settings/voice-search-settings-row';
+import { KaraokeSettingsRow } from '@/components/settings/karaoke-settings-row';
 import { LayoutModePicker } from '@/components/layout-mode-picker';
 import { useScopedI18n } from '@/locales/client';
 
@@ -27,6 +28,7 @@ export function DeviceSettingsSection() {
                     <VoiceSearchSettingsRow />
                     <SearchHistorySettingsRow />
                     <AppearanceSettingsInline />
+                    <KaraokeSettingsRow />
                 </SettingsGroup>
             </SettingsSection>
         </>
