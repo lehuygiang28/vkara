@@ -30,7 +30,7 @@ jobs:
             TURBO_TEAM: ${{ secrets.TURBO_TEAM }}
         steps:
             - name: Checkout code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 2
 
@@ -58,7 +58,7 @@ jobs:
             skip_docker: ${{ steps.check_skip_docker.outputs.skip_docker }}
         steps:
             - name: Checkout code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
 
             - name: Check if commit message contains [skip docker]
               id: check_skip_docker
@@ -91,7 +91,7 @@ jobs:
                       dockerfile: ./containers/aio/Dockerfile
         steps:
             - name: Checkout code
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                   fetch-depth: 0
 
