@@ -55,6 +55,10 @@
         "bun-types": "^1.1.43",
       },
     },
+    "apps/tizen": {
+      "name": "@vkara/tizen",
+      "version": "1.0.2",
+    },
     "apps/web": {
       "name": "@vkara/web",
       "version": "0.0.0",
@@ -834,6 +838,8 @@
     "@vkara/room": ["@vkara/room@workspace:packages/room"],
 
     "@vkara/tiktok": ["@vkara/tiktok@workspace:packages/tiktok"],
+
+    "@vkara/tizen": ["@vkara/tizen@workspace:apps/tizen"],
 
     "@vkara/validators": ["@vkara/validators@workspace:packages/validators"],
 
