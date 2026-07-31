@@ -12,7 +12,9 @@ import { useTvRouteBootstrap } from '@/hooks/use-tv-route-bootstrap';
 import { useTvOverlayStack } from '@/hooks/use-tv-overlay-stack';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
+import { useTvKaraokeScore } from '@/hooks/use-tv-karaoke-score';
 import { seedTvFocus, TV_FOCUS_KEYS } from '@/lib/tv-spatial-nav';
+import { KaraokeResultOverlay } from '@/components/karaoke/karaoke-result-overlay';
 
 import { TvSpatialRoot } from './tv-spatial-root';
 import { TvPlayerHost } from './tv-player-host';
@@ -50,6 +52,7 @@ export default function TvPage() {
 
     const tToast = useScopedI18n('toast');
     const locale = useCurrentLocale();
+    const { incomingScore, dismiss } = useTvKaraokeScore();
     const {
         roomId,
         roomPassword,
@@ -153,6 +156,16 @@ export default function TvPage() {
         <TvSpatialRoot>
             <div className="relative h-[100dvh] w-full overflow-hidden bg-zinc-950 text-zinc-100">
                 <ConnectionStatusToast />
+
+                {/* Karaoke score overlay — shown when phone scorer broadcasts a result */}
+                {incomingScore ? (
+                    <KaraokeResultOverlay
+                        score={incomingScore.score}
+                        onDismiss={dismiss}
+                        dismissDuration={incomingScore.dismissDurationSec * 1000}
+                    />
+                ) : null}
+
                 <main className="relative h-full w-full overflow-hidden">
                     {showLobby ? (
                         <TvLobby />
