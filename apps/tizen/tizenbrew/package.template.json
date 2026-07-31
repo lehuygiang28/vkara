@@ -13,7 +13,9 @@
         "MediaPause",
         "MediaStop",
         "MediaTrackNext",
-        "MediaTrackPrevious"
+        "MediaTrackPrevious",
+        "MediaRewind",
+        "MediaFastForward"
     ],
     "publishConfig": {
         "access": "public"

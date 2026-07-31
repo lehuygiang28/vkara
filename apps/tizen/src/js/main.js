@@ -47,7 +47,8 @@ function keepScreenOn() {
 function registerMediaKeys() {
     try {
         ['MediaPlayPause', 'MediaPlay', 'MediaPause', 'MediaStop',
-         'MediaTrackNext', 'MediaTrackPrevious'].forEach(function (key) {
+         'MediaTrackNext', 'MediaTrackPrevious',
+         'MediaRewind', 'MediaFastForward'].forEach(function (key) {
             try { tizen.tvinputdevice.registerKey(key); } catch (e) { /* per-key failure ok */ }
         });
     } catch (e) {

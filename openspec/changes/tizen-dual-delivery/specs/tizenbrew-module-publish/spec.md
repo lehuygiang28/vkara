@@ -9,7 +9,7 @@ The monorepo SHALL provide a TizenBrew adapter that packages the shared staged s
 
 #### Scenario: Media keys declared for TizenBrew parent registration
 - **WHEN** the TizenBrew package manifest is generated
-- **THEN** `keys` includes at least MediaPlayPause, MediaPlay, MediaPause, MediaStop, MediaTrackNext, and MediaTrackPrevious
+- **THEN** `keys` includes at least MediaPlayPause, MediaPlay, MediaPause, MediaStop, MediaTrackNext, MediaTrackPrevious, MediaRewind, and MediaFastForward
 
 ### Requirement: Module version matches shell version
 The TizenBrew adapter SHALL set the published package `version` to the same shell semver used for WGT `config.xml` in that build.

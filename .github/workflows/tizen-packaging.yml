@@ -63,7 +63,14 @@ jobs:
                     const p = require("./apps/tizen/dist/tizenbrew/package.json");
                     if (p.name !== "@vkara/tv") throw new Error("name");
                     if (p.packageType !== "app") throw new Error("packageType");
-                    if (!Array.isArray(p.keys) || !p.keys.includes("MediaPlay")) throw new Error("keys");
+                    const required = [
+                      "MediaPlayPause", "MediaPlay", "MediaPause", "MediaStop",
+                      "MediaTrackNext", "MediaTrackPrevious",
+                      "MediaRewind", "MediaFastForward",
+                    ];
+                    if (!Array.isArray(p.keys) || required.some((k) => !p.keys.includes(k))) {
+                      throw new Error("keys");
+                    }
                     if (p.publishConfig?.access !== "public") throw new Error("publishConfig.access");
                   '
                   if [[ -e apps/tizen/dist/tizenbrew/config.xml ]]; then
