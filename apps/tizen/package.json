@@ -1,0 +1,16 @@
+{
+    "name": "@vkara/tizen",
+    "version": "1.0.2",
+    "license": "MIT",
+    "private": true,
+    "vkara": {
+        "defaultTvUrl": "https://vkara.vercel.app/tv"
+    },
+    "scripts": {
+        "stage": "bash scripts/stage-shell.sh",
+        "check:stage": "bash scripts/check-stage.sh",
+        "build:wgt": "bash scripts/build-wgt.sh",
+        "build:tizenbrew": "bash scripts/pack-tizenbrew.sh",
+        "build:all": "bash scripts/build-all.sh"
+    }
+}

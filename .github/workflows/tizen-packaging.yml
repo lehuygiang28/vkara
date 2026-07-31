@@ -1,0 +1,101 @@
+name: Tizen packaging
+
+on:
+    pull_request:
+        paths:
+            - 'apps/tizen/**'
+            - 'package.json'
+            - '.github/workflows/tizen-packaging.yml'
+            - '.github/workflows/release-tizen.yml'
+    push:
+        branches:
+            - main
+            - dev
+        paths:
+            - 'apps/tizen/**'
+            - 'package.json'
+            - '.github/workflows/tizen-packaging.yml'
+            - '.github/workflows/release-tizen.yml'
+
+concurrency:
+    group: tizen-packaging-${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    pack:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Setup Bun
+              uses: oven-sh/setup-bun@v2
+              with:
+                  bun-version: 1.3.13
+
+            - name: Setup Node (npm pack)
+              uses: actions/setup-node@v6
+              with:
+                  node-version: '24'
+                  package-manager-cache: false
+
+            - name: Install zip
+              run: sudo apt-get update && sudo apt-get install -y zip
+
+            - name: Install dependencies
+              run: bun install --frozen-lockfile
+
+            - name: Build with default URL (vkara.defaultTvUrl)
+              run: bun run build:tizen
+
+            - name: Contract checks (default stage)
+              run: bun run --cwd apps/tizen check:stage
+
+            - name: Assert source keeps placeholder
+              run: grep -q '__VKARA_TV_URL__' apps/tizen/src/js/main.js
+
+            - name: Assert TizenBrew package contract
+              run: |
+                  set -euo pipefail
+                  node -e '
+                    const p = require("./apps/tizen/dist/tizenbrew/package.json");
+                    if (p.name !== "vkara") throw new Error("name");
+                    if (p.packageType !== "app") throw new Error("packageType");
+                    if (!Array.isArray(p.keys) || !p.keys.includes("MediaPlay")) throw new Error("keys");
+                  '
+                  if [[ -e apps/tizen/dist/tizenbrew/config.xml ]]; then
+                    echo "error: config.xml must not be in TizenBrew package" >&2
+                    exit 1
+                  fi
+
+            - name: Override bake smoke
+              run: |
+                  set -euo pipefail
+                  VKARA_TV_URL='https://example.com/tv' bun run --cwd apps/tizen stage
+                  VKARA_TV_URL='https://example.com/tv' bun run --cwd apps/tizen check:stage
+                  python3 - <<'PY'
+                  import json, re
+                  text = open("apps/tizen/dist/stage/js/main.js", encoding="utf-8").read()
+                  if "__VKARA_TV_URL__" in text:
+                      raise SystemExit("error: placeholder leaked into staged main.js")
+                  m = re.search(r"var APP_URL = (.+);", text)
+                  if not m or json.loads(m.group(1)) != "https://example.com/tv":
+                      raise SystemExit("error: override bake failed")
+                  print("override bake: OK")
+                  PY
+
+            - name: Rebuild default artifacts for upload
+              run: bun run build:tizen
+
+            - name: Upload packaging artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: tizen-packaging
+                  path: |
+                      apps/tizen/dist/vKara.wgt
+                      apps/tizen/dist/vkara-[0-9]*.tgz
+                      apps/tizen/dist/tizenbrew/package.json
+                  if-no-files-found: error
+                  retention-days: 14

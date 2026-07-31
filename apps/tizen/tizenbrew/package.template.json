@@ -1,0 +1,34 @@
+{
+    "name": "vkara",
+    "version": "0.0.0",
+    "description": "vKara Samsung TV launcher for TizenBrew — thin shell that hands off to the hosted /tv experience.",
+    "license": "MIT",
+    "private": false,
+    "packageType": "app",
+    "appName": "vKara",
+    "appPath": "index.html",
+    "keys": [
+        "MediaPlayPause",
+        "MediaPlay",
+        "MediaPause",
+        "MediaStop",
+        "MediaTrackNext",
+        "MediaTrackPrevious"
+    ],
+    "publishConfig": {
+        "access": "public"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/lehuygiang28/vkara"
+    },
+    "homepage": "https://github.com/lehuygiang28/vkara/tree/main/apps/tizen",
+    "bugs": "https://github.com/lehuygiang28/vkara/issues",
+    "keywords": [
+        "tizenbrew",
+        "tizen",
+        "samsung-tv",
+        "vkara",
+        "karaoke"
+    ]
+}
