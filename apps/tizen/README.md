@@ -121,7 +121,7 @@ scripts/
   stage-shell.sh             bake + stamp into dist/stage
   check-stage.sh             contracts
   build-wgt.sh               zip → vKara.wgt
-  pack-tizenbrew.sh          npm module vkara
+  pack-tizenbrew.sh          npm module @vkara/tv
   build-all.sh               orchestrator
 tizenbrew/package.template.json
 dist/                        gitignored build output

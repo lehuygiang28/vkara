@@ -64,9 +64,15 @@ jobs:
                     if (p.name !== "@vkara/tv") throw new Error("name");
                     if (p.packageType !== "app") throw new Error("packageType");
                     if (!Array.isArray(p.keys) || !p.keys.includes("MediaPlay")) throw new Error("keys");
+                    if (p.publishConfig?.access !== "public") throw new Error("publishConfig.access");
                   '
                   if [[ -e apps/tizen/dist/tizenbrew/config.xml ]]; then
                     echo "error: config.xml must not be in TizenBrew package" >&2
+                    exit 1
+                  fi
+                  TGZ=(apps/tizen/dist/vkara-tv-*.tgz)
+                  if [[ ! -f "${TGZ[0]}" ]]; then
+                    echo "error: missing packed tarball apps/tizen/dist/vkara-tv-<version>.tgz" >&2
                     exit 1
                   fi
 

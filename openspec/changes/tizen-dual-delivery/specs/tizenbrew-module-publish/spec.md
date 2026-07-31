@@ -30,7 +30,7 @@ The repository SHALL publish `@vkara/tv` from GitHub Actions when an annotated t
 
 #### Scenario: Tag triggers publish
 - **WHEN** tag `tizen-v1.2.3` is pushed and `apps/tizen/package.json` version is `1.2.3`
-- **THEN** CI builds the TizenBrew package and publishes `vkara@1.2.3` to the npm registry
+- **THEN** CI builds the TizenBrew package and publishes `@vkara/tv@1.2.3` to the npm registry
 
 #### Scenario: Version mismatch fails closed
 - **WHEN** tag `tizen-v1.2.3` is pushed but `apps/tizen/package.json` version is not `1.2.3`
@@ -62,8 +62,8 @@ For each successful `tizen-v<semver>` release, CI SHALL create a GitHub Release 
 Repository documentation SHALL describe installing TizenBrew, adding the published module name in Module Manager, launching the vKara tile, falling back to WGT sideload (including GitHub Release assets) if jsDelivr/module install fails, and the maintainer tag-release flow (`tizen-v*`).
 
 #### Scenario: Install path documented
-- **WHEN** an operator follows TizenBrew docs for vkara
-- **THEN** the docs give the module package name to add and the expectation that launch opens the shell then hands off to hosted `/tv`
+- **WHEN** an operator follows TizenBrew docs for `@vkara/tv`
+- **THEN** the docs give the module package name `@vkara/tv` to add and the expectation that launch opens the shell then hands off to hosted `/tv`
 
 #### Scenario: Release tag convention documented
 - **WHEN** a maintainer follows shell release docs

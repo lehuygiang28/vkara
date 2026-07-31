@@ -39,7 +39,7 @@ apps/tizen/
     stage-shell.sh             # src → dist/stage; bake URL (json.dumps) + version
     check-stage.sh             # pure contracts
     build-wgt.sh               # zip dist/stage → dist/vKara.wgt (no bake)
-    pack-tizenbrew.sh          # allowlisted pack → npm vkara (no bake)
+    pack-tizenbrew.sh          # allowlisted pack → npm @vkara/tv (no bake)
     build-all.sh               # stage once → both adapters
   tizenbrew/package.template.json
   package.json                 # @vkara/tizen private; version + vkara.defaultTvUrl
