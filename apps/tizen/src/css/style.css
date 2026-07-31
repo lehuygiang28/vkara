@@ -1,0 +1,86 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background: #0a0a12;
+    overflow: hidden;
+    font-family: "Segoe UI", "SamsungOne", sans-serif;
+    color: #ffffff;
+}
+
+/* --- Overlays (splash / error) --- */
+#splash, #error {
+    position: absolute;
+    /* explicit offsets, not `inset:` — that needs Chrome 87+, TVs are older */
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 28px;
+    background: radial-gradient(ellipse at center, #16162a 0%, #0a0a12 70%);
+    z-index: 10;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.logo {
+    font-size: 72px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    background: linear-gradient(90deg, #f472b6, #a78bfa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.hint {
+    font-size: 26px;
+    color: #9ca3af;
+}
+
+.message {
+    font-size: 32px;
+    color: #e5e7eb;
+    max-width: 70%;
+    text-align: center;
+    line-height: 1.4;
+}
+
+.key {
+    display: inline-block;
+    padding: 2px 14px;
+    border: 2px solid #6b7280;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: 600;
+}
+
+#ua {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    font-size: 16px;
+    color: #4b5563;
+    z-index: 12;
+}
+
+.spinner {
+    width: 56px;
+    height: 56px;
+    border: 5px solid rgba(255, 255, 255, 0.15);
+    border-top-color: #a78bfa;
+    border-radius: 50%;
+    -webkit-animation: spin 0.9s linear infinite;
+    animation: spin 0.9s linear infinite;
+}
+
+@-webkit-keyframes spin { to { -webkit-transform: rotate(360deg); } }
+@keyframes spin { to { transform: rotate(360deg); } }

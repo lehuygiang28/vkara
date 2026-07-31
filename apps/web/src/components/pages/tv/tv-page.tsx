@@ -92,6 +92,7 @@ export default function TvPage() {
             : isPlayerActive
               ? TV_FOCUS_KEYS.ctrlPlayPause
               : TV_FOCUS_KEYS.idleQr,
+        isNextUpVisible: nextUpVisible,
     });
 
     const isIdleScreen = inRoom && !isPlayerActive && !settingsOpen;

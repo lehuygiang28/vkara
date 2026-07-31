@@ -3,11 +3,18 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
     isTvBackKey,
+    isTvExitKey,
+    isTvMediaActionKey,
     isTvNavigationKey,
     isTvRevealKey,
+    resolveTvRemoteKey,
     seedTvFocus,
+    tryExitTizenApp,
     TV_FOCUS_KEYS,
+    TV_MEDIA_SEEK_SECONDS,
 } from '@/lib/tv-spatial-nav';
+import { usePlayerAction } from '@/hooks/use-player-action';
+import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 const HIDE_DELAY_MS = 5000;
@@ -21,6 +28,8 @@ type UseTvOverlayStackOptions = {
     settingsCloseFocusKey?: string;
     /** In-room idle: re-seed this leaf when D-pad is pressed and controls are hidden. */
     idleFocusKey?: string;
+    /** Next-up countdown overlay is visible — Back dismisses it first via countdown store. */
+    isNextUpVisible?: boolean;
 };
 
 export function useTvOverlayStack({
@@ -28,6 +37,7 @@ export function useTvOverlayStack({
     settingsOpenFocusKey = TV_FOCUS_KEYS.settingsQrToggle,
     settingsCloseFocusKey = TV_FOCUS_KEYS.ctrlPlayPause,
     idleFocusKey,
+    isNextUpVisible = false,
 }: UseTvOverlayStackOptions = {}) {
     const [controlsVisible, setControlsVisible] = useState(false);
     const [settingsOpen, setSettingsOpen] = useState(false);
@@ -35,12 +45,24 @@ export function useTvOverlayStack({
     const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const controlsVisibleRef = useRef(controlsVisible);
     const settingsOpenRef = useRef(settingsOpen);
+    const queueExpandedRef = useRef(queueExpanded);
     const controlsEnabledRef = useRef(controlsEnabled);
     const idleFocusKeyRef = useRef(idleFocusKey);
+    const isNextUpVisibleRef = useRef(isNextUpVisible);
     controlsVisibleRef.current = controlsVisible;
     settingsOpenRef.current = settingsOpen;
+    queueExpandedRef.current = queueExpanded;
     controlsEnabledRef.current = controlsEnabled;
     idleFocusKeyRef.current = idleFocusKey;
+    isNextUpVisibleRef.current = isNextUpVisible;
+
+    const {
+        handlePlayerPlay,
+        handlePlayerPause,
+        handleReplayVideo,
+        handlePlayNextVideo,
+        handleSeekRelative,
+    } = usePlayerAction();
 
     const drawerOpen = settingsOpen;
 
@@ -79,6 +101,7 @@ export function useTvOverlayStack({
 
     const collapseQueue = useCallback(() => {
         setQueueExpanded(false);
+        seedTvFocus(TV_FOCUS_KEYS.ctrlPlayPause);
     }, []);
 
     const focusQueue = useCallback(() => {
@@ -136,8 +159,18 @@ export function useTvOverlayStack({
     }, [revealControls]);
 
     const handleBack = useCallback(() => {
+        if (isNextUpVisibleRef.current) {
+            useCountdownStore.getState().cancelCountdown();
+            return true;
+        }
+
         if (settingsOpen) {
             closeSettings();
+            return true;
+        }
+
+        if (queueExpanded) {
+            collapseQueue();
             return true;
         }
 
@@ -146,8 +179,56 @@ export function useTvOverlayStack({
             return true;
         }
 
-        return false;
-    }, [settingsOpen, controlsVisible, closeSettings, hideControls]);
+        // Root: exit Tizen widget when available (Samsung Return policy).
+        return tryExitTizenApp();
+    }, [settingsOpen, queueExpanded, controlsVisible, closeSettings, collapseQueue, hideControls]);
+
+    const handleMediaKey = useCallback(
+        (key: string) => {
+            const room = useYouTubeStore.getState().room;
+            if (!room?.playingNow) {
+                return false;
+            }
+
+            switch (key) {
+                case 'MediaPlayPause':
+                    if (room.isPlaying) {
+                        void handlePlayerPause();
+                    } else {
+                        void handlePlayerPlay();
+                    }
+                    return true;
+                case 'MediaPlay':
+                    void handlePlayerPlay();
+                    return true;
+                case 'MediaPause':
+                case 'MediaStop':
+                    void handlePlayerPause();
+                    return true;
+                case 'MediaTrackNext':
+                    void handlePlayNextVideo();
+                    return true;
+                case 'MediaTrackPrevious':
+                    void handleReplayVideo();
+                    return true;
+                case 'MediaRewind':
+                    handleSeekRelative(-TV_MEDIA_SEEK_SECONDS);
+                    return true;
+                case 'MediaFastForward':
+                    handleSeekRelative(TV_MEDIA_SEEK_SECONDS);
+                    return true;
+                default:
+                    return false;
+            }
+        },
+        [
+            handlePlayerPlay,
+            handlePlayerPause,
+            handlePlayNextVideo,
+            handleReplayVideo,
+            handleSeekRelative,
+        ],
+    );
 
     useEffect(() => {
         if (!controlsEnabled) {
@@ -171,15 +252,34 @@ export function useTvOverlayStack({
 
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => {
-            if (isTvBackKey(event.key)) {
-                if (handleBack()) {
+            const resolvedKey = resolveTvRemoteKey(event);
+
+            if (isTvExitKey(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                tryExitTizenApp();
+                return;
+            }
+
+            if (isTvBackKey(event)) {
+                event.preventDefault();
+                event.stopPropagation();
+                handleBack();
+                return;
+            }
+
+            if (isTvMediaActionKey(event)) {
+                if (handleMediaKey(resolvedKey)) {
                     event.preventDefault();
                     event.stopPropagation();
+                    if (controlsEnabledRef.current && !settingsOpenRef.current) {
+                        revealControls();
+                    }
                 }
                 return;
             }
 
-            if (isTvRevealKey(event.key)) {
+            if (isTvRevealKey(event)) {
                 if (settingsOpenRef.current) {
                     return;
                 }
@@ -189,7 +289,7 @@ export function useTvOverlayStack({
                     if (
                         idleFocusKeyRef.current &&
                         !settingsOpenRef.current &&
-                        isTvNavigationKey(event.key)
+                        isTvNavigationKey(event)
                     ) {
                         seedTvFocus(idleFocusKeyRef.current);
                     }
@@ -216,7 +316,7 @@ export function useTvOverlayStack({
 
         window.addEventListener('keydown', onKeyDown, { capture: true });
         return () => window.removeEventListener('keydown', onKeyDown, { capture: true });
-    }, [handleBack, revealControls]);
+    }, [handleBack, handleMediaKey, revealControls]);
 
     useEffect(() => () => clearHideTimer(), [clearHideTimer]);
 

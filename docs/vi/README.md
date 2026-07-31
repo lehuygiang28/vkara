@@ -233,7 +233,8 @@ Tìm kiếm bằng giọng nói, nếu cần: [Whisper STT](../../containers/whi
 vkara/
 ├── apps/
 │   ├── web/                 frontend
-│   └── api/                 backend
+│   ├── api/                 backend
+│   └── tizen/               shell Samsung TV (WGT + TizenBrew; chưa hỗ trợ Android TV)
 ├── packages/
 │   ├── validators/          zod WS + HTTP schemas
 │   ├── youtube/             YouTube types + utils
@@ -247,7 +248,9 @@ vkara/
 
 Contract realtime nằm trong `packages/validators` (zod). Khi đổi message WS hoặc HTTP body, cập nhật validators trước.
 
-**Scripts:** `bun run dev` · `bun run build` · `bun run format`
+**Samsung TV:** xem [apps/tizen/README.md](../../apps/tizen/README.md). Release shell dùng tag `tizen-v*` (không dùng tag Docker `v*`).
+
+**Scripts:** `bun run dev` · `bun run build` · `bun run build:tizen` · `bun run format`
 
 **Docs:** [Monorepo architecture](../monorepo-architecture.md) bằng tiếng Anh.
 

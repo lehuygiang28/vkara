@@ -10,7 +10,8 @@
         "NEXT_PUBLIC_GOOGLE_ANALYTICS_ID",
         "NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN",
         "WHISPER_URL",
-        "HF_TOKEN"
+        "HF_TOKEN",
+        "VKARA_TV_URL"
     ],
     "tasks": {
         "build": {
