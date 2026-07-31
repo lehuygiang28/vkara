@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="https://vkara.vercel.app/tizen" version="1.0.2" viewmodes="maximized">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="https://vkara.vercel.app/tizen" version="0.0.1" viewmodes="maximized">
     <tizen:application id="VkaraApp01.vkara" package="VkaraApp01" required_version="6.5"/>
     <content src="index.html"/>
     <feature name="http://tizen.org/feature/screen.size.all"/>
