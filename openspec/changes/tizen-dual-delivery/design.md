@@ -59,7 +59,7 @@ apps/tizen/
 
 **Rationale:** Proven model is local privileges + splash, then top-level navigate to hosted `/tv`. `mods` deferred unless product later wants inject-only.
 
-Published package name (from `dist/tizenbrew`, not the private workspace package): `vkara`.
+Published package name (from `dist/tizenbrew`, not the private workspace package): `@vkara/tv` (unscoped `vkara` rejected by npm similarity policy).
 
 ### D3 — Build graph independent of web
 
@@ -77,7 +77,7 @@ build:tizen  = both
 - **Version SoT:** `apps/tizen/package.json` `"version"` (semver). Stage stamps `config.xml` + TizenBrew `package.json`.
 - **URL SoT (fallback):** `apps/tizen/package.json` → `vkara.defaultTvUrl`. Committed `src/js/main.js` keeps placeholder `__VKARA_TV_URL__` only — **no production host in source**.
 - **Override:** `VKARA_TV_URL` (`http://` or `https://`) at stage; safe token replace (reject `'`, newlines). Adapters never re-bake.
-- Official CI release leaves `VKARA_TV_URL` unset so published `vkara` bakes `vkara.defaultTvUrl`.
+- Official CI release leaves `VKARA_TV_URL` unset so published `@vkara/tv` bakes `vkara.defaultTvUrl`.
 - No TV-side runtime env for URL in MVP.
 
 ### D5 — CI vs operator
@@ -143,7 +143,7 @@ After handoff, `tizen` / `webapis` are unavailable — same as today’s WGT; ho
 
 ### D11 — npm publish: OIDC trusted publishing + provenance
 
-**Decision:** Publish `vkara` only from GitHub Actions on `tizen-v*` tags using npm **Trusted Publishing** (OIDC). Do **not** store a long-lived `NPM_TOKEN` for the happy path.
+**Decision:** Publish `@vkara/tv` only from GitHub Actions on `tizen-v*` tags using npm **Trusted Publishing** (OIDC). Do **not** store a long-lived `NPM_TOKEN` for the happy path.
 
 **Publish root:** `apps/tizen/dist/tizenbrew` (generated public package), **never** private workspace `@vkara/tizen` at `apps/tizen/`.
 
@@ -152,7 +152,7 @@ After handoff, `tizen` / `webapis` are unavailable — same as today’s WGT; ho
 - `permissions: id-token: write` + `contents: write` on a GitHub-hosted runner.
 - Bun installs/builds packaging; **npm CLI on Node 24** publishes (`npm publish --access public --provenance`).
 - Keep `--provenance` explicit even though Trusted Publishing auto-attests — documents the product requirement and covers temporary token fallback if ever needed.
-- Generated `dist/tizenbrew/package.json` MUST include `"name": "vkara"`, matching semver, `"publishConfig": { "access": "public" }`, and `repository.url` → `https://github.com/lehuygiang28/vkara`.
+- Generated `dist/tizenbrew/package.json` MUST include `"name": "@vkara/tv"`, matching semver, `"publishConfig": { "access": "public" }`, and `repository.url` → `https://github.com/lehuygiang28/vkara`.
 - Repo MUST remain **public** for provenance attestations.
 
 ### D12 — PR CI vs release CI split
@@ -175,7 +175,7 @@ After handoff, `tizen` / `webapis` are unavailable — same as today’s WGT; ho
 
 | Item | Requirement |
 |------|-------------|
-| Package | Unscoped npm name `vkara` (rights to create/publish) |
+| Package | Scoped npm name `@vkara/tv` (rights to create/publish) |
 | Trusted Publisher | GitHub `lehuygiang28/vkara`, workflow filename **exactly** `release-tizen.yml` |
 | Permissions | Job `id-token: write` + `contents: write` |
 | Secrets | No steady-state `NPM_TOKEN` for trusted-publish path |
@@ -189,7 +189,7 @@ After handoff, `tizen` / `webapis` are unavailable — same as today’s WGT; ho
 | TizenBrew privilege parity (screensaver / webapis) weaker than WGT | Device-verify Phase 2; WGT remains fallback |
 | jsDelivr blocked or stale cache | Semver bump every shell publish; document WGT fallback; optional purge job later |
 | Operator confuses web deploy vs shell rebuild | Docs: “web updates karaoke; rebuild packaging only when wrapper/URL changes” |
-| `vkara` Trusted Publisher / first package bootstrap | In-scope for this change; configure before enabling publish job; break-glass token then revoke |
+| `@vkara/tv` Trusted Publisher / first package bootstrap | In-scope for this change; configure before enabling publish job; break-glass token then revoke |
 | Accidental publish of private `@vkara/tizen` | Publish only from `dist/tizenbrew` with allowlisted files |
 | Fork forgets `VKARA_TV_URL` | Docs + default clearly production upstream |
 | Package id change creates duplicate TV apps | Spec: never change `VkaraApp01` after first public release |
@@ -210,6 +210,6 @@ If web TV downlevel is still missing on `main`, land it in a **separate** change
 ## Open Questions
 
 1. ~~Canonical production `/tv` host~~ → `package.json` `vkara.defaultTvUrl` = `https://vkara.vercel.app/tv` (change there, not in `main.js`).
-2. Exact TizenBrew Module Manager install string (`vkara` vs `npm/vkara`) — verify on device once.
+2. Exact TizenBrew Module Manager install string (`@vkara/tv`) — verify on device once.
 3. Whether Phase 0 also ports web `tv-downlevel` in the same PR series or a blocker PR first (recommended: blocker/dependency PR).
-4. Confirm npm rights to publish unscoped `vkara` + Trusted Publisher entry for `release-tizen.yml` before enabling the publish job.
+4. Confirm npm rights to publish `@vkara/tv` + Trusted Publisher entry for `release-tizen.yml` before enabling the publish job.

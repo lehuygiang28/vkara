@@ -95,7 +95,7 @@ jobs:
                   name: tizen-packaging
                   path: |
                       apps/tizen/dist/vKara.wgt
-                      apps/tizen/dist/vkara-[0-9]*.tgz
+                      apps/tizen/dist/vkara-tv-*.tgz
                       apps/tizen/dist/tizenbrew/package.json
                   if-no-files-found: error
                   retention-days: 14

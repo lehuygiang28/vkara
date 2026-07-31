@@ -26,7 +26,7 @@ Shell/module releases SHALL be triggered by shell or packaging-manifest changes,
 - **THEN** the docs state that npm publish is only required when the shell wrapper, keys, default URL, or related packaging assets change
 
 ### Requirement: CI publishes TizenBrew module only on shell release tags
-The repository SHALL publish `vkara` from GitHub Actions when an annotated tag matching `tizen-v<semver>` is pushed. Tag `<semver>` MUST equal `apps/tizen/package.json` `"version"` and the generated `dist/tizenbrew/package.json` `"version"` for that build. Publish MUST NOT run on pull_request, `main`/`dev` pushes, web deploys, or Docker `v*` tags.
+The repository SHALL publish `@vkara/tv` from GitHub Actions when an annotated tag matching `tizen-v<semver>` is pushed. Tag `<semver>` MUST equal `apps/tizen/package.json` `"version"` and the generated `dist/tizenbrew/package.json` `"version"` for that build. Publish MUST NOT run on pull_request, `main`/`dev` pushes, web deploys, or Docker `v*` tags.
 
 #### Scenario: Tag triggers publish
 - **WHEN** tag `tizen-v1.2.3` is pushed and `apps/tizen/package.json` version is `1.2.3`
@@ -45,11 +45,11 @@ CI SHALL authenticate to npm using Trusted Publishing (OIDC) with `id-token: wri
 
 #### Scenario: Provenance-attested public publish
 - **WHEN** the release workflow publishes successfully
-- **THEN** `vkara` is public on npm and the published version has a provenance attestation tied to the GitHub Actions workflow run
+- **THEN** `@vkara/tv` is public on npm and the published version has a provenance attestation tied to the GitHub Actions workflow run
 
 #### Scenario: Private workspace package is not published
 - **WHEN** the release workflow publishes
-- **THEN** it publishes only the generated `vkara` package from `dist/tizenbrew` and does not publish private `@vkara/tizen`
+- **THEN** it publishes only the generated `@vkara/tv` package from `dist/tizenbrew` and does not publish private `@vkara/tizen`
 
 ### Requirement: Shell GitHub Release includes WGT artifact
 For each successful `tizen-v<semver>` release, CI SHALL create a GitHub Release for that tag and attach the unsigned `vKara.wgt` built from the same stage as the published npm module. CI MAY also attach the packed `.tgz`.

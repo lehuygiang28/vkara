@@ -35,9 +35,9 @@
 - [x] 5.3 Add `.github/workflows/release-tizen.yml` on `push.tags: ['tizen-v*']` with `permissions: id-token: write` and `contents: write`
 - [x] 5.4 Release job: Bun install/build both adapters; gate tag semver == `apps/tizen` version == `dist/tizenbrew` version
 - [x] 5.5 Publish with Node 24 + npm CLI from `apps/tizen/dist/tizenbrew`: `npm publish --access public --provenance` (no steady-state `NPM_TOKEN`)
-- [x] 5.6 Ensure generated `dist/tizenbrew/package.json` has public name `vkara`, `publishConfig.access=public`, and correct `repository.url`
+- [x] 5.6 Ensure generated `dist/tizenbrew/package.json` has public name `@vkara/tv`, `publishConfig.access=public`, and correct `repository.url`
 - [x] 5.7 Create GitHub Release for the tag; attach `dist/vKara.wgt` (+ optional `.tgz`)
-- [ ] 5.8 npmjs.com: ensure rights to publish unscoped `vkara`; configure Trusted Publisher for repo `lehuygiang28/vkara`, workflow `release-tizen.yml`; confirm repo is public (required for provenance)
+- [ ] 5.8 npmjs.com: bootstrap `@vkara/tv` (`npm publish --access public`); configure Trusted Publisher for repo `lehuygiang28/vkara`, workflow `release-tizen.yml`; confirm repo is public (required for provenance)
 - [ ] 5.9 Bootstrap first package if needed, then verify OIDC-only path and revoke any temporary token
 - [x] 5.10 Docs: release cadence + tag convention + “web deploy ≠ shell release”
 - [x] 5.11 Root README mentions both Tizen delivery paths; Android TV and release-it explicitly out of scope for this change

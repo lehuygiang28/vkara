@@ -77,9 +77,9 @@ VKARA_TV_URL=https://<your-project>.vercel.app/tv bun run build:tizen
 TV setup is in [apps/tizen/README.md](../apps/tizen/README.md). Supported models:
 Tizen 6.5+ (2022+).
 
-Upstream npm package `vkara` releases bake the default `vkara.defaultTvUrl`
-(env unset on CI). Forks with a custom URL must publish a different package
-name — do not overwrite `vkara`.
+Upstream npm package `@vkara/tv` releases bake the default
+`vkara.defaultTvUrl` (env unset on CI). Forks with a custom URL must publish a
+different package name — do not overwrite `@vkara/tv`.
 
 Rebuild the shell only when the wrapper or target URL changes. Web deploys ≠
 shell release.

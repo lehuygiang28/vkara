@@ -51,8 +51,8 @@ jobs:
                     echo "error: tag semver must match apps/tizen and dist/tizenbrew package.json versions" >&2
                     exit 1
                   fi
-                  if [[ "$(node -p "require('./apps/tizen/dist/tizenbrew/package.json').name")" != "vkara" ]]; then
-                    echo "error: publish package name must be vkara" >&2
+                  if [[ "$(node -p "require('./apps/tizen/dist/tizenbrew/package.json').name")" != "@vkara/tv" ]]; then
+                    echo "error: publish package name must be @vkara/tv" >&2
                     exit 1
                   fi
                   python3 - "$DEFAULT_URL" <<'PY'
@@ -70,13 +70,13 @@ jobs:
                           raise SystemExit(f"error: baked APP_URL mismatch in {path}")
                   print("baked APP_URL: OK")
                   PY
-                  TGZ=(apps/tizen/dist/vkara-[0-9]*.tgz)
+                  TGZ=(apps/tizen/dist/vkara-tv-*.tgz)
                   if [[ ! -f "${TGZ[0]}" ]]; then
-                    echo "error: missing packed tarball apps/tizen/dist/vkara-<version>.tgz" >&2
+                    echo "error: missing packed tarball apps/tizen/dist/vkara-tv-<version>.tgz" >&2
                     exit 1
                   fi
 
-            - name: Publish vkara with provenance
+            - name: Publish @vkara/tv with provenance
               working-directory: apps/tizen/dist/tizenbrew
               run: npm publish --access public --provenance
 
@@ -86,9 +86,9 @@ jobs:
               run: |
                   set -euo pipefail
                   TAG="${GITHUB_REF_NAME}"
-                  TGZ=(apps/tizen/dist/vkara-[0-9]*.tgz)
+                  TGZ=(apps/tizen/dist/vkara-tv-*.tgz)
                   gh release create "$TAG" \
                     --title "$TAG" \
-                    --notes "Samsung TV shell ${TAG#tizen-v}: unsigned WGT (Apps2Samsung) + npm vkara (TizenBrew). Bakes package.json vkara.defaultTvUrl. Web deploys update /tv without a new shell release." \
+                    --notes "Samsung TV shell ${TAG#tizen-v}: unsigned WGT (Apps2Samsung) + npm @vkara/tv (TizenBrew). Bakes package.json vkara.defaultTvUrl. Web deploys update /tv without a new shell release." \
                     apps/tizen/dist/vKara.wgt \
                     "${TGZ[@]}"

@@ -1,5 +1,5 @@
 {
-    "name": "vkara",
+    "name": "@vkara/tv",
     "version": "0.0.0",
     "description": "vKara Samsung TV launcher for TizenBrew — thin shell that hands off to the hosted /tv experience.",
     "license": "MIT",

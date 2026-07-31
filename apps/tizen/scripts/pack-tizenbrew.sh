@@ -39,7 +39,7 @@ template_path, out_path, version = sys.argv[1:4]
 with open(template_path, encoding="utf-8") as f:
     pkg = json.load(f)
 pkg["version"] = version
-pkg["name"] = pkg.get("name") or "vkara"
+pkg["name"] = pkg.get("name") or "@vkara/tv"
 pkg["private"] = False
 pkg.setdefault("publishConfig", {})["access"] = "public"
 pkg.setdefault("repository", {})["url"] = "https://github.com/lehuygiang28/vkara"
@@ -61,7 +61,7 @@ PKG_NAME="$(python3 -c 'import json; print(json.load(open("'"$TIZEN_BREW_DIR"'/p
 TGZ_NAME="$(cd "$TIZEN_BREW_DIR" && npm pack --silent)"
 [[ -n "$TGZ_NAME" && -f "$TIZEN_BREW_DIR/$TGZ_NAME" ]] || tizen_die "npm pack did not produce a .tgz"
 
-rm -f "$TIZEN_DIST_DIR"/vkara-[0-9]*.tgz "$TIZEN_DIST_DIR"/vkara-tizenbrew-*.tgz
+rm -f "$TIZEN_DIST_DIR"/vkara-tv-*.tgz "$TIZEN_DIST_DIR"/lehuygiang28-vkara-*.tgz "$TIZEN_DIST_DIR"/vkara-[0-9]*.tgz "$TIZEN_DIST_DIR"/vkara-tizenbrew-*.tgz
 mv "$TIZEN_BREW_DIR/$TGZ_NAME" "$TIZEN_DIST_DIR/$TGZ_NAME"
 
 echo "tizenbrew → $TIZEN_BREW_DIR (name=$PKG_NAME v$TIZEN_VERSION)"

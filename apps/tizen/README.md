@@ -9,7 +9,7 @@ Shared source of truth for two adapters:
 | Adapter | Output | Install |
 |---------|--------|---------|
 | **WGT** | `dist/vKara.wgt` (unsigned) | [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung) |
-| **TizenBrew** | `dist/tizenbrew/` + `.tgz` → npm `vkara` | TizenBrew Module Manager |
+| **TizenBrew** | `dist/tizenbrew/` + `.tgz` → npm `@vkara/tv` | TizenBrew Module Manager |
 
 Android TV is **out of scope**.
 
@@ -47,7 +47,7 @@ Requirements: `bash`, `zip`, `python3`, `npm`.
 ```sh
 bun run build:tizen                 # stage once → WGT + TizenBrew
 bun run build:tizen:wgt             # unsigned dist/vKara.wgt
-bun run build:tizen:tizenbrew       # dist/tizenbrew + vkara-<ver>.tgz
+bun run build:tizen:tizenbrew       # dist/tizenbrew + vkara-tv-<ver>.tgz
 ```
 
 ### Pipeline (stage mutates once; adapters only package)
@@ -69,7 +69,7 @@ src/  ──stage-shell.sh──►  dist/stage/  ──check-stage.sh──► 
 | `scripts/stage-shell.sh` | Copy `src` → `dist/stage`, bake URL (`json.dumps`), stamp version |
 | `scripts/check-stage.sh` | Pure assertions (no file mutation) |
 | `scripts/build-wgt.sh` | Zip `dist/stage` → unsigned `.wgt` |
-| `scripts/pack-tizenbrew.sh` | Allowlisted copy → npm pack `vkara` |
+| `scripts/pack-tizenbrew.sh` | Allowlisted copy → npm pack `@vkara/tv` |
 | `scripts/build-all.sh` | Orchestrate stage → check → both adapters |
 
 Version SoT: `package.json` `"version"`. WGT ids: `VkaraApp01` / `VkaraApp01.vkara`.
@@ -90,23 +90,26 @@ tizen package -t wgt -s <profile> -- apps/tizen/dist/stage
 ## TizenBrew
 
 1. Install [TizenBrew](https://github.com/reisxd/TizenBrew).
-2. Module Manager → add `vkara` (or `npm/vkara` if the UI requires that form).
+2. Module Manager → add `@vkara/tv`.
 3. If jsDelivr fails, sideload WGT from a `tizen-v*` [GitHub Release](https://github.com/lehuygiang28/vkara/releases).
 
 Private workspace package `@vkara/tizen` is never published — only generated
-`dist/tizenbrew` as npm package **`vkara`**.
+`dist/tizenbrew` as npm package **`@vkara/tv`** under the `@vkara` npm org
+(unscoped `vkara` is blocked by npm similarity rules vs `vary`/`karma`).
 
 ## Maintainer release
 
 1. Bump `apps/tizen/package.json` `"version"` (and `vkara.defaultTvUrl` if needed) in a PR.
 2. Merge, then: `git tag -a tizen-vX.Y.Z -m "tizen shell X.Y.Z" && git push origin tizen-vX.Y.Z`
 3. `release-tizen.yml` builds with **default** URL (env unset), publishes
-   `vkara` with npm provenance, attaches `vKara.wgt`.
+   `@vkara/tv` with npm provenance, attaches `vKara.wgt`.
 
 Do **not** use Docker `v*` tags. Web deploys ≠ shell release.
 
-Requires npm Trusted Publisher for package `vkara`, workflow `release-tizen.yml`
-on `lehuygiang28/vkara`.
+Requires npm Trusted Publisher for package `@vkara/tv`, workflow
+`release-tizen.yml` on `lehuygiang28/vkara`. First publish may need
+`npm publish --access public` once from your account to create the package,
+then bind Trusted Publisher.
 
 ## Layout
 

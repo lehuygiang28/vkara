@@ -246,7 +246,7 @@ vkara/
 
 Realtime message shapes live in `packages/validators` (zod); room/YouTube domain types in `packages/room` and `packages/youtube`. Update validators first when changing WS or HTTP contracts.
 
-**Samsung TV packaging:** shared shell in `apps/tizen` builds an unsigned **WGT** (Apps2Samsung sideload) and a **TizenBrew** npm module (`vkara`). See [apps/tizen/README.md](apps/tizen/README.md) and [standalone TV deployment](docs/standalone-tv-deployment.md). Shell releases use tags `tizen-v*` (not Docker `v*`). Android TV is out of scope.
+**Samsung TV packaging:** shared shell in `apps/tizen` builds an unsigned **WGT** (Apps2Samsung sideload) and a **TizenBrew** npm module (`@vkara/tv`). See [apps/tizen/README.md](apps/tizen/README.md) and [standalone TV deployment](docs/standalone-tv-deployment.md). Shell releases use tags `tizen-v*` (not Docker `v*`). Android TV is out of scope.
 
 **Scripts:** `bun run dev` · `bun run test` · `bun run typecheck` · `bun run lint` · `bun run build` · `bun run build:tizen` · `bun run format`
 
