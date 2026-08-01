@@ -86,9 +86,53 @@ jobs:
               run: |
                   set -euo pipefail
                   TAG="${GITHUB_REF_NAME}"
+                  VER="${TAG#tizen-v}"
+                  DEFAULT_URL="$(node -p "require('./apps/tizen/package.json').vkara.defaultTvUrl")"
+                  REQUIRED_VER="$(
+                    python3 -c "import re; t=open('apps/tizen/src/config.xml',encoding='utf-8').read(); m=re.search(r'required_version=\"([^\"]+)\"', t); print(m.group(1) if m else '?')"
+                  )"
                   TGZ=(apps/tizen/dist/vkara-tv-*.tgz)
+                  NOTES_FILE="$(mktemp)"
+                  # Keep EOF unindented so the release markdown is not space-prefixed.
+                  cat >"$NOTES_FILE" <<EOF
+                  ## vKara Samsung TV shell ${VER}
+
+                  Thin local launcher for Samsung Tizen TVs. Hands off top-level to the hosted \`/tv\` karaoke app — the UI is **not** bundled in this package.
+
+                  ### Artifacts
+
+                  | Artifact | Channel | Use |
+                  |----------|---------|-----|
+                  | \`@vkara/tv@${VER}\` | [npm](https://npm.im/@vkara/tv) / TizenBrew Module Manager | Primary install |
+                  | \`vKara.wgt\` | This release (Apps2Samsung) | Sideload fallback if jsDelivr fails |
+                  | \`vkara-tv-${VER}.tgz\` | This release | Packed npm tarball (optional local inspect) |
+
+                  ### Baked configuration
+
+                  - Handoff URL: \`${DEFAULT_URL}\` (\`vkara.defaultTvUrl\`; CI leaves \`VKARA_TV_URL\` unset)
+                  - WGT package id: \`VkaraApp01\` / app id \`VkaraApp01.vkara\` (stable across upgrades)
+
+                  ### Compatibility
+
+                  - Platform floor: **Tizen ${REQUIRED_VER}+** (2021+ models; ~Chrome 76 on 6.0)
+                  - Hosted \`/tv\` engine downlevel ships via **web deploy** — not this shell tag
+
+                  ### Install
+
+                  1. [TizenBrew](https://github.com/reisxd/TizenBrew) → Module Manager → add \`@vkara/tv\`
+                  2. Or sideload \`vKara.wgt\` with [Apps2Samsung](https://github.com/Apps2Samsung/Apps2Samsung)
+
+                  ### When to upgrade the shell
+
+                  Republish only if the wrapper, media keys, splash/offline UI, privileges, or baked default URL changes. Routine \`/tv\` fixes do **not** need a new \`tizen-v*\` tag.
+                  EOF
+                  python3 - "$NOTES_FILE" <<'PY'
+                  import pathlib, sys, textwrap
+                  path = pathlib.Path(sys.argv[1])
+                  path.write_text(textwrap.dedent(path.read_text(encoding="utf-8")).strip() + "\n", encoding="utf-8")
+                  PY
                   gh release create "$TAG" \
-                    --title "$TAG" \
-                    --notes "Samsung TV shell ${TAG#tizen-v}: unsigned WGT (Apps2Samsung) + npm @vkara/tv (TizenBrew). Bakes package.json vkara.defaultTvUrl. Web deploys update /tv without a new shell release." \
+                    --title "vKara TV shell ${VER}" \
+                    --notes-file "$NOTES_FILE" \
                     apps/tizen/dist/vKara.wgt \
                     "${TGZ[@]}"
