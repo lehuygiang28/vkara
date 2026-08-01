@@ -234,7 +234,8 @@ vkara/
 ├── apps/
 │   ├── web/                 frontend
 │   ├── api/                 backend
-│   └── tizen/               shell Samsung TV (WGT + TizenBrew; chưa hỗ trợ Android TV)
+│   ├── tizen/               shell Samsung TV (WGT + TizenBrew)
+│   └── android-tv/          shell Android TV (Expo + EAS APK sideload)
 ├── packages/
 │   ├── validators/          zod WS + HTTP schemas
 │   ├── youtube/             YouTube types + utils
@@ -250,7 +251,9 @@ Contract realtime nằm trong `packages/validators` (zod). Khi đổi message WS
 
 **Samsung TV:** xem [apps/tizen/README.md](../../apps/tizen/README.md). Release shell dùng tag `tizen-v*` (không dùng tag Docker `v*`).
 
-**Scripts:** `bun run dev` · `bun run build` · `bun run build:tizen` · `bun run format`
+**Android TV:** xem [apps/android-tv/README.md](../../apps/android-tv/README.md). Sideload APK qua EAS; release dùng tag `android-v*` (không Play Store trong giai đoạn này; không cần Gradle local).
+
+**Scripts:** `bun run dev` · `bun run build` · `bun run build:tizen` · `bun run build:android-tv` · `bun run format`
 
 **Docs:** [Monorepo architecture](../monorepo-architecture.md) bằng tiếng Anh.
 

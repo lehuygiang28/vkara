@@ -11,7 +11,11 @@
         "NEXT_PUBLIC_CLOUDFLARE_WEB_ANALYTICS_TOKEN",
         "WHISPER_URL",
         "HF_TOKEN",
-        "VKARA_TV_URL"
+        "VKARA_TV_URL",
+        "VKARA_ALLOW_CLEARTEXT",
+        "EXPO_TOKEN",
+        "EAS_PROJECT_ID",
+        "EXPO_TV"
     ],
     "tasks": {
         "build": {

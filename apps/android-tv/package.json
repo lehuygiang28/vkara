@@ -1,0 +1,41 @@
+{
+  "name": "@vkara/android-tv",
+  "version": "0.0.1",
+  "private": true,
+  "main": "index.js",
+  "vkara": {
+    "defaultTvUrl": "https://vkara.vercel.app/tv"
+  },
+  "scripts": {
+    "start": "EXPO_TV=1 expo start",
+    "android": "EXPO_TV=1 expo run:android",
+    "prebuild:tv": "EXPO_TV=1 expo prebuild --clean",
+    "lint": "expo lint",
+    "sync:assets": "node scripts/sync-assets.mjs",
+    "check:bake": "node scripts/check-bake.mjs",
+    "build:eas": "node scripts/build-eas.mjs",
+    "package:release": "bash scripts/package-release.sh"
+  },
+  "dependencies": {
+    "expo": "~56.0.3",
+    "expo-constants": "~56.0.22",
+    "expo-keep-awake": "~56.0.3",
+    "expo-network": "~56.0.5",
+    "expo-status-bar": "~56.0.4",
+    "react": "19.2.3",
+    "react-native": "npm:react-native-tvos@0.85.3-3",
+    "react-native-webview": "13.16.1"
+  },
+  "devDependencies": {
+    "@react-native-tvos/config-tv": "^0.1.6",
+    "@types/react": "~19.2.2",
+    "typescript": "~6.0.3"
+  },
+  "expo": {
+    "install": {
+      "exclude": [
+        "react-native"
+      ]
+    }
+  }
+}

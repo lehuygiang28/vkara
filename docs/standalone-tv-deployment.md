@@ -58,7 +58,9 @@ frontend still needs the Chrome 76 / TV runtime stack tracked in
 [#6](https://github.com/lehuygiang28/vkara/issues/6). Packaging the shell
 alone does not fix that.
 
-## 4. Build the TV shell (both adapters)
+## 4. Build the TV shell
+
+### 4a. Samsung Tizen (WGT + TizenBrew)
 
 The shell URL is **configurable**. Source keeps placeholder `__VKARA_TV_URL__`;
 stage bakes either `VKARA_TV_URL` or the fallback in
@@ -80,6 +82,25 @@ Tizen 6.0+ (2021+).
 Upstream npm package `@vkara/tv` releases bake the default
 `vkara.defaultTvUrl` (env unset on CI). Forks with a custom URL must publish a
 different package name — do not overwrite `@vkara/tv`.
+
+### 4b. Android TV (Expo + EAS APK)
+
+Same bake priority: `VKARA_TV_URL` else `apps/android-tv/package.json` →
+`vkara.defaultTvUrl`. No local Gradle/Android Studio required for the happy
+path — EAS builds the sideload APK.
+
+```sh
+# HTTPS (usual)
+VKARA_TV_URL=https://<your-project>.vercel.app/tv bun run build:android-tv
+
+# LAN HTTP only if needed (not the official CI artifact)
+VKARA_TV_URL=http://192.168.x.x:3000/tv VKARA_ALLOW_CLEARTEXT=1 bun run build:android-tv
+```
+
+See [apps/android-tv/README.md](../apps/android-tv/README.md) for EAS project
+setup (`eas init`, credentials). Forks must use **their** Expo project/token.
+Install via Downloader or `adb install -r`. Tags: `android-v*` (not Docker `v*`
+or `tizen-v*`). Google Play / Fire Store are out of scope for now.
 
 Rebuild the shell only when the wrapper or target URL changes. Web deploys ≠
 shell release.

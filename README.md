@@ -228,7 +228,8 @@ vkara/
 ├── apps/
 │   ├── web/                 frontend
 │   ├── api/                 backend
-│   └── tizen/               Samsung TV shell (WGT + TizenBrew; not Android TV)
+│   ├── tizen/               Samsung TV shell (WGT + TizenBrew)
+│   └── android-tv/          Android TV shell (Expo + EAS APK sideload)
 ├── packages/
 │   ├── env/                 t3-env + feature flags
 │   ├── validators/          zod WS + HTTP schemas
@@ -246,9 +247,11 @@ vkara/
 
 Realtime message shapes live in `packages/validators` (zod); room/YouTube domain types in `packages/room` and `packages/youtube`. Update validators first when changing WS or HTTP contracts.
 
-**Samsung TV packaging:** shared shell in `apps/tizen` builds an unsigned **WGT** (Apps2Samsung sideload) and a **TizenBrew** npm module (`@vkara/tv`). See [apps/tizen/README.md](apps/tizen/README.md) and [standalone TV deployment](docs/standalone-tv-deployment.md). Shell releases use tags `tizen-v*` (not Docker `v*`). Android TV is out of scope.
+**Samsung TV packaging:** shared shell in `apps/tizen` builds an unsigned **WGT** (Apps2Samsung sideload) and a **TizenBrew** npm module (`@vkara/tv`). See [apps/tizen/README.md](apps/tizen/README.md). Shell releases use tags `tizen-v*` (not Docker `v*`).
 
-**Scripts:** `bun run dev` · `bun run test` · `bun run typecheck` · `bun run lint` · `bun run build` · `bun run build:tizen` · `bun run format`
+**Android TV packaging:** Expo + `react-native-tvos` shell in `apps/android-tv` builds a sideload **APK** via EAS (no Google Play for now; no local Gradle required). See [apps/android-tv/README.md](apps/android-tv/README.md) and [standalone TV deployment](docs/standalone-tv-deployment.md). Shell releases use tags `android-v*` (not Docker `v*` / `tizen-v*`).
+
+**Scripts:** `bun run dev` · `bun run test` · `bun run typecheck` · `bun run lint` · `bun run build` · `bun run build:tizen` · `bun run build:android-tv` · `bun run format`
 
 **Docs:** [Monorepo architecture](docs/monorepo-architecture.md)
 

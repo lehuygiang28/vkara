@@ -1,0 +1,30 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "local"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_TV": "1"
+      },
+      "android": {
+        "buildType": "apk",
+        "withoutCredentials": true
+      },
+      "channel": "preview"
+    },
+    "production": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_TV": "1"
+      },
+      "android": {
+        "buildType": "apk"
+      },
+      "channel": "production"
+    }
+  },
+  "submit": {}
+}

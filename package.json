@@ -23,6 +23,8 @@
         "build:tizen": "cd apps/tizen && bun run build:all",
         "build:tizen:wgt": "cd apps/tizen && bun run build:wgt",
         "build:tizen:tizenbrew": "cd apps/tizen && bun run build:tizenbrew",
+        "build:android-tv": "bun run --cwd apps/android-tv sync:assets && bun run --cwd apps/android-tv build:eas production",
+        "check:android-tv": "bun run --cwd apps/android-tv check:bake",
         "lint": "turbo run lint",
         "lint:fix": "turbo run lint:fix",
         "build": "turbo run build",

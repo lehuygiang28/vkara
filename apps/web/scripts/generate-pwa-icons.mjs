@@ -257,6 +257,31 @@ await writeIcon('apple-touch-icon.png', 180, 0.9);
 // Larger safe area for Android maskable icons
 await writeIcon('maskable-icon-512.png', 512, 0.8);
 
+// Android TV Leanback banner (320×180) — letterboxed icon-512 on dark bg
+{
+    const BANNER_W = 320;
+    const BANNER_H = 180;
+    const iconSize = Math.round(BANNER_H * 0.72);
+    const iconBuf = await sharp(Buffer.from(iconSvg(512, 0.9)))
+        .resize(512, 512)
+        .resize(iconSize, iconSize)
+        .png()
+        .toBuffer();
+    const left = Math.round((BANNER_W - iconSize) / 2);
+    const top = Math.round((BANNER_H - iconSize) / 2);
+    await sharp({
+        create: {
+            width: BANNER_W,
+            height: BANNER_H,
+            channels: 3,
+            background: { r: 2, g: 6, b: 23 },
+        },
+    })
+        .composite([{ input: iconBuf, left, top }])
+        .png({ quality: 100, compressionLevel: 9 })
+        .toFile(`${OUT_DIR}/tv-banner-320x180.png`);
+}
+
 // Small favicon stays readable with TV + phone + V only
 await writeIcon('icon-32.png', 32, 0.96);
 
