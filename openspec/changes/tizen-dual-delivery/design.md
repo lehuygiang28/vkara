@@ -1,6 +1,6 @@
 ## Context
 
-vkara’s TV UX is a **hosted** Next.js route (`/tv`). Samsung Tizen web-app runtimes are pinned (~Chrome 85 on Tizen 6.5 / 2022+). A thin local shell is required so media keys and screensaver privileges can be applied before a **top-level** navigation to `/tv` (iframes hit third-party storage restrictions and white-screen).
+vkara’s TV UX is a **hosted** Next.js route (`/tv`). Samsung Tizen web-app runtimes are pinned (~Chrome 76 on Tizen 6.0 / 2021+; 6.5 / 2022 ≈ Chrome 85). A thin local shell is required so media keys and screensaver privileges can be applied before a **top-level** navigation to `/tv` (iframes hit third-party storage restrictions and white-screen).
 
 Web TV runtime compat (chrome85 downlevel / polyfills / `/tv` `no-store`) is a separate concern tracked in [#6](https://github.com/lehuygiang28/vkara/issues/6).
 
@@ -114,9 +114,9 @@ Forks that want TizenBrew without per-TV rebuild publish their own scoped packag
 
 ### D8 — Software architecture note (shared base contract)
 
-Shared stage tree MUST contain at least: `index.html`, `js/main.js`, `css/style.css`, `icon.png`. WGT adapter additionally includes `config.xml` (package `VkaraApp01`, application id `VkaraApp01.vkara`, `required_version` 6.5, privileges for internet / tv.inputdevice / screensaver, profile `tv-samsung`). Keep that package id stable after first public sideload (TV treats a new id as a second app). TizenBrew tarball MUST NOT require `config.xml`; MUST include allowlisted static files + generated `package.json` with `packageType`, `appName`, `appPath`, `keys`.
+Shared stage tree MUST contain at least: `index.html`, `js/main.js`, `css/style.css`, `icon.png`. WGT adapter additionally includes `config.xml` (package `VkaraApp01`, application id `VkaraApp01.vkara`, `required_version` 6.0, privileges for internet / tv.inputdevice / screensaver, profile `tv-samsung`). Keep that package id stable after first public sideload (TV treats a new id as a second app). TizenBrew tarball MUST NOT require `config.xml`; MUST include allowlisted static files + generated `package.json` with `packageType`, `appName`, `appPath`, `keys`.
 
-Shell JS/CSS MUST stay ES5 / chrome85-safe (shell runs on-device before handoff).
+Shell JS/CSS MUST stay ES5 / Tizen 6.0-safe (~Chrome 76; shell runs on-device before handoff).
 
 After handoff, `tizen` / `webapis` are unavailable — same as today’s WGT; hosted app owns in-page UX.
 

@@ -206,9 +206,12 @@ html[data-vkara-remote-chrome='full'] {
         padding-right: var(--safe-right);
     }
     .min-h-dvh-screen {
+        /* vh first: old TV browsers (no dvh support) keep the fallback. */
+        min-height: 100vh;
         min-height: 100dvh;
     }
     .h-dvh-screen {
+        height: 100vh;
         height: 100dvh;
     }
 

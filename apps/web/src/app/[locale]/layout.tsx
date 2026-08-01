@@ -2,6 +2,7 @@ import '../globals.css';
 
 import { ReactNode, Suspense } from 'react';
 import { notFound } from 'next/navigation';
+import Script from 'next/script';
 import type { Metadata, Viewport } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/react';
@@ -88,6 +89,9 @@ export default async function RootLayout({
     return (
         <html lang={appLocale} dir={dir} suppressHydrationWarning>
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased cursor-auto`}>
+                {/* Guarded API shims for old Smart TV engines (Tizen 6.0 ≈ Chrome 76);
+                    no-op on modern browsers. Must run before any app chunk. */}
+                <Script src="/tv-polyfills.js" strategy="beforeInteractive" />
                 <JsonLd
                     locale={appLocale}
                     title={t('seo.title')}

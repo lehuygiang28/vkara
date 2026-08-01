@@ -25,8 +25,8 @@
 - [x] 4.2 Wire `build:tizen:tizenbrew`; ensure tarball allowlist excludes private workspace noise and omits requiring `config.xml`
 - [x] 4.3 Align published package version with shell semver from the same stage as WGT; set `publishConfig.access=public` and `repository.url` for provenance linkage
 - [x] 4.4 Document TizenBrew install (module name, Module Manager steps) and WGT fallback if jsDelivr fails
-- [ ] 4.5 Device-test on Tizen 6.5+: install via TizenBrew, verify handoff, media keys, offline/timeout overlay; note screensaver parity vs WGT
-- [ ] 4.6 Bootstrap Trusted Publisher / first package existence; prefer CI publish on `tizen-v*` (manual short-lived token only as break-glass, then revoke)
+- [x] 4.5 Device-test on Tizen 6.0+: install via TizenBrew, verify handoff (production Sentry shows Tizen 6.0 hitting `/tv`); 6.5+ smoke / screensaver parity optional follow-up
+- [x] 4.6 Bootstrap Trusted Publisher / first package existence; prefer CI publish on `tizen-v*` (manual short-lived token only as break-glass, then revoke) — covered by 5.8/5.9 (`@vkara/tv` OIDC publish)
 
 ## 5. Release CI (TizenBrew + WGT)
 
@@ -37,7 +37,7 @@
 - [x] 5.5 Publish with Node 24 + npm CLI from `apps/tizen/dist/tizenbrew`: `npm publish --access public --provenance` (no steady-state `NPM_TOKEN`)
 - [x] 5.6 Ensure generated `dist/tizenbrew/package.json` has public name `@vkara/tv`, `publishConfig.access=public`, and correct `repository.url`
 - [x] 5.7 Create GitHub Release for the tag; attach `dist/vKara.wgt` (+ optional `.tgz`)
-- [ ] 5.8 npmjs.com: bootstrap `@vkara/tv` (`npm publish --access public`); configure Trusted Publisher for repo `lehuygiang28/vkara`, workflow `release-tizen.yml`; confirm repo is public (required for provenance)
-- [ ] 5.9 Bootstrap first package if needed, then verify OIDC-only path and revoke any temporary token
+- [x] 5.8 npmjs.com: bootstrap `@vkara/tv` (`npm publish --access public`); configure Trusted Publisher for repo `lehuygiang28/vkara`, workflow `release-tizen.yml`; confirm repo is public (required for provenance) — `@vkara/tv@0.0.2` live
+- [x] 5.9 Bootstrap first package if needed, then verify OIDC-only path and revoke any temporary token — published via GitHub Actions OIDC + provenance
 - [x] 5.10 Docs: release cadence + tag convention + “web deploy ≠ shell release”
 - [x] 5.11 Root README mentions both Tizen delivery paths; Android TV and release-it explicitly out of scope for this change

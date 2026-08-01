@@ -31,6 +31,7 @@ cp "$TIZEN_STAGE_DIR/index.html" "$TIZEN_BREW_DIR/"
 cp "$TIZEN_STAGE_DIR/icon.png" "$TIZEN_BREW_DIR/"
 cp "$TIZEN_STAGE_DIR/js/main.js" "$TIZEN_BREW_DIR/js/"
 cp "$TIZEN_STAGE_DIR/css/style.css" "$TIZEN_BREW_DIR/css/"
+cp "$TIZEN_APP_DIR/tizenbrew/README.md" "$TIZEN_BREW_DIR/"
 
 python3 - "$TIZEN_BREW_TEMPLATE" "$TIZEN_BREW_DIR/package.json" "$TIZEN_VERSION" <<'PY'
 import json, sys

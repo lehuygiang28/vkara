@@ -1,8 +1,11 @@
-# @vkara/tizen — Samsung TV shell (Tizen 6.5+, 2022+ models)
+# @vkara/tizen — Samsung TV shell (Tizen 6.0+, 2021+ models)
 
 Thin Tizen web-app shell that hands off top-level to the hosted `/tv`
 experience (not an iframe — cross-origin iframes inside a Tizen widget hit
 third-party storage restrictions).
+
+Support floor: **Tizen 6.0 / 2021** (~Chrome 76; Sentry tags the TV browser as Safari).
+Tizen 6.5 / 2022 is ~Chrome 85. WGT `config.xml` `required_version` is `6.0`.
 
 Shared source of truth for two adapters:
 
@@ -36,9 +39,9 @@ Change the fallback for all default builds by editing `vkara.defaultTvUrl` in
 
 ## Web TV runtime dependency
 
-The shell only launches `/tv`. Chrome 85 downlevel / polyfills / `Cache-Control`
-for the hosted app are a **separate** web concern — see
-[#6](https://github.com/lehuygiang28/vkara/issues/6).
+The shell only launches `/tv`. Hosted-app Chrome 76 downlevel / polyfills /
+`Cache-Control: no-store` live in `apps/web` (see OpenSpec `tv-chrome76-runtime`
+and [#6](https://github.com/lehuygiang28/vkara/issues/6)).
 
 ## Build
 
@@ -87,11 +90,15 @@ Unsigned by design (Apps2Samsung re-signs). Optional Studio sign against the
 tizen package -t wgt -s <profile> -- apps/tizen/dist/stage
 ```
 
-## TizenBrew
+## TizenBrew (`@vkara/tv`)
+
+Published module: [npm.im/@vkara/tv](https://npm.im/@vkara/tv)  
+Consumer README packed into the tarball: `tizenbrew/README.md`.
 
 1. Install [TizenBrew](https://github.com/reisxd/TizenBrew).
 2. Module Manager → add `@vkara/tv`.
-3. If jsDelivr fails, sideload WGT from a `tizen-v*` [GitHub Release](https://github.com/lehuygiang28/vkara/releases).
+3. Launch **vKara** → splash → hosted `/tv`.
+4. If jsDelivr fails, sideload WGT from a `tizen-v*` [GitHub Release](https://github.com/lehuygiang28/vkara/releases).
 
 Private workspace package `@vkara/tizen` is never published — only generated
 `dist/tizenbrew` as npm package **`@vkara/tv`** under the `@vkara` npm org
@@ -123,6 +130,8 @@ scripts/
   build-wgt.sh               zip → vKara.wgt
   pack-tizenbrew.sh          npm module @vkara/tv
   build-all.sh               orchestrator
-tizenbrew/package.template.json
+tizenbrew/
+  package.template.json      published @vkara/tv manifest
+  README.md                  npm package README
 dist/                        gitignored build output
 ```

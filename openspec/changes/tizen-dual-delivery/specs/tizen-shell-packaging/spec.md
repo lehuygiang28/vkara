@@ -30,12 +30,12 @@ The packaging pipeline SHALL expose a shared stage step that copies the shell so
 - **WHEN** `VKARA_TV_URL` is set to a value that does not start with `http://` or `https://`
 - **THEN** the stage step fails with a non-zero exit code and produces no packaging artifacts
 
-### Requirement: Shell stays chrome85-safe and package id stays stable
-Shell JavaScript and CSS SHALL remain syntactically compatible with Tizen 6.5 (~Chrome 85) without relying on the web app’s post-build downlevel pass. The WGT `config.xml` package id SHALL be `VkaraApp01` and the application id SHALL be `VkaraApp01.vkara`. That package id MUST remain stable across releases so reinstalls upgrade in place.
+### Requirement: Shell stays Tizen 6.0-safe and package id stays stable
+Shell JavaScript and CSS SHALL remain syntactically compatible with Tizen 6.0 (~Chrome 76) without relying on the web app’s post-build downlevel pass. The WGT `config.xml` package id SHALL be `VkaraApp01` and the application id SHALL be `VkaraApp01.vkara`. That package id MUST remain stable across releases so reinstalls upgrade in place.
 
 #### Scenario: Package id unchanged across shell versions
 - **WHEN** a new shell version is staged for WGT packaging
-- **THEN** `config.xml` still declares package id `VkaraApp01`, application id `VkaraApp01.vkara`, and `required_version` of at least `6.5`
+- **THEN** `config.xml` still declares package id `VkaraApp01`, application id `VkaraApp01.vkara`, and `required_version` of at least `6.0`
 
 ### Requirement: Pull request CI validates packaging without publishing
 On pull requests that change Tizen packaging inputs (or as part of packaging CI), the pipeline SHALL stage the shell, build the WGT adapter, and pack the TizenBrew adapter (or equivalent dry-run) without publishing to npm.

@@ -1081,3 +1081,21 @@
         max-width: 100%;
     }
 }
+
+/* Old Smart TV engines (Tizen 6.0 ≈ Chrome 76) don't support aspect-ratio
+   (Chrome 88+); without a fallback these 16:9 boxes collapse to zero height.
+   The padding-bottom hack sizes them off the container width instead; the
+   thumbnails inside use next/image `fill`, which is already absolutely
+   positioned. No effect on engines that support aspect-ratio. */
+@supports not (aspect-ratio: 16 / 9) {
+    [data-tv-route] .tv-queue-panel--expanded .tv-queue-thumb {
+        position: relative;
+        height: 0;
+        padding-bottom: 56.25%;
+    }
+
+    [data-tv-route] .tv-next-up-overlay__thumb-wrap {
+        height: 0;
+        padding-bottom: 56.25%;
+    }
+}

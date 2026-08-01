@@ -32,6 +32,19 @@ const nextConfig: NextConfig = {
             '@noriginmedia/norigin-spatial-navigation-core',
         ],
     },
+    async headers() {
+        return [
+            // Smart TV clients cache the /tv HTML in the app's private browser
+            // profile and old engines don't reliably revalidate, leaving the
+            // TV on a stale deploy until the app is reinstalled. The document
+            // is tiny — never let clients store it. Hashed /_next/static
+            // assets are immutable and unaffected.
+            ...['/tv', '/:locale/tv'].map((source) => ({
+                source,
+                headers: [{ key: 'Cache-Control', value: 'no-store, must-revalidate' }],
+            })),
+        ];
+    },
     async redirects() {
         return [
             // iOS Safari requests these at the site root (bypasses i18n middleware due to `.` in path).

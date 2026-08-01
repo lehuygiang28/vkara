@@ -3,9 +3,12 @@
     "version": "0.0.0",
     "license": "MIT",
     "private": true,
+    "browserslist": [
+        "chrome 76"
+    ],
     "scripts": {
         "dev": "next dev",
-        "build": "bun run --bun next build",
+        "build": "bun run --bun next build && bun scripts/tv-downlevel.mjs && bun scripts/tv-verify.mjs",
         "start": "next start",
         "lint": "eslint . --max-warnings 0",
         "lint:fix": "eslint . --fix",
@@ -69,6 +72,8 @@
         "@types/react-dom": "^19",
         "@types/youtube": "^0.1.0",
         "@next/bundle-analyzer": "15.5.18",
+        "acorn": "^8.17.0",
+        "esbuild": "^0.28.1",
         "eslint": "^9",
         "eslint-config-next": "15.5.18",
         "eslint-plugin-react-hooks": "^5.2.0",

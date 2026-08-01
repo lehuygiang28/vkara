@@ -18,9 +18,9 @@ WebSocket upgrade accepts foreign `Origin` headers (verified 2026-07-23). If
 that ever gets locked down, self-host the backend instead with the
 `lehuygiang28/vkara-api` Docker image and change two env vars below.
 
-**Web TV runtime note:** chrome85 downlevel / polyfills / `/tv` `no-store`
-must be present on the frontend you deploy (see
-[#6](https://github.com/lehuygiang28/vkara/issues/6) if missing on upstream
+**Web TV runtime note:** Chrome 76 downlevel / polyfills / `/tv` `no-store`
+must be present on the frontend you deploy (OpenSpec `tv-chrome76-runtime`;
+see [#6](https://github.com/lehuygiang28/vkara/issues/6) if missing on upstream
 `main`).
 
 ## 1. Import the repo on Vercel
@@ -54,7 +54,7 @@ Deploy the frontend, then open `https://<your-project>.vercel.app/tv` in a
 desktop browser — you should see the TV lobby with a room code and QR.
 
 If the app white-screens on a real Samsung TV but works on desktop, the
-frontend still needs the separate Chrome 85 / TV runtime work tracked in
+frontend still needs the Chrome 76 / TV runtime stack tracked in
 [#6](https://github.com/lehuygiang28/vkara/issues/6). Packaging the shell
 alone does not fix that.
 
@@ -75,7 +75,7 @@ VKARA_TV_URL=https://<your-project>.vercel.app/tv bun run build:tizen
 | TizenBrew pack | `apps/tizen/dist/tizenbrew/` (+ `.tgz`) | Publish under **your** npm scope if you want Module Manager install |
 
 TV setup is in [apps/tizen/README.md](../apps/tizen/README.md). Supported models:
-Tizen 6.5+ (2022+).
+Tizen 6.0+ (2021+).
 
 Upstream npm package `@vkara/tv` releases bake the default
 `vkara.defaultTvUrl` (env unset on CI). Forks with a custom URL must publish a
@@ -94,8 +94,8 @@ better default — it gives you auto-deploys on push.
 
 - **White/blank screen on the TV, site fine on desktop** — usually the hosted
   `/tv` bundle is too new for Tizen’s pinned Chromium. See
-  [#6](https://github.com/lehuygiang28/vkara/issues/6). "Works in the TV’s
-  browser app" does not prove the web-app runtime can run it.
+  [#6](https://github.com/lehuygiang28/vkara/issues/6) (Chrome 76 / Tizen 6.0).
+  "Works in the TV’s browser app" does not prove the web-app runtime can run it.
 - **Which engine does my TV actually have?** Splash/error overlay prints the
   full user agent (`Chrome/xx`) at the bottom of the screen.
 - **Shell opens the wrong host** — rebuild with
