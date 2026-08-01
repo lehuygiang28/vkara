@@ -268,6 +268,9 @@ YouTube search and playback in vkara depend on open-source libraries and their a
 | [youtube-sr](https://github.com/twlite/youtube-sr)           | [@twlite](https://github.com/twlite)                             | Search suggestions                               |
 | [react-youtube](https://github.com/tjallingt/react-youtube)  | [@tjallingt](https://github.com/tjallingt)                       | YouTube player embed in the web app              |
 
+The Samsung Tizen shell approach was inspired by [@alfrededison](https://github.com/alfrededison)’s
+work in [#5](https://github.com/lehuygiang28/vkara/pull/5) — thank you for sharing that path with the community.
+
 Thank you to the maintainers and contributors of these projects.
 
 ## License

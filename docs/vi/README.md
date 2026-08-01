@@ -272,6 +272,10 @@ Tính năng tìm kiếm và phát YouTube trong vkara có sử dụng các thư 
 | [youtube-sr](https://github.com/twlite/youtube-sr) | [@twlite](https://github.com/twlite) | Gợi ý tìm kiếm |
 | [react-youtube](https://github.com/tjallingt/react-youtube) | [@tjallingt](https://github.com/tjallingt) | Nhúng YouTube player vào web app |
 
+Hướng tiếp cận shell Samsung Tizen được lấy cảm hứng từ công việc của
+[@alfrededison](https://github.com/alfrededison) trong [#5](https://github.com/lehuygiang28/vkara/pull/5) —
+cảm ơn bạn đã chia sẻ với cộng đồng.
+
 Cảm ơn các maintainer và contributor của những dự án này.
 
 ## License

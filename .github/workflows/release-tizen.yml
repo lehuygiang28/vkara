@@ -125,6 +125,10 @@ jobs:
                   ### When to upgrade the shell
 
                   Republish only if the wrapper, media keys, splash/offline UI, privileges, or baked default URL changes. Routine \`/tv\` fixes do **not** need a new \`tizen-v*\` tag.
+
+                  ### Credits
+
+                  Tizen shell approach inspired by [@alfrededison](https://github.com/alfrededison) (Nguyen Duc Hieu) — [#5](https://github.com/lehuygiang28/vkara/pull/5). Continued here as a thin launcher → hosted \`/tv\` with dual WGT + TizenBrew packaging (not a verbatim merge of that PR).
                   EOF
                   python3 - "$NOTES_FILE" <<'PY'
                   import pathlib, sys, textwrap

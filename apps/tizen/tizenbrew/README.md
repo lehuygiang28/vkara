@@ -32,3 +32,5 @@ Official releases bake the default host from the monorepo (`vkara.defaultTvUrl`)
 Forks with a custom host: rebuild the shell and publish under **your** npm scope. Do not overwrite `@vkara/tv`.
 
 See [apps/tizen/README.md](https://github.com/lehuygiang28/vkara/blob/main/apps/tizen/README.md) for build, WGT sideload, and maintainer release (`tizen-v*`).
+
+Inspired by [@alfrededison](https://github.com/alfrededison)’s Tizen shell work in [#5](https://github.com/lehuygiang28/vkara/pull/5).

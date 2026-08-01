@@ -16,6 +16,13 @@ Shared source of truth for two adapters:
 
 Android TV is **out of scope**.
 
+## Credits
+
+Inspired by [@alfrededison](https://github.com/alfrededison) (Nguyen Duc Hieu)’s Samsung Tizen
+shell work in [#5](https://github.com/lehuygiang28/vkara/pull/5). This tree continues that
+approach — a thin local launcher that hands off to hosted `/tv` — with dual packaging
+(WGT + TizenBrew). It is not a verbatim merge of that PR.
+
 ## Configurable TV URL
 
 Committed `src/js/main.js` uses placeholder `__VKARA_TV_URL__` — **no host in source**.
