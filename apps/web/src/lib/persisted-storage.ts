@@ -63,17 +63,37 @@ function migrateStoreState(name: string, state: unknown): unknown {
     switch (name) {
         case PERSIST_STORE_KEYS.youtube: {
             const youtube = state as {
-                room?: unknown;
+                room?: {
+                    id?: string;
+                    password?: string;
+                    hasPassword?: boolean;
+                    showQRInPlayer?: boolean;
+                    captionsEnabled?: boolean;
+                    captionsLanguage?: string;
+                } | null;
                 layoutModeSource?: string;
                 layoutMode?: string;
             };
+            // Cold rejoin stub only — strip hot playback/queue fields from legacy blobs.
             const room = normalizePersistedRoom(
-                youtube.room as Parameters<typeof normalizePersistedRoom>[0],
+                youtube.room
+                    ? {
+                          id: youtube.room.id,
+                          password: youtube.room.password,
+                          hasPassword: youtube.room.hasPassword,
+                          showQRInPlayer: youtube.room.showQRInPlayer,
+                          captionsEnabled: youtube.room.captionsEnabled,
+                          captionsLanguage: youtube.room.captionsLanguage,
+                      }
+                    : null,
             );
             return {
                 ...youtube,
                 room,
                 layoutModeSource: youtube.layoutModeSource ?? 'auto',
+                tvSuppressAutoCreate: false,
+                tvLobbyBanner: null,
+                player: null,
             };
         }
         case PERSIST_STORE_KEYS.personalization: {
@@ -113,17 +133,21 @@ function migrateStoreState(name: string, state: unknown): unknown {
     }
 }
 
+const YOUTUBE_PERSIST_VERSION = 2;
+
 function migrateEnvelope(name: string, envelope: PersistEnvelope): PersistEnvelope {
     const version = typeof envelope.version === 'number' ? envelope.version : 0;
     const migratedState = migrateStoreState(name, envelope.state);
+    const targetVersion =
+        name === PERSIST_STORE_KEYS.youtube ? YOUTUBE_PERSIST_VERSION : Math.max(version, 1);
 
-    if (version >= 1 && migratedState === envelope.state) {
+    if (version >= targetVersion && migratedState === envelope.state) {
         return envelope;
     }
 
     return {
         state: migratedState,
-        version: 1,
+        version: targetVersion,
     };
 }
 

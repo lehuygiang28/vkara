@@ -3,12 +3,12 @@ import { cn } from '@/lib/utils';
 /** YouTube TV accent — primary focus color on dark overlays. */
 export const TV_ACCENT = '#3ea6ff';
 
-/** Double-ring focus halo visible at 10-foot viewing distance. */
+/** Double-ring focus — solid rings only (no soft glow; cheaper on TV GPU). */
 export const TV_FOCUS_HALO =
-    'shadow-[0_0_0_3px_rgb(0_0_0/0.9),0_0_0_7px_#3ea6ff,0_0_28px_rgb(62_166_255/0.75)]';
+    'shadow-[0_0_0_3px_rgb(0_0_0/0.9),0_0_0_7px_#3ea6ff]';
 
 export const TV_FOCUS_HALO_SOFT =
-    'shadow-[0_0_0_2px_rgb(0_0_0/0.8),0_0_0_6px_#3ea6ff,0_0_20px_rgb(62_166_255/0.55)]';
+    'shadow-[0_0_0_2px_rgb(0_0_0/0.8),0_0_0_6px_#3ea6ff]';
 
 /** Layout-stable border — always 4px; only color changes. */
 const TV_BORDER_STABLE = 'border-4 border-solid';

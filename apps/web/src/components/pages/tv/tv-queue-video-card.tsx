@@ -34,7 +34,7 @@ function scrollCardIntoView(node: HTMLElement | null) {
 
     const track = node.closest('.tv-queue-track') as HTMLElement | null;
     if (!track) {
-        node.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        node.scrollIntoView({ behavior: 'auto', inline: 'center', block: 'nearest' });
         return;
     }
 
@@ -42,7 +42,7 @@ function scrollCardIntoView(node: HTMLElement | null) {
     const nodeRect = node.getBoundingClientRect();
     const delta = nodeRect.left + nodeRect.width / 2 - (trackRect.left + trackRect.width / 2);
 
-    track.scrollTo({ left: track.scrollLeft + delta, behavior: 'smooth' });
+    track.scrollTo({ left: track.scrollLeft + delta, behavior: 'auto' });
 }
 
 type TvQueueVideoCardProps = {
@@ -64,7 +64,7 @@ export function TvQueueVideoCard({
     onPlayAction,
     onLeaveQueueAction,
 }: TvQueueVideoCardProps) {
-    const thumb = getVideoThumbnailUrl({ video, size: 'large' });
+    const thumb = getVideoThumbnailUrl({ video, size: 'list' });
     const isLive = isVideoLive({ video });
     const views = coerceViewCount(video.views);
     const durationLabel = video.duration_formatted || formatDuration(video.duration) || undefined;

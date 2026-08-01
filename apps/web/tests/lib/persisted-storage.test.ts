@@ -37,6 +37,24 @@ describe('normalizePersistedRoom', () => {
     it('returns null when room id is missing', () => {
         expect(normalizePersistedRoom({ videoQueue: [] })).toBeNull();
     });
+
+    it('builds a cold rejoin stub when only id/password are supplied (youtube persist merge path)', () => {
+        const normalized = normalizePersistedRoom({
+            id: 'ROOM99',
+            password: 'secret',
+            hasPassword: true,
+        });
+
+        expect(normalized).toMatchObject({
+            id: 'ROOM99',
+            hasPassword: true,
+            password: 'secret',
+            currentTime: 0,
+            isPlaying: false,
+            videoQueue: [],
+            playingNow: null,
+        });
+    });
 });
 
 describe('createMigratingPersistStorage', () => {
@@ -78,11 +96,13 @@ describe('createMigratingPersistStorage', () => {
             state: { room: Record<string, unknown> };
             version: number;
         };
-        expect(parsed.version).toBe(1);
-        expect(parsed.state.room.captionTracks).toEqual([]);
+        expect(parsed.version).toBe(2);
+        // Hot fields stripped on migrate — cold rejoin stub defaults.
+        expect(parsed.state.room.currentTime).toBe(0);
+        expect(parsed.state.room.isPlaying).toBe(false);
+        expect(parsed.state.room.videoQueue).toEqual([]);
+        expect(parsed.state.room.playingNow).toBeNull();
         expect(parsed.state.room.captionsLanguage).toBe(DEFAULT_CAPTION_LANGUAGE);
-        expect(parsed.state.room.tiktokPhotoIndex).toBe(0);
-        expect(parsed.state.room.tiktokPhotoMaxIndex).toBe(0);
     });
 
     it('removes corrupt entries instead of throwing', () => {

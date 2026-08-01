@@ -60,7 +60,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const connectionStatus = useWebSocketStore((s) => s.connectionStatus);
     const connectionEpoch = useWebSocketStore((s) => s.connectionEpoch);
     const roomSessionEpoch = useWebSocketStore((s) => s.roomSessionEpoch);
-    const lastMessage = useWebSocketStore((s) => s.lastMessage);
     const sendMessage = useWebSocketStore((s) => s.sendMessage);
     const connect = useWebSocketStore((s) => s.connect);
     const disconnect = useWebSocketStore((s) => s.disconnect);
@@ -85,6 +84,21 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const lastSyncedEpoch = useRef(-1);
     const recoveryInFlight = useRef(false);
     const abandonedRoomIdRef = useRef<string | null>(null);
+    const connectionEpochRef = useRef(connectionEpoch);
+    const isTvLayoutRef = useRef(false);
+    const roomIdRef = useRef(roomId);
+    const rejoinPasswordRef = useRef(rejoinPassword);
+    const ensureConnectedAndSendRef = useRef<WebSocketState['sendMessage']>(() => {});
+    const beginTvRecoveryRef = useRef<(snapshotRoom?: ReturnType<typeof useYouTubeStore.getState>['room']) => boolean>(
+        () => false,
+    );
+    const setRoomRef = useRef(setRoom);
+    const enterTvLobbyRef = useRef(enterTvLobby);
+    connectionEpochRef.current = connectionEpoch;
+    roomIdRef.current = roomId;
+    rejoinPasswordRef.current = rejoinPassword;
+    setRoomRef.current = setRoom;
+    enterTvLobbyRef.current = enterTvLobby;
 
     const roomIdParam = searchParams.get('roomId');
     const passwordParam = searchParams.get('password');
@@ -98,6 +112,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
     const isDedicatedTv = isDedicatedTvRoute(pathname);
     const isTvLayout = isDedicatedTv || effectiveLayoutMode !== 'remote';
+    isTvLayoutRef.current = isTvLayout;
 
     const isRoomSessionReady = useIsRoomSessionReady();
 
@@ -110,6 +125,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         },
         [connectionStatus, connect, sendMessage],
     );
+    ensureConnectedAndSendRef.current = ensureConnectedAndSend;
 
     const beginTvRecovery = useCallback(
         (snapshotRoom = useYouTubeStore.getState().room) => {
@@ -128,14 +144,98 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         },
         [isTvLayout, clearRoomScopedMessages, ensureConnectedAndSend],
     );
+    beginTvRecoveryRef.current = beginTvRecovery;
 
+    // Lifecycle side-effects via store subscription — do not subscribe to lastMessage in React
+    // render, or every inbound message re-renders the provider and all useWebSocket() consumers.
     useEffect(() => {
-        if (lastMessage?.type === 'roomJoined' || lastMessage?.type === 'roomCreated') {
-            recoveryInFlight.current = false;
-            abandonedRoomIdRef.current = null;
-            useWebSocketStore.setState({ roomSessionEpoch: connectionEpoch });
-        }
-    }, [lastMessage, connectionEpoch]);
+        let prevLastMessage = useWebSocketStore.getState().lastMessage;
+        return useWebSocketStore.subscribe((state) => {
+            if (state.lastMessage === prevLastMessage) {
+                return;
+            }
+            prevLastMessage = state.lastMessage;
+            const lastMessage = state.lastMessage;
+            if (!lastMessage) {
+                return;
+            }
+
+            if (lastMessage.type === 'roomJoined' || lastMessage.type === 'roomCreated') {
+                recoveryInFlight.current = false;
+                abandonedRoomIdRef.current = null;
+                useWebSocketStore.setState({
+                    roomSessionEpoch: connectionEpochRef.current,
+                });
+                return;
+            }
+
+            const tvLayout = isTvLayoutRef.current;
+            const activeRoomId = roomIdRef.current;
+
+            if (lastMessage.type === 'roomClosed' || lastMessage.type === 'kicked') {
+                lastSyncedEpoch.current = -1;
+                if (tvLayout) {
+                    enterTvLobbyRef.current();
+                } else {
+                    setRoomRef.current(null);
+                }
+                return;
+            }
+
+            if (lastMessage.type === 'errorWithCode' && lastMessage.code === ErrorCode.NOT_IN_ROOM) {
+                if (!activeRoomId || recoveryInFlight.current) {
+                    return;
+                }
+                if (abandonedRoomIdRef.current === activeRoomId) {
+                    return;
+                }
+
+                lastSyncedEpoch.current = -1;
+                ensureConnectedAndSendRef.current({
+                    type: 'reJoinRoom',
+                    roomId: activeRoomId,
+                    password: rejoinPasswordRef.current,
+                    isTvClient: tvLayout,
+                });
+                return;
+            }
+
+            if (
+                lastMessage.type === 'errorWithCode' &&
+                lastMessage.code === ErrorCode.REJOIN_ROOM_NOT_FOUND
+            ) {
+                if (activeRoomId) {
+                    abandonedRoomIdRef.current = activeRoomId;
+                }
+                lastSyncedEpoch.current = -1;
+                if (tvLayout) {
+                    beginTvRecoveryRef.current(useYouTubeStore.getState().room);
+                }
+                return;
+            }
+
+            if (lastMessage.type === 'errorWithCode' && isFatalRejoinError(lastMessage.code)) {
+                if (activeRoomId) {
+                    abandonedRoomIdRef.current = activeRoomId;
+                }
+                lastSyncedEpoch.current = -1;
+                if (tvLayout) {
+                    enterTvLobbyRef.current();
+                }
+                return;
+            }
+
+            if (lastMessage.type === 'roomNotFound') {
+                if (activeRoomId) {
+                    abandonedRoomIdRef.current = activeRoomId;
+                }
+                lastSyncedEpoch.current = -1;
+                if (tvLayout) {
+                    enterTvLobbyRef.current();
+                }
+            }
+        });
+    }, []);
 
     useEffect(() => {
         lastSyncedEpoch.current = -1;
@@ -274,87 +374,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }
     }, [roomId]);
 
-    useEffect(() => {
-        if (lastMessage?.type === 'roomClosed' || lastMessage?.type === 'kicked') {
-            lastSyncedEpoch.current = -1;
-            if (isTvLayout) {
-                enterTvLobby();
-            } else {
-                setRoom(null);
-            }
-            return;
-        }
-
-        if (
-            lastMessage?.type === 'errorWithCode' &&
-            lastMessage.code === ErrorCode.NOT_IN_ROOM &&
-            roomId
-        ) {
-            if (recoveryInFlight.current) return;
-            if (abandonedRoomIdRef.current === roomId) return;
-
-            lastSyncedEpoch.current = -1;
-            ensureConnectedAndSend({
-                type: 'reJoinRoom',
-                roomId,
-                password: rejoinPassword,
-                isTvClient: isTvLayout,
-            });
-            return;
-        }
-
-        if (
-            lastMessage?.type === 'errorWithCode' &&
-            lastMessage.code === ErrorCode.REJOIN_ROOM_NOT_FOUND
-        ) {
-            if (roomId) {
-                abandonedRoomIdRef.current = roomId;
-            }
-            lastSyncedEpoch.current = -1;
-            if (isTvLayout) {
-                beginTvRecovery(useYouTubeStore.getState().room);
-            }
-            return;
-        }
-
-        if (
-            lastMessage?.type === 'errorWithCode' &&
-            isFatalRejoinError(lastMessage.code)
-        ) {
-            if (roomId) {
-                abandonedRoomIdRef.current = roomId;
-            }
-            lastSyncedEpoch.current = -1;
-            if (isTvLayout) {
-                enterTvLobby();
-            }
-            return;
-        }
-
-        if (lastMessage?.type === 'roomNotFound') {
-            if (roomId) {
-                abandonedRoomIdRef.current = roomId;
-            }
-            lastSyncedEpoch.current = -1;
-            if (isTvLayout) {
-                enterTvLobby();
-            }
-        }
-    }, [
-        lastMessage,
-        ensureConnectedAndSend,
-        isTvLayout,
-        setRoom,
-        enterTvLobby,
-        roomId,
-        rejoinPassword,
-        beginTvRecovery,
-    ]);
-
     const enhancedWebSocketStore = useMemo<EnhancedWebSocketState>(
         () => ({
             sendMessage,
-            lastMessage,
             connectionStatus,
             connectionEpoch,
             roomSessionEpoch,
@@ -370,7 +392,6 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         }),
         [
             sendMessage,
-            lastMessage,
             connectionStatus,
             connectionEpoch,
             roomSessionEpoch,

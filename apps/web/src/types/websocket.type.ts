@@ -3,7 +3,11 @@ import type { ClientMessage } from '@vkara/validators/ws/client-message';
 
 export interface WebSocketState {
     sendMessage: (message: RawClientMessage) => void;
-    lastMessage: ServerMessage | null;
+    /**
+     * Prefer `useWebSocketStore` for message fan-in.
+     * Not exposed on React context — avoids re-rendering every consumer per inbound message.
+     */
+    lastMessage?: ServerMessage | null;
     connectionStatus: ConnectionStatus;
     connectionEpoch: number;
     roomSessionEpoch: number;

@@ -9,7 +9,6 @@ import { isTikTokPlayback } from '@/lib/active-playback';
 import { cn } from '@/lib/utils';
 import { broadcastTikTokPauseToRoom, isPlayerPageHidden } from '@/lib/tiktok-room-playback';
 import { markServerPlaybackCommand } from '@/lib/youtube-playback-sync';
-import { isTikTokPhotoPost, isVideoLive } from '@vkara/tiktok';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import type { YouTubeStoreLayoutMode } from '@/store/youtubeStore';
 
@@ -23,7 +22,9 @@ const TikTokTvEmbed = dynamic(() => import('./tiktok-tv-embed').then((mod) => mo
 });
 
 type PlayerEmbedSurfaceProps = {
-    playingNow: YouTubeVideo;
+    playingNowId: string;
+    isPhotoPost: boolean;
+    isLive: boolean;
     effectiveLayoutMode: YouTubeStoreLayoutMode;
     roomId: string | undefined;
     roomIsPlaying: boolean;
@@ -45,7 +46,9 @@ type PlayerEmbedSurfaceProps = {
 };
 
 function PlayerEmbedSurface({
-    playingNow,
+    playingNowId,
+    isPhotoPost,
+    isLive,
     effectiveLayoutMode,
     roomId,
     roomIsPlaying,
@@ -83,7 +86,7 @@ function PlayerEmbedSurface({
                     aria-hidden={isTikTokNow}
                 >
                     <YoutubeTvEmbed
-                        videoId={embedSeedVideoId ?? playingNow.id}
+                        videoId={embedSeedVideoId ?? playingNowId}
                         autoplay={roomIsPlaying}
                         onReadyAction={onYoutubeReadyAction}
                         onStateChangeAction={onYoutubeStateChangeAction}
@@ -96,11 +99,11 @@ function PlayerEmbedSurface({
             ) : null}
             {isTikTokNow ? (
                 <TikTokTvEmbed
-                    key={`tiktok-${playingNow.id}-${captionsEnabled ? 'cc' : 'no-cc'}`}
-                    videoId={playingNow.id}
+                    key={`tiktok-${playingNowId}-${captionsEnabled ? 'cc' : 'no-cc'}`}
+                    videoId={playingNowId}
                     autoplay={roomIsPlaying}
                     closedCaption={captionsEnabled}
-                    isPhotoPost={isTikTokPhotoPost({ video: playingNow })}
+                    isPhotoPost={isPhotoPost}
                     startSeconds={currentTime}
                     volume={volume}
                     className={cn(
@@ -119,7 +122,7 @@ function PlayerEmbedSurface({
                             }
 
                             broadcastTikTokPauseToRoom({
-                                videoId: playingNow.id,
+                                videoId: playingNowId,
                                 ensureConnectedAndSend,
                                 resumeWhenVisible: pausedWhileHidden === true,
                             });
@@ -138,12 +141,12 @@ function PlayerEmbedSurface({
                         }
                     }}
                     onEndedAction={() => {
-                        if (!isVideoLive({ video: playingNow })) {
+                        if (!isLive) {
                             onEndedAction();
                         }
                     }}
                     onPlayerErrorAction={() => {
-                        onSkipUnplayableAction(playingNow.id);
+                        onSkipUnplayableAction(playingNowId);
                     }}
                 />
             ) : null}

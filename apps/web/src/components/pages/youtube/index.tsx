@@ -10,10 +10,10 @@ import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
 import { LayoutModeSwitch, RECOVERY_MODE_CHOICES } from '@/components/layout-mode-switch';
 import { useLayoutChunkPrefetch, prefetchRemoteShell } from '@/hooks/use-layout-chunk-prefetch';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
-import { useWebSocket } from '@/providers/websocket-provider';
 import { usePlaybackPositionSync } from '@/hooks/use-playback-position-sync';
 import { useTikTokHiddenPlayGuard } from '@/hooks/use-tiktok-hidden-play-guard';
 import { useTikTokPhotoIndexSync } from '@/hooks/use-tiktok-photo-index-sync';
+import { useWebSocketStore } from '@/store/websocketStore';
 
 import { ConnectionStatusToast } from '@/components/connection-status-toast';
 import {
@@ -58,19 +58,31 @@ export default function YoutubePlayerPage() {
     useStripRoomQueryFromUrl();
     useLayoutChunkPrefetch();
 
-    const { lastMessage } = useWebSocket();
     usePlaybackPositionSync();
     useTikTokHiddenPlayGuard();
     useTikTokPhotoIndexSync();
 
     const isTvLayout = effectiveLayoutMode !== 'remote';
+    const isTvLayoutRef = useRef(isTvLayout);
+    isTvLayoutRef.current = isTvLayout;
 
     useEffect(() => {
-        if (!lastMessage) {
-            return;
-        }
-        useYouTubeStore.getState().handleServerMessage(lastMessage, t_Toast, { isTvLayout });
-    }, [lastMessage, isTvLayout, t_Toast]);
+        let prevLastMessage = useWebSocketStore.getState().lastMessage;
+        return useWebSocketStore.subscribe((state) => {
+            if (state.lastMessage === prevLastMessage) {
+                return;
+            }
+            prevLastMessage = state.lastMessage;
+            if (!state.lastMessage) {
+                return;
+            }
+            useYouTubeStore
+                .getState()
+                .handleServerMessage(state.lastMessage, t_Toast, {
+                    isTvLayout: isTvLayoutRef.current,
+                });
+        });
+    }, [t_Toast]);
 
     useEffect(() => {
         if (effectiveLayoutMode === 'remote' && prevLayoutMode.current !== 'remote') {

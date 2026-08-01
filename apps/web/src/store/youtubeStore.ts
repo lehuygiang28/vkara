@@ -593,40 +593,55 @@ export const useYouTubeStore = create(
         }),
         {
             name: 'youtube-storage',
-            version: 1,
+            version: 2,
             storage: createJSONStorage(() => createMigratingPersistStorage()),
             partialize: (state) => {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const { player, layoutMode, tvSuppressAutoCreate, tvLobbyBanner, ...rest } = state;
-                // Auto mode is re-derived from viewport on load; persisting layoutMode causes remote→TV flicker.
-                if (state.layoutModeSource === 'auto') {
-                    return {
-                        ...rest,
-                        player: null,
-                        layoutMode: state.layoutMode,
-                        tvSuppressAutoCreate: false,
-                        tvLobbyBanner: null,
-                    };
-                }
+                // Persist cold session identity only — never hot room snapshots / currentTime.
+                // Rejoin password lives in roomRejoinSecretStore; legacy password kept for older sessions.
+                const coldRoom = state.room
+                    ? normalizePersistedRoom({
+                          id: state.room.id,
+                          password: state.room.password,
+                          hasPassword: Boolean(state.room.hasPassword ?? state.room.password),
+                      })
+                    : null;
+
                 return {
-                    ...rest,
-                    player: null,
-                    layoutMode,
+                    wsId: state.wsId,
+                    volume: state.volume,
+                    currentTab: state.currentTab,
+                    room: coldRoom,
+                    isLoading: false,
+                    error: null,
+                    // Auto mode is re-derived from viewport on load; still store current value for non-auto.
+                    layoutMode: state.layoutMode,
+                    layoutModeSource: state.layoutModeSource,
                     tvSuppressAutoCreate: false,
                     tvLobbyBanner: null,
-                };
+                    player: null,
+                } as YouTubeState;
             },
             merge: (persistedState, currentState) => {
                 const persisted = persistedState as Partial<YouTubeState>;
-                const room = persisted.room ? normalizePersistedRoom(persisted.room) : null;
+                // Strip hot fields even when loading legacy full-room blobs.
+                const room = persisted.room
+                    ? normalizePersistedRoom({
+                          id: persisted.room.id,
+                          password: persisted.room.password,
+                          hasPassword: persisted.room.hasPassword,
+                      })
+                    : null;
                 const layoutModeSource = persisted.layoutModeSource ?? 'auto';
                 const merged = {
                     ...currentState,
-                    ...persisted,
+                    wsId: persisted.wsId ?? currentState.wsId,
+                    volume: typeof persisted.volume === 'number' ? persisted.volume : currentState.volume,
+                    currentTab: persisted.currentTab ?? currentState.currentTab,
                     room,
                     player: null,
                     layoutModeSource,
                     tvSuppressAutoCreate: false,
+                    tvLobbyBanner: null,
                 };
 
                 if (layoutModeSource === 'auto') {
@@ -635,7 +650,10 @@ export const useYouTubeStore = create(
                         layoutMode: currentState.layoutMode,
                     };
                 }
-                return merged;
+                return {
+                    ...merged,
+                    layoutMode: persisted.layoutMode ?? currentState.layoutMode,
+                };
             },
         },
     ),

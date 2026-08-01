@@ -6,7 +6,7 @@ import { useShallow } from 'zustand/react/shallow';
 
 import { type CaptionTrack, DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
 import { needsPlaybackSeekCorrection } from '@vkara/room';
-import { isVideoLive } from '@vkara/tiktok';
+import { isTikTokPhotoPost, isVideoLive } from '@vkara/tiktok';
 import { useCurrentLocale } from '@/locales/client';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useTikTokHiddenPlayGuard } from '@/hooks/use-tiktok-hidden-play-guard';
@@ -366,9 +366,11 @@ function TvPlayerHostInner({ onOpenSettingsAction }: TvPlayerHostProps) {
 
     return (
         <div className="absolute inset-0 bg-black">
-            {playingNow ? (
+            {playingNowId ? (
                 <PlayerEmbedSurfaceMemo
-                    playingNow={playingNow}
+                    playingNowId={playingNowId}
+                    isPhotoPost={isTikTokPhotoPost({ video: playingNow })}
+                    isLive={isVideoLive({ video: playingNow })}
                     effectiveLayoutMode="player"
                     roomId={roomId}
                     roomIsPlaying={roomIsPlaying}

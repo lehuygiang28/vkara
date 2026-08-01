@@ -17,7 +17,9 @@ type UsePlaybackDisplayTimeOptions = {
  */
 export function usePlaybackDisplayTime(options?: UsePlaybackDisplayTimeOptions): number {
     const enabled = options?.enabled ?? true;
-    const room = useYouTubeStore((s) => s.room);
+    const videoId = useYouTubeStore((s) => s.room?.playingNow?.id ?? null);
+    const serverTime = useYouTubeStore((s) => s.room?.currentTime ?? 0);
+    const isPlaying = useYouTubeStore((s) => Boolean(s.room?.isPlaying));
     const anchorRef = useRef<PlaybackDisplayAnchor>({
         baseSeconds: 0,
         syncedAtMs: Date.now(),
@@ -25,10 +27,6 @@ export function usePlaybackDisplayTime(options?: UsePlaybackDisplayTimeOptions):
         videoId: null,
     });
     const [displayTime, setDisplayTime] = useState(0);
-
-    const videoId = room?.playingNow?.id ?? null;
-    const serverTime = room?.currentTime ?? 0;
-    const isPlaying = Boolean(room?.isPlaying);
 
     useEffect(() => {
         anchorRef.current = {

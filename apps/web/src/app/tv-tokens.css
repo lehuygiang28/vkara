@@ -39,7 +39,8 @@
 [data-tv-route] .tv-queue-card[data-focused='true'] {
     background-color: var(--tv-queue-focus);
     border-color: transparent;
-    box-shadow: 0 8px 32px rgb(0 0 0 / 0.35);
+    outline: 3px solid var(--tv-accent);
+    outline-offset: 2px;
 }
 
 /** Circular icon button — dimensions locked via CSS, not flex-shrinkable. */
@@ -131,20 +132,13 @@
     }
 }
 
-/** Single unified scrim — no shelf seam; eased multi-stop fade. */
+/** Bottom-weighted scrim — few stops; cheap over video decode on TV SoCs. */
 [data-tv-route] .tv-player-scrim {
     background: linear-gradient(
         to top,
-        rgb(0 0 0 / 0.34) 0%,
-        rgb(0 0 0 / 0.28) 5%,
-        rgb(0 0 0 / 0.22) 12%,
-        rgb(0 0 0 / 0.17) 20%,
-        rgb(0 0 0 / 0.12) 30%,
-        rgb(0 0 0 / 0.08) 42%,
-        rgb(0 0 0 / 0.04) 55%,
-        rgb(0 0 0 / 0.02) 68%,
-        rgb(0 0 0 / 0.008) 80%,
-        transparent 94%
+        rgb(0 0 0 / 0.55) 0%,
+        rgb(0 0 0 / 0.22) 42%,
+        transparent 88%
     );
 }
 
@@ -152,50 +146,29 @@
     background: rgb(0 0 0 / 0.28);
 }
 
-/** Fixed corner QR — compact in corner; expands with player chrome to align with title row. */
+/** Fixed corner QR — static canvas size; expand via transform only (no filter / resize). */
 [data-tv-route] .tv-player-fixed-qr {
     position: fixed;
     z-index: 40;
     top: max(calc(env(safe-area-inset-top, 0px) + 0.75rem), 0.75rem);
     left: var(--vkara-page-gutter-inline-start);
-    filter: drop-shadow(0 4px 16px rgb(0 0 0 / 0.55));
-    transition:
-        top 280ms cubic-bezier(0.22, 1, 0.36, 1),
-        left 280ms cubic-bezier(0.22, 1, 0.36, 1);
+    transform-origin: top left;
+    transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 [data-tv-route] .tv-player-fixed-qr--expanded {
-    top: max(calc(env(safe-area-inset-top, 0px) + 2rem), 2rem);
-    left: max(calc(env(safe-area-inset-left, 0px) + 2rem), 2rem);
+    transform: scale(1.35);
 }
 
-@media (min-width: 768px) {
-    [data-tv-route] .tv-player-fixed-qr--expanded {
-        top: max(calc(env(safe-area-inset-top, 0px) + 2.5rem), 2.5rem);
-        left: max(calc(env(safe-area-inset-left, 0px) + 3rem), 3rem);
-    }
-}
-
-@media (min-width: 1024px) {
-    [data-tv-route] .tv-player-fixed-qr--expanded {
-        left: max(calc(env(safe-area-inset-left, 0px) + 4rem), 4rem);
-    }
-}
-
-[data-tv-route] .tv-player-fixed-qr__mark {
-    transition:
-        width 280ms cubic-bezier(0.22, 1, 0.36, 1),
-        height 280ms cubic-bezier(0.22, 1, 0.36, 1);
+[data-tv-route] .tv-player-fixed-qr__button {
+    padding: 0.35rem;
+    border-radius: 0.5rem;
+    background: rgb(0 0 0 / 0.45);
+    border: 1px solid rgb(255 255 255 / 0.12);
 }
 
 [data-tv-route] .tv-player-fixed-qr__digits {
     font-size: 1.25rem;
-    transition: font-size 280ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-[data-tv-route] .tv-player-fixed-qr--expanded .tv-player-fixed-qr__digits {
-    margin-top: 0.375rem;
-    font-size: 2rem;
 }
 
 /** Title row — reserve space when fixed QR is shown (overlay visible). */
@@ -228,15 +201,14 @@
     stroke-width: 2;
 }
 
-/** Settings rail — solid enough for readable type at 10-foot. */
+/** Settings rail — opaque gradient (no backdrop-filter over video on Tizen). */
 [data-tv-route] .tv-settings-rail {
     background: linear-gradient(
         270deg,
-        rgb(12 12 14 / 0.94) 0%,
-        rgb(12 12 14 / 0.88) 55%,
-        rgb(12 12 14 / 0.55) 100%
+        rgb(12 12 14 / 0.98) 0%,
+        rgb(12 12 14 / 0.96) 55%,
+        rgb(12 12 14 / 0.92) 100%
     );
-    backdrop-filter: blur(14px);
 }
 
 /** Pinned settings header — always visible above scroll body. */
@@ -394,7 +366,7 @@
 
 [data-tv-route] .tv-queue-shelf__clip {
     overflow: hidden;
-    transition: max-height var(--tv-motion-shelf);
+    /* Instant peek/expand — animating max-height thrashs layout over video on TV. */
 }
 
 [data-tv-route] .tv-queue-shelf--peek .tv-queue-shelf__clip {
@@ -410,27 +382,14 @@
     border-top: none;
 }
 
-/** Horizontal queue track — smooth D-pad scroll. */
+/** Horizontal queue track — instant D-pad scroll (no smooth competing with focus). */
 [data-tv-route] .tv-queue-track {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
     scroll-padding-inline: clamp(1.5rem, 4vw, 4rem);
     -webkit-overflow-scrolling: touch;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    [data-tv-route] .tv-queue-track {
-        scroll-behavior: smooth;
-    }
-}
-
-/** Peek → expanded: thumb grows, meta fades in. */
-[data-tv-route] .tv-queue-thumb {
-    transition:
-        height var(--tv-motion-shelf),
-        aspect-ratio var(--tv-motion-shelf),
-        box-shadow var(--tv-motion-meta);
-}
-
+/** Peek / expanded thumb sizes — discrete, not layout-animated. */
 [data-tv-route] .tv-queue-panel--peek .tv-queue-thumb {
     aspect-ratio: unset;
     height: var(--tv-queue-peek-thumb);
@@ -450,28 +409,12 @@
     object-position: top center;
 }
 
-[data-tv-route] .tv-queue-card-meta {
-    overflow: hidden;
-    transition:
-        max-height var(--tv-motion-meta),
-        opacity var(--tv-motion-meta),
-        margin-top var(--tv-motion-meta),
-        transform var(--tv-motion-meta);
-}
-
 [data-tv-route] .tv-queue-panel--peek .tv-queue-card-meta {
-    max-height: 0;
-    margin-top: 0;
-    opacity: 0;
-    transform: translateY(0.35rem);
-    pointer-events: none;
+    display: none;
 }
 
 [data-tv-route] .tv-queue-panel--expanded .tv-queue-card-meta {
-    max-height: 7rem;
     margin-top: 0.75rem;
-    opacity: 1;
-    transform: translateY(0);
 }
 
 [data-tv-route] .tv-queue-panel--peek.tv-queue-panel--embedded {
@@ -484,14 +427,8 @@
 
 [data-tv-route] .tv-queue-card {
     transition:
-        background-color 220ms ease,
-        border-color 220ms ease,
-        box-shadow 220ms ease,
-        transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-[data-tv-route] .tv-queue-card[data-focused='true'] {
-    transform: translateY(-2px);
+        background-color 150ms ease,
+        border-color 150ms ease;
 }
 
 /** TV lobby — dedicated create/join screen after leaving a room. */
@@ -751,11 +688,10 @@
     inset: 0;
     background: linear-gradient(
         135deg,
-        rgb(0 0 0 / 0.92) 0%,
-        rgb(12 12 14 / 0.88) 45%,
-        rgb(0 0 0 / 0.94) 100%
+        rgb(0 0 0 / 0.96) 0%,
+        rgb(12 12 14 / 0.94) 45%,
+        rgb(0 0 0 / 0.97) 100%
     );
-    backdrop-filter: blur(10px);
 }
 
 [data-tv-route] .tv-next-up-overlay__shell {
@@ -878,7 +814,6 @@
 [data-tv-route] .tv-next-up-countdown__progress {
     stroke: var(--tv-accent);
     transition: stroke-dashoffset 1s linear;
-    filter: drop-shadow(0 0 10px rgb(62 166 255 / 0.55));
 }
 
 [data-tv-route] .tv-next-up-countdown__value {

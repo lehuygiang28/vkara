@@ -31,7 +31,7 @@ import {
     shouldSuppressPlaybackBroadcast,
     markServerPlaybackCommand,
 } from '@/lib/youtube-playback-sync';
-import { isVideoLive } from '@vkara/tiktok';
+import { isTikTokPhotoPost, isVideoLive } from '@vkara/tiktok';
 import { cn } from '@/lib/utils';
 import type { YouTubeStoreLayoutMode } from '@/store/youtubeStore';
 
@@ -429,11 +429,13 @@ function PlayerColumnInner({
         <div className="relative h-full w-full">
             {playingNow ? (
                 <PlayerEmbedSurfaceMemo
-                    playingNow={playingNow}
+                    playingNowId={playingNow.id}
+                    isPhotoPost={isTikTokPhotoPost({ video: playingNow })}
+                    isLive={isVideoLive({ video: playingNow })}
                     effectiveLayoutMode={effectiveLayoutMode}
                     roomId={roomId}
                     roomIsPlaying={roomIsPlaying}
-                    currentTime={currentTime}
+                    currentTime={isTikTokNow ? currentTime : 0}
                     volume={volume}
                     captionsEnabled={captionsEnabled}
                     youtubeEmbedMounted={youtubeEmbedMounted}
