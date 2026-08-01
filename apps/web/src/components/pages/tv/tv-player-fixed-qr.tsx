@@ -7,7 +7,8 @@ import { generateShareableUrl } from '@/lib/room-share';
 import { resolveRoomPasswordForShare } from '@vkara/room';
 import { cn } from '@/lib/utils';
 
-/** Fixed canvas size — expand via CSS transform on the wrapper, never resize the QR. */
+/** Fixed canvas size — keep in sync with --tv-fixed-qr-canvas in tv-tokens.css.
+ *  Expand via CSS transform on the wrapper, never resize the QR. */
 const QR_SIZE = 72;
 
 type TvPlayerFixedQrProps = {

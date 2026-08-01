@@ -17,16 +17,38 @@
     --tv-transport-icon-primary: clamp(1rem, 2.5vh, 1.5rem);
     --tv-queue-peek-thumb: clamp(3rem, 8vh, 4.75rem);
     --tv-safe-bottom: clamp(0.75rem, 2.5vh, 1.5rem);
-    /* QR sizes — wrapper dimensions for the idle fallback box (actual QR canvas
-       uses fixed pixel constants in the component for crisp rendering). */
+    /* Queue focus ring — keep in sync with .tv-queue-card[data-focused] outline. */
+    --tv-queue-focus-outline: 3px;
+    --tv-queue-focus-outline-offset: 2px;
+    --tv-queue-focus-outset: calc(
+        var(--tv-queue-focus-outline) + var(--tv-queue-focus-outline-offset)
+    );
+    /* ≥ outset + TV subpixel slack; used as inset inside overflow clips. */
+    --tv-queue-focus-pad: 8px;
+    /* Idle QR zone box sizes (TvPlayerQrZone) — not the fixed player corner QR. */
     --tv-qr-corner-size: clamp(3.75rem, 6vh, 5.5rem);
     --tv-qr-corner-size-expanded: clamp(5.5rem, 9vh, 8rem);
     --tv-qr-idle-box-size: clamp(8rem, 20vw, 15rem);
     --tv-qr-idle-box-size-lg: clamp(10rem, 24vw, 15rem);
     --tv-qr-idle-box-size-compact: clamp(6rem, 15vw, 9.5rem);
-    --tv-fixed-qr-size-compact: var(--tv-qr-corner-size);
-    --tv-fixed-qr-size-expanded: var(--tv-qr-corner-size-expanded);
-    --tv-fixed-qr-reserve: calc(var(--tv-qr-corner-size-expanded) + 1.125rem);
+    /* Fixed corner QR — canvas stays 72px (QR_SIZE in tv-player-fixed-qr.tsx);
+       expand via transform only. Reserve = real scaled footprint + clearance. */
+    --tv-fixed-qr-canvas: 72px;
+    --tv-fixed-qr-button-pad: 0.35rem;
+    --tv-fixed-qr-button-border: 1px;
+    --tv-fixed-qr-scale-expanded: 1.35;
+    --tv-fixed-qr-clearance: 1.25rem;
+    --tv-fixed-qr-base-width: calc(
+        var(--tv-fixed-qr-canvas) + (2 * var(--tv-fixed-qr-button-pad)) +
+            (2 * var(--tv-fixed-qr-button-border))
+    );
+    --tv-fixed-qr-size-compact: var(--tv-fixed-qr-base-width);
+    --tv-fixed-qr-size-expanded: calc(
+        var(--tv-fixed-qr-base-width) * var(--tv-fixed-qr-scale-expanded)
+    );
+    --tv-fixed-qr-reserve: calc(
+        var(--tv-fixed-qr-size-expanded) + var(--tv-fixed-qr-clearance)
+    );
     --tv-queue-expanded-height: clamp(16rem, 40vh, 24rem);
     --tv-motion-shelf: 420ms cubic-bezier(0.22, 1, 0.36, 1);
     --tv-motion-scroll: 520ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -39,8 +61,8 @@
 [data-tv-route] .tv-queue-card[data-focused='true'] {
     background-color: var(--tv-queue-focus);
     border-color: transparent;
-    outline: 3px solid var(--tv-accent);
-    outline-offset: 2px;
+    outline: var(--tv-queue-focus-outline) solid var(--tv-accent);
+    outline-offset: var(--tv-queue-focus-outline-offset);
 }
 
 /** Circular icon button — dimensions locked via CSS, not flex-shrinkable. */
@@ -127,7 +149,6 @@
         --tv-transport-icon-primary: 1.625rem;
         --tv-queue-peek-thumb: 5.25rem;
         --tv-safe-bottom: 2rem;
-        --tv-fixed-qr-reserve: calc(var(--tv-fixed-qr-size-expanded) + 1.375rem);
         --tv-queue-expanded-height: 28rem;
     }
 }
@@ -157,23 +178,56 @@
 }
 
 [data-tv-route] .tv-player-fixed-qr--expanded {
-    transform: scale(1.35);
+    transform: scale(var(--tv-fixed-qr-scale-expanded));
 }
 
 [data-tv-route] .tv-player-fixed-qr__button {
-    padding: 0.35rem;
+    padding: var(--tv-fixed-qr-button-pad);
     border-radius: 0.5rem;
     background: rgb(0 0 0 / 0.45);
-    border: 1px solid rgb(255 255 255 / 0.12);
+    border: var(--tv-fixed-qr-button-border) solid rgb(255 255 255 / 0.12);
 }
 
 [data-tv-route] .tv-player-fixed-qr__digits {
     font-size: 1.25rem;
 }
 
-/** Title row — reserve space when fixed QR is shown (overlay visible). */
+/**
+ * Chrome body pad — mirrors Tailwind px-* on .tv-player-chrome__main so the
+ * title reserve can subtract it against the fixed QR's page-gutter left.
+ */
+[data-tv-route] .tv-player-chrome__main {
+    --tv-chrome-pad-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+    [data-tv-route] .tv-player-chrome__main {
+        --tv-chrome-pad-inline: 1.5rem;
+    }
+}
+
+@media (min-width: 768px) {
+    [data-tv-route] .tv-player-chrome__main {
+        --tv-chrome-pad-inline: 3rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    [data-tv-route] .tv-player-chrome__main {
+        --tv-chrome-pad-inline: 4rem;
+    }
+}
+
+/**
+ * Title row — clear the fixed QR. QR is at page-gutter; top bar sits inside
+ * chrome pad, so reserve = gutter + scaled footprint + clearance − chrome pad.
+ * Plain calc (no max()) for Chrome 76; values stay non-negative at TV sizes.
+ */
 [data-tv-route] .tv-player-top-bar--qr-visible {
-    padding-left: var(--tv-fixed-qr-reserve);
+    padding-left: calc(
+        var(--vkara-page-gutter-inline-start) + var(--tv-fixed-qr-reserve) -
+            var(--tv-chrome-pad-inline, 1rem)
+    );
 }
 
 [data-tv-route] .tv-player-top-bar__channels {
@@ -366,15 +420,19 @@
 
 [data-tv-route] .tv-queue-shelf__clip {
     overflow: hidden;
+    /* Room for focus outline inside overflow:hidden (border-box). */
+    padding: var(--tv-queue-focus-pad);
     /* Instant peek/expand — animating max-height thrashs layout over video on TV. */
 }
 
 [data-tv-route] .tv-queue-shelf--peek .tv-queue-shelf__clip {
-    max-height: calc(var(--tv-queue-peek-thumb) + 2.75rem);
+    max-height: calc(
+        var(--tv-queue-peek-thumb) + 2.75rem + (2 * var(--tv-queue-focus-pad))
+    );
 }
 
 [data-tv-route] .tv-queue-shelf--expanded .tv-queue-shelf__clip {
-    max-height: var(--tv-queue-expanded-height);
+    max-height: calc(var(--tv-queue-expanded-height) + (2 * var(--tv-queue-focus-pad)));
 }
 
 [data-tv-route] .tv-queue-panel--embedded {
@@ -386,6 +444,8 @@
 [data-tv-route] .tv-queue-track {
     scroll-behavior: auto;
     scroll-padding-inline: clamp(1.5rem, 4vw, 4rem);
+    /* Horizontal only — vertical ring room comes from .tv-queue-shelf__clip pad. */
+    padding-inline: var(--tv-queue-focus-pad);
     -webkit-overflow-scrolling: touch;
 }
 
@@ -923,7 +983,7 @@
         --tv-qr-idle-box-size: clamp(6rem, 15vw, 10rem);
         --tv-qr-idle-box-size-lg: clamp(7.5rem, 18vw, 12rem);
         --tv-qr-idle-box-size-compact: clamp(4.5rem, 12vw, 7.5rem);
-        --tv-fixed-qr-reserve: calc(var(--tv-qr-corner-size-expanded) + 0.875rem);
+        --tv-fixed-qr-clearance: 1rem;
         --tv-queue-expanded-height: clamp(10rem, 28vh, 18rem);
         --tv-settings-row-min: clamp(2.5rem, 6vh, 3.5rem);
         --tv-settings-label: clamp(0.875rem, 1.8vh, 1.125rem);
