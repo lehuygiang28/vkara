@@ -8,6 +8,7 @@ COPY bun.lock package.json turbo.json eslint.config.mjs ./
 COPY apps/api/package.json ./apps/api/package.json
 COPY apps/web/package.json ./apps/web/package.json
 COPY apps/tizen/package.json ./apps/tizen/package.json
+COPY apps/android-tv/package.json ./apps/android-tv/package.json
 COPY packages/env/package.json ./packages/env/package.json
 COPY packages/redis/package.json ./packages/redis/package.json
 COPY packages/cache-redis/package.json ./packages/cache-redis/package.json
