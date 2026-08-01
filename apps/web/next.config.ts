@@ -6,6 +6,15 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
     enabled: process.env.ANALYZE === 'true',
 });
 
+/** Extra hostnames allowed to hit the Next dev server (tunnel / LAN). Comma-separated. */
+function allowedDevOriginsFromEnv(): string[] {
+    const fromEnv = (process.env.ALLOWED_DEV_ORIGINS ?? '')
+        .split(',')
+        .map((host) => host.trim())
+        .filter(Boolean);
+    return fromEnv.length > 0 ? fromEnv : ['vkara-local.giang.io.vn'];
+}
+
 const nextConfig: NextConfig = {
     transpilePackages: [
         '@vkara/env',
@@ -21,6 +30,8 @@ const nextConfig: NextConfig = {
         NEXT_PUBLIC_VERCEL_ENV: process.env.VERCEL_ENV ?? '',
         NEXT_PUBLIC_VERCEL_URL: process.env.VERCEL_URL ?? '',
     },
+    // Dev-only: tunnel hostname used when browsing via vkara-local.* instead of localhost.
+    allowedDevOrigins: allowedDevOriginsFromEnv(),
     output: 'standalone',
     // Trace deps from monorepo root — avoids bloated standalone node_modules.
     outputFileTracingRoot: path.join(__dirname, '../..'),

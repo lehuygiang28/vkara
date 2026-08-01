@@ -223,6 +223,10 @@
  * chrome pad, so reserve = gutter + scaled footprint + clearance − chrome pad.
  * Plain calc (no max()) for Chrome 76; values stay non-negative at TV sizes.
  */
+[data-tv-route] .tv-player-top-bar {
+    transition: padding 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
 [data-tv-route] .tv-player-top-bar--qr-visible {
     padding-left: calc(
         var(--vkara-page-gutter-inline-start) + var(--tv-fixed-qr-reserve) -
