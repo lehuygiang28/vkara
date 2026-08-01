@@ -75,48 +75,52 @@ function TvPlayerChromeInner({
                     aria-hidden
                 />
 
-                {!settingsOpen ? (
-                    <FocusContext.Provider value={focusKey}>
-                        <div ref={ref} className="relative flex h-full flex-col">
-                            <div className="tv-player-chrome__main flex min-h-0 flex-1 flex-col justify-between px-4 pb-3 pt-5 sm:px-6 sm:pt-6 md:px-12 md:pt-10 lg:px-16">
-                                {showControlsLayer ? <TvPlayerTopBar /> : null}
+                {/* Keep chrome (and progress anchor) mounted across settings — hide only. */}
+                <FocusContext.Provider value={focusKey}>
+                    <div
+                        ref={ref}
+                        className={cn('relative flex h-full flex-col', settingsOpen && 'hidden')}
+                        aria-hidden={settingsOpen || undefined}
+                    >
+                        <div className="tv-player-chrome__main flex min-h-0 flex-1 flex-col justify-between px-4 pb-3 pt-5 sm:px-6 sm:pt-6 md:px-12 md:pt-10 lg:px-16">
+                            {showControlsLayer ? <TvPlayerTopBar /> : null}
 
-                                <div className="w-full space-y-7 pb-2 md:space-y-8">
-                                    {showControlsLayer ? (
-                                        <TvPlaybackProgress enabled />
-                                    ) : null}
-                                    <TvTransportControls
-                                        visible={showControlsLayer}
-                                        settingsOpen={settingsOpen}
-                                        onRevealAction={onRevealAction}
-                                        onQueueFocusAction={onQueueFocusAction}
-                                        onOpenSettingsAction={onOpenSettingsAction}
+                            <div className="w-full space-y-7 pb-2 md:space-y-8">
+                                <TvPlaybackProgress
+                                    enabled={showControlsLayer}
+                                    className={showControlsLayer ? undefined : 'hidden'}
+                                />
+                                <TvTransportControls
+                                    visible={showControlsLayer}
+                                    settingsOpen={settingsOpen}
+                                    onRevealAction={onRevealAction}
+                                    onQueueFocusAction={onQueueFocusAction}
+                                    onOpenSettingsAction={onOpenSettingsAction}
+                                />
+                            </div>
+                        </div>
+
+                        {showQueueShelf ? (
+                            <div
+                                className={cn(
+                                    'tv-queue-shelf shrink-0',
+                                    queueExpanded
+                                        ? 'tv-queue-shelf--expanded'
+                                        : 'tv-queue-shelf--peek',
+                                )}
+                            >
+                                <div className="tv-queue-shelf__clip">
+                                    <TvQueuePanel
+                                        embedded
+                                        expanded={queueExpanded}
+                                        focusEnabled={showControlsLayer && queueExpanded}
+                                        onLeaveQueueAction={onQueueCollapseAction}
                                     />
                                 </div>
                             </div>
-
-                            {showQueueShelf ? (
-                                <div
-                                    className={cn(
-                                        'tv-queue-shelf shrink-0',
-                                        queueExpanded
-                                            ? 'tv-queue-shelf--expanded'
-                                            : 'tv-queue-shelf--peek',
-                                    )}
-                                >
-                                    <div className="tv-queue-shelf__clip">
-                                        <TvQueuePanel
-                                            embedded
-                                            expanded={queueExpanded}
-                                            focusEnabled={showControlsLayer && queueExpanded}
-                                            onLeaveQueueAction={onQueueCollapseAction}
-                                        />
-                                    </div>
-                                </div>
-                            ) : null}
-                        </div>
-                    </FocusContext.Provider>
-                ) : null}
+                        ) : null}
+                    </div>
+                </FocusContext.Provider>
             </div>
 
             {settingsOpen ? <TvSettingsPanel onCloseAction={onCloseSettingsAction} /> : null}

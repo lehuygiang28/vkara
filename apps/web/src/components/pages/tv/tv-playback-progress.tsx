@@ -46,8 +46,8 @@ export function TvPlaybackProgress({ className, enabled = true }: TvPlaybackProg
                 <div
                     className="absolute top-1/2 h-5 w-5 rounded-full border-[3px] border-[#3ea6ff] bg-white md:h-6 md:w-6"
                     style={{
-                        left: 0,
-                        transform: `translate(calc(${progress * 100}% - 10px), -50%)`,
+                        left: `${progress * 100}%`,
+                        transform: 'translate(-50%, -50%)',
                     }}
                     aria-hidden
                 />
