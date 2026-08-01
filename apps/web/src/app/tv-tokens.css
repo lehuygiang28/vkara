@@ -1,4 +1,12 @@
-/** TV route design tokens — 10-foot UI, YouTube TV accent. */
+/**
+ * TV route design tokens — 10-foot UI, YouTube TV accent.
+ *
+ * Density: root rem scale from `tv-root-scale.css` (TV layout only).
+ * - Reference ceiling: 16px root @ 1920×1080 (clamp maxima match former large-TV sizes).
+ * - Floor: ~12px root on short Android TV CSS (~960×540); hit targets stay rem-floored.
+ * - Touched `clamp`/`min`/`max`: static fallback first, then progressive math (Chrome 76).
+ * - No root transform/zoom; no width-only rem freeze for transport/queue.
+ */
 [data-tv-route] {
     --tv-accent: #3ea6ff;
     --tv-surface-idle: rgb(255 255 255 / 0.25);
@@ -10,31 +18,54 @@
     --tv-queue-idle: rgb(255 255 255 / 0.15);
     --tv-queue-hover: rgb(255 255 255 / 0.25);
     --tv-queue-focus: rgb(255 255 255 / 0.9);
-    /* Transport — plate + stroke icons (~35% of plate) */
-    --tv-transport-secondary: clamp(2rem, 5vh, 3rem);
-    --tv-transport-primary: clamp(2.25rem, 6vh, 3.5rem);
-    --tv-transport-icon-secondary: clamp(0.8125rem, 2vh, 1.25rem);
-    --tv-transport-icon-primary: clamp(1rem, 2.5vh, 1.5rem);
-    --tv-queue-peek-thumb: clamp(3rem, 8vh, 4.75rem);
-    --tv-safe-bottom: clamp(0.75rem, 2.5vh, 1.5rem);
+    /* Transport — plate + stroke icons (~35% of plate). Ceilings = former ≥768 freeze. */
+    --tv-transport-secondary: 2.5rem;
+    --tv-transport-secondary: clamp(2rem, 5vh, 3.25rem);
+    --tv-transport-primary: 2.75rem;
+    --tv-transport-primary: clamp(2.25rem, 6vh, 3.75rem);
+    --tv-transport-icon-secondary: 1rem;
+    --tv-transport-icon-secondary: clamp(0.8125rem, 2vh, 1.375rem);
+    --tv-transport-icon-primary: 1.25rem;
+    --tv-transport-icon-primary: clamp(1rem, 2.5vh, 1.625rem);
+    --tv-queue-peek-thumb: 3.75rem;
+    --tv-queue-peek-thumb: clamp(3rem, 8vh, 5.25rem);
+    --tv-safe-bottom: 1.25rem;
+    --tv-safe-bottom: clamp(0.75rem, 3vh, 2rem);
+    /* Queue card width — continuous TV scale (replaces sm/md/lg/xl ladder). */
+    --tv-queue-card-width: 17rem;
+    --tv-queue-card-width: clamp(13rem, 28vw, 25rem);
+    /* Player chrome pad / stack — off phone breakpoints. */
+    --tv-chrome-pad-inline: 1.5rem;
+    --tv-chrome-pad-inline: clamp(1rem, 3.5vw, 4rem);
+    --tv-chrome-pad-block-start: 1.5rem;
+    --tv-chrome-pad-block-start: clamp(1.25rem, 2.8vh, 2.5rem);
+    --tv-chrome-stack-gap: 1.75rem;
+    --tv-chrome-stack-gap: clamp(1.5rem, 2.5vh, 2rem);
     /* Queue focus ring — keep in sync with .tv-queue-card[data-focused] outline. */
     --tv-queue-focus-outline: 3px;
     --tv-queue-focus-outline-offset: 2px;
     --tv-queue-focus-outset: calc(
         var(--tv-queue-focus-outline) + var(--tv-queue-focus-outline-offset)
     );
-    /* ≥ outset + TV subpixel slack; used as inset inside overflow clips. */
-    --tv-queue-focus-pad: 8px;
+    /* ≥ outset (3+2) + TV subpixel/DPR slack; inset on .tv-queue-track scrollport. */
+    --tv-queue-focus-pad: 12px;
     /* Idle QR zone box sizes (TvPlayerQrZone) — not the fixed player corner QR. */
+    --tv-qr-corner-size: 4.5rem;
     --tv-qr-corner-size: clamp(3.75rem, 6vh, 5.5rem);
+    --tv-qr-corner-size-expanded: 6.5rem;
     --tv-qr-corner-size-expanded: clamp(5.5rem, 9vh, 8rem);
+    --tv-qr-idle-box-size: 10rem;
     --tv-qr-idle-box-size: clamp(8rem, 20vw, 15rem);
+    --tv-qr-idle-box-size-lg: 12rem;
     --tv-qr-idle-box-size-lg: clamp(10rem, 24vw, 15rem);
+    --tv-qr-idle-box-size-compact: 7rem;
     --tv-qr-idle-box-size-compact: clamp(6rem, 15vw, 9.5rem);
-    /* Fixed corner QR — canvas stays 72px (QR_SIZE in tv-player-fixed-qr.tsx);
-       expand via transform only. Reserve = real scaled footprint + clearance. */
+    /* Fixed corner QR — CSS box == bitmap total (module size + 2×quietZone = 72).
+       Never rem/clamp this; expand via transform only.
+       --tv-fixed-qr-radius must stay ≤ quietZone (8) in tv-player-fixed-qr.tsx. */
     --tv-fixed-qr-canvas: 72px;
-    --tv-fixed-qr-button-pad: 0.35rem;
+    --tv-fixed-qr-radius: 8px;
+    --tv-fixed-qr-button-pad: 6px;
     --tv-fixed-qr-button-border: 1px;
     --tv-fixed-qr-scale-expanded: 1.35;
     --tv-fixed-qr-clearance: 1.25rem;
@@ -49,14 +80,39 @@
     --tv-fixed-qr-reserve: calc(
         var(--tv-fixed-qr-size-expanded) + var(--tv-fixed-qr-clearance)
     );
-    --tv-queue-expanded-height: clamp(16rem, 40vh, 24rem);
+    /* Expanded shelf — fluid; short-height MQ further caps (see below). */
+    --tv-queue-expanded-height: 20rem;
+    --tv-queue-expanded-height: clamp(16rem, 40vh, 28rem);
     --tv-motion-shelf: 420ms cubic-bezier(0.22, 1, 0.36, 1);
     --tv-motion-scroll: 520ms cubic-bezier(0.22, 1, 0.36, 1);
     --tv-motion-meta: 360ms cubic-bezier(0.22, 1, 0.36, 1);
     /* Settings — 10-foot hit targets / labels (couch distance). */
+    --tv-settings-row-min: 5rem;
     --tv-settings-row-min: clamp(4.5rem, 9vh, 6.5rem);
-    --tv-settings-label: clamp(1.25rem, 2.5vh, 1.625rem);
-    --tv-settings-label-md: clamp(1.375rem, 2.8vh, 1.875rem);
+    --tv-settings-label: 1.375rem;
+    --tv-settings-label: clamp(1.25rem, 2.6vh, 1.875rem);
+    --tv-settings-rail-max: 32rem;
+    --tv-settings-rail-max: clamp(28rem, 40vw, 42rem);
+    --tv-settings-rail-pad-inline: 1.5rem;
+    --tv-settings-rail-pad-inline: clamp(1rem, 2vw, 1.75rem);
+    --tv-settings-rail-pad-block: 1.75rem;
+    --tv-settings-rail-pad-block: clamp(1.25rem, 2.5vh, 2.25rem);
+    --tv-settings-section-gap: 2rem;
+    --tv-settings-section-gap: clamp(1.5rem, 3vh, 2rem);
+    --tv-settings-icon-plate: 3rem;
+    --tv-settings-icon-plate: clamp(2.5rem, 5vh, 3rem);
+    /* Playback progress — single TV scale (no md: density). */
+    --tv-progress-label: 1.125rem;
+    --tv-progress-track: 0.5rem;
+    --tv-progress-track: clamp(0.5rem, 0.6vh, 0.625rem);
+    --tv-progress-thumb: 1.25rem;
+    --tv-progress-thumb: clamp(1.25rem, 2.2vh, 1.5rem);
+    /* Flex clusters use sibling margins (Chrome 76 has no flex gap). */
+    --tv-queue-track-gap: 1.25rem;
+    --tv-queue-track-gap: clamp(0.75rem, 2vw, 1.75rem);
+    --tv-transport-gap: 1rem;
+    --tv-transport-gap: clamp(0.75rem, 1.5vw, 1.5rem);
+    --tv-settings-row-gap: 1rem;
 }
 
 [data-tv-route] .tv-queue-card[data-focused='true'] {
@@ -142,18 +198,6 @@
     }
 }
 
-@media (min-width: 768px) {
-    [data-tv-route] {
-        --tv-transport-secondary: 3.25rem;
-        --tv-transport-primary: 3.75rem;
-        --tv-transport-icon-secondary: 1.375rem;
-        --tv-transport-icon-primary: 1.625rem;
-        --tv-queue-peek-thumb: 5.25rem;
-        --tv-safe-bottom: 2rem;
-        --tv-queue-expanded-height: 28rem;
-    }
-}
-
 /** Full-panel fill — longhands for Chrome 76 (avoid Tailwind inset shorthand). */
 [data-tv-route] .tv-fill {
     position: absolute;
@@ -177,12 +221,15 @@
     background: rgb(0 0 0 / 0.28);
 }
 
-/** Fixed corner QR — static canvas size; expand via transform only (no filter / resize). */
+/** Fixed corner QR — static canvas bitmap; expand via transform only (no filter / resize). */
 [data-tv-route] .tv-player-fixed-qr {
     position: fixed;
     z-index: 40;
-    top: max(calc(env(safe-area-inset-top, 0px) + 0.75rem), 0.75rem);
-    left: var(--vkara-page-gutter-inline-start);
+    /* px inset so rem root-scale cannot pull the quiet zone into overscan. */
+    top: 12px;
+    top: max(calc(env(safe-area-inset-top, 0px) + 12px), 12px);
+    left: 12px;
+    left: max(var(--vkara-page-gutter-inline-start), 12px);
     transform-origin: top left;
     transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -198,34 +245,64 @@
     border: var(--tv-fixed-qr-button-border) solid rgb(255 255 255 / 0.12);
 }
 
+[data-tv-route] .tv-player-fixed-qr__mark {
+    /* Radius ≤ quiet zone — only white margin is clipped, not finder modules. */
+    width: var(--tv-fixed-qr-canvas);
+    height: var(--tv-fixed-qr-canvas);
+    border-radius: var(--tv-fixed-qr-radius);
+    overflow: hidden;
+}
+
+[data-tv-route] .tv-player-fixed-qr__mark canvas,
+[data-tv-route] .tv-player-fixed-qr__mark img {
+    display: block;
+    /* Match library inline canvas size (== QR_SIZE). Never stretch via %. */
+    width: var(--tv-fixed-qr-canvas);
+    height: var(--tv-fixed-qr-canvas);
+    max-width: none;
+}
+
 [data-tv-route] .tv-player-fixed-qr__digits {
+    width: var(--tv-fixed-qr-canvas);
     font-size: 1.25rem;
 }
 
 /**
- * Chrome body pad — mirrors Tailwind px-* on .tv-player-chrome__main so the
- * title reserve can subtract it against the fixed QR's page-gutter left.
+ * Chrome body pad — tokenized (not sm/md/lg). Title reserve subtracts
+ * --tv-chrome-pad-inline against the fixed QR's page-gutter left.
  */
 [data-tv-route] .tv-player-chrome__main {
-    --tv-chrome-pad-inline: 1rem;
+    padding-left: var(--tv-chrome-pad-inline);
+    padding-right: var(--tv-chrome-pad-inline);
+    padding-top: var(--tv-chrome-pad-block-start);
+    padding-bottom: 0.75rem;
 }
 
-@media (min-width: 640px) {
-    [data-tv-route] .tv-player-chrome__main {
-        --tv-chrome-pad-inline: 1.5rem;
-    }
+[data-tv-route] .tv-player-chrome__stack {
+    width: 100%;
+    padding-bottom: 0.5rem;
 }
 
-@media (min-width: 768px) {
-    [data-tv-route] .tv-player-chrome__main {
-        --tv-chrome-pad-inline: 3rem;
-    }
+[data-tv-route] .tv-player-chrome__stack > * + * {
+    margin-top: var(--tv-chrome-stack-gap);
 }
 
-@media (min-width: 1024px) {
-    [data-tv-route] .tv-player-chrome__main {
-        --tv-chrome-pad-inline: 4rem;
-    }
+[data-tv-route] .tv-playback-progress__labels {
+    margin-bottom: 0.75rem;
+    font-size: var(--tv-progress-label);
+}
+
+[data-tv-route] .tv-playback-progress__track {
+    height: var(--tv-progress-track);
+}
+
+[data-tv-route] .tv-playback-progress__thumb {
+    width: var(--tv-progress-thumb);
+    height: var(--tv-progress-thumb);
+}
+
+[data-tv-route] .tv-queue-card__frame {
+    width: var(--tv-queue-card-width);
 }
 
 /**
@@ -234,6 +311,8 @@
  * Plain calc (no max()) for Chrome 76; values stay non-negative at TV sizes.
  */
 [data-tv-route] .tv-player-top-bar {
+    padding-right: 1.5rem;
+    padding-right: clamp(1rem, 2vw, 2rem);
     transition: padding 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -246,6 +325,7 @@
 
 /* Now-playing title — vh-based for 10-foot; avoid Tailwind text-2xl ceilings. */
 [data-tv-route] .tv-player-top-bar__title {
+    font-size: 2.75rem;
     font-size: clamp(1.75rem, 4vh, 2.75rem);
     font-weight: 600;
     line-height: 1.2;
@@ -255,6 +335,7 @@
 
 [data-tv-route] .tv-player-top-bar__channels,
 [data-tv-route] .tv-player-top-bar__meta-extra {
+    font-size: 1.5rem;
     font-size: clamp(1.125rem, 2.4vh, 1.5rem);
     line-height: 1.35;
     font-weight: 500;
@@ -283,6 +364,8 @@
 
 /** Settings rail — opaque gradient (no backdrop-filter over video on Tizen). */
 [data-tv-route] .tv-settings-rail {
+    width: 100%;
+    max-width: var(--tv-settings-rail-max);
     background: linear-gradient(
         270deg,
         rgb(12 12 14 / 0.98) 0%,
@@ -294,6 +377,9 @@
 /** Pinned settings header — always visible above scroll body. */
 [data-tv-route] .tv-settings-header {
     flex-shrink: 0;
+    padding-left: var(--tv-settings-rail-pad-inline);
+    padding-right: var(--tv-settings-rail-pad-inline);
+    padding-top: var(--tv-settings-rail-pad-block);
     padding-bottom: 1rem;
     border-bottom: 1px solid rgb(255 255 255 / 0.08);
 }
@@ -302,11 +388,34 @@
 [data-tv-route] .tv-settings-scroll {
     min-height: 0;
     padding-top: 1.25rem;
+    padding-left: var(--tv-settings-rail-pad-inline);
+    padding-right: var(--tv-settings-rail-pad-inline);
     padding-bottom: calc(var(--tv-safe-bottom) + 2.5rem);
     scroll-padding-block-start: 1.5rem;
     scroll-padding-block-end: calc(var(--tv-safe-bottom) + 3rem);
     scrollbar-width: none;
     -ms-overflow-style: none;
+}
+
+[data-tv-route] .tv-settings-sections {
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+}
+
+[data-tv-route] .tv-settings-sections > * + * {
+    margin-top: var(--tv-settings-section-gap);
+}
+
+[data-tv-route] .tv-settings-icon-plate {
+    display: flex;
+    width: var(--tv-settings-icon-plate);
+    height: var(--tv-settings-icon-plate);
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    transition: background-color 200ms ease, color 200ms ease;
 }
 
 [data-tv-route] .tv-settings-scroll::-webkit-scrollbar {
@@ -321,6 +430,7 @@
 }
 
 [data-tv-route] .tv-settings-dropdown-value {
+    font-size: 1.5rem;
     font-size: clamp(1.25rem, 2.2vh, 1.5rem);
     font-weight: 600;
     color: rgb(228 228 231);
@@ -353,6 +463,7 @@
 }
 
 [data-tv-route] .tv-settings-panel-title {
+    font-size: 2.75rem;
     font-size: clamp(2rem, 4vh, 2.75rem);
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -363,6 +474,7 @@
 [data-tv-route] .tv-settings-section-label {
     margin-bottom: 0.75rem;
     padding-inline: 0.25rem;
+    font-size: 1.375rem;
     font-size: clamp(1.125rem, 2.2vh, 1.375rem);
     font-weight: 600;
     letter-spacing: 0.02em;
@@ -380,6 +492,7 @@
 
 [data-tv-route] .tv-settings-room-id__digits {
     font-family: ui-monospace, monospace;
+    font-size: 3.75rem;
     font-size: clamp(3rem, 6vh, 3.75rem);
     font-weight: 700;
     letter-spacing: 0.32em;
@@ -420,14 +533,9 @@
 }
 
 [data-tv-route] .tv-settings-desc {
+    font-size: 1.25rem;
     font-size: clamp(1.0625rem, 2vh, 1.25rem);
     color: rgb(212 212 216);
-}
-
-@media (min-width: 768px) {
-    [data-tv-route] .tv-settings-label {
-        font-size: var(--tv-settings-label-md);
-    }
 }
 
 /** Queue shelf — no own background; scrim above handles fade. */
@@ -438,22 +546,41 @@
 
 [data-tv-route] .tv-queue-shelf__clip {
     overflow: hidden;
-    /* Room for focus outline inside overflow:hidden (border-box). */
-    padding: var(--tv-queue-focus-pad);
-    /* Instant peek/expand — animating max-height thrashs layout over video on TV. */
+    /* Instant peek/expand — animating max-height thrashs layout over video on TV.
+       Focus-ring inset lives on .tv-queue-track: overflow-x creates a scrollport
+       that also clips on the block axis, so pad on this clip never reached the ring. */
 }
 
 [data-tv-route] .tv-queue-shelf--peek .tv-queue-shelf__clip {
+    /* thumb + panel pads (≤1.25+0.75) + card p-3 (1.5) + border-4×2 + track pad + 2px slack */
     max-height: calc(
-        var(--tv-queue-peek-thumb) + 2.75rem + (2 * var(--tv-queue-focus-pad))
+        var(--tv-queue-peek-thumb) + 3.5rem + 10px + (2 * var(--tv-queue-focus-pad))
     );
 }
 
 [data-tv-route] .tv-queue-shelf--expanded .tv-queue-shelf__clip {
-    max-height: calc(var(--tv-queue-expanded-height) + (2 * var(--tv-queue-focus-pad)));
+    /* Content budget + track focus-pad (both axes) + 2px DPR slack */
+    max-height: calc(
+        var(--tv-queue-expanded-height) + (2 * var(--tv-queue-focus-pad)) + 2px
+    );
+}
+
+[data-tv-route] .tv-queue-panel {
+    padding-left: var(--tv-chrome-pad-inline);
+    padding-right: var(--tv-chrome-pad-inline);
+    padding-top: 0.75rem;
+    padding-top: clamp(0.75rem, 1.5vh, 1.25rem);
+}
+
+[data-tv-route] .tv-queue-panel--standalone {
+    padding-bottom: 1.5rem;
+    padding-bottom: clamp(1.25rem, 2.5vh, 2rem);
+    padding-top: 1rem;
+    padding-top: clamp(1rem, 2vh, 1.5rem);
 }
 
 [data-tv-route] .tv-queue-panel--embedded {
+    padding-bottom: 0.5rem;
     background: transparent;
     border-top: none;
 }
@@ -461,10 +588,25 @@
 /** Horizontal queue track — instant D-pad scroll (no smooth competing with focus). */
 [data-tv-route] .tv-queue-track {
     scroll-behavior: auto;
+    scroll-padding-inline: 4rem;
     scroll-padding-inline: clamp(1.5rem, 4vw, 4rem);
-    /* Horizontal only — vertical ring room comes from .tv-queue-shelf__clip pad. */
-    padding-inline: var(--tv-queue-focus-pad);
+    /* Block + inline: overflow-x makes overflow-y compute to auto, so the ring
+       needs inset on every side inside this scrollport (≥ outline + offset). */
+    padding: var(--tv-queue-focus-pad);
     -webkit-overflow-scrolling: touch;
+}
+
+/* Margin spacing — flex `gap` is Chrome 84+; sibling margins work on Chrome 76. */
+[data-tv-route] .tv-queue-track > * + * {
+    margin-left: var(--tv-queue-track-gap);
+}
+
+[data-tv-route] .tv-transport-cluster > * + * {
+    margin-left: var(--tv-transport-gap);
+}
+
+[data-tv-route] .tv-settings-row > * + * {
+    margin-left: var(--tv-settings-row-gap);
 }
 
 /** Peek / expanded thumb sizes — discrete, not layout-animated. */
@@ -529,12 +671,14 @@
     height: 100%;
     min-height: 0;
     overflow: hidden;
+    padding: 1.5rem 2rem;
     padding: clamp(0.75rem, 2vh, 1.5rem) clamp(1rem, 3vw, 2rem);
 }
 
 [data-tv-route] .tv-lobby-grid {
     display: grid;
     width: 100%;
+    max-width: 40rem;
     max-width: min(40rem, 92vw);
     max-height: 100%;
     grid-template-columns: minmax(0, 1fr);
@@ -544,6 +688,7 @@
         'split'
         'join';
     align-content: center;
+    gap: 1.25rem;
     gap: clamp(0.75rem, 2vh, 1.25rem);
 }
 
@@ -567,9 +712,13 @@
 [data-tv-route] .tv-lobby-panel {
     display: flex;
     flex-direction: column;
-    gap: 0.875rem;
     border-radius: 1.125rem;
+    padding: 1.5rem;
     padding: clamp(1rem, 2.5vh, 1.5rem);
+}
+
+[data-tv-route] .tv-lobby-panel > * + * {
+    margin-top: 0.875rem;
 }
 
 [data-tv-route] .tv-lobby-panel--join {
@@ -579,14 +728,15 @@
 
 [data-tv-route] .tv-lobby-create-hero {
     display: flex;
+    min-height: 7.5rem;
     min-height: clamp(5.5rem, 12vh, 7.5rem);
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 0.75rem;
     border-radius: 1.125rem;
     border: 4px solid rgb(255 255 255 / 0.2);
     background: rgb(255 255 255 / 0.1);
+    padding: 1.75rem;
     padding: clamp(1.25rem, 3vh, 1.75rem);
     text-align: center;
     outline: none;
@@ -595,6 +745,10 @@
         border-color 200ms ease,
         box-shadow 200ms ease,
         color 200ms ease;
+}
+
+[data-tv-route] .tv-lobby-create-hero > * + * {
+    margin-top: 0.75rem;
 }
 
 [data-tv-route] .tv-lobby-create-hero:not([data-focused='true']) {
@@ -616,6 +770,7 @@
 }
 
 [data-tv-route] .tv-lobby-create-hero__label {
+    font-size: 2rem;
     font-size: clamp(1.5rem, 3.2vh, 2rem);
     font-weight: 700;
     line-height: 1.2;
@@ -623,6 +778,7 @@
 }
 
 [data-tv-route] .tv-lobby-panel__badge {
+    font-size: 1.0625rem;
     font-size: clamp(0.875rem, 1.8vh, 1.0625rem);
     font-weight: 700;
     letter-spacing: 0.12em;
@@ -637,8 +793,8 @@
 [data-tv-route] .tv-lobby-split {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
     color: rgb(113 113 122);
+    font-size: 0.9375rem;
     font-size: clamp(0.8125rem, 1.6vh, 0.9375rem);
     font-weight: 600;
     letter-spacing: 0.1em;
@@ -653,7 +809,16 @@
     background: rgb(255 255 255 / 0.1);
 }
 
+[data-tv-route] .tv-lobby-split::before {
+    margin-right: 0.75rem;
+}
+
+[data-tv-route] .tv-lobby-split::after {
+    margin-left: 0.75rem;
+}
+
 [data-tv-route] .tv-lobby-title {
+    font-size: 3.25rem;
     font-size: clamp(2.25rem, 5vh, 3.25rem);
     font-weight: 700;
     letter-spacing: -0.02em;
@@ -662,24 +827,34 @@
 }
 
 [data-tv-route] .tv-lobby-action {
+    min-height: 5rem;
     min-height: clamp(4rem, 8vh, 5rem);
 }
 
 [data-tv-route] .tv-lobby-join-block {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+}
+
+[data-tv-route] .tv-lobby-join-block > * + * {
+    margin-top: 0.5rem;
 }
 
 [data-tv-route] .tv-lobby-code {
     display: flex;
     justify-content: center;
-    gap: clamp(0.375rem, 1vw, 0.625rem);
+}
+
+[data-tv-route] .tv-lobby-code > * + * {
+    margin-left: 0.625rem;
+    margin-left: clamp(0.375rem, 1vw, 0.625rem);
 }
 
 [data-tv-route] .tv-lobby-code-digit {
     display: flex;
+    width: 4.75rem;
     width: clamp(3.5rem, 8vw, 4.75rem);
+    height: 5.5rem;
     height: clamp(4.25rem, 10vh, 5.5rem);
     align-items: center;
     justify-content: center;
@@ -701,6 +876,7 @@
 
 [data-tv-route] .tv-lobby-code-digit__value {
     font-family: ui-monospace, monospace;
+    font-size: 3rem;
     font-size: clamp(2.25rem, 5vh, 3rem);
     font-weight: 700;
     color: rgb(255 255 255);
@@ -725,10 +901,12 @@
 
 [data-tv-route] .tv-lobby-password__input {
     width: 100%;
+    height: 4.5rem;
     height: clamp(3.75rem, 8vh, 4.5rem);
     border: none;
     background: transparent;
     padding: 0 1.125rem;
+    font-size: 1.375rem;
     font-size: clamp(1.125rem, 2.4vh, 1.375rem);
     color: rgb(255 255 255);
     outline: none;
@@ -750,6 +928,7 @@
         grid-template-areas:
             'header header'
             'create join';
+        gap: 0.75rem 1.25rem;
         gap: clamp(0.5rem, 1.2vh, 0.75rem) clamp(0.75rem, 2vw, 1.25rem);
     }
 
@@ -758,6 +937,7 @@
     }
 
     [data-tv-route] .tv-lobby-create-hero {
+        min-height: 100%;
         min-height: clamp(4rem, 14vh, 100%);
         border-top-right-radius: 0;
         border-bottom-right-radius: 0;
@@ -804,14 +984,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    padding: 4.5rem 5rem;
     padding: clamp(2.5rem, 6vh, 4.5rem) clamp(2.5rem, 5vw, 5rem);
     box-sizing: border-box;
 }
 
 [data-tv-route] .tv-next-up-overlay__layout {
     display: grid;
+    width: 90vw;
     width: min(90vw, 108rem);
     max-width: 100%;
+    gap: 3rem;
     gap: clamp(1.75rem, 3vw, 3rem);
     align-items: center;
 }
@@ -819,6 +1002,7 @@
 @media (min-width: 768px) {
     [data-tv-route] .tv-next-up-overlay__layout {
         grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+        gap: 3.5rem;
         gap: clamp(2rem, 3.5vw, 3.5rem);
     }
 }
@@ -826,8 +1010,12 @@
 [data-tv-route] .tv-next-up-overlay__content {
     display: flex;
     flex-direction: column;
-    gap: clamp(1.25rem, 3vh, 2rem);
     min-width: 0;
+}
+
+[data-tv-route] .tv-next-up-overlay__content > * + * {
+    margin-top: 2rem;
+    margin-top: clamp(1.25rem, 3vh, 2rem);
 }
 
 [data-tv-route] .tv-next-up-overlay__meta {
@@ -845,6 +1033,7 @@
 
 [data-tv-route] .tv-next-up-overlay__eyebrow {
     margin: 0 0 0.5rem;
+    font-size: 2rem;
     font-size: clamp(1.5rem, 2.8vh, 2rem);
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -854,6 +1043,7 @@
 
 [data-tv-route] .tv-next-up-overlay__title {
     margin: 0 0 0.5rem;
+    font-size: 3.25rem;
     font-size: clamp(2rem, 4.8vh, 3.25rem);
     font-weight: 700;
     line-height: 1.22;
@@ -866,13 +1056,14 @@
 
 [data-tv-route] .tv-next-up-overlay__channels {
     margin: 0;
+    font-size: 1.625rem;
     font-size: clamp(1.25rem, 2.4vh, 1.625rem);
 }
 
 [data-tv-route] .tv-next-up-overlay__footer {
     display: flex;
     align-items: stretch;
-    gap: clamp(1.25rem, 2.5vw, 1.75rem);
+    padding: 1.5rem 1.75rem;
     padding: clamp(1rem, 2.5vh, 1.5rem) clamp(1.25rem, 2.5vw, 1.75rem);
     border: 1px solid rgb(255 255 255 / 0.1);
     border-radius: 1.5rem;
@@ -884,26 +1075,39 @@
     box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
 }
 
+[data-tv-route] .tv-next-up-overlay__footer > * + * {
+    margin-left: 1.75rem;
+    margin-left: clamp(1.25rem, 2.5vw, 1.75rem);
+}
+
 [data-tv-route] .tv-next-up-countdown {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    gap: 0.5rem;
     margin: 0;
+    padding-right: 1.5rem;
     padding-right: clamp(1rem, 2vw, 1.5rem);
     border-right: 1px solid rgb(255 255 255 / 0.1);
 }
 
+[data-tv-route] .tv-next-up-countdown > * + * {
+    margin-top: 0.5rem;
+}
+
 [data-tv-route] .tv-next-up-countdown--compact {
+    width: 9rem;
     width: clamp(7rem, 12vh, 9rem);
+    padding-right: 1rem;
     padding-right: clamp(0.75rem, 1.5vw, 1rem);
 }
 
 [data-tv-route] .tv-next-up-countdown__ring {
     position: relative;
+    width: 9.5rem;
     width: clamp(7.5rem, 13vh, 9.5rem);
+    height: 9.5rem;
     height: clamp(7.5rem, 13vh, 9.5rem);
 }
 
@@ -931,6 +1135,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 3.5rem;
     font-size: clamp(2.5rem, 5vh, 3.5rem);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
@@ -941,6 +1146,7 @@
 
 [data-tv-route] .tv-next-up-countdown__label {
     margin: 0;
+    font-size: 1.25rem;
     font-size: clamp(1rem, 2vh, 1.25rem);
     font-weight: 600;
     line-height: 1.25;
@@ -949,11 +1155,14 @@
 }
 
 [data-tv-route] .tv-next-up-countdown--compact .tv-next-up-countdown__ring {
+    width: 8.5rem;
     width: clamp(6.5rem, 12vh, 8.5rem);
+    height: 8.5rem;
     height: clamp(6.5rem, 12vh, 8.5rem);
 }
 
 [data-tv-route] .tv-next-up-countdown--compact .tv-next-up-countdown__value {
+    font-size: 3rem;
     font-size: clamp(2.25rem, 4.5vh, 3rem);
 }
 
@@ -962,11 +1171,15 @@
     flex: 1;
     flex-direction: column;
     justify-content: center;
-    gap: 0.5rem;
     min-width: 0;
 }
 
+[data-tv-route] .tv-next-up-overlay__actions > * + * {
+    margin-top: 0.5rem;
+}
+
 [data-tv-route] .tv-next-up-action {
+    min-height: 6.5rem;
     min-height: clamp(4.5rem, 9vh, 6.5rem);
 }
 
@@ -988,6 +1201,7 @@
 [data-tv-route] .tv-next-up-action__hint {
     display: block;
     margin-top: 0.125rem;
+    font-size: 1.25rem;
     font-size: clamp(1rem, 1.8vh, 1.25rem);
     font-weight: 500;
     color: rgb(255 255 255 / 0.72);
@@ -1017,37 +1231,136 @@
 }
 
 /* ────────────────────────────────────────────────────────────
+   Living-room short height budget — width-independent.
+   Caps expanded queue / Next Up so chrome+shelf fit ~960×540 without
+   phone-style type crush (that stays dual-gated below).
+   ──────────────────────────────────────────────────────────── */
+@media (max-height: 720px) {
+    [data-tv-route] {
+        --tv-queue-expanded-height: 14rem;
+        --tv-queue-expanded-height: min(40vh, 18rem);
+        --tv-chrome-pad-block-start: 1rem;
+        --tv-chrome-pad-block-start: clamp(0.75rem, 2vh, 1.25rem);
+        --tv-chrome-stack-gap: 1.25rem;
+        --tv-chrome-stack-gap: clamp(1rem, 2vh, 1.5rem);
+        --tv-settings-section-gap: 1.25rem;
+        --tv-settings-section-gap: clamp(1rem, 2.2vh, 1.5rem);
+        --tv-settings-rail-pad-block: 1.25rem;
+        --tv-settings-rail-pad-block: clamp(1rem, 2vh, 1.5rem);
+    }
+
+    [data-tv-route] .tv-next-up-overlay__shell {
+        align-items: stretch;
+        overflow-x: hidden;
+        overflow-y: auto;
+        min-height: 0;
+        padding: 1.25rem 1.5rem;
+        padding: clamp(1rem, 3vh, 2rem) clamp(1.25rem, 3vw, 2.5rem);
+    }
+
+    [data-tv-route] .tv-next-up-overlay__layout {
+        gap: 1.25rem;
+        gap: clamp(1rem, 2.5vw, 1.75rem);
+    }
+
+    [data-tv-route] .tv-next-up-overlay__content > * + * {
+        margin-top: 1rem;
+        margin-top: clamp(0.75rem, 2vh, 1.25rem);
+    }
+
+    [data-tv-route] .tv-next-up-overlay__eyebrow {
+        margin-bottom: 0.35rem;
+        font-size: 1.25rem;
+        font-size: clamp(1.125rem, 2.2vh, 1.5rem);
+    }
+
+    [data-tv-route] .tv-next-up-overlay__title {
+        margin-bottom: 0.35rem;
+        font-size: 1.75rem;
+        font-size: clamp(1.5rem, 3.5vh, 2.25rem);
+        -webkit-line-clamp: 2;
+    }
+
+    [data-tv-route] .tv-next-up-overlay__channels {
+        font-size: 1.125rem;
+        font-size: clamp(1rem, 2vh, 1.25rem);
+    }
+
+    [data-tv-route] .tv-next-up-overlay__footer {
+        padding: 0.75rem 1rem;
+        padding: clamp(0.625rem, 1.8vh, 1rem) clamp(0.875rem, 2vw, 1.25rem);
+    }
+
+    [data-tv-route] .tv-next-up-overlay__footer > * + * {
+        margin-left: 1rem;
+        margin-left: clamp(0.75rem, 2vw, 1.25rem);
+    }
+
+    [data-tv-route] .tv-next-up-countdown__ring {
+        width: 5.5rem;
+        width: clamp(5rem, 10vh, 7rem);
+        height: 5.5rem;
+        height: clamp(5rem, 10vh, 7rem);
+    }
+
+    [data-tv-route] .tv-next-up-countdown__value {
+        font-size: 2rem;
+        font-size: clamp(1.75rem, 4vh, 2.5rem);
+    }
+
+    [data-tv-route] .tv-next-up-action {
+        min-height: 3.5rem;
+        min-height: clamp(3.25rem, 7vh, 4.5rem);
+    }
+}
+
+/* ────────────────────────────────────────────────────────────
    Compact phone / emulator path — short AND narrow.
    Living-room TVs at 2× DPR often report ~540–600 CSS px tall with ~960+
    CSS px wide; height-only gating was crushing 10-foot lobby/settings/chrome.
-   Next Up keeps its base viewport clamps (owned by FE) — never crush here.
+   Living-room short path uses the height-budget block above — not this crush.
    ──────────────────────────────────────────────────────────── */
 @media (max-height: 600px) and (max-width: 900px) {
     [data-tv-route] {
+        --tv-transport-secondary: 2rem;
         --tv-transport-secondary: clamp(1.75rem, 4vh, 2.5rem);
+        --tv-transport-primary: 2.25rem;
         --tv-transport-primary: clamp(2rem, 5vh, 3rem);
+        --tv-transport-icon-secondary: 0.8125rem;
         --tv-transport-icon-secondary: clamp(0.6875rem, 1.8vh, 1rem);
+        --tv-transport-icon-primary: 1rem;
         --tv-transport-icon-primary: clamp(0.8125rem, 2vh, 1.25rem);
+        --tv-queue-peek-thumb: 3rem;
         --tv-queue-peek-thumb: clamp(2.5rem, 6vh, 3.75rem);
+        --tv-safe-bottom: 0.75rem;
         --tv-safe-bottom: clamp(0.5rem, 1.5vh, 1rem);
+        --tv-qr-corner-size: 3rem;
         --tv-qr-corner-size: clamp(2.5rem, 5vh, 3.75rem);
+        --tv-qr-corner-size-expanded: 4.5rem;
         --tv-qr-corner-size-expanded: clamp(3.75rem, 7vh, 5.5rem);
+        --tv-qr-idle-box-size: 7.5rem;
         --tv-qr-idle-box-size: clamp(6rem, 15vw, 10rem);
+        --tv-qr-idle-box-size-lg: 9rem;
         --tv-qr-idle-box-size-lg: clamp(7.5rem, 18vw, 12rem);
+        --tv-qr-idle-box-size-compact: 5.5rem;
         --tv-qr-idle-box-size-compact: clamp(4.5rem, 12vw, 7.5rem);
         --tv-fixed-qr-clearance: 1rem;
+        --tv-queue-expanded-height: 12rem;
         --tv-queue-expanded-height: clamp(10rem, 28vh, 18rem);
         /* Floors stay readable if a short+narrow TV still matches. */
+        --tv-settings-row-min: 4rem;
         --tv-settings-row-min: clamp(3.5rem, 8vh, 5rem);
+        --tv-settings-label: 1.25rem;
         --tv-settings-label: clamp(1.125rem, 2.2vh, 1.375rem);
-        --tv-settings-label-md: clamp(1.25rem, 2.4vh, 1.5rem);
     }
 
     [data-tv-route] .tv-settings-panel-title {
+        font-size: 1.875rem;
         font-size: clamp(1.5rem, 3.2vh, 1.875rem);
     }
 
     [data-tv-route] .tv-settings-room-id__digits {
+        font-size: 2.75rem;
         font-size: clamp(2.25rem, 5vh, 2.75rem);
         letter-spacing: 0.24em;
     }
@@ -1074,51 +1387,61 @@
     }
 
     [data-tv-route] .tv-lobby-title {
+        font-size: 2rem;
         font-size: clamp(1.5rem, 3.5vh, 2rem);
     }
 
     [data-tv-route] .tv-lobby-create-hero__label {
+        font-size: 1.375rem;
         font-size: clamp(1.125rem, 2.6vh, 1.375rem);
     }
 
     [data-tv-route] .tv-lobby-code-digit {
+        width: 3.5rem;
         width: clamp(2.75rem, 6.5vw, 3.5rem);
+        height: 4rem;
         height: clamp(3.25rem, 7.5vh, 4rem);
     }
 
     [data-tv-route] .tv-lobby-code-digit__value {
+        font-size: 2rem;
         font-size: clamp(1.5rem, 3.5vh, 2rem);
     }
 
     [data-tv-route] .tv-lobby-password__input {
+        height: 3.5rem;
         height: clamp(3rem, 6.5vh, 3.5rem);
+        font-size: 1.125rem;
         font-size: clamp(1rem, 2vh, 1.125rem);
     }
 
     [data-tv-route] .tv-lobby-panel {
-        gap: 0.5rem;
+        padding: 1rem;
         padding: clamp(0.75rem, 1.8vh, 1rem);
     }
 
+    [data-tv-route] .tv-lobby-panel > * + * {
+        margin-top: 0.5rem;
+    }
+
     [data-tv-route] .tv-lobby-grid {
+        gap: 0.75rem;
         gap: clamp(0.5rem, 1.2vh, 0.75rem);
     }
 
     [data-tv-route] .tv-player-top-bar__title {
+        font-size: 1.875rem;
         font-size: clamp(1.375rem, 3vh, 1.875rem);
     }
 
     [data-tv-route] .tv-player-top-bar__channels,
     [data-tv-route] .tv-player-top-bar__meta-extra {
+        font-size: 1.125rem;
         font-size: clamp(0.9375rem, 2vh, 1.125rem);
     }
 
     [data-tv-route] .tv-player-fixed-qr__digits {
         font-size: 0.875rem;
-    }
-
-    [data-tv-route] .tv-player-fixed-qr--expanded .tv-player-fixed-qr__digits {
-        font-size: 1.375rem;
     }
 }
 
@@ -1127,17 +1450,22 @@
    ──────────────────────────────────────────────────────────── */
 @media (max-width: 768px) {
     [data-tv-route] {
+        --tv-qr-idle-box-size: 10rem;
         --tv-qr-idle-box-size: clamp(6rem, 30vw, 10rem);
+        --tv-qr-idle-box-size-lg: 12rem;
         --tv-qr-idle-box-size-lg: clamp(7.5rem, 35vw, 12rem);
+        --tv-qr-idle-box-size-compact: 7.5rem;
         --tv-qr-idle-box-size-compact: clamp(4.5rem, 22vw, 7.5rem);
     }
 
     [data-tv-route] .tv-player-top-bar__title {
+        font-size: 1.625rem;
         font-size: clamp(1.25rem, 2.8vh, 1.625rem);
     }
 
     [data-tv-route] .tv-player-top-bar__channels,
     [data-tv-route] .tv-player-top-bar__meta-extra {
+        font-size: 1.0625rem;
         font-size: clamp(0.875rem, 1.8vh, 1.0625rem);
     }
 

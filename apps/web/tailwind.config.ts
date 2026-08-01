@@ -74,13 +74,8 @@ export default {
         ({ addVariant }) => {
             /** iPhone SE, landscape phones, Safari with visible browser chrome */
             addVariant('short-viewport', '@media (max-height: 680px)');
-            /** Small/old TV screens — height ≤ 600px */
-            addVariant('tv-small', '@media (max-height: 600px)');
-            /** Narrow TV screens — width ≤ 768px */
-            addVariant('tv-narrow', '@media (max-width: 768px)');
-            /** Wide landscape TV — width ≥ 960px AND height ≤ 720px.
-                Uses 720px (not 700px) so the 16:9 1280×720 case reliably
-                switches to 2-column on wide/short displays. */
+            /** Wide+short living-room layout reflow only (not density scale).
+                Density uses root rem + tv-tokens height budget / dual-gate crush. */
             addVariant('tv-wide-short', '@media (min-width: 960px) and (max-height: 720px)');
         },
     ],

@@ -34,17 +34,17 @@ export function TvPlaybackProgress({ className, enabled = true }: TvPlaybackProg
 
     return (
         <div className={cn('w-full', className)} role="group" aria-label="Playback progress">
-            <div className="mb-3 flex justify-between px-0.5 text-base font-semibold tabular-nums text-white md:text-lg">
+            <div className="tv-playback-progress__labels flex justify-between px-0.5 font-semibold tabular-nums text-white">
                 <span>{formatPlaybackSeconds(clampedTime)}</span>
                 <span className="text-white/85">{durationLabel}</span>
             </div>
-            <div className="relative h-2 w-full overflow-visible rounded-full bg-white/25 md:h-2.5">
+            <div className="tv-playback-progress__track relative w-full overflow-visible rounded-full bg-white/25">
                 <div
                     className="absolute left-0 top-0 h-full w-full origin-left rounded-full bg-white"
                     style={{ transform: `scaleX(${progress})` }}
                 />
                 <div
-                    className="absolute top-1/2 h-5 w-5 rounded-full border-[3px] border-[#3ea6ff] bg-white md:h-6 md:w-6"
+                    className="tv-playback-progress__thumb absolute top-1/2 rounded-full border-[3px] border-[#3ea6ff] bg-white"
                     style={{
                         left: `${progress * 100}%`,
                         transform: 'translate(-50%, -50%)',

@@ -34,7 +34,7 @@ export function TvPlayerTopBar({ className }: TvPlayerTopBarProps) {
     return (
         <header
             className={cn(
-                'tv-player-top-bar min-w-0 w-full pr-4 md:pr-8',
+                'tv-player-top-bar min-w-0 w-full',
                 reserveQrSpace && 'tv-player-top-bar--qr-visible',
                 className,
             )}

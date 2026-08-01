@@ -113,7 +113,7 @@ export function TvTransportControls({
             >
                 <div className="hidden min-w-0 md:block" aria-hidden />
 
-                <div className="col-start-2 flex items-center justify-center gap-3 sm:gap-4 md:gap-6">
+                <div className="tv-transport-cluster col-start-2 flex items-center justify-center">
                     <TransportControl
                         focusKey={TV_FOCUS_KEYS.ctrlReplay}
                         label={t('replay')}

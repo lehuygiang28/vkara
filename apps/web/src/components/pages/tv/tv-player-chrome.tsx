@@ -82,10 +82,10 @@ function TvPlayerChromeInner({
                         className={cn('relative flex h-full flex-col', settingsOpen && 'hidden')}
                         aria-hidden={settingsOpen || undefined}
                     >
-                        <div className="tv-player-chrome__main flex min-h-0 flex-1 flex-col justify-between px-4 pb-3 pt-5 sm:px-6 sm:pt-6 md:px-12 md:pt-10 lg:px-16">
+                        <div className="tv-player-chrome__main flex min-h-0 flex-1 flex-col justify-between">
                             {showControlsLayer ? <TvPlayerTopBar /> : null}
 
-                            <div className="w-full space-y-7 pb-2 md:space-y-8">
+                            <div className="tv-player-chrome__stack">
                                 <TvPlaybackProgress
                                     enabled={showControlsLayer}
                                     className={showControlsLayer ? undefined : 'hidden'}

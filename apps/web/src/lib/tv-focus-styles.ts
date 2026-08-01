@@ -3,7 +3,11 @@ import { cn } from '@/lib/utils';
 /** YouTube TV accent — primary focus color on dark overlays. */
 export const TV_ACCENT = '#3ea6ff';
 
-/** Double-ring focus — solid rings only (no soft glow; cheaper on TV GPU). */
+/**
+ * Double-ring focus — solid rings only (no soft glow; cheaper on TV GPU).
+ * Fixed px (not rem) so rings stay visible when root rem densifies; keep ≥2px
+ * outer/inner rings. Queue outline pad in tv-tokens must clear these widths.
+ */
 export const TV_FOCUS_HALO =
     'shadow-[0_0_0_3px_rgb(0_0_0/0.9),0_0_0_7px_#3ea6ff]';
 
@@ -66,7 +70,7 @@ export function tvQueueThumbFrame(
 /** Fixed typography — dark text on focused white plate. */
 export function tvQueueTitle(focused: boolean, className?: string): string {
     return cn(
-        'line-clamp-2 text-base font-bold leading-snug md:text-lg',
+        'line-clamp-2 text-base font-bold leading-snug',
         focused ? 'text-zinc-900' : 'text-zinc-100',
         className,
     );
@@ -74,7 +78,7 @@ export function tvQueueTitle(focused: boolean, className?: string): string {
 
 export function tvQueueMetaLine(focused: boolean, className?: string): string {
     return cn(
-        'line-clamp-1 text-sm md:text-base',
+        'line-clamp-1 text-sm',
         focused ? 'font-medium text-zinc-600' : 'text-zinc-400',
         className,
     );
@@ -99,7 +103,7 @@ export function tvSettingsRow(
     className?: string,
 ): string {
     return cn(
-        'tv-settings-row flex w-full items-center gap-4 rounded-2xl px-5 py-3.5 outline-none',
+        'tv-settings-row flex w-full items-center rounded-2xl px-5 py-3.5 outline-none',
         TV_BORDER_STABLE,
         'transition-[background-color,border-color,box-shadow,color] duration-200',
         focused
@@ -133,7 +137,7 @@ export function tvSettingsLabel(
 
 export function tvSettingsIconPlate(focused: boolean, className?: string): string {
     return cn(
-        'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors duration-200',
+        'tv-settings-icon-plate',
         focused ? 'bg-black/25 text-white' : 'bg-white/16 text-white',
         className,
     );

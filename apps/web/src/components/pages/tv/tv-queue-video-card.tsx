@@ -98,7 +98,7 @@ export function TvQueueVideoCard({
             {({ focused }) => (
                 <article
                     data-tv-queue-item={video.id}
-                    className="w-[13rem] sm:w-[17rem] md:w-[21rem] lg:w-[23rem] xl:w-[25rem]"
+                    className="tv-queue-card__frame"
                 >
                     <div className={cn('tv-queue-thumb', tvQueueThumbFrame(focused, isNowPlaying))}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -111,7 +111,7 @@ export function TvQueueVideoCard({
                         {isNowPlaying ? (
                             <span
                                 className={cn(
-                                    'absolute left-2.5 top-2.5 rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white md:text-sm',
+                                    'absolute left-2.5 top-2.5 rounded-md px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-white',
                                     focused ? 'bg-red-600' : 'bg-red-600/90',
                                 )}
                             >
@@ -136,7 +136,7 @@ export function TvQueueVideoCard({
                             tone={focused ? 'emphasis' : 'muted'}
                             maxLines={2}
                             className={cn(
-                                'tv-queue-card__channels text-sm md:text-base',
+                                'tv-queue-card__channels text-sm',
                                 focused ? 'font-medium text-zinc-600' : 'text-zinc-400',
                             )}
                         />

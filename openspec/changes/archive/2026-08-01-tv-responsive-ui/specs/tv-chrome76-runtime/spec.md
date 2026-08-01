@@ -1,8 +1,5 @@
-# tv-chrome76-runtime Specification
+## MODIFIED Requirements
 
-## Purpose
-Hosted `/tv` web runtime compatibility floor for Tizen 6.0 (~Chrome 76): client downlevel, verify gate, polyfills, and non-sticky TV document cache headers.
-## Requirements
 ### Requirement: Client bundles downlevel to Chrome 76
 The web app build SHALL rewrite client assets under `.next/static` so JavaScript syntax is compatible with Chromium 76 (Tizen 6.0). The default target SHALL be `chrome76` (overridable via `TV_CHROME_TARGET`). Skipping the downlevel pass MUST be opt-in only (`TV_DOWNLEVEL=0`) and MUST NOT be the default production build path.
 
@@ -33,12 +30,7 @@ The web production build SHALL run an independent verify step after downlevel th
 - **WHEN** downlevel and verify both succeed
 - **THEN** build logs report verify OK with chunk counts
 
-### Requirement: Runtime polyfills load before app JS
-The root layout SHALL load a guarded `tv-polyfills` script `beforeInteractive` so APIs required by the client that are missing on Chrome 76 (including at least `String.prototype.replaceAll` and the post-Chrome-85 shims already used by the chrome85 stack) are available before application modules run. On modern browsers the shims MUST be no-ops when the native API exists.
-
-#### Scenario: Polyfill script is present on TV route
-- **WHEN** a client loads `/tv` (or a localized `/tv`)
-- **THEN** the polyfill script is included before interactive application code
+## ADDED Requirements
 
 ### Requirement: JS polyfills remain non-layout
 The guarded `tv-polyfills` script SHALL continue to provide missing JavaScript APIs only. It MUST NOT be used as the mechanism for viewport density, root scale, or CSS layout polyfills (`clamp`, flex `gap`, etc.).
@@ -46,17 +38,3 @@ The guarded `tv-polyfills` script SHALL continue to provide missing JavaScript A
 #### Scenario: Polyfills do not set density
 - **WHEN** `tv-polyfills.js` runs on `/tv`
 - **THEN** it does not assign TV density custom properties or rewrite stylesheet rules for scaling
-
-### Requirement: TV HTML is not sticky-cached
-The Next.js app SHALL send `Cache-Control: no-store, must-revalidate` for the `/tv` and `/:locale/tv` document routes so Smart TV private profiles do not keep a stale HTML shell across deploys. Hashed `/_next/static` assets MUST remain cacheable as today.
-
-#### Scenario: Document headers on TV routes
-- **WHEN** a client requests `/tv` or `/:locale/tv`
-- **THEN** the response includes `Cache-Control: no-store, must-revalidate`
-
-### Requirement: Support floor documented as Tizen 6.0 / Chrome 76
-Operator-facing docs that describe web TV runtime compatibility SHALL state Tizen 6.0+ (~Chrome 76) as the floor and SHALL NOT claim chrome85-only as the sole supported web baseline. GitHub issue #6 acceptance SHALL be retargeted to chrome76 / Tizen 6.0 when this change lands.
-
-#### Scenario: Standalone TV docs match floor
-- **WHEN** an operator reads standalone TV / tizen web-runtime docs
-- **THEN** they see Chrome 76 / Tizen 6.0 as the hosted-app compatibility floor

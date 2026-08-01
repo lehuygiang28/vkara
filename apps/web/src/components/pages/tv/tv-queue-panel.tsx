@@ -58,9 +58,8 @@ export function TvQueuePanel({
             trapFocus={false}
             onMountFocus={!embedded && allItems.length > 0}
             className={cn(
-                'tv-queue-panel shrink-0 px-4 pt-3 sm:px-8 sm:pt-4 md:px-12 lg:px-16',
-                embedded ? 'pb-2' : 'pb-6 pt-4 sm:pb-8 sm:pt-5',
-                embedded && 'tv-queue-panel--embedded',
+                'tv-queue-panel shrink-0',
+                embedded ? 'tv-queue-panel--embedded' : 'tv-queue-panel--standalone',
                 embedded && (expanded ? 'tv-queue-panel--expanded' : 'tv-queue-panel--peek'),
                 !embedded &&
                     'border-t border-white/15 bg-gradient-to-t from-black/55 via-black/45 to-black/35',
@@ -70,7 +69,7 @@ export function TvQueuePanel({
         >
             {!embedded ? (
                 <div className="mb-3 flex items-baseline justify-between gap-4">
-                    <h2 className="text-lg font-semibold text-white md:text-xl">{t('queue')}</h2>
+                    <h2 className="text-lg font-semibold text-white">{t('queue')}</h2>
                     {allItems.length > 0 ? (
                         <p className="text-sm text-zinc-400">
                             {t('queueCount', { count: allItems.length })}
@@ -82,7 +81,7 @@ export function TvQueuePanel({
             {allItems.length === 0 ? (
                 <p className="py-4 text-center text-base text-zinc-500">{t('queueEmpty')}</p>
             ) : (
-                <div className="tv-queue-track flex snap-x snap-mandatory snap-always gap-3 overflow-x-auto sm:gap-5 md:gap-7 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="tv-queue-track flex snap-x snap-mandatory snap-always overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {allItems.map((video) => (
                         <TvQueueVideoCard
                             key={video.id}

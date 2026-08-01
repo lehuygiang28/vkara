@@ -1,0 +1,14 @@
+/**
+ * TV-scoped root rem scale — class toggled by TvRootScale on `/tv` mount.
+ *
+ * Scale authority for dedicated TV UI:
+ * - Static `16px` first so Chrome 76 (no `clamp`) keeps today's FHD reference.
+ * - Progressive `clamp`/`vmin` densifies short CSS viewports (e.g. ~960×540 Android TV).
+ * - Floor ~12px (~0.75×); ceiling 16px = 1920×1080 reference (never upscale).
+ * - No root `transform` / `zoom` (spatial-nav hit geometry).
+ * - Class scoped so leaving `/tv` restores site rem (not a sticky global html rule).
+ */
+html.tv-root-scale {
+    font-size: 16px;
+    font-size: clamp(12px, 2.25vmin, 16px);
+}
