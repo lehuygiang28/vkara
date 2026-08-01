@@ -20,4 +20,4 @@
 
 ## 4. Device confirmation
 
-- [ ] 4.1 Smoke `/tv` on Tizen 6.0 after deploy (React mounts; no white-screen from SyntaxError)
+- [x] 4.1 Smoke `/tv` on Tizen 6.0 after deploy (React mounts; no white-screen from SyntaxError)

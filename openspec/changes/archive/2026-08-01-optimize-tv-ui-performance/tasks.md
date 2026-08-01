@@ -25,6 +25,6 @@
 
 ## 4. Verification
 
-- [ ] 4.1 Manual QA on `/tv`: idle playback 2 min, D-pad reveal/hide, queue expand/focus, settings, next-up, phone remote play/pause
-- [ ] 4.2 Manual QA: reload `/tv` and confirm rejoin; abandon/recovery path smoke
+- [x] 4.1 Manual QA on `/tv`: idle playback 2 min, D-pad reveal/hide, queue expand/focus, settings, next-up, phone remote play/pause
+- [x] 4.2 Manual QA: reload `/tv` and confirm rejoin; abandon/recovery path smoke
 - [x] 4.3 Run affected web unit tests / lint for touched files
