@@ -365,7 +365,7 @@ function TvPlayerHostInner({ onOpenSettingsAction }: TvPlayerHostProps) {
     );
 
     return (
-        <div className="absolute inset-0 bg-black">
+        <div className="tv-fill bg-black">
             {playingNowId ? (
                 <PlayerEmbedSurfaceMemo
                     playingNowId={playingNowId}
@@ -390,7 +390,7 @@ function TvPlayerHostInner({ onOpenSettingsAction }: TvPlayerHostProps) {
                     embedVariant="tv"
                 />
             ) : (
-                <div className="absolute inset-0 bg-[#0f0f0f]" aria-hidden />
+                <div className="tv-fill bg-[#0f0f0f]" aria-hidden />
             )}
 
             {isTvIdle && roomId ? (

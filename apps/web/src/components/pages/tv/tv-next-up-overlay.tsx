@@ -91,7 +91,7 @@ export function TvNextUpOverlay({
     const thumbSrcSet = getVideoThumbnailSrcSet({ video: nextVideo });
 
     return (
-        <div className="tv-next-up-overlay absolute inset-0 z-40">
+        <div className="tv-next-up-overlay">
             <div className="tv-next-up-overlay__scrim" aria-hidden />
 
             <TvSpatialOverlayShell
@@ -110,7 +110,7 @@ export function TvNextUpOverlay({
                                 size="large"
                                 alt={nextVideo.title}
                                 fill
-                                sizes="(max-width: 768px) 92vw, 36rem"
+                                sizes="(max-width: 768px) 92vw, 42vw"
                                 className="tv-next-up-overlay__thumb object-cover"
                                 priority
                                 {...(thumbSrcSet ? { srcSet: thumbSrcSet } : {})}
@@ -136,7 +136,6 @@ export function TvNextUpOverlay({
                             <TvNextUpCountdownRing
                                 remainingSeconds={displaySeconds}
                                 label={t('autoPlayLabel')}
-                                compact
                             />
                             <CountdownTimer
                                 classNames="sr-only"

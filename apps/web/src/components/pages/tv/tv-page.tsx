@@ -152,7 +152,7 @@ export default function TvPage() {
 
     return (
         <TvSpatialRoot>
-            <div className="relative h-[100dvh] w-full overflow-hidden bg-zinc-950 text-zinc-100">
+            <div className="relative h-dvh-screen w-full overflow-hidden bg-zinc-950 text-zinc-100">
                 <ConnectionStatusToast />
                 <main className="relative h-full w-full overflow-hidden">
                     {showLobby ? (

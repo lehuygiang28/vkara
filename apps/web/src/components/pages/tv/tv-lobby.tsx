@@ -96,7 +96,7 @@ export function TvLobby() {
     }, []);
 
     return (
-        <div className="tv-lobby absolute inset-0">
+        <div className="tv-lobby">
             <TvSpatialOverlayShell
                 focusKey={TV_FOCUS_KEYS.lobby}
                 preferredChildFocusKey={TV_FOCUS_KEYS.lobbyCreate}
@@ -135,7 +135,7 @@ export function TvLobby() {
                         }
                     >
                         <span className="tv-lobby-create-hero__icon" aria-hidden>
-                            <Plus className="h-8 w-8" strokeWidth={2.25} />
+                            <Plus className="h-10 w-10" strokeWidth={2.25} />
                         </span>
                         <span className="tv-lobby-create-hero__label">{t('createButton')}</span>
                     </TvFocusable>

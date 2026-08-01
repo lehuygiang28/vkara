@@ -39,7 +39,7 @@ export function TvPlayerTopBar({ className }: TvPlayerTopBarProps) {
                 className,
             )}
         >
-            <h1 className="line-clamp-2 text-2xl font-semibold leading-tight tracking-tight text-white md:text-[1.85rem] lg:text-[2rem]">
+            <h1 className="tv-player-top-bar__title line-clamp-2">
                 {playingNow.title}
             </h1>
             <div className="tv-player-top-bar__meta mt-2 min-w-0 max-w-full">
@@ -48,14 +48,14 @@ export function TvPlayerTopBar({ className }: TvPlayerTopBarProps) {
                         video={playingNow}
                         tone="inverse"
                         maxLines={2}
-                        className="tv-player-top-bar__channels w-auto min-w-0 text-base font-medium md:text-xl"
+                        className="tv-player-top-bar__channels w-auto min-w-0"
                     />
                     {isLive ? (
-                        <span className="shrink-0 text-base font-medium text-zinc-200 md:text-xl">
+                        <span className="tv-player-top-bar__meta-extra shrink-0 text-zinc-200">
                             · {tYoutube('liveNow')}
                         </span>
                     ) : viewsLabel ? (
-                        <span className="shrink-0 text-base font-medium tabular-nums text-zinc-200 md:text-xl">
+                        <span className="tv-player-top-bar__meta-extra shrink-0 tabular-nums text-zinc-200">
                             · {viewsLabel}
                         </span>
                     ) : null}

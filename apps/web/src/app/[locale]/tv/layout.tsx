@@ -17,7 +17,7 @@ export const viewport: Viewport = {
 
 export default function TvLayout({ children }: { children: ReactNode }) {
     return (
-        <div className="dark h-full min-h-[100dvh] bg-[#0f0f0f] text-white" data-tv-route>
+        <div className="dark h-full min-h-dvh-screen bg-[#0f0f0f] text-white" data-tv-route>
             {children}
         </div>
     );

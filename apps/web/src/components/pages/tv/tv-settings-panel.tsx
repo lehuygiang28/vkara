@@ -383,7 +383,7 @@ export function TvSettingsPanel({ onCloseAction }: TvSettingsPanelProps) {
     }
 
     return (
-        <div className="tv-settings-rail absolute inset-y-0 right-0 z-40 flex min-h-0 w-full max-w-[18rem] flex-col shadow-[-16px_0_48px_rgb(0_0_0_0.35)] sm:max-w-[22rem] md:max-w-md xl:max-w-lg">
+        <div className="tv-settings-rail absolute inset-y-0 right-0 z-40 flex min-h-0 w-full max-w-[28rem] flex-col shadow-[-16px_0_48px_rgb(0_0_0_0.35)] sm:max-w-[32rem] md:max-w-xl xl:max-w-2xl">
             <header className="tv-settings-header shrink-0 px-4 pt-5 sm:px-6 sm:pt-8 md:px-7 md:pt-9">
                 <h1 className="tv-settings-panel-title">{tTv('settings')}</h1>
             </header>
