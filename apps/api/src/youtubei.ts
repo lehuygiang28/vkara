@@ -41,7 +41,7 @@ import {
     fetchSearchInitialPage,
 } from './modules/youtube/fetch-search-page';
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
-import { safeParseRelated } from './modules/youtube/safe-parse-related';
+import { resolveRelatedShelf } from './modules/youtube/safe-parse-related';
 import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
 import { resolvePlaylistDetails } from './modules/youtube/fetch-playlist-details-cached';
 import { getYoutubeiClient } from './modules/youtube/youtubei-client';
@@ -288,12 +288,8 @@ export const searchYoutubeiElysia = new Elysia({})
                     );
                     relatedMetadata = extractRendererMetadata(nextResponseData);
 
-                    const relatedItems = video?.related
-                        ? (video.related.items as VideoCompact[])
-                        : safeParseRelated(nextResponseData, youtubeiClient);
-                    const relatedContinuation = video?.related
-                        ? video.related.continuation
-                        : undefined;
+                    const { items: relatedItems, continuation: relatedContinuation } =
+                        resolveRelatedShelf(video, nextResponseData, youtubeiClient);
 
                     newItems = collectUniqueNewItems(relatedItems, processedVideoIds);
                     if (relatedItems.length > 0 || relatedContinuation) {

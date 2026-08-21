@@ -60,7 +60,7 @@ Parser TypeErrors after a successful POST are schema drift → karaoke related s
 
 1. `loadVideoFromNextResponses` wraps `Video.load` / `LiveVideo.load` in try/catch. On throw: capture with tags `area=youtube`, `route=related`, `kind=parse`, `handled=yes`, level `warning`; return `{ video: undefined, nextResponseData }`.
 2. Shared `safeParseRelated(raw, client)` wraps `BaseVideoParser.parseRelated`. On throw: same capture; return `[]`. Continuation parse uses the same wrapper in `fetchRelatedContinuationPage`.
-3. `/related` initial path: if `video?.related` is missing after (1), call `safeParseRelated(nextResponseData, client)` so a failed `Video.load` can still yield a shelf. If that is also empty, return `200 { items: [], continuation: undefined }`.
+3. `/related` initial path: if `video?.related` is missing after (1), parse items and continuation independently from `nextResponseData` so a failed `Video.load` can still yield a shelf and a next-page token. If items are empty and continuation is missing, return `200 { items: [], continuation: undefined }`.
 4. Route-level catch remains for HTTP / unexpected failures only.
 
 **Rejected:** swallowing all `/related` errors into empty 200 (would hide real YouTube outages). **Rejected:** forking youtubei.

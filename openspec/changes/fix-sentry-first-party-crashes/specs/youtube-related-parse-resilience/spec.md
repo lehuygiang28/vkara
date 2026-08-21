@@ -19,6 +19,12 @@ When InnerTube `next`/`player` HTTP succeeds but youtubei `Video.load`, `LiveVid
 - **WHEN** InnerTube HTTP for `/related` throws (network or non-success transport)
 - **THEN** `POST /related` MAY still return `502 youtube_upstream_failed`
 
+#### Scenario: Continuation kept when Video.load fails but related parse succeeds
+- **WHEN** `loadVideoFromNextResponses` returns `video: undefined`
+- **AND** related items parse from `nextResponseData`
+- **AND** continuation parse from `nextResponseData` returns a token
+- **THEN** the related response MUST include that continuation so pagination can continue
+
 ### Requirement: Parse failures remain visible in Sentry
 Each swallowed youtubei parse throw on the related path MUST be reported via `captureUnexpected` with tags `area=youtube`, `route=related`, `kind=parse`, and level `warning`.
 
