@@ -1,7 +1,8 @@
-import { BaseVideoParser, Client, SearchResult, type VideoCompact } from 'youtubei';
+import { Client, SearchResult, type VideoCompact } from 'youtubei';
 
 import { extractRendererMetadata, type RendererMetadataMaps } from './renderer-metadata';
 import { postInnertube } from './innertube-post';
+import { safeParseContinuation, safeParseRelated } from './safe-parse-related';
 import { asYoutubeRawData } from './youtubei-raw-data';
 
 const NEXT_ENDPOINT = '/youtubei/v1/next';
@@ -20,8 +21,8 @@ export async function fetchRelatedContinuationPage(
     const response = await postInnertube(client, NEXT_ENDPOINT, { continuation });
     const rawData = asYoutubeRawData(response.data);
     const metadata = extractRendererMetadata(rawData);
-    const items = BaseVideoParser.parseRelated(rawData, client) as VideoCompact[];
-    const nextContinuation = BaseVideoParser.parseContinuation(rawData);
+    const items = safeParseRelated(rawData, client);
+    const nextContinuation = safeParseContinuation(rawData);
 
     return {
         items,

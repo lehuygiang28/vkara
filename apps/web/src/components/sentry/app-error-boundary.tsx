@@ -5,7 +5,7 @@ import * as Sentry from '@sentry/nextjs';
 
 import { RecoveryShell } from '@/components/sentry/recovery-shell';
 import { useErrorBoundaryRecovery } from '@/hooks/use-error-boundary-recovery';
-import { useI18n } from '@/locales/client';
+import { documentRecoveryPhaseLabel } from '@/lib/recovery-phase-label';
 
 type FallbackProps = {
     error: unknown;
@@ -20,20 +20,16 @@ function toRecoverableError(error: unknown): Error & { digest?: string } {
 }
 
 function AutoRecoverFallback({ error, resetError }: FallbackProps) {
-    const t = useI18n();
     const recoverable = useMemo(() => toRecoverableError(error), [error]);
     const phase = useErrorBoundaryRecovery(recoverable, resetError, {
         boundaryTag: 'react_tree',
     });
+    const shellPhase = phase === 'reporting' ? 'retrying' : phase;
 
     return (
         <RecoveryShell
-            phase={phase === 'reporting' ? 'retrying' : phase}
-            label={
-                phase === 'redirecting'
-                    ? t('error.boundary.redirecting')
-                    : t('error.boundary.retrying')
-            }
+            phase={shellPhase}
+            label={documentRecoveryPhaseLabel(shellPhase)}
             className="flex min-h-[30vh] items-center justify-center px-6 py-10"
         />
     );
@@ -42,6 +38,7 @@ function AutoRecoverFallback({ error, resetError }: FallbackProps) {
 /**
  * Client-tree safety net under the locale layout.
  * Catches render errors that never reach `error.tsx`, reports to Sentry, auto-recovers.
+ * Must not call next-intl: Intl.PluralRules is missing on Safari 12.
  */
 export function AppErrorBoundary({ children }: { children: ReactNode }) {
     const renderFallback = useCallback(

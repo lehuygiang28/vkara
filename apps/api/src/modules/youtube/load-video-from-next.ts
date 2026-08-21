@@ -1,5 +1,6 @@
 import { Client, LiveVideo, Video } from 'youtubei';
 
+import { captureRelatedParseFailure } from './safe-parse-related';
 import { postInnertube } from './innertube-post';
 import { asYoutubeRawData } from './youtubei-raw-data';
 
@@ -47,9 +48,13 @@ export async function loadVideoFromNextResponses(
         return { video: undefined, nextResponseData: nextResponse.data };
     }
 
-    const video = !playerData.playabilityStatus?.liveStreamability
-        ? new Video({ client }).load(data)
-        : new LiveVideo({ client }).load(data);
-
-    return { video, nextResponseData: nextResponse.data };
+    try {
+        const video = !playerData.playabilityStatus?.liveStreamability
+            ? new Video({ client }).load(data)
+            : new LiveVideo({ client }).load(data);
+        return { video, nextResponseData: nextResponse.data };
+    } catch (error) {
+        captureRelatedParseFailure(error);
+        return { video: undefined, nextResponseData: nextResponse.data };
+    }
 }
