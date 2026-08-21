@@ -1,6 +1,7 @@
 /**
- * Runtime polyfills for Samsung Smart TV browsers.
- * Baseline: Tizen 6.0 / 2021 ≈ Chrome 76.
+ * Runtime polyfills for Samsung Smart TV browsers and Safari 12 / iOS 12.
+ * Baseline: Tizen 6.0 / 2021 ≈ Chrome 76. Also shims Intl.PluralRules and
+ * MediaQueryList EventTarget when missing (no-op on modern engines).
  *
  * Loaded beforeInteractive from the root layout. Every shim is guarded, so on
  * modern browsers this is a no-op. Syntax downleveling of the app bundles
@@ -115,6 +116,47 @@
         window.structuredClone = function (value) {
             if (value === undefined) return undefined;
             return JSON.parse(JSON.stringify(value));
+        };
+    }
+
+    /* Intl.PluralRules (Safari 13). next-intl constructs this on first paint.
+       Cardinal tables are not required — returning 'other' unblocks iOS 12. */
+    if (typeof Intl !== 'undefined' && typeof Intl.PluralRules !== 'function') {
+        Intl.PluralRules = function PluralRules(locale) {
+            this.locale = locale == null ? 'en' : String(locale);
+        };
+        Intl.PluralRules.prototype.select = function select() {
+            return 'other';
+        };
+        Intl.PluralRules.prototype.resolvedOptions = function resolvedOptions() {
+            return { locale: this.locale, type: 'cardinal' };
+        };
+    }
+
+    /* MediaQueryList EventTarget (Safari 14). Older engines only have
+       addListener / removeListener. */
+    if (
+        typeof MediaQueryList !== 'undefined' &&
+        MediaQueryList.prototype &&
+        typeof MediaQueryList.prototype.addEventListener !== 'function' &&
+        typeof MediaQueryList.prototype.addListener === 'function'
+    ) {
+        MediaQueryList.prototype.addEventListener = function addEventListener(type, listener) {
+            if (type === 'change' && typeof listener === 'function') {
+                this.addListener(listener);
+            }
+        };
+        MediaQueryList.prototype.removeEventListener = function removeEventListener(
+            type,
+            listener,
+        ) {
+            if (
+                type === 'change' &&
+                typeof this.removeListener === 'function' &&
+                typeof listener === 'function'
+            ) {
+                this.removeListener(listener);
+            }
         };
     }
 })();
