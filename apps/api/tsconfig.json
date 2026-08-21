@@ -117,5 +117,7 @@
             "@vkara/youtube": ["../../packages/youtube/src/index.ts"],
             "@vkara/youtube/*": ["../../packages/youtube/src/*"]
         }
-    }
+    },
+    "include": ["src/**/*.ts", "tests/**/*.ts"],
+    "exclude": ["node_modules"]
 }

@@ -41,6 +41,7 @@ import {
     fetchSearchInitialPage,
 } from './modules/youtube/fetch-search-page';
 import { loadVideoFromNextResponses } from './modules/youtube/load-video-from-next';
+import { safeParseRelated } from './modules/youtube/safe-parse-related';
 import { prepareYoutubeVideos } from './modules/youtube/prepare-youtube-videos';
 import { resolvePlaylistDetails } from './modules/youtube/fetch-playlist-details-cached';
 import { getYoutubeiClient } from './modules/youtube/youtubei-client';
@@ -287,15 +288,19 @@ export const searchYoutubeiElysia = new Elysia({})
                     );
                     relatedMetadata = extractRendererMetadata(nextResponseData);
 
-                    if (video?.related) {
-                        newItems = collectUniqueNewItems(
-                            video.related.items as VideoCompact[],
-                            processedVideoIds,
-                        );
+                    const relatedItems = video?.related
+                        ? (video.related.items as VideoCompact[])
+                        : safeParseRelated(nextResponseData, youtubeiClient);
+                    const relatedContinuation = video?.related
+                        ? video.related.continuation
+                        : undefined;
+
+                    newItems = collectUniqueNewItems(relatedItems, processedVideoIds);
+                    if (relatedItems.length > 0 || relatedContinuation) {
                         results = createRelatedContinuationCache(
                             youtubeiClient,
-                            video.related.items as VideoCompact[],
-                            video.related.continuation,
+                            relatedItems,
+                            relatedContinuation,
                         );
                     }
                 }
