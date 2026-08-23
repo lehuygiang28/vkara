@@ -1,6 +1,8 @@
-import type { Browser, BrowserContext, Page } from 'playwright';
+import type { Browser, BrowserContext, Page, Response } from 'playwright';
 
+import { TikTokEmptyProbeError } from './errors';
 import { parseVideos } from './parse-videos';
+import { chromiumLaunchOptions } from './playwright-launch';
 import { playwrightProxyFromEnv } from './playwright-proxy';
 import { isInitialSearchApiUrl, isUsableSearchResponse } from './search-response';
 import type { SearchResponse, TikTokVideo } from './types';
@@ -21,35 +23,11 @@ function logProxyConfig(): void {
 const BROWSER_UA =
     'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Safari/537.36 Edg/149.0.0.0';
 
-const CHROMIUM_ARGS = [
-    '--disable-dev-shm-usage',
-    '--disable-gpu',
-    '--disable-blink-features=AutomationControlled',
-] as const;
-
-function chromiumLaunchOptions(): {
-    headless: true;
-    args: string[];
-    executablePath?: string;
-} {
-    const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH?.trim();
-    return {
-        headless: true,
-        args: [
-            ...CHROMIUM_ARGS,
-            ...(executablePath ? ['--no-sandbox', '--disable-setuid-sandbox'] : []),
-        ],
-        ...(executablePath ? { executablePath } : {}),
-    };
-}
-
 const SEARCH_RESPONSE_TIMEOUT_MS = 15_000;
 const WARMUP_SETTLE_MS = 800;
 const FETCH_RETRY_DELAY_MS = 700;
 /** TikTok often returns an empty probe on first load; reload mimics the UI "Try again". */
 const MAX_SEARCH_NAV_ATTEMPTS = 3;
-const SEARCH_PROBE_RETRY_MS = 1_500;
-const SEARCH_RETRY_SETTLE_MS = 800;
 const SESSION_TTL_MS = 5 * 60 * 1000;
 /** Items returned to the client per search page. */
 const CLIENT_PAGE_SIZE = 12;
@@ -93,6 +71,32 @@ type CapturedSearchResponse = {
     signedUrl: string;
 };
 
+function parseCapturedSearchResponse(raw: string): SearchResponse {
+    const json = JSON.parse(raw) as SearchResponse;
+
+    // TikTok returns 203 for large `count` on popular keywords (e.g. "karaoke …")
+    // while still including a usable batch — do not treat that as a hard failure.
+    const hasItems = (json.data?.length ?? 0) > 0;
+    if (json.status_code !== 0 && !(json.status_code === 203 && hasItems)) {
+        throw new Error(
+            `TikTok error (status_code=${json.status_code}): ${json.message ?? 'unknown'}`,
+        );
+    }
+
+    return json;
+}
+
+async function readSearchResponseBody(response: Response): Promise<string> {
+    try {
+        return await response.text();
+    } catch {
+        return '';
+    }
+}
+
+/** Brief grace period after an empty probe before reloading the page. */
+const SEARCH_PROBE_GRACE_MS = 400;
+
 /** Waits for a non-empty TikTok search API response (skips bot-detection probe responses). */
 function waitForNonemptySearchResponse(
     page: Page,
@@ -100,7 +104,6 @@ function waitForNonemptySearchResponse(
     timeoutMs = SEARCH_RESPONSE_TIMEOUT_MS,
 ): Promise<CapturedSearchResponse> {
     return new Promise((resolve, reject) => {
-        let sawEmptyProbe = false;
         let probeTimer: ReturnType<typeof setTimeout> | undefined;
 
         const timer = setTimeout(() => {
@@ -114,26 +117,19 @@ function waitForNonemptySearchResponse(
             page.off('response', onResponse);
         };
 
-        const onResponse = async (response: { url: () => string; text: () => Promise<string> }) => {
+        const onResponse = async (response: Response) => {
             const url = response.url();
             if (!isInitialSearchApiUrl(url, keyword)) {
                 return;
             }
 
-            let raw = '';
-            try {
-                raw = await response.text();
-            } catch {
-                return;
-            }
-
+            const raw = await readSearchResponseBody(response);
             if (!raw.trim()) {
-                if (!sawEmptyProbe) {
-                    sawEmptyProbe = true;
+                if (!probeTimer) {
                     probeTimer = setTimeout(() => {
                         cleanup();
-                        reject(new Error(`Empty probe response for "${keyword}"`));
-                    }, SEARCH_PROBE_RETRY_MS);
+                        reject(new TikTokEmptyProbeError(keyword));
+                    }, SEARCH_PROBE_GRACE_MS);
                 }
                 return;
             }
@@ -158,38 +154,47 @@ function waitForNonemptySearchResponse(
 }
 
 async function fetchSearchJson(page: Page, signedUrl: string): Promise<SearchResponse> {
-    const readBody = () =>
-        page.evaluate(async (url) => {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return res.text();
+    const targetCursor = Number(new URL(signedUrl).searchParams.get('cursor') ?? '0');
+    const keyword = new URL(signedUrl).searchParams.get('keyword') ?? '';
+
+    let lastError: unknown;
+    for (let attempt = 0; attempt < 2; attempt++) {
+        const responsePromise = page.waitForResponse(
+            (response) => {
+                const url = response.url();
+                if (!url.includes('/api/search/general/full')) {
+                    return false;
+                }
+                if (keyword && new URL(url).searchParams.get('keyword') !== keyword) {
+                    return false;
+                }
+                return Number(new URL(url).searchParams.get('cursor') ?? '0') === targetCursor;
+            },
+            { timeout: SEARCH_RESPONSE_TIMEOUT_MS },
+        );
+
+        void page.evaluate(async (url) => {
+            await fetch(url);
         }, signedUrl);
 
-    let raw = '';
-    for (let attempt = 0; attempt < 4; attempt++) {
-        raw = await readBody();
-        if (raw.trim()) {
-            break;
+        try {
+            const response = await responsePromise;
+            const raw = await readSearchResponseBody(response);
+            if (!raw.trim()) {
+                throw new Error('Empty search response from in-page fetch.');
+            }
+            return parseCapturedSearchResponse(raw);
+        } catch (error) {
+            lastError = error;
+            if (attempt === 0) {
+                await page.waitForTimeout(FETCH_RETRY_DELAY_MS);
+            }
         }
-        await page.waitForTimeout(FETCH_RETRY_DELAY_MS);
     }
 
-    if (!raw.trim()) {
-        throw new Error('Empty search response from in-page fetch.');
-    }
-
-    const json = JSON.parse(raw) as SearchResponse;
-
-    // TikTok returns 203 for large `count` on popular keywords (e.g. "karaoke …")
-    // while still including a usable batch — do not treat that as a hard failure.
-    const hasItems = (json.data?.length ?? 0) > 0;
-    if (json.status_code !== 0 && !(json.status_code === 203 && hasItems)) {
-        throw new Error(
-            `TikTok error (status_code=${json.status_code}): ${json.message ?? 'unknown'}`,
-        );
-    }
-
-    return json;
+    throw lastError instanceof Error
+        ? lastError
+        : new Error('Empty search response from in-page fetch.');
 }
 
 function createPoolSearchSessionId(): string {
@@ -240,8 +245,11 @@ async function prefetchSearchVideos(
             };
         } catch (error) {
             lastError = error;
+            if (error instanceof TikTokEmptyProbeError && attempt < MAX_SEARCH_NAV_ATTEMPTS) {
+                continue;
+            }
             if (attempt < MAX_SEARCH_NAV_ATTEMPTS) {
-                await page.waitForTimeout(SEARCH_RETRY_SETTLE_MS);
+                await page.waitForTimeout(FETCH_RETRY_DELAY_MS);
             }
         }
     }
@@ -283,10 +291,14 @@ export class TikTokBrowserPool {
 
         const start = performance.now();
         const { chromium } = await import('playwright');
+        const launchOptions = chromiumLaunchOptions();
 
         logProxyConfig();
+        if (!launchOptions.headless) {
+            console.info('[TikTokBrowserPool] Running headed Chromium (PLAYWRIGHT_HEADED)');
+        }
 
-        this.browser = await chromium.launch(chromiumLaunchOptions());
+        this.browser = await chromium.launch(launchOptions);
         const proxy = playwrightProxyFromEnv();
         this.context = await this.browser.newContext({
             ...(proxy ? { proxy } : {}),

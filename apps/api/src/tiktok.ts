@@ -60,3 +60,14 @@ export const searchTiktokElysia = new Elysia({ prefix: '/tiktok' }).post(
 export async function shutdownTikTokPool(): Promise<void> {
     await closeSharedTikTokPool();
 }
+
+/** Warm Playwright in the background so the first user search skips browser cold start. */
+export function warmupTikTokPool(): void {
+    void getSharedTikTokPool()
+        .init()
+        .catch((error) => {
+            logger.warn('TikTok pool warmup failed', {
+                error: error instanceof Error ? error.message : String(error),
+            });
+        });
+}

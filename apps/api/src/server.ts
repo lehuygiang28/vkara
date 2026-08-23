@@ -21,7 +21,7 @@ import { readSentryEnvironmentFromProcess } from '@vkara/env/sentry';
 
 import { env } from './env';
 import { redis } from './redis';
-import { searchTiktokElysia, shutdownTikTokPool } from './tiktok';
+import { searchTiktokElysia, shutdownTikTokPool, warmupTikTokPool } from './tiktok';
 import { searchYoutubeiElysia } from './youtubei';
 
 const serverLogger = createContextLogger('Server');
@@ -64,6 +64,9 @@ export const wsServer = Sentry.withElysia(
             server?.publish(topic, payload);
         });
         serverLogger.info('Server started');
+        if (isExperimentsEnabled(env)) {
+            warmupTikTokPool();
+        }
         // Dynamic import avoids a load-time cycle: queues import closeRoom/wsConnections from this module.
         void import('@/queues/cleanup')
             .then(({ scheduleCleanupJobs }) => scheduleCleanupJobs())
