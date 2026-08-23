@@ -32,7 +32,7 @@
         "winston": "^3.19.0",
         "winston-transport": "^4.9.0",
         "youtube-sr": "^4.3.12",
-        "youtubei": "^1.8.9",
+        "youtubei": "^1.8.16",
         "zod": "^3.24.0",
         "zod-to-json-schema": "^3.24.5"
     },

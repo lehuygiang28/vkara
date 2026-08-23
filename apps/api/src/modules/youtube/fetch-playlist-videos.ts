@@ -6,6 +6,10 @@ import { createContextLogger } from '@/utils/logger';
 import { formatSeconds } from '@vkara/youtube';
 
 import { postInnertube } from './innertube-post';
+import {
+    parsePlaylistBrowseContinuation,
+    parsePlaylistBrowseVideos,
+} from './parse-playlist-browse';
 import { youtubeOutboundFetch } from './youtube-outbound-fetch';
 import { getYoutubeiClient } from './youtubei-client';
 import { asYoutubeRawData } from './youtubei-raw-data';
@@ -187,6 +191,36 @@ async function loadPlaylistVideos(
     return playlist.videos.items.slice(0, limit);
 }
 
+async function fetchStandardPlaylistViaLockupBrowse(
+    listId: string,
+    limit: number,
+): Promise<YouTubeVideo[]> {
+    const client = getYoutubeiClient();
+    const response = await postInnertube(client, '/youtubei/v1/browse', {
+        browseId: `VL${listId}`,
+    });
+
+    const collected = parsePlaylistBrowseVideos(response.data, client);
+    let continuation = parsePlaylistBrowseContinuation(response.data);
+
+    while (continuation && collected.length < limit) {
+        try {
+            const next = await postInnertube(client, '/youtubei/v1/browse', { continuation });
+            const page = parsePlaylistBrowseVideos(next.data, client);
+            if (page.length === 0) {
+                break;
+            }
+            collected.push(...page);
+            continuation = parsePlaylistBrowseContinuation(next.data);
+        } catch (error) {
+            logger.warn('Failed to load playlist lockup continuation', { error, listId });
+            break;
+        }
+    }
+
+    return mapCompactsToYouTubeVideos(collected, limit);
+}
+
 async function fetchStandardPlaylistViaInnertube(
     listId: string,
     options: { limit: number; fetchAll: boolean },
@@ -195,16 +229,20 @@ async function fetchStandardPlaylistViaInnertube(
 
     try {
         const playlist = await client.getPlaylist<Playlist>(listId);
-        if (!playlist?.videos) {
-            return [];
+        if (playlist?.videos?.items.length) {
+            const compacts = await loadPlaylistVideos(playlist, options);
+            if (compacts.length > 0) {
+                return mapCompactsToYouTubeVideos(compacts, options.limit);
+            }
         }
-
-        const compacts = await loadPlaylistVideos(playlist, options);
-        return mapCompactsToYouTubeVideos(compacts, options.limit);
     } catch (error) {
-        logger.error('Failed to fetch standard playlist via youtubei', { error, listId });
-        throw error;
+        logger.warn('Failed to fetch standard playlist via youtubei, trying lockup browse', {
+            error,
+            listId,
+        });
     }
+
+    return fetchStandardPlaylistViaLockupBrowse(listId, options.limit);
 }
 
 async function fetchMixViaInnertube(listId: string, limit: number): Promise<YouTubeVideo[]> {
