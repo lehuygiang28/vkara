@@ -4,6 +4,13 @@ import { TikTokEmptyProbeError } from './errors';
 import { parseVideos } from './parse-videos';
 import { chromiumLaunchOptions } from './playwright-launch';
 import { playwrightProxyFromEnv } from './playwright-proxy';
+import { getSearchConfig } from './search-config';
+import {
+    loadMoreViaScroll,
+    readSearchResponseBody,
+    type CapturedSearchResponse,
+} from './scroll-pagination';
+import { DeviceSessionStore, type SearchSession } from './session-store';
 import { isInitialSearchApiUrl, isUsableSearchResponse } from './search-response';
 import type { SearchResponse, TikTokVideo } from './types';
 
@@ -28,16 +35,21 @@ const WARMUP_SETTLE_MS = 800;
 const FETCH_RETRY_DELAY_MS = 700;
 /** TikTok often returns an empty probe on first load; reload mimics the UI "Try again". */
 const MAX_SEARCH_NAV_ATTEMPTS = 3;
-const SESSION_TTL_MS = 5 * 60 * 1000;
-/** Items returned to the client per search page. */
-const CLIENT_PAGE_SIZE = 12;
-/** Videos fetched from TikTok in one signed request (served in chunks). */
-const PREFETCH_COUNT = 60;
 
 export type TikTokSearchOptions = {
+    deviceId: string;
     keyword: string;
     cursor?: number;
     searchId?: string;
+};
+
+export type PoolSearchMetrics = {
+    activeDeviceSessions: number;
+    cachedTotal: number;
+    sessionReset?: boolean;
+    evictedLru?: boolean;
+    scrollBatches?: number;
+    prunedTtl?: number;
 };
 
 export type PoolSearchResult = {
@@ -46,16 +58,14 @@ export type PoolSearchResult = {
     hasMore: boolean;
     searchId: string;
     elapsedMs: number;
+    metrics: PoolSearchMetrics;
 };
 
-type SearchSession = {
-    keyword: string;
-    searchId: string;
-    baseSignedUrl: string;
-    cachedVideos: TikTokVideo[];
+type PrefetchState = {
+    videos: TikTokVideo[];
+    signedUrl: string;
     tiktokNextCursor: number;
     tiktokHasMore: boolean;
-    updatedAt: number;
 };
 
 function parseSearchResponse(json: SearchResponse) {
@@ -64,34 +74,6 @@ function parseSearchResponse(json: SearchResponse) {
         cursor: json.cursor ?? 0,
         hasMore: json.has_more === 1,
     };
-}
-
-type CapturedSearchResponse = {
-    json: SearchResponse;
-    signedUrl: string;
-};
-
-function parseCapturedSearchResponse(raw: string): SearchResponse {
-    const json = JSON.parse(raw) as SearchResponse;
-
-    // TikTok returns 203 for large `count` on popular keywords (e.g. "karaoke …")
-    // while still including a usable batch — do not treat that as a hard failure.
-    const hasItems = (json.data?.length ?? 0) > 0;
-    if (json.status_code !== 0 && !(json.status_code === 203 && hasItems)) {
-        throw new Error(
-            `TikTok error (status_code=${json.status_code}): ${json.message ?? 'unknown'}`,
-        );
-    }
-
-    return json;
-}
-
-async function readSearchResponseBody(response: Response): Promise<string> {
-    try {
-        return await response.text();
-    } catch {
-        return '';
-    }
 }
 
 /** Brief grace period after an empty probe before reloading the page. */
@@ -153,63 +135,23 @@ function waitForNonemptySearchResponse(
     });
 }
 
-async function fetchSearchJson(page: Page, signedUrl: string): Promise<SearchResponse> {
-    const targetCursor = Number(new URL(signedUrl).searchParams.get('cursor') ?? '0');
-    const keyword = new URL(signedUrl).searchParams.get('keyword') ?? '';
-
-    let lastError: unknown;
-    for (let attempt = 0; attempt < 2; attempt++) {
-        const responsePromise = page.waitForResponse(
-            (response) => {
-                const url = response.url();
-                if (!url.includes('/api/search/general/full')) {
-                    return false;
-                }
-                if (keyword && new URL(url).searchParams.get('keyword') !== keyword) {
-                    return false;
-                }
-                return Number(new URL(url).searchParams.get('cursor') ?? '0') === targetCursor;
-            },
-            { timeout: SEARCH_RESPONSE_TIMEOUT_MS },
-        );
-
-        void page.evaluate(async (url) => {
-            await fetch(url);
-        }, signedUrl);
-
-        try {
-            const response = await responsePromise;
-            const raw = await readSearchResponseBody(response);
-            if (!raw.trim()) {
-                throw new Error('Empty search response from in-page fetch.');
-            }
-            return parseCapturedSearchResponse(raw);
-        } catch (error) {
-            lastError = error;
-            if (attempt === 0) {
-                await page.waitForTimeout(FETCH_RETRY_DELAY_MS);
-            }
-        }
+async function ensureSearchPage(page: Page, keyword: string): Promise<void> {
+    const searchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}`;
+    const currentUrl = page.url();
+    if (currentUrl.includes('/search') && currentUrl.includes(encodeURIComponent(keyword))) {
+        return;
     }
 
-    throw lastError instanceof Error
-        ? lastError
-        : new Error('Empty search response from in-page fetch.');
+    await page
+        .goto(searchUrl, {
+            waitUntil: 'domcontentloaded',
+            timeout: 30_000,
+        })
+        .catch(() => undefined);
+    await page.waitForTimeout(WARMUP_SETTLE_MS);
 }
 
-function createPoolSearchSessionId(): string {
-    return `tt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-async function prefetchSearchVideos(
-    page: Page,
-    keyword: string,
-): Promise<{
-    videos: TikTokVideo[];
-    signedUrl: string;
-    tiktokNextCursor: number;
-    tiktokHasMore: boolean;
-}> {
+async function prefetchSearchVideos(page: Page, keyword: string): Promise<PrefetchState> {
     const searchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}`;
     let lastError: unknown;
 
@@ -222,7 +164,6 @@ async function prefetchSearchVideos(
                     waitUntil: 'domcontentloaded',
                     timeout: 30_000,
                 })
-                // TikTok often returns non-2xx on the search document while still issuing signed API requests.
                 .catch(() => undefined);
         } else {
             await page
@@ -236,7 +177,6 @@ async function prefetchSearchVideos(
         try {
             const { json, signedUrl } = await responsePromise;
             const parsed = parseSearchResponse(json);
-
             return {
                 videos: parsed.videos,
                 signedUrl,
@@ -259,8 +199,12 @@ async function prefetchSearchVideos(
         : new Error(`TikTok search failed for "${keyword}"`);
 }
 
-function sliceClientPage(session: SearchSession, offset: number): PoolSearchResult {
-    const videos = session.cachedVideos.slice(offset, offset + CLIENT_PAGE_SIZE);
+function sliceClientPage(
+    session: SearchSession,
+    offset: number,
+    pageSize: number,
+): Pick<PoolSearchResult, 'videos' | 'cursor' | 'hasMore' | 'searchId'> {
+    const videos = session.cachedVideos.slice(offset, offset + pageSize);
     const nextOffset = offset + videos.length;
     const hasCachedMore = nextOffset < session.cachedVideos.length;
     const hasMore = hasCachedMore || session.tiktokHasMore;
@@ -270,7 +214,6 @@ function sliceClientPage(session: SearchSession, offset: number): PoolSearchResu
         cursor: nextOffset,
         hasMore,
         searchId: session.searchId,
-        elapsedMs: 0,
     };
 }
 
@@ -280,7 +223,8 @@ export class TikTokBrowserPool {
     private page: Page | null = null;
     private queue: Promise<unknown> = Promise.resolve();
     private initMs = 0;
-    private sessions = new Map<string, SearchSession>();
+    private readonly config = getSearchConfig();
+    private readonly sessionStore = new DeviceSessionStore(this.config);
 
     get warmupMs(): number {
         return this.initMs;
@@ -321,39 +265,59 @@ export class TikTokBrowserPool {
         });
         await this.page.waitForTimeout(WARMUP_SETTLE_MS);
 
+        this.sessionStore.startPeriodicPrune((prunedCount) => {
+            console.info('[TikTokBrowserPool] Pruned expired device sessions', {
+                prunedCount,
+                activeDeviceSessions: this.sessionStore.size,
+            });
+        });
+
         this.initMs = Math.round(performance.now() - start);
     }
 
-    async search(keywordOrOptions: string | TikTokSearchOptions): Promise<PoolSearchResult> {
-        const options: TikTokSearchOptions =
-            typeof keywordOrOptions === 'string' ? { keyword: keywordOrOptions } : keywordOrOptions;
-
+    async search(options: TikTokSearchOptions): Promise<PoolSearchResult> {
         return this.enqueue(async () => {
             await this.init();
-            this.pruneSessions();
 
             const keyword = options.keyword.trim();
+            const deviceId = options.deviceId.trim();
             const offset = options.cursor ?? 0;
             const start = performance.now();
+            const prunedTtl = this.sessionStore.pruneExpired();
+
+            if (!deviceId) {
+                throw new Error('deviceId is required');
+            }
 
             if (offset <= 0) {
-                const prefetch = await prefetchSearchVideos(this.page!, keyword);
-                const searchId = createPoolSearchSessionId();
-                const session: SearchSession = {
+                const { session, sessionReset, evictedLru } = this.sessionStore.resetSession(
+                    deviceId,
                     keyword,
-                    searchId,
-                    baseSignedUrl: prefetch.signedUrl,
-                    cachedVideos: prefetch.videos,
-                    tiktokNextCursor: prefetch.tiktokNextCursor,
-                    tiktokHasMore: prefetch.tiktokHasMore,
-                    updatedAt: Date.now(),
-                };
-                this.sessions.set(searchId, session);
+                );
+                const prefetch = await prefetchSearchVideos(this.page!, keyword);
 
-                const pageResult = sliceClientPage(session, 0);
+                session.baseSignedUrl = prefetch.signedUrl;
+                session.cachedVideos = prefetch.videos;
+                session.tiktokNextCursor = prefetch.tiktokNextCursor;
+                session.tiktokHasMore = prefetch.tiktokHasMore;
+                session.updatedAt = Date.now();
+
+                const pageResult = sliceClientPage(session, 0, this.config.pageSize);
+                const metrics = this.sessionStore.snapshot();
+
+                if (metrics.activeDeviceSessions >= this.config.maxDeviceSessions * 0.8) {
+                    console.warn('[TikTokBrowserPool] Device session count nearing cap', metrics);
+                }
+
                 return {
                     ...pageResult,
                     elapsedMs: Math.round(performance.now() - start),
+                    metrics: {
+                        ...metrics,
+                        sessionReset,
+                        evictedLru,
+                        prunedTtl: prunedTtl > 0 ? prunedTtl : undefined,
+                    },
                 };
             }
 
@@ -361,70 +325,80 @@ export class TikTokBrowserPool {
                 throw new Error('searchId is required when cursor > 0');
             }
 
-            const session = this.sessions.get(options.searchId);
-            if (!session || session.keyword !== keyword) {
+            const session = this.sessionStore.getSessionForLoadMore(
+                deviceId,
+                options.searchId,
+                keyword,
+            );
+            if (!session) {
                 throw new Error('Search session expired or invalid');
             }
 
-            session.updatedAt = Date.now();
-
-            if (offset >= session.cachedVideos.length && session.tiktokHasMore) {
-                await this.appendFromTikTok(session, offset);
+            const targetLength = offset + this.config.pageSize;
+            let scrollBatches = 0;
+            while (session.cachedVideos.length < targetLength && session.tiktokHasMore) {
+                const beforeCount = session.cachedVideos.length;
+                await this.appendFromTikTok(session);
+                scrollBatches += 1;
+                if (session.cachedVideos.length === beforeCount) {
+                    break;
+                }
             }
 
-            const pageResult = sliceClientPage(session, offset);
+            const pageResult = sliceClientPage(session, offset, this.config.pageSize);
+            const metrics = this.sessionStore.snapshot();
+
             return {
                 ...pageResult,
                 elapsedMs: Math.round(performance.now() - start),
+                metrics: {
+                    ...metrics,
+                    scrollBatches: scrollBatches > 0 ? scrollBatches : undefined,
+                    prunedTtl: prunedTtl > 0 ? prunedTtl : undefined,
+                },
             };
         });
     }
 
-    private async appendFromTikTok(session: SearchSession, offset: number): Promise<void> {
-        const url = new URL(session.baseSignedUrl);
-        url.searchParams.set('count', String(PREFETCH_COUNT));
-        url.searchParams.set('cursor', String(session.tiktokNextCursor));
-        url.searchParams.set('offset', String(session.tiktokNextCursor));
+    private async appendFromTikTok(session: SearchSession): Promise<void> {
+        const page = this.page!;
+        await ensureSearchPage(page, session.keyword);
 
-        try {
-            const json = await fetchSearchJson(this.page!, url.toString());
-            const parsed = parseSearchResponse(json);
-            if (parsed.videos.length === 0) {
-                session.tiktokHasMore = false;
-                return;
-            }
+        const beforeCount = session.cachedVideos.length;
+        const captured = await loadMoreViaScroll(page, session.keyword, session.tiktokNextCursor);
+        if (!captured) {
+            session.tiktokHasMore = false;
+            return;
+        }
 
-            const existingIds = new Set(session.cachedVideos.map((video) => video.id));
-            const fresh = parsed.videos.filter((video) => !existingIds.has(video.id));
-            session.cachedVideos.push(...fresh);
-            session.tiktokNextCursor = parsed.cursor;
-            session.tiktokHasMore = parsed.hasMore;
+        const parsed = parseSearchResponse(captured.json);
+        if (parsed.videos.length === 0) {
+            session.tiktokHasMore = false;
+            return;
+        }
 
-            if (offset >= session.cachedVideos.length && session.tiktokHasMore) {
-                session.tiktokHasMore = false;
-            }
-        } catch {
+        const existingIds = new Set(session.cachedVideos.map((video) => video.id));
+        const fresh = parsed.videos.filter((video) => !existingIds.has(video.id));
+        session.cachedVideos.push(...fresh);
+        session.baseSignedUrl = captured.signedUrl;
+        session.tiktokNextCursor = parsed.cursor;
+        session.tiktokHasMore = parsed.hasMore;
+        session.updatedAt = Date.now();
+
+        if (session.cachedVideos.length === beforeCount) {
             session.tiktokHasMore = false;
         }
     }
 
     async close(): Promise<void> {
+        this.sessionStore.stopPeriodicPrune();
         await this.page?.close().catch(() => {});
         await this.context?.close().catch(() => {});
         await this.browser?.close().catch(() => {});
         this.page = null;
         this.context = null;
         this.browser = null;
-        this.sessions.clear();
-    }
-
-    private pruneSessions(): void {
-        const now = Date.now();
-        for (const [id, session] of this.sessions) {
-            if (now - session.updatedAt > SESSION_TTL_MS) {
-                this.sessions.delete(id);
-            }
-        }
+        this.sessionStore.clear();
     }
 
     private enqueue<T>(fn: () => Promise<T>): Promise<T> {

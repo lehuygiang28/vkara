@@ -3,6 +3,7 @@ import { z } from 'zod';
 export const tiktokSearchBodySchema = z
     .object({
         query: z.string().trim().min(1).max(200),
+        deviceId: z.string().trim().min(1).max(128),
         cursor: z.coerce.number().int().min(0).optional(),
         searchId: z.string().trim().min(1).max(128).optional(),
     })

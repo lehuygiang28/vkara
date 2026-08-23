@@ -175,7 +175,18 @@ export const useSearchStore = create(
                     }));
                 } catch (err) {
                     console.error('Search error:', err);
-                    set({ loadMoreFailed: true });
+                    if (
+                        err instanceof Error &&
+                        /session expired|invalid/i.test(err.message)
+                    ) {
+                        set({
+                            loadMoreFailed: true,
+                            nextToken: null,
+                            tiktokSearchId: null,
+                        });
+                    } else {
+                        set({ loadMoreFailed: true });
+                    }
                 } finally {
                     set({ isLoadingMore: false });
                 }

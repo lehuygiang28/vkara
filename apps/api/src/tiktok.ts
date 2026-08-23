@@ -16,20 +16,30 @@ export const searchTiktokElysia = new Elysia({ prefix: '/tiktok' }).post(
 
         try {
             const result = await pool.search({
+                deviceId: body.deviceId,
                 keyword,
                 cursor: body.cursor,
                 searchId: body.searchId,
             });
             const items = result.videos.map(toQueueVideo);
+            const deviceIdShort =
+                body.deviceId.length > 8 ? `${body.deviceId.slice(0, 8)}…` : body.deviceId;
 
             logger.info('TikTok search completed', {
                 keyword,
+                deviceId: deviceIdShort,
                 count: items.length,
                 cursor: result.cursor,
                 hasMore: result.hasMore,
                 searchId: result.searchId || undefined,
                 elapsedMs: result.elapsedMs,
                 warmupMs: pool.warmupMs,
+                activeDeviceSessions: result.metrics.activeDeviceSessions,
+                cachedTotal: result.metrics.cachedTotal,
+                sessionReset: result.metrics.sessionReset,
+                evictedLru: result.metrics.evictedLru,
+                scrollBatches: result.metrics.scrollBatches,
+                prunedTtl: result.metrics.prunedTtl,
             });
 
             return {

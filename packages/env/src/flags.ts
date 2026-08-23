@@ -47,6 +47,24 @@ export const VKARA_TUNABLE_DOCS = [
         description:
             'Redis TTL (seconds) for youtube-embed:{videoId} playability cache entries (default 30 days).',
     },
+    {
+        name: 'VKARA_TIKTOK_SEARCH_SESSION_TTL_SECONDS',
+        default: 600,
+        scope: 'api',
+        description: 'TikTok search device session idle TTL in seconds (default 10 minutes).',
+    },
+    {
+        name: 'VKARA_TIKTOK_SEARCH_PAGE_SIZE',
+        default: 12,
+        scope: 'api',
+        description: 'TikTok search items returned per API page.',
+    },
+    {
+        name: 'VKARA_TIKTOK_SEARCH_MAX_DEVICE_SESSIONS',
+        default: 32,
+        scope: 'api',
+        description: 'Maximum concurrent TikTok search sessions (one slot per deviceId).',
+    },
 ] as const satisfies readonly FlagDoc[];
 
 /** All documented `VKARA_*` keys (flags + tunables) for env examples and tooling. */
