@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { tiktokSearchBodySchema } from '../src/tiktok/http';
 
 const DEVICE_ID = 'dda73f64-1234-4abc-8def-123456789abc';
+const SEARCH_ID = 'f47ac10b-58cc-4372-a567-0e02b2c3d479';
 
 describe('tiktok HTTP body schemas', () => {
     it('accepts first-page search with deviceId', () => {
@@ -28,7 +29,7 @@ describe('tiktok HTTP body schemas', () => {
                 query: 'karaoke',
                 deviceId: DEVICE_ID,
                 cursor: 12,
-                searchId: '20260607200240C1C415AF6116FE8E8759',
+                searchId: SEARCH_ID,
             }).success,
         ).toBe(true);
     });

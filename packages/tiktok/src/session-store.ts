@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto';
+
 import { getSearchConfig, type SearchConfig } from './search-config';
 import type { TikTokVideo } from './types';
 
@@ -25,7 +27,7 @@ export type SessionStoreSnapshot = {
 };
 
 function createSearchSessionId(): string {
-    return `tt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    return randomUUID();
 }
 
 export class DeviceSessionStore {
