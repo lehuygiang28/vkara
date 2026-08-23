@@ -18,7 +18,7 @@ import {
 import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
 import type { ClientMessage, TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 import { applyTvRestoreToRoom } from '@/modules/room/apply-tv-restore';
-import { canJoinWhenLocked } from '@/modules/room/participant-policy';
+import { applyClaimHost, canJoinWhenLocked } from '@/modules/room/participant-policy';
 import { publishToRoom } from '@/modules/room/room-broadcast';
 import { resolvePlaylistDetails } from '@/modules/youtube/fetch-playlist-details-cached';
 import {
@@ -670,19 +670,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         }
 
         const room = await mutateRoom(roomId, (room) => {
-            const participant = room.participants[deviceId];
-            if (!participant) {
-                throw new RoomError(ErrorCode.NOT_IN_ROOM);
-            }
-            // Co-host model: claiming makes this device a host alongside any
-            // existing hosts. TV joins still take the primary `hostDeviceId` slot,
-            // but remotes are not demoted when a TV reappears.
-            if (participant.isTvConnection) {
-                room.hostDeviceId = participant.deviceId;
-            } else if (!room.hostDeviceId || !room.participants[room.hostDeviceId]) {
-                room.hostDeviceId = participant.deviceId;
-            }
-            participant.role = 'host';
+            applyClaimHost(room, deviceId);
         });
 
         broadcastRoomState(roomId, room);

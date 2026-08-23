@@ -1,4 +1,4 @@
-import type { Room } from '@vkara/room';
+import { ErrorCode, RoomError, type Room } from '@vkara/room';
 
 /** Offline participants older than this are removed when the room is unlocked. */
 export const STALE_PARTICIPANT_TTL_MS = 5 * 60 * 1000;
@@ -77,6 +77,26 @@ export function isHostParticipant(
 ): boolean {
     const participant = room.participants[deviceId];
     return Boolean(participant && participant.role === 'host');
+}
+
+/**
+ * Apply a `claimHost` mutation. Only an existing host may run this:
+ * TV hosts reclaim the primary `hostDeviceId` slot; members cannot
+ * self-promote (GHSA-w67q-x46v-w932).
+ */
+export function applyClaimHost(room: Room, deviceId: string): void {
+    const participant = room.participants[deviceId];
+    if (!participant) {
+        throw new RoomError(ErrorCode.NOT_IN_ROOM);
+    }
+    if (participant.role !== 'host') {
+        throw new RoomError(ErrorCode.NOT_HOST);
+    }
+    if (participant.isTvConnection) {
+        room.hostDeviceId = participant.deviceId;
+    } else if (!room.hostDeviceId || !room.participants[room.hostDeviceId]) {
+        room.hostDeviceId = participant.deviceId;
+    }
 }
 
 export function canUnlockRoom(
