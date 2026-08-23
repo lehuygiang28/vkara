@@ -39,7 +39,10 @@ export const searchTiktokElysia = new Elysia({ prefix: '/tiktok' }).post(
                 searchId: result.searchId || null,
             };
         } catch (error) {
-            logger.error('TikTok search failed', { keyword, error });
+            logger.error('TikTok search failed', {
+                keyword,
+                error: error instanceof Error ? error.message : String(error),
+            });
             captureUnexpected(error, {
                 tags: { area: 'tiktok', route: 'search', kind: 'upstream' },
                 level: 'warning',

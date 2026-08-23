@@ -2,6 +2,7 @@ import type { Browser, BrowserContext, Page } from 'playwright';
 
 import { parseVideos } from './parse-videos';
 import { playwrightProxyFromEnv } from './playwright-proxy';
+import { isInitialSearchApiUrl, isUsableSearchResponse } from './search-response';
 import type { SearchResponse, TikTokVideo } from './types';
 
 function logProxyConfig(): void {
@@ -42,10 +43,13 @@ function chromiumLaunchOptions(): {
     };
 }
 
-const SIGNED_URL_TIMEOUT_MS = 20_000;
+const SEARCH_RESPONSE_TIMEOUT_MS = 15_000;
 const WARMUP_SETTLE_MS = 800;
 const FETCH_RETRY_DELAY_MS = 700;
-const NAV_DRAIN_MS = 400;
+/** TikTok often returns an empty probe on first load; reload mimics the UI "Try again". */
+const MAX_SEARCH_NAV_ATTEMPTS = 3;
+const SEARCH_PROBE_RETRY_MS = 1_500;
+const SEARCH_RETRY_SETTLE_MS = 800;
 const SESSION_TTL_MS = 5 * 60 * 1000;
 /** Items returned to the client per search page. */
 const CLIENT_PAGE_SIZE = 12;
@@ -84,35 +88,72 @@ function parseSearchResponse(json: SearchResponse) {
     };
 }
 
-function waitForSignedSearchUrl(page: Page, keyword: string): Promise<string> {
+type CapturedSearchResponse = {
+    json: SearchResponse;
+    signedUrl: string;
+};
+
+/** Waits for a non-empty TikTok search API response (skips bot-detection probe responses). */
+function waitForNonemptySearchResponse(
+    page: Page,
+    keyword: string,
+    timeoutMs = SEARCH_RESPONSE_TIMEOUT_MS,
+): Promise<CapturedSearchResponse> {
     return new Promise((resolve, reject) => {
+        let sawEmptyProbe = false;
+        let probeTimer: ReturnType<typeof setTimeout> | undefined;
+
         const timer = setTimeout(() => {
-            page.off('request', onRequest);
-            reject(new Error(`Signed URL timeout for "${keyword}"`));
-        }, SIGNED_URL_TIMEOUT_MS);
+            cleanup();
+            reject(new Error(`Search response timeout for "${keyword}"`));
+        }, timeoutMs);
 
-        const onRequest = (request: { url: () => string }) => {
-            const url = request.url();
-            if (!url.includes('/api/search/general/full') || !url.includes('X-Bogus')) {
-                return;
-            }
-
-            const paramKeyword = new URL(url).searchParams.get('keyword');
-            if (paramKeyword !== keyword) {
-                return;
-            }
-
-            const cursor = Number(new URL(url).searchParams.get('cursor') ?? '0');
-            if (cursor > 0) {
-                return;
-            }
-
+        const cleanup = () => {
             clearTimeout(timer);
-            page.off('request', onRequest);
-            resolve(url);
+            if (probeTimer) clearTimeout(probeTimer);
+            page.off('response', onResponse);
         };
 
-        page.on('request', onRequest);
+        const onResponse = async (response: { url: () => string; text: () => Promise<string> }) => {
+            const url = response.url();
+            if (!isInitialSearchApiUrl(url, keyword)) {
+                return;
+            }
+
+            let raw = '';
+            try {
+                raw = await response.text();
+            } catch {
+                return;
+            }
+
+            if (!raw.trim()) {
+                if (!sawEmptyProbe) {
+                    sawEmptyProbe = true;
+                    probeTimer = setTimeout(() => {
+                        cleanup();
+                        reject(new Error(`Empty probe response for "${keyword}"`));
+                    }, SEARCH_PROBE_RETRY_MS);
+                }
+                return;
+            }
+
+            let json: SearchResponse;
+            try {
+                json = JSON.parse(raw) as SearchResponse;
+            } catch {
+                return;
+            }
+
+            if (!isUsableSearchResponse(json)) {
+                return;
+            }
+
+            cleanup();
+            resolve({ json, signedUrl: url });
+        };
+
+        page.on('response', onResponse);
     });
 }
 
@@ -124,11 +165,13 @@ async function fetchSearchJson(page: Page, signedUrl: string): Promise<SearchRes
             return res.text();
         }, signedUrl);
 
-    let raw = await readBody();
-
-    if (!raw.trim()) {
-        await page.waitForTimeout(FETCH_RETRY_DELAY_MS);
+    let raw = '';
+    for (let attempt = 0; attempt < 4; attempt++) {
         raw = await readBody();
+        if (raw.trim()) {
+            break;
+        }
+        await page.waitForTimeout(FETCH_RETRY_DELAY_MS);
     }
 
     if (!raw.trim()) {
@@ -149,14 +192,6 @@ async function fetchSearchJson(page: Page, signedUrl: string): Promise<SearchRes
     return json;
 }
 
-function withPrefetchCount(signedUrl: string, count = PREFETCH_COUNT): string {
-    const url = new URL(signedUrl);
-    url.searchParams.set('count', String(count));
-    url.searchParams.set('cursor', '0');
-    url.searchParams.set('offset', '0');
-    return url.toString();
-}
-
 function createPoolSearchSessionId(): string {
     return `tt-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -170,28 +205,50 @@ async function prefetchSearchVideos(
     tiktokNextCursor: number;
     tiktokHasMore: boolean;
 }> {
-    const signedUrlPromise = waitForSignedSearchUrl(page, keyword);
-    const navigation = page
-        .goto(`https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}`, {
-            waitUntil: 'domcontentloaded',
-            timeout: 30_000,
-        })
-        // TikTok often returns non-2xx on the search document while still issuing signed API requests.
-        .catch(() => undefined);
+    const searchUrl = `https://www.tiktok.com/search?q=${encodeURIComponent(keyword)}`;
+    let lastError: unknown;
 
-    const signedUrl = await signedUrlPromise;
+    for (let attempt = 1; attempt <= MAX_SEARCH_NAV_ATTEMPTS; attempt++) {
+        const responsePromise = waitForNonemptySearchResponse(page, keyword);
 
-    await Promise.race([navigation, page.waitForTimeout(NAV_DRAIN_MS)]);
+        if (attempt === 1) {
+            await page
+                .goto(searchUrl, {
+                    waitUntil: 'domcontentloaded',
+                    timeout: 30_000,
+                })
+                // TikTok often returns non-2xx on the search document while still issuing signed API requests.
+                .catch(() => undefined);
+        } else {
+            await page
+                .reload({
+                    waitUntil: 'domcontentloaded',
+                    timeout: 30_000,
+                })
+                .catch(() => undefined);
+        }
 
-    const json = await fetchSearchJson(page, withPrefetchCount(signedUrl));
-    const parsed = parseSearchResponse(json);
+        try {
+            const { json, signedUrl } = await responsePromise;
+            const parsed = parseSearchResponse(json);
 
-    return {
-        videos: parsed.videos,
-        signedUrl,
-        tiktokNextCursor: parsed.cursor,
-        tiktokHasMore: parsed.hasMore,
-    };
+            return {
+                videos: parsed.videos,
+                signedUrl,
+                tiktokNextCursor: parsed.cursor,
+                tiktokHasMore: parsed.hasMore,
+            };
+        } catch (error) {
+            lastError = error;
+            if (attempt < MAX_SEARCH_NAV_ATTEMPTS) {
+                await page.waitForTimeout(SEARCH_RETRY_SETTLE_MS);
+            }
+        }
+    }
+
+    throw lastError instanceof Error
+        ? lastError
+        : new Error(`TikTok search failed for "${keyword}"`);
 }
 
 function sliceClientPage(session: SearchSession, offset: number): PoolSearchResult {
