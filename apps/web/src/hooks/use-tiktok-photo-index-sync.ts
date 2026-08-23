@@ -9,24 +9,18 @@ import {
     getTikTokPhotoMaxImageIndex,
     setTikTokPhotoImageChangeHandler,
 } from '@/lib/tiktok-playback-sync';
-import { isTikTokPhotoPost } from '@vkara/tiktok';
+import { selectTikTokPhotoSyncPlayingNowId } from '@/lib/tiktok-host-store-selectors';
 
 /**
  * TV / laptop player reports TikTok photo carousel index to the room so remotes stay in sync.
+ *
+ * `playingNowId` is a primitive so zustand Object.is stays stable (see hidden-play-guard).
  */
 export function useTikTokPhotoIndexSync(): void {
     const layoutModeSource = useYouTubeStore((s) => s.layoutModeSource);
     const isHostPlayer = layoutModeSource === 'url' || layoutModeSource === 'user';
 
-    const photoSyncContext = useYouTubeStore((s) => {
-        const roomId = s.room?.id;
-        const playingNow = s.room?.playingNow;
-        if (!roomId || !playingNow || !isTikTokPhotoPost({ video: playingNow })) {
-            return null;
-        }
-        return { roomId, playingNowId: playingNow.id };
-    });
-
+    const photoPlayingNowId = useYouTubeStore(selectTikTokPhotoSyncPlayingNowId);
     const isRoomSessionReady = useIsRoomSessionReady();
 
     useEffect(() => {
@@ -34,23 +28,22 @@ export function useTikTokPhotoIndexSync(): void {
             setTikTokPhotoImageChangeHandler(null);
             return;
         }
-        if (!photoSyncContext || !isRoomSessionReady) {
+        if (!photoPlayingNowId || !isRoomSessionReady) {
             setTikTokPhotoImageChangeHandler(null);
             return;
         }
 
-        const { playingNowId } = photoSyncContext;
         setTikTokPhotoImageChangeHandler((index) => {
             ensureConnectedAndSend({
                 type: 'syncTikTokPhotoIndex',
                 index,
                 maxIndex: getTikTokPhotoMaxImageIndex(),
-                videoId: playingNowId,
+                videoId: photoPlayingNowId,
             });
         });
 
         return () => {
             setTikTokPhotoImageChangeHandler(null);
         };
-    }, [isHostPlayer, photoSyncContext, isRoomSessionReady]);
+    }, [isHostPlayer, photoPlayingNowId, isRoomSessionReady]);
 }

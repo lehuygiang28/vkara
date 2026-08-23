@@ -13,14 +13,17 @@ import { useShowCuratedStarters } from '@/hooks/use-curated-starter-visibility';
 import { usePersonalizationStore } from '@/store/personalizationStore';
 import { useSearchStore } from '@/store/searchStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
+import type { YouTubeVideo } from '@vkara/youtube';
 import { VideoSkeletonListForViewport } from '@/components/video-skeleton';
-
 import { cn } from '@/lib/utils';
 
 import { VideoList } from './VideoList';
 import { VideoListEmptyState } from './video-list-empty-state';
 import { RemotePageGutter, RemoteScrollRoot, RemoteScrollSurface } from './remote-chrome';
 import { useVideoSearchListActions } from './use-video-search-list-actions';
+
+/** Stable empty queue — `?? []` in a zustand selector is a new [] every snapshot (React #185). */
+const EMPTY_HISTORY_QUEUE: YouTubeVideo[] = [];
 
 type BrowseSuggestionsListProps = {
     className?: string;
@@ -38,7 +41,7 @@ export function BrowseSuggestionsList({ className }: BrowseSuggestionsListProps)
         })),
     );
     const playingNow = useYouTubeStore((state) => state.room?.playingNow ?? null);
-    const historyQueue = useYouTubeStore((state) => state.room?.historyQueue ?? []);
+    const historyQueue = useYouTubeStore((state) => state.room?.historyQueue ?? EMPTY_HISTORY_QUEUE);
 
     const profile = useMemo(
         () => ({

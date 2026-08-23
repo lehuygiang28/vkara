@@ -106,6 +106,7 @@ export const usePersonalizationStore = create(
         {
             name: 'vkara-personalization',
             version: 1,
+            migrate: (persisted) => persisted as PersonalizationState,
             storage: createJSONStorage(() => createMigratingPersistStorage()),
             partialize: (state) =>
                 ({

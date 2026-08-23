@@ -594,6 +594,7 @@ export const useYouTubeStore = create(
         {
             name: 'youtube-storage',
             version: 2,
+            migrate: (persisted) => persisted as YouTubeState,
             storage: createJSONStorage(() => createMigratingPersistStorage()),
             partialize: (state) => {
                 // Persist cold session identity only — never hot room snapshots / currentTime.

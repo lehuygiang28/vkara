@@ -2,7 +2,6 @@
 
 import { useEffect } from 'react';
 
-import { isTikTokPlayback } from '@/lib/active-playback';
 import {
     clearTikTokBackgroundResumeIntent,
     rejectTikTokPlayWhileHidden,
@@ -10,59 +9,59 @@ import {
     subscribeTikTokVisibilityPlayback,
 } from '@/lib/tiktok-room-playback';
 import { ensureConnectedAndSend } from '@/lib/ensure-ws-send';
+import {
+    selectTikTokHostIsPlaying,
+    selectTikTokHostPlayingNowId,
+} from '@/lib/tiktok-host-store-selectors';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 /**
  * TV/laptop host TikTok visibility:
  * - reject play while hidden (sync pause so remotes don't drift)
  * - auto-resume when tab visible after a tab-hidden pause
+ *
+ * Subscribe to primitives only. An object snapshot (`{ playingNowId, roomIsPlaying }`)
+ * fails zustand Object.is on every store tick and triggers React error #185
+ * (max update depth) whenever a TikTok clip is playingNow — the page then
+ * error-boundary reloads in a loop.
  */
 export function useTikTokHiddenPlayGuard(): void {
-    const tiktokHostContext = useYouTubeStore((s) => {
-        const roomId = s.room?.id;
-        const playingNow = s.room?.playingNow;
-        if (!roomId || !playingNow || !isTikTokPlayback({ video: playingNow })) {
-            return null;
-        }
-        return {
-            playingNowId: playingNow.id,
-            roomIsPlaying: s.room?.isPlaying ?? false,
-        };
-    });
+    const tiktokPlayingNowId = useYouTubeStore(selectTikTokHostPlayingNowId);
+    const tiktokRoomIsPlaying = useYouTubeStore(selectTikTokHostIsPlaying);
 
     useEffect(() => {
-        if (!tiktokHostContext) {
+        if (!tiktokPlayingNowId) {
             return;
         }
         clearTikTokBackgroundResumeIntent();
-    }, [tiktokHostContext?.playingNowId, tiktokHostContext]);
+    }, [tiktokPlayingNowId]);
 
     useEffect(() => {
-        if (!tiktokHostContext?.roomIsPlaying) {
+        if (!tiktokPlayingNowId || !tiktokRoomIsPlaying) {
             return;
         }
 
         rejectTikTokPlayWhileHidden({
-            videoId: tiktokHostContext.playingNowId,
+            videoId: tiktokPlayingNowId,
             ensureConnectedAndSend,
         });
-    }, [tiktokHostContext]);
+    }, [tiktokPlayingNowId, tiktokRoomIsPlaying]);
 
     useEffect(() => {
-        if (!tiktokHostContext) {
+        if (!tiktokPlayingNowId) {
             return;
         }
 
         const unsubscribe = subscribeTikTokVisibilityPlayback({
-            videoId: tiktokHostContext.playingNowId,
+            videoId: tiktokPlayingNowId,
             ensureConnectedAndSend,
         });
 
         resumeTikTokAfterBackgroundIfNeeded({
-            videoId: tiktokHostContext.playingNowId,
+            videoId: tiktokPlayingNowId,
             ensureConnectedAndSend,
         });
 
         return unsubscribe;
-    }, [tiktokHostContext]);
+    }, [tiktokPlayingNowId]);
 }

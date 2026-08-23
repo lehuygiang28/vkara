@@ -71,6 +71,8 @@ export const useRoomRejoinSecretStore = create<RoomRejoinSecretState>()(
         }),
         {
             name: PERSIST_STORE_KEYS.rejoinSecrets,
+            version: 1,
+            migrate: (persisted) => persisted as RoomRejoinSecretState,
             storage: createJSONStorage(() => createMigratingPersistStorage()),
             partialize: (state) => ({ secrets: state.secrets }),
         },

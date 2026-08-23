@@ -282,6 +282,7 @@ export const useSearchStore = create(
         {
             name: 'search-store',
             version: 1,
+            migrate: (persisted) => persisted as SearchState,
             storage: createJSONStorage(() => createMigratingPersistStorage()),
             /** Persist only preferences — never draft query/results (causes input lag). */
             partialize: (state) => ({ isKaraoke: state.isKaraoke }) as SearchState,
