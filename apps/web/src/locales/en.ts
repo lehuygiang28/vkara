@@ -424,6 +424,9 @@ export default {
     'error.boundary.retrying': 'Recovering automatically…',
     'error.boundary.redirecting': 'Taking you back…',
 
+    'credit.bylinePrefix': 'Made by',
+    'credit.tagline': 'From Vietnam with love ❤️',
+
     'seo.title': 'vkara - Sing karaoke together online',
     'seo.description':
         'vkara is a free online karaoke app. Create a room, invite friends, and sing together anytime with YouTube videos.',

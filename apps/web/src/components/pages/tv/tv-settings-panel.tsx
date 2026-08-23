@@ -28,11 +28,12 @@ import {
     tvSettingsSectionLabel,
 } from '@/lib/tv-focus-styles';
 import { cn } from '@/lib/utils';
+import { CreatorCredit } from '@/components/creator-credit';
+import { getOrCreateDeviceId } from '@/lib/device-id';
 
 import { TvFocusable } from './tv-focusable';
 import { TvSpatialOverlayShell } from './tv-spatial-overlay-shell';
 import { TvParticipantsPanel } from './tv-participants-panel';
-import { getOrCreateDeviceId } from '@/lib/device-id';
 
 type TvSettingsPanelProps = {
     onCloseAction: () => void;
@@ -483,6 +484,8 @@ export function TvSettingsPanel({ onCloseAction }: TvSettingsPanelProps) {
                         onEnterPress={onCloseAction}
                     />
                 </div>
+
+                <CreatorCredit linked={false} tone="tv" />
             </TvSpatialOverlayShell>
         </div>
     );

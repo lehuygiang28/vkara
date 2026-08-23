@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 
+import { CreatorCredit } from '@/components/creator-credit';
 import { DeviceSettingsSection } from '@/components/settings/device-settings-section';
 import { RoomSettingsSection } from '@/components/settings/room-settings-section';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -34,6 +35,7 @@ export function RoomSettings() {
 
                     <RoomSettingsSection isRemoteLayout={isRemoteLayout} />
                     <DeviceSettingsSection />
+                    <CreatorCredit />
                     <RemoteScrollInsetSpacer />
                 </div>
             </ScrollArea>

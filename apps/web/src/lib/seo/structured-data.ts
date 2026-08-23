@@ -1,3 +1,4 @@
+import { buildCreatorPerson } from '@/lib/creator';
 import { APP_LOCALES, getLocalePublicPath, type AppLocale } from '@/lib/locale-path';
 import { getSiteUrl } from '@/lib/site-url';
 
@@ -29,6 +30,7 @@ export function buildStructuredData({ locale, title, description, siteName }: St
             priceCurrency: 'USD',
         },
         image: `${siteUrl}/og-image.png`,
+        creator: buildCreatorPerson(),
     };
 
     const webSite = {

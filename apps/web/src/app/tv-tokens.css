@@ -538,6 +538,16 @@
     color: rgb(212 212 216);
 }
 
+[data-tv-route] .tv-settings-credit {
+    margin-top: 1.25rem;
+    padding-bottom: 0.25rem;
+    text-align: center;
+    font-size: 0.875rem;
+    font-size: clamp(0.75rem, 1.5vh, 0.9375rem);
+    line-height: 1.5;
+    color: rgb(161 161 170 / 0.85);
+}
+
 /** Queue shelf — no own background; scrim above handles fade. */
 [data-tv-route] .tv-queue-shelf {
     position: relative;

@@ -288,5 +288,10 @@ MIT - xem [LICENSE](../../LICENSE).
 ---
 
 <p align="center">
+  Phát triển bởi <a href="https://github.com/lehuygiang28">@lehuygiang28</a><br />
+  From Vietnam with love ♥
+</p>
+
+<p align="center">
   <a href="https://github.com/lehuygiang28/vkara">github.com/lehuygiang28/vkara</a>
 </p>

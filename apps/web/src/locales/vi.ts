@@ -419,6 +419,9 @@ export default {
     'error.boundary.retrying': 'Đang tự khôi phục…',
     'error.boundary.redirecting': 'Đang đưa bạn về trang chính…',
 
+    'credit.bylinePrefix': 'Phát triển bởi',
+    'credit.tagline': 'From Vietnam with love ❤️',
+
     'seo.title': 'vkara - Hát karaoke cùng nhau trực tuyến',
     'seo.description':
         'vkara là ứng dụng hát karaoke trực tuyến miễn phí. Tạo phòng, mời bạn bè và hát cùng nhau mọi lúc mọi nơi qua YouTube.',

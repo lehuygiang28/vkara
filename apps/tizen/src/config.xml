@@ -6,6 +6,7 @@
     <icon src="icon.png"/>
     <name>vKara</name>
     <description>Karaoke host for vkara - sing together, control from your phone</description>
+    <author href="https://github.com/lehuygiang28" email="lehuygiang28@gmail.com">Lê Huy Giang</author>
     <access origin="*" subdomains="true"/>
     <tizen:privilege name="http://tizen.org/privilege/internet"/>
     <tizen:privilege name="http://tizen.org/privilege/tv.inputdevice"/>

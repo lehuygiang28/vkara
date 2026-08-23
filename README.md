@@ -283,5 +283,10 @@ MIT - see [LICENSE](LICENSE).
 ---
 
 <p align="center">
+  Made by <a href="https://github.com/lehuygiang28">@lehuygiang28</a><br />
+  From Vietnam with love ♥
+</p>
+
+<p align="center">
   <a href="https://github.com/lehuygiang28/vkara">github.com/lehuygiang28/vkara</a>
 </p>

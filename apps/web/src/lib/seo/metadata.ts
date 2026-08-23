@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 
 import { env } from '@/env';
+import { CREATOR_GITHUB_URL, CREATOR_LEGAL_NAME } from '@/lib/creator';
 import {
     APP_LOCALES,
     DEFAULT_APP_LOCALE,
@@ -45,6 +46,8 @@ export function buildPageMetadata(locale: AppLocale, t: SeoTranslations): Metada
         description: t.description,
         keywords,
         applicationName: t.siteName,
+        authors: [{ name: CREATOR_LEGAL_NAME, url: CREATOR_GITHUB_URL }],
+        creator: CREATOR_LEGAL_NAME,
         icons: {
             icon: [
                 { url: '/icons/icon-32.png', sizes: '32x32', type: 'image/png' },
