@@ -20,6 +20,7 @@
         "@vkara/redis": "workspace:*",
         "@vkara/room": "workspace:*",
         "@vkara/tiktok": "workspace:*",
+        "@vkara/url-commands": "workspace:*",
         "@vkara/validators": "workspace:*",
         "@vkara/youtube": "workspace:*",
         "bullmq": "^5.34.8",

@@ -28,6 +28,7 @@ import {
 import { resolveNextEmbeddableFromQueue } from '@/modules/youtube/resolve-embeddable-queue';
 import { mergeQueueAfterAdvance } from '@/modules/room/merge-queue-after-advance';
 import { redis } from '@/redis';
+import { consumeJoinToken } from '@/modules/url-commands/join-token';
 import {
     isVideoAlreadyInRoom,
     loadRoom,
@@ -569,6 +570,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         roomId: string,
         options: {
             password?: string;
+            joinToken?: string;
             isRejoin?: boolean;
             deviceId?: string;
             isTvClient?: boolean;
@@ -590,7 +592,12 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         const room = await requireRoom(roomId, isRejoin);
 
         const expectedPassword = normalizeRoomPassword(room.password);
-        if (expectedPassword) {
+        if (options.joinToken) {
+            const accepted = await consumeJoinToken(redis, options.joinToken, roomId);
+            if (!accepted) {
+                throw new RoomError(ErrorCode.INCORRECT_PASSWORD);
+            }
+        } else if (expectedPassword) {
             const providedPassword = normalizeRoomPassword(options.password) ?? '';
             if (providedPassword !== expectedPassword) {
                 throw new RoomError(ErrorCode.INCORRECT_PASSWORD);
@@ -1525,6 +1532,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             case 'joinRoom':
                 await joinRoom(ws, message.roomId, {
                     password: message.password,
+                    joinToken: message.joinToken,
                     deviceId: message.deviceId,
                     isTvClient: message.isTvClient,
                     displayName: message.displayName,
@@ -1533,6 +1541,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             case 'reJoinRoom':
                 await joinRoom(ws, message.roomId, {
                     password: message.password,
+                    joinToken: message.joinToken,
                     isRejoin: true,
                     deviceId: message.deviceId,
                     isTvClient: message.isTvClient,

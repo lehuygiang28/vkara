@@ -23,6 +23,7 @@ import { env } from './env';
 import { redis } from './redis';
 import { searchTiktokElysia, shutdownTikTokPool, warmupTikTokPool } from './tiktok';
 import { searchYoutubeiElysia } from './youtubei';
+import { urlCommandsElysia } from '@/plugins/url-commands.plugin';
 
 const serverLogger = createContextLogger('Server');
 
@@ -125,6 +126,7 @@ export const wsServer = Sentry.withElysia(
         }),
     )
     .use(searchYoutubeiElysia)
+    .use(urlCommandsElysia)
     .use(isExperimentsEnabled(env) ? searchTiktokElysia : new Elysia())
     .get('/health', async () =>
         getServiceHealth({
