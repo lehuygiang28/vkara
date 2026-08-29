@@ -6,7 +6,7 @@
     "license": "MIT",
     "private": false,
     "packageType": "app",
-    "appName": "vKara",
+    "appName": "VKara",
     "appPath": "index.html",
     "keys": [
         "MediaPlayPause",

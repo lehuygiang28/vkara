@@ -4,7 +4,7 @@
     <content src="index.html"/>
     <feature name="http://tizen.org/feature/screen.size.all"/>
     <icon src="icon.png"/>
-    <name>vKara</name>
+    <name>VKara</name>
     <description>Karaoke host for vkara - sing together, control from your phone</description>
     <author href="https://github.com/lehuygiang28" email="lehuygiang28@gmail.com">Lê Huy Giang</author>
     <access origin="*" subdomains="true"/>
