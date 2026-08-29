@@ -2,7 +2,7 @@
 
 import { useCallback, useId, useMemo, useState } from 'react';
 import type { Participant } from '@vkara/room';
-import { Crown, Monitor, MoreHorizontal, Smartphone, UserMinus, UserX } from 'lucide-react';
+import { Crown, Monitor, MoreHorizontal, Smartphone, UserMinus, UserX, Bot } from 'lucide-react';
 
 import { getOrCreateDeviceId } from '@/lib/device-id';
 import { useWebSocket } from '@/providers/websocket-provider';
@@ -283,6 +283,19 @@ export function ParticipantsPanel({
                                     >
                                         {isHost ? tRoom('roleHost') : tRoom('roleMember')}
                                     </span>
+                                    {participant.isAgent ? (
+                                        <span
+                                            className={cn(
+                                                'inline-flex items-center gap-0.5 rounded-md px-1.5 py-0.5 text-[11px] font-medium',
+                                                isTv
+                                                    ? 'bg-violet-500/20 text-violet-300'
+                                                    : 'bg-violet-500/10 text-violet-600 dark:text-violet-400',
+                                            )}
+                                        >
+                                            <Bot className="h-3 w-3 shrink-0" aria-hidden />
+                                            {tRoom('roleAgent')}
+                                        </span>
+                                    ) : null}
                                     <span
                                         className={cn(
                                             'inline-flex items-center gap-1 text-[11px]',

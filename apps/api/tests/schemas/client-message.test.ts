@@ -32,6 +32,7 @@ describe('wsClientMessageSchema', () => {
                 ...base,
                 type: 'joinRoom',
                 roomId: '1234',
+                isAgent: true,
             }),
         ).toBe(true);
     });

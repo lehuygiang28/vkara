@@ -206,6 +206,7 @@ export default {
     'roomSettings.saveDisplayName': 'Save',
     'roomSettings.roleHost': 'Host',
     'roomSettings.roleMember': 'Remote',
+    'roomSettings.roleAgent': 'Agent',
     'roomSettings.you': 'You',
     'roomSettings.online': 'Online',
     'roomSettings.offline': 'Offline',

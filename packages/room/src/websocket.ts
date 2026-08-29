@@ -26,6 +26,8 @@ export interface Participant {
     connectionIds: string[];
     /** True when the connection was reported as a TV client. */
     isTvConnection: boolean;
+    /** True when the device joined as an AI agent (URL agent=1 or joinToken). */
+    isAgent: boolean;
 }
 
 export interface Room {

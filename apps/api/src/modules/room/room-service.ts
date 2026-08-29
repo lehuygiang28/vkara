@@ -19,6 +19,7 @@ import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
 import type { ClientMessage, TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 import { applyTvRestoreToRoom } from '@/modules/room/apply-tv-restore';
 import { applyClaimHost, canJoinWhenLocked } from '@/modules/room/participant-policy';
+import { upsertParticipant } from '@/modules/room/upsert-participant';
 import { publishToRoom } from '@/modules/room/room-broadcast';
 import { resolvePlaylistDetails } from '@/modules/youtube/fetch-playlist-details-cached';
 import {
@@ -68,61 +69,15 @@ function resolveDeviceId(ws: ElysiaWS, incoming?: string): string {
     return deviceId;
 }
 
-function makeDisplayName(isTvConnection: boolean, index: number): string {
-    if (isTvConnection) return 'TV';
-    // Prefer client-sent labels (model / user name). This is only a last-resort fallback.
-    return `Remote #${Math.max(1, index)}`;
-}
-
-/**
- * Normalize a client-supplied display name: trim, cap length, fall back when empty.
- * Mirrors the runtime guard in `setDisplayName` so create/join/rejoin can never
- * store whitespace-only or oversized names (defense in depth before the WS schema).
- */
 function sanitizeDisplayName(value: string | undefined, fallback: string): string {
     const trimmed = value?.trim().slice(0, MAX_DISPLAY_NAME_LENGTH);
     return trimmed && trimmed.length > 0 ? trimmed : fallback;
 }
 
-function upsertParticipant(
-    room: Room,
-    deviceId: string,
-    wsId: string,
-    isTvClient: boolean,
-    displayName?: string,
-): Participant {
-    const existing = room.participants[deviceId];
-
-    if (existing) {
-        if (!existing.connectionIds.includes(wsId)) {
-            existing.connectionIds.push(wsId);
-        }
-        existing.lastSeen = Date.now();
-        if (isTvClient && !existing.isTvConnection) {
-            existing.isTvConnection = true;
-            existing.displayName = existing.displayName || 'TV';
-        }
-        const next = displayName
-            ? sanitizeDisplayName(displayName, existing.displayName)
-            : undefined;
-        if (next) {
-            existing.displayName = next;
-        }
-        return existing;
-    }
-
-    const remoteCount = Object.values(room.participants).filter((p) => !p.isTvConnection).length;
-    const participant: Participant = {
-        deviceId,
-        displayName: sanitizeDisplayName(displayName, makeDisplayName(isTvClient, remoteCount + 1)),
-        role: 'member',
-        joinedAt: Date.now(),
-        lastSeen: Date.now(),
-        connectionIds: [wsId],
-        isTvConnection: isTvClient,
-    };
-    room.participants[deviceId] = participant;
-    return participant;
+function makeDisplayName(isTvConnection: boolean, index: number): string {
+    if (isTvConnection) return 'TV';
+    // Prefer client-sent labels (model / user name). This is only a last-resort fallback.
+    return `Remote #${Math.max(1, index)}`;
 }
 
 function pruneConnectionFromParticipant(participant: Participant | undefined, wsId: string): void {
@@ -360,6 +315,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             isTvClient: boolean;
             displayName?: string;
             isRejoin?: boolean;
+            isAgent?: boolean;
         },
     ) {
         // When rejoining the same room we must NOT evict the participant entry —
@@ -400,6 +356,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                         lastSeen: Date.now(),
                         connectionIds: [],
                         isTvConnection: opts.isTvClient,
+                        isAgent: Boolean(opts.isAgent),
                     };
                 }
                 const participant = upsertParticipant(
@@ -408,6 +365,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     ws.id,
                     opts.isTvClient,
                     opts.displayName,
+                    opts.isAgent,
                 );
                 // First connection / empty room → becomes host.
                 if (!room.hostDeviceId || !room.participants[room.hostDeviceId]) {
@@ -575,6 +533,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             deviceId?: string;
             isTvClient?: boolean;
             displayName?: string;
+            isAgent?: boolean;
         } = {},
     ) {
         const isRejoin = options.isRejoin === true;
@@ -587,22 +546,27 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             isRejoin,
             deviceId,
             isTvClient,
+            isAgent: options.isAgent === true,
         });
 
         const room = await requireRoom(roomId, isRejoin);
 
         const expectedPassword = normalizeRoomPassword(room.password);
+        let usedJoinToken = false;
         if (options.joinToken) {
             const accepted = await consumeJoinToken(redis, options.joinToken, roomId);
             if (!accepted) {
                 throw new RoomError(ErrorCode.INCORRECT_PASSWORD);
             }
+            usedJoinToken = true;
         } else if (expectedPassword) {
             const providedPassword = normalizeRoomPassword(options.password) ?? '';
             if (providedPassword !== expectedPassword) {
                 throw new RoomError(ErrorCode.INCORRECT_PASSWORD);
             }
         }
+
+        const isAgent = options.isAgent === true || usedJoinToken;
 
         // Lock only blocks brand-new devices; known participants may reconnect.
         if (!canJoinWhenLocked(room, deviceId)) {
@@ -614,6 +578,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             isTvClient,
             displayName: options.displayName,
             isRejoin,
+            isAgent,
         });
 
         // Notify everyone else that participants changed.
@@ -1536,6 +1501,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     deviceId: message.deviceId,
                     isTvClient: message.isTvClient,
                     displayName: message.displayName,
+                    isAgent: message.isAgent,
                 });
                 break;
             case 'reJoinRoom':
@@ -1546,6 +1512,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     deviceId: message.deviceId,
                     isTvClient: message.isTvClient,
                     displayName: message.displayName,
+                    isAgent: message.isAgent,
                 });
                 break;
             case 'leaveRoom':

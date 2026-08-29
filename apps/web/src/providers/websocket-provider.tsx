@@ -319,6 +319,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 password: joinTokenParam ? undefined : passwordParam?.trim() || undefined,
                 joinToken: joinTokenParam,
                 isTvClient: isTvLayout,
+                isAgent: snapshotDocument.agent === '1' || Boolean(joinTokenParam),
             });
             return;
         }
@@ -343,6 +344,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         roomIdParam,
         passwordParam,
         joinTokenParam,
+        snapshotDocument.agent,
         roomId,
         rejoinPassword,
         isTvLayout,

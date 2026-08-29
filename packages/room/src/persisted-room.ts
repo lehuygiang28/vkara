@@ -66,6 +66,7 @@ function normalizeParticipants(
             lastSeen: typeof value.lastSeen === 'number' ? value.lastSeen : Date.now(),
             connectionIds: Array.isArray(value.connectionIds) ? value.connectionIds : [],
             isTvConnection: Boolean(value.isTvConnection),
+            isAgent: Boolean(value.isAgent),
         };
     }
     return out;

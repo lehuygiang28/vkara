@@ -23,7 +23,7 @@ On `/tv` or `/en/tv`: join and `name` still apply; `layoutMode`, `q`, and `tab` 
 | `provider` | `youtube` \| `tiktok` | session (TikTok needs experiments) |
 | `name` | max 40 | session; required for agents / mutations |
 | `tab` | `search` \| `queue` \| `history` \| `controls` \| `settings` | session (home only) |
-| `agent` | `1` | requires `name` |
+| `agent` | `1` | requires `name`; marks participant as **Agent** in the room list (also set when joining with `joinToken`) |
 | `queue` / `play` | video id | one-shot; needs `roomId` + `once` |
 | `next` | `1` | one-shot; needs `roomId` + `once` |
 | `once` | 8–64 token | consume before send |

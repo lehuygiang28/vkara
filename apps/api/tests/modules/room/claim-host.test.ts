@@ -9,6 +9,7 @@ function participant(
     overrides: Partial<{
         role: 'host' | 'member';
         isTvConnection: boolean;
+        isAgent: boolean;
     }> = {},
 ) {
     return {
@@ -19,6 +20,7 @@ function participant(
         lastSeen: 1,
         connectionIds: ['ws-1'],
         isTvConnection: overrides.isTvConnection ?? false,
+        isAgent: overrides.isAgent ?? false,
     };
 }
 

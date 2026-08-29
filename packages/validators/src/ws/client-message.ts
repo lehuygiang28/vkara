@@ -50,6 +50,7 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
         restore: tvRoomRestoreSchema.optional(),
         isTvClient: z.boolean().optional(),
         displayName: displayNameSchema.optional(),
+        isAgent: z.boolean().optional(),
     }),
     withBase({
         type: z.literal('joinRoom'),
@@ -58,6 +59,7 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
         joinToken: z.string().optional(),
         isTvClient: z.boolean().optional(),
         displayName: displayNameSchema.optional(),
+        isAgent: z.boolean().optional(),
     }),
     withBase({
         type: z.literal('reJoinRoom'),
@@ -66,6 +68,7 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
         joinToken: z.string().optional(),
         isTvClient: z.boolean().optional(),
         displayName: displayNameSchema.optional(),
+        isAgent: z.boolean().optional(),
     }),
     withBase({ type: z.literal('leaveRoom') }),
     withBase({ type: z.literal('closeRoom') }),

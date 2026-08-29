@@ -52,6 +52,7 @@ describe('normalizePersistedRoom', () => {
                     lastSeen: 2,
                     connectionIds: ['ws1'],
                     isTvConnection: false,
+                    isAgent: true,
                 },
             },
             locked: true,
@@ -62,6 +63,26 @@ describe('normalizePersistedRoom', () => {
         expect(normalized?.hostDeviceId).toBe('d1');
         expect(normalized?.participants.d1?.role).toBe('host');
         expect(normalized?.participants.d1?.connectionIds).toEqual(['ws1']);
+        expect(normalized?.participants.d1?.isAgent).toBe(true);
+    });
+
+    it('defaults isAgent to false when missing on legacy participants', () => {
+        const normalized = normalizePersistedRoom({
+            id: '1234',
+            participants: {
+                d1: {
+                    deviceId: 'd1',
+                    displayName: 'TV',
+                    role: 'member',
+                    joinedAt: 1,
+                    lastSeen: 2,
+                    connectionIds: [],
+                    isTvConnection: true,
+                },
+            },
+        });
+
+        expect(normalized?.participants.d1?.isAgent).toBe(false);
     });
 
     it('clamps volume to 0–100 and preserves explicit fields', () => {

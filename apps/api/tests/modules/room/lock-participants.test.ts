@@ -19,6 +19,7 @@ function participant(
         lastSeen: number;
         connectionIds: string[];
         isTvConnection: boolean;
+        isAgent: boolean;
     }> = {},
 ) {
     return {
@@ -29,6 +30,7 @@ function participant(
         lastSeen: overrides.lastSeen ?? 1,
         connectionIds: overrides.connectionIds ?? [],
         isTvConnection: overrides.isTvConnection ?? false,
+        isAgent: overrides.isAgent ?? false,
     };
 }
 
