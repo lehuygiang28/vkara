@@ -18,6 +18,14 @@ describe('parseRoomFromScan', () => {
         expect(parseRoomFromScan('abcd')).toBeNull();
     });
 
+    it('extracts only invite fields from a command-heavy URL', () => {
+        expect(
+            parseRoomFromScan(
+                'https://vkara.app/en?roomId=4821&password=party&queue=vid&play=vid&once=abcdefgh&name=Claude',
+            ),
+        ).toEqual({ roomId: '4821', password: 'party' });
+    });
+
     it('parses HTTPS invite URLs', () => {
         expect(parseRoomFromScan('https://vkara.app/vi?roomId=5678&password=party')).toEqual({
             roomId: '5678',

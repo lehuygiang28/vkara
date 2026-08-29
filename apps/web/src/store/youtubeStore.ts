@@ -616,7 +616,9 @@ export const useYouTubeStore = create(
                     error: null,
                     // Auto mode is re-derived from viewport on load; still store current value for non-auto.
                     layoutMode: state.layoutMode,
-                    layoutModeSource: state.layoutModeSource,
+                    // Session-only URL override must not stick onto a later phone visit.
+                    layoutModeSource:
+                        state.layoutModeSource === 'url' ? 'auto' : state.layoutModeSource,
                     tvSuppressAutoCreate: false,
                     tvLobbyBanner: null,
                     player: null,
@@ -632,7 +634,10 @@ export const useYouTubeStore = create(
                           hasPassword: persisted.room.hasPassword,
                       })
                     : null;
-                const layoutModeSource = persisted.layoutModeSource ?? 'auto';
+                const layoutModeSource =
+                    persisted.layoutModeSource === 'url'
+                        ? 'auto'
+                        : (persisted.layoutModeSource ?? 'auto');
                 const merged = {
                     ...currentState,
                     wsId: persisted.wsId ?? currentState.wsId,

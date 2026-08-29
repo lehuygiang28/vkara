@@ -114,4 +114,24 @@ describe('youtubeStore persist partialize', () => {
         expect(partial.room?.videoQueue).toEqual([]);
         expect(partial.room?.playingNow).toBeNull();
     });
+
+    it('does not persist a session url layout source', () => {
+        useYouTubeStore.setState({
+            layoutMode: 'player',
+            layoutModeSource: 'url',
+        });
+        const persistApi = (
+            useYouTubeStore as unknown as {
+                persist: {
+                    getOptions: () => {
+                        partialize: (state: ReturnType<typeof useYouTubeStore.getState>) => {
+                            layoutModeSource: string;
+                        };
+                    };
+                };
+            }
+        ).persist;
+        const partial = persistApi.getOptions().partialize(useYouTubeStore.getState());
+        expect(partial.layoutModeSource).toBe('auto');
+    });
 });

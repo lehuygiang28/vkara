@@ -19,7 +19,7 @@ export function getEffectiveLayoutMode({
     layoutModeSource: LayoutModeSource;
     viewportWidth: number;
 }): YouTubeStoreLayoutMode {
-    if (layoutModeSource === 'user') {
+    if (layoutModeSource === 'user' || layoutModeSource === 'url') {
         return storedLayoutMode;
     }
 

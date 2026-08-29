@@ -31,6 +31,16 @@ describe('getEffectiveLayoutMode', () => {
         ).toBe('player');
     });
 
+    it('respects a session url override like user', () => {
+        expect(
+            getEffectiveLayoutMode({
+                storedLayoutMode: 'player',
+                layoutModeSource: 'url',
+                viewportWidth: 390,
+            }),
+        ).toBe('player');
+    });
+
     it('falls back to stored mode when viewport width is zero', () => {
         expect(
             getEffectiveLayoutMode({

@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { parseUrlCommands } from '@vkara/url-commands';
+import { useUrlCommandStore } from '@/store/urlCommandStore';
 
 import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
 import {
@@ -66,13 +68,14 @@ export function RemoteJoinLobby({ allowCreateRoom = false }: RemoteJoinLobbyProp
     }, [roomPassword, ensureConnectedAndSend]);
 
     useEffect(() => {
-        const roomIdParam = searchParams.get('roomId');
-        const passwordParam = searchParams.get('password');
-        if (roomIdParam && isValidRoomId(roomIdParam)) {
-            setJoinRoomId(roomIdParam);
+        const document =
+            useUrlCommandStore.getState().snapshot?.document ??
+            parseUrlCommands(searchParams.toString()).document;
+        if (document.roomId && isValidRoomId(document.roomId)) {
+            setJoinRoomId(document.roomId);
         }
-        if (passwordParam) {
-            setJoinRoomPassword(passwordParam);
+        if (document.password) {
+            setJoinRoomPassword(document.password);
         }
     }, [searchParams, setJoinRoomId, setJoinRoomPassword]);
 

@@ -8,8 +8,12 @@ import { isValidRoomId, resolveWebSocketEndpoint } from '@vkara/room';
 import { env } from '@/env';
 import { ErrorCode } from '@vkara/room';
 import type { WebSocketState } from '@/types/websocket.type';
+import { parseUrlCommands } from '@vkara/url-commands';
+
 import { getEffectiveLayoutMode } from '@/lib/layout-mode';
 import { isDedicatedTvRoute } from '@/lib/tv-route';
+import { setUserDisplayName } from '@/lib/device-label';
+import { useUrlCommandStore } from '@/store/urlCommandStore';
 import { captureTvRoomSnapshot, recoverTvRoom } from '@/lib/tv-room-recovery';
 import { useIsRoomSessionReady } from '@/hooks/use-room-session-ready';
 import { useViewportWidth } from '@/hooks/use-viewport-layout';
@@ -89,9 +93,9 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     const roomIdRef = useRef(roomId);
     const rejoinPasswordRef = useRef(rejoinPassword);
     const ensureConnectedAndSendRef = useRef<WebSocketState['sendMessage']>(() => {});
-    const beginTvRecoveryRef = useRef<(snapshotRoom?: ReturnType<typeof useYouTubeStore.getState>['room']) => boolean>(
-        () => false,
-    );
+    const beginTvRecoveryRef = useRef<
+        (snapshotRoom?: ReturnType<typeof useYouTubeStore.getState>['room']) => boolean
+    >(() => false);
     const setRoomRef = useRef(setRoom);
     const enterTvLobbyRef = useRef(enterTvLobby);
     connectionEpochRef.current = connectionEpoch;
@@ -100,8 +104,16 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setRoomRef.current = setRoom;
     enterTvLobbyRef.current = enterTvLobby;
 
-    const roomIdParam = searchParams.get('roomId');
-    const passwordParam = searchParams.get('password');
+    const parsedCommand = parseUrlCommands(searchParams.toString());
+    if (parsedCommand.document.name) {
+        setUserDisplayName(parsedCommand.document.name);
+    }
+    useUrlCommandStore.getState().setSnapshot(parsedCommand);
+    const snapshotDocument =
+        useUrlCommandStore.getState().snapshot?.document ?? parsedCommand.document;
+    const roomIdParam = snapshotDocument.roomId;
+    const passwordParam = snapshotDocument.password;
+    const joinTokenParam = snapshotDocument.joinToken;
     const hasInviteInUrl = Boolean(roomIdParam && isValidRoomId(roomIdParam));
 
     const effectiveLayoutMode = getEffectiveLayoutMode({
@@ -182,7 +194,10 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
                 return;
             }
 
-            if (lastMessage.type === 'errorWithCode' && lastMessage.code === ErrorCode.NOT_IN_ROOM) {
+            if (
+                lastMessage.type === 'errorWithCode' &&
+                lastMessage.code === ErrorCode.NOT_IN_ROOM
+            ) {
                 if (!activeRoomId || recoveryInFlight.current) {
                     return;
                 }
@@ -237,9 +252,18 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         });
     }, []);
 
+    const hadInviteRef = useRef(false);
+    useEffect(() => {
+        const inviteAppeared = hasInviteInUrl && !hadInviteRef.current;
+        hadInviteRef.current = hasInviteInUrl;
+        if (inviteAppeared) {
+            lastSyncedEpoch.current = -1;
+        }
+    }, [hasInviteInUrl]);
+
     useEffect(() => {
         lastSyncedEpoch.current = -1;
-    }, [effectiveLayoutMode, hasInviteInUrl]);
+    }, [effectiveLayoutMode]);
 
     useEffect(() => {
         if (wsInitialized.current) return;
@@ -292,7 +316,8 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
             ensureConnectedAndSend({
                 type: 'joinRoom',
                 roomId: roomIdParam,
-                password: passwordParam?.trim() || undefined,
+                password: joinTokenParam ? undefined : passwordParam?.trim() || undefined,
+                joinToken: joinTokenParam,
                 isTvClient: isTvLayout,
             });
             return;
@@ -317,6 +342,7 @@ export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         hasInviteInUrl,
         roomIdParam,
         passwordParam,
+        joinTokenParam,
         roomId,
         rejoinPassword,
         isTvLayout,
