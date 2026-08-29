@@ -47,14 +47,22 @@ describe('joinToken', () => {
         expect(await consumeJoinToken(redis as never, minted.joinToken, '4821')).toBe(true);
     });
 
-    it('admits only one of two concurrent consumes', async () => {
+    it('admits only one of many concurrent consumes', async () => {
         const redis = memoryRedis();
         const minted = await mintJoinToken(redis as never, '4821');
-        const results = await Promise.all([
-            consumeJoinToken(redis as never, minted.joinToken, '4821'),
-            consumeJoinToken(redis as never, minted.joinToken, '4821'),
-        ]);
+        const results = await Promise.all(
+            Array.from({ length: 12 }, () =>
+                consumeJoinToken(redis as never, minted.joinToken, '4821'),
+            ),
+        );
         expect(results.filter(Boolean)).toHaveLength(1);
+    });
+
+    it('rejects a token after the key is gone (expired or evicted)', async () => {
+        const redis = memoryRedis();
+        const minted = await mintJoinToken(redis as never, '4821');
+        await redis.del(`join-token:${minted.joinToken}`);
+        expect(await consumeJoinToken(redis as never, minted.joinToken, '4821')).toBe(false);
     });
 
     it('rejects an invalid token without touching storage', async () => {
