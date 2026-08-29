@@ -81,6 +81,14 @@ export default defineConfig({
             },
             {
                 test: {
+                    name: '@vkara/url-commands',
+                    root: path.join(repoRoot, 'packages/url-commands'),
+                    include: ['tests/**/*.test.ts'],
+                    environment: 'node',
+                },
+            },
+            {
+                test: {
                     name: '@vkara/validators',
                     root: path.join(repoRoot, 'packages/validators'),
                     include: ['tests/**/*.test.ts'],

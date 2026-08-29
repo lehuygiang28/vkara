@@ -12,7 +12,8 @@
         "./ws/client-message": "./src/ws/client-message.ts",
         "./youtube/http": "./src/youtube/http.ts",
         "./youtube/video": "./src/youtube/video.ts",
-        "./tiktok/http": "./src/tiktok/http.ts"
+        "./tiktok/http": "./src/tiktok/http.ts",
+        "./url-commands": "./src/url-commands.ts"
     },
     "dependencies": {
         "zod": "^3.24.0"

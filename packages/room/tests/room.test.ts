@@ -61,6 +61,16 @@ describe('buildShareableRoomUrl', () => {
         ).toBe('https://vkara.app?roomId=4821&password=party');
     });
 
+    it('never serializes command keys on a human invite', () => {
+        const url = buildShareableRoomUrl({
+            baseUrl: 'https://vkara.app/en',
+            roomId: '4821',
+            password: 'secret',
+        });
+        const keys = [...new URL(url).searchParams.keys()].sort();
+        expect(keys).toEqual(['password', 'roomId']);
+    });
+
     it('omits password param when trimmed password is empty', () => {
         expect(
             buildShareableRoomUrl({

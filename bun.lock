@@ -52,6 +52,7 @@
         "@vkara/redis": "workspace:*",
         "@vkara/room": "workspace:*",
         "@vkara/tiktok": "workspace:*",
+        "@vkara/url-commands": "workspace:*",
         "@vkara/validators": "workspace:*",
         "@vkara/youtube": "workspace:*",
         "bullmq": "^5.34.8",
@@ -105,6 +106,7 @@
         "@vkara/personalization": "workspace:*",
         "@vkara/room": "workspace:*",
         "@vkara/tiktok": "workspace:*",
+        "@vkara/url-commands": "workspace:*",
         "@vkara/validators": "workspace:*",
         "@vkara/youtube": "workspace:*",
         "class-variance-authority": "^0.7.1",
@@ -197,6 +199,13 @@
       "dependencies": {
         "@vkara/youtube": "workspace:*",
         "playwright": "^1.52.0",
+      },
+    },
+    "packages/url-commands": {
+      "name": "@vkara/url-commands",
+      "version": "0.0.1",
+      "dependencies": {
+        "@vkara/validators": "workspace:*",
       },
     },
     "packages/validators": {
@@ -1051,6 +1060,8 @@
     "@vkara/tiktok": ["@vkara/tiktok@workspace:packages/tiktok"],
 
     "@vkara/tizen": ["@vkara/tizen@workspace:apps/tizen"],
+
+    "@vkara/url-commands": ["@vkara/url-commands@workspace:packages/url-commands"],
 
     "@vkara/validators": ["@vkara/validators@workspace:packages/validators"],
 

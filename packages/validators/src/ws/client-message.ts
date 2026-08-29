@@ -37,7 +37,7 @@ export const tvRoomRestoreSchema = z.object({
  * The runtime guard in apps/api/src/modules/room/room-service.ts drops empty results
  * (so a whitespace-only `displayName` is treated as "use the auto-generated fallback").
  */
-const displayNameSchema = z.string().trim().max(40);
+export const displayNameSchema = z.string().trim().max(40);
 
 const withBase = <T extends z.ZodRawShape>(shape: T) => messageBaseSchema.extend(shape);
 
@@ -55,6 +55,7 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
         type: z.literal('joinRoom'),
         roomId: z.string(),
         password: z.string().optional(),
+        joinToken: z.string().optional(),
         isTvClient: z.boolean().optional(),
         displayName: displayNameSchema.optional(),
     }),
@@ -62,6 +63,7 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
         type: z.literal('reJoinRoom'),
         roomId: z.string(),
         password: z.string().optional(),
+        joinToken: z.string().optional(),
         isTvClient: z.boolean().optional(),
         displayName: displayNameSchema.optional(),
     }),
