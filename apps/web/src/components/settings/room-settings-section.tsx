@@ -154,6 +154,7 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
             llmsTxtUrl: `${window.location.origin}/llms.txt`,
             roomId: room.id,
             locale,
+            password: sharePassword || undefined,
         });
 
         void navigator.clipboard.writeText(text).then(() => {
@@ -163,7 +164,7 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                 duration: 1800,
             });
         });
-    }, [locale, room?.id, tRoom]);
+    }, [locale, room?.id, sharePassword, tRoom]);
 
     return (
         <SettingsSection

@@ -75,8 +75,8 @@ vkara is a party app. Keep the guest path short: open the site, create or join, 
 
 Users invite you with a one-line message (host copies it from Settings → Mời tham gia):
 
-- **VI:** \`Đọc ${llmsUrl} và vào phòng <roomId> để giúp tôi điều khiển phòng.\`
-- **EN:** \`Read ${llmsUrl} and join room <roomId> to help me control the room.\`
+- **VI:** \`Đọc ${llmsUrl} và vào phòng <roomId> để giúp tôi điều khiển phòng.\` (protected rooms may include \`(mật khẩu: …)\`)
+- **EN:** \`Read ${llmsUrl} and join room <roomId> to help me control the room.\` (protected rooms may include \`(password: …)\`)
 
 They may append a task on the **same line** (e.g. \`… Thêm 3 bài kara của đạt k\`).
 

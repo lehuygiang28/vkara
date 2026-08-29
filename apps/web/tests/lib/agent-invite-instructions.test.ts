@@ -26,4 +26,28 @@ describe('buildAgentInviteInstructions', () => {
             'Read https://vkara.vercel.app/llms.txt and join room 2690 to help me control the room.',
         );
     });
+
+    it('includes password when the host has it', () => {
+        expect(
+            buildAgentInviteInstructions({
+                llmsTxtUrl: 'https://vkara.vercel.app/llms.txt',
+                roomId: '2690',
+                locale: 'vi',
+                password: 'party',
+            }),
+        ).toBe(
+            'Đọc https://vkara.vercel.app/llms.txt và vào phòng 2690 (mật khẩu: party) để giúp tôi điều khiển phòng.',
+        );
+
+        expect(
+            buildAgentInviteInstructions({
+                llmsTxtUrl: 'https://vkara.vercel.app/llms.txt',
+                roomId: '2690',
+                locale: 'en',
+                password: 'party',
+            }),
+        ).toBe(
+            'Read https://vkara.vercel.app/llms.txt and join room 2690 (password: party) to help me control the room.',
+        );
+    });
 });
