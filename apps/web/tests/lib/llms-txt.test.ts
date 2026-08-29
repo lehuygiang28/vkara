@@ -1,22 +1,69 @@
-import { existsSync, readFileSync } from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
-
 import { describe, expect, it } from 'vitest';
 
-const webRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '../..');
+import {
+    buildLlmsTxtContent,
+    getRequestAppOrigin,
+    resolveApiOriginForRequest,
+    resolveLlmsOriginsFromRequest,
+} from '@/lib/llms-txt';
 
-describe('llms.txt for agents', () => {
-    it('is published under public/ and served at /llms.txt', () => {
-        const sitePath = path.join(webRoot, 'public/llms.txt');
-        expect(existsSync(sitePath), sitePath).toBe(true);
+describe('llms.txt route content', () => {
+    it('inlines app and API origins for this deployment', () => {
+        const text = buildLlmsTxtContent({
+            appOrigin: 'https://app.test',
+            apiOrigin: 'https://api.test',
+        });
 
-        const site = readFileSync(sitePath, 'utf8');
-        expect(site.startsWith('# vkara')).toBe(true);
-        expect(site).toMatch(/^>/m);
-        expect(site).toContain('roomId');
-        expect(site).toContain('joinToken');
-        expect(site).toContain('/url-commands');
-        expect(site).toMatch(/scan QR|QR/i);
+        expect(text.startsWith('# vkara')).toBe(true);
+        expect(text).toContain('**App origin:** https://app.test');
+        expect(text).toContain('**API origin:** https://api.test');
+        expect(text).toContain('**Factory base:** https://api.test/url-commands');
+        expect(text).toContain('https://app.test/llms.txt');
+        expect(text).toContain('POST https://api.test/url-commands/validate');
+        expect(text).toContain('https://app.test/?roomId=4821');
+        expect(text).toContain('YouTube');
+        expect(text).not.toContain('{appOrigin}');
+        expect(text).not.toContain('{apiOrigin}');
+        expect(text).toContain('## Agent onboarding (read this first)');
+        expect(text).toContain('Case A — invite only');
+        expect(text).toContain('Case B — invite + task');
+        expect(text).toContain('What you can do (tell the user');
+        expect(text).toContain('Thêm bài vào hàng đợi');
+        expect(text).toContain('POST https://api.test/search');
+    });
+
+    it('resolves request origin from forwarded headers', () => {
+        const request = new Request('http://internal/llms.txt', {
+            headers: {
+                'x-forwarded-host': 'vkara-local.giang.io.vn',
+                'x-forwarded-proto': 'https',
+            },
+        });
+
+        expect(getRequestAppOrigin(request)).toBe('https://vkara-local.giang.io.vn');
+    });
+
+    it('defaults API to localhost:8000 when app is localhost:3000', () => {
+        expect(resolveApiOriginForRequest('http://localhost:3000')).toBe('http://localhost:8000');
+    });
+
+    it('joins relative NEXT_PUBLIC_API_URL to the request app origin', () => {
+        const prev = process.env.NEXT_PUBLIC_API_URL;
+        process.env.NEXT_PUBLIC_API_URL = '/api/vkara';
+        try {
+            expect(resolveApiOriginForRequest('https://self.hosted')).toBe(
+                'https://self.hosted/api/vkara',
+            );
+            const request = new Request('https://self.hosted/llms.txt');
+            const origins = resolveLlmsOriginsFromRequest(request);
+            const text = buildLlmsTxtContent(origins);
+            expect(text).toContain('**API origin:** https://self.hosted/api/vkara');
+        } finally {
+            if (prev === undefined) {
+                delete process.env.NEXT_PUBLIC_API_URL;
+            } else {
+                process.env.NEXT_PUBLIC_API_URL = prev;
+            }
+        }
     });
 });

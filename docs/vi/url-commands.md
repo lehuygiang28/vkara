@@ -1,6 +1,6 @@
 # Lệnh URL
 
-Query **không bắt buộc** để người và agent join/thao tác mà không cần thêm UI. Thiếu key = không làm gì. Sau khi apply, key đã dùng bị xóa (`history.replace`). Phiên tiếp tục trong localStorage. Agent bắt đầu từ [`/llms.txt`](../../apps/web/public/llms.txt).
+Query **không bắt buộc** để người và agent join/thao tác mà không cần thêm UI. Thiếu key = không làm gì. Sau khi apply, key đã dùng bị xóa (`history.replace`). Phiên tiếp tục trong localStorage. Agent bắt đầu từ `/llms.txt` (route động; domain/host theo deploy đang chạy).
 
 **Bảo mật:** `password` và `joinToken` là bí mật (history, ảnh chụp, Referer). Agent nên mint `joinToken`. Act đổi phòng (`queue` / `play` / `next`) cần `roomId` khớp phòng đang mở và token `once`. `/tv` không đổi layout từ query. `deviceId` và lệnh phá hủy (đóng phòng, xóa queue…) bị bỏ qua.
 

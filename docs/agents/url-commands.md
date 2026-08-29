@@ -1,6 +1,6 @@
 # URL commands
 
-Optional query keys so humans and AI agents can join and act without extra UI. Missing keys are no-ops. After apply, consumed keys are stripped (`history.replace`). Session continues in localStorage. Agents should start at [`/llms.txt`](../../apps/web/public/llms.txt) ([llms.txt spec](https://llmstxt.org/)).
+Optional query keys so humans and AI agents can join and act without extra UI. Missing keys are no-ops. After apply, consumed keys are stripped (`history.replace`). Session continues in localStorage. Agents should start at `/llms.txt` (dynamic route; origins filled from the running deploy) ([llms.txt spec](https://llmstxt.org/)).
 
 **Security:** `password` and `joinToken` are secrets (history, screenshots, Referer). Prefer minting a `joinToken` via MCP/API. Mutating acts require `roomId` matching the live room plus a one-time `once` token. `/tv` does not change layout from query. `deviceId` and host-destructive verbs are ignored.
 
