@@ -442,5 +442,5 @@ export default {
     'seo.keywords':
         'online karaoke,sing together,karaoke app,YouTube karaoke,karaoke room,group karaoke,vkara',
     'seo.siteName': 'vkara',
-    'seo.ogImageAlt': 'vkara - Online karaoke app to sing with friends',
+    'seo.ogImageAlt': 'VKara — karaoke room in the browser',
 } as const;

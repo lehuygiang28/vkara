@@ -1,197 +1,86 @@
 import sharp from 'sharp';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { copyFile, mkdir, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const OUT_DIR = 'public/icons';
-const FAVICON_OUT = 'public/favicon.ico';
+const here = dirname(fileURLToPath(import.meta.url));
+const webRoot = join(here, '..');
+const repoRoot = join(webRoot, '../..');
+const BRAND_DIR = join(webRoot, 'brand');
+const OUT_DIR = join(webRoot, 'public/icons');
+const FAVICON_OUT = join(webRoot, 'public/favicon.ico');
+const OG_OUT = join(webRoot, 'public/og-image.png');
 
-const COLORS = {
-    bg0: '#020617',
-    bg1: '#07111f',
-    bg2: '#0b1220',
+const SHEET = join(BRAND_DIR, 'sheet-source.png');
+const LOCKUP_WIDE = join(BRAND_DIR, 'lockup-source.png');
 
-    cyan: '#38bdf8',
-    cyanSoft: '#67e8f9',
-    blue: '#2563eb',
+const BG = { r: 5, g: 3, b: 10 };
+const BG_HEX = '#05030a';
 
-    rose: '#e11d48',
-    roseSoft: '#fb7185',
+async function contentBounds(input, { minLum = 28, minX = 0, maxX = Infinity } = {}) {
+    const { data, info } = await sharp(input).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const { width: w, height: h, channels: c } = info;
+    const right = Math.min(w - 1, maxX);
+    let x0 = w;
+    let y0 = h;
+    let x1 = 0;
+    let y1 = 0;
+    const colBright = new Array(w).fill(0);
+    const rowBright = new Array(h).fill(0);
 
-    white: '#e6f4ff',
-};
+    for (let y = 0; y < h; y++) {
+        for (let x = minX; x <= right; x++) {
+            const i = (y * w + x) * c;
+            if (data[i + 3] < 20) continue;
+            if (data[i] + data[i + 1] + data[i + 2] <= minLum) continue;
+            if (x < x0) x0 = x;
+            if (y < y0) y0 = y;
+            if (x > x1) x1 = x;
+            if (y > y1) y1 = y;
+            colBright[x]++;
+            rowBright[y]++;
+        }
+    }
 
-const round = (n) => Number(n.toFixed(3));
+    if (nEmpty(x0, y0, x1, y1)) {
+        throw new Error('no bright pixels in region');
+    }
 
-function iconSvg(size, innerScale = 0.9) {
-    const pad = size * (1 - innerScale) * 0.5;
-    const u = size * innerScale;
-
-    const X = (v) => round(pad + v * u);
-    const Y = (v) => round(pad + v * u);
-    const L = (v) => round(v * u);
-
-    const radius = Math.round(size * 0.22);
-    const detail = size >= 96;
-
-    const thin = Math.max(1, L(0.008));
-    const normal = Math.max(1.5, L(0.015));
-    const strong = Math.max(3, L(0.05));
-
-    const phoneUi = detail
-        ? `
-      <rect x="${X(0.183)}" y="${Y(0.618)}" width="${L(0.125)}" height="${L(0.011)}" rx="${L(0.006)}" fill="${COLORS.white}" opacity="0.12"/>
-      <rect x="${X(0.18)}" y="${Y(0.672)}" width="${L(0.12)}" height="${L(0.012)}" rx="${L(0.006)}" fill="${COLORS.cyan}" opacity="0.34"/>
-      <rect x="${X(0.18)}" y="${Y(0.702)}" width="${L(0.09)}" height="${L(0.012)}" rx="${L(0.006)}" fill="${COLORS.white}" opacity="0.15"/>
-      <rect x="${X(0.18)}" y="${Y(0.732)}" width="${L(0.135)}" height="${L(0.012)}" rx="${L(0.006)}" fill="${COLORS.roseSoft}" opacity="0.95"/>
-
-      <circle cx="${X(0.245)}" cy="${Y(0.805)}" r="${L(0.048)}" fill="${COLORS.rose}" fill-opacity="0.14" stroke="${COLORS.roseSoft}" stroke-width="${thin}"/>
-      <path d="M ${X(0.232)} ${Y(0.781)} L ${X(0.232)} ${Y(0.829)} L ${X(0.274)} ${Y(0.805)} Z" fill="${COLORS.roseSoft}"/>
-
-      <rect x="${X(0.168)}" y="${Y(0.858)}" width="${L(0.13)}" height="${L(0.012)}" rx="${L(0.006)}" fill="${COLORS.roseSoft}" opacity="0.9"/>
-      <circle cx="${X(0.255)}" cy="${Y(0.864)}" r="${L(0.017)}" fill="${COLORS.roseSoft}"/>
-    `
-        : `
-      <circle cx="${X(0.245)}" cy="${Y(0.805)}" r="${L(0.042)}" fill="${COLORS.rose}" fill-opacity="0.16" stroke="${COLORS.roseSoft}" stroke-width="${thin}"/>
-      <path d="M ${X(0.234)} ${Y(0.785)} L ${X(0.234)} ${Y(0.825)} L ${X(0.269)} ${Y(0.805)} Z" fill="${COLORS.roseSoft}"/>
-    `;
-
-    return `
-<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" shape-rendering="geometricPrecision">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${COLORS.bg2}"/>
-      <stop offset="52%" stop-color="${COLORS.bg0}"/>
-      <stop offset="100%" stop-color="#00030a"/>
-    </linearGradient>
-
-    <radialGradient id="ambient" cx="50%" cy="45%" r="60%">
-      <stop offset="0%" stop-color="${COLORS.cyan}" stop-opacity="0.18"/>
-      <stop offset="58%" stop-color="${COLORS.blue}" stop-opacity="0.06"/>
-      <stop offset="100%" stop-color="${COLORS.bg0}" stop-opacity="0"/>
-    </radialGradient>
-
-    <linearGradient id="panelStroke" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${COLORS.cyanSoft}"/>
-      <stop offset="55%" stop-color="${COLORS.cyan}"/>
-      <stop offset="100%" stop-color="${COLORS.blue}"/>
-    </linearGradient>
-
-    <linearGradient id="screenFill" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0a1728"/>
-      <stop offset="100%" stop-color="#020617"/>
-    </linearGradient>
-
-    <linearGradient id="phoneFill" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0b1424"/>
-      <stop offset="100%" stop-color="#030814"/>
-    </linearGradient>
-
-    <filter id="softShadow" x="-30%" y="-30%" width="170%" height="180%">
-      <feDropShadow dx="0" dy="${L(0.022)}" stdDeviation="${L(0.024)}" flood-color="#000814" flood-opacity="0.5"/>
-    </filter>
-
-    <filter id="blueGlow" x="-40%" y="-40%" width="180%" height="180%">
-      <feDropShadow dx="0" dy="0" stdDeviation="${L(0.016)}" flood-color="${COLORS.cyan}" flood-opacity="0.38"/>
-    </filter>
-  </defs>
-
-  <rect width="${size}" height="${size}" rx="${radius}" fill="url(#bg)"/>
-  <circle cx="${size / 2}" cy="${size / 2}" r="${size * 0.44}" fill="url(#ambient)"/>
-
-  <!-- TV -->
-  <g filter="url(#softShadow)">
-    <rect
-      x="${X(0.19)}"
-      y="${Y(0.2)}"
-      width="${L(0.62)}"
-      height="${L(0.42)}"
-      rx="${L(0.065)}"
-      fill="#050c18"
-      stroke="url(#panelStroke)"
-      stroke-width="${normal}"
-    />
-    <rect
-      x="${X(0.215)}"
-      y="${Y(0.225)}"
-      width="${L(0.57)}"
-      height="${L(0.37)}"
-      rx="${L(0.04)}"
-      fill="url(#screenFill)"
-    />
-
-    <rect
-      x="${X(0.455)}"
-      y="${Y(0.625)}"
-      width="${L(0.09)}"
-      height="${L(0.03)}"
-      rx="${L(0.01)}"
-      fill="${COLORS.cyan}"
-      opacity="0.16"
-    />
-    <rect
-      x="${X(0.405)}"
-      y="${Y(0.655)}"
-      width="${L(0.19)}"
-      height="${L(0.02)}"
-      rx="${L(0.01)}"
-      fill="${COLORS.cyan}"
-      opacity="0.18"
-    />
-  </g>
-
-  <!-- V on screen -->
-  <g filter="url(#blueGlow)">
-    <path
-      d="M ${X(0.355)} ${Y(0.29)} L ${X(0.5)} ${Y(0.53)} L ${X(0.645)} ${Y(0.29)}"
-      fill="none"
-      stroke="url(#panelStroke)"
-      stroke-width="${strong}"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      opacity="0.95"
-    />
-    <path
-      d="M ${X(0.39)} ${Y(0.315)} L ${X(0.5)} ${Y(0.495)} L ${X(0.61)} ${Y(0.315)}"
-      fill="none"
-      stroke="${COLORS.white}"
-      stroke-width="${Math.max(1, L(0.008))}"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-      opacity="0.2"
-    />
-  </g>
-
-  <!-- Phone -->
-  <g transform="rotate(-10 ${X(0.24)} ${Y(0.765)})" filter="url(#softShadow)">
-    <rect
-      x="${X(0.12)}"
-      y="${Y(0.56)}"
-      width="${L(0.24)}"
-      height="${L(0.34)}"
-      rx="${L(0.045)}"
-      fill="url(#phoneFill)"
-      stroke="url(#panelStroke)"
-      stroke-width="${normal}"
-    />
-    ${phoneUi}
-  </g>
-
-  <!-- subtle outer rim -->
-  <rect
-    x="${size * 0.025}"
-    y="${size * 0.025}"
-    width="${size * 0.95}"
-    height="${size * 0.95}"
-    rx="${radius * 0.92}"
-    fill="none"
-    stroke="${COLORS.white}"
-    stroke-opacity="0.07"
-    stroke-width="${Math.max(1, size * 0.01)}"
-  />
-</svg>`;
+    return { w, h, x0, y0, x1, y1, width: x1 - x0 + 1, height: y1 - y0 + 1, colBright, rowBright };
 }
 
-function iconSharp(size, innerScale = 0.9) {
-    return sharp(Buffer.from(iconSvg(size, innerScale))).resize(size, size);
+function nEmpty(x0, y0, x1, y1) {
+    return x1 < x0 || y1 < y0;
+}
+
+function largestInnerGap(counts, from, to, minRun = 24) {
+    let best = null;
+    let dark = false;
+    let start = from;
+    for (let i = from; i <= to; i++) {
+        const isDark = counts[i] < 8;
+        if (isDark && !dark) {
+            dark = true;
+            start = i;
+        }
+        if (!isDark && dark) {
+            const run = { x0: start, x1: i - 1, w: i - start };
+            if (run.w >= minRun && (!best || run.w > best.w)) best = run;
+            dark = false;
+        }
+    }
+    if (dark) {
+        const run = { x0: start, x1: to, w: to - start + 1 };
+        if (run.w >= minRun && (!best || run.w > best.w)) best = run;
+    }
+    return best;
+}
+
+async function extractBox(input, box) {
+    return sharp(input)
+        .extract({ left: box.x0, top: box.y0, width: box.width, height: box.height })
+        .png()
+        .toBuffer();
 }
 
 function encodeIco(images) {
@@ -219,111 +108,119 @@ function encodeIco(images) {
     return Buffer.concat([header, ...entries, ...images.map((img) => img.buffer)]);
 }
 
-async function renderPng(size, innerScale = 0.9) {
-    return iconSharp(size, innerScale)
-        .png({
-            quality: 100,
-            compressionLevel: 9,
-            adaptiveFiltering: true,
-        })
+async function roundedTile(size, inner, left, top) {
+    const radius = Math.round(size * 0.22);
+    const svg = Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}">
+  <rect width="${size}" height="${size}" rx="${radius}" fill="${BG_HEX}"/>
+</svg>`);
+    return sharp(svg)
+        .composite([{ input: inner, left, top }])
+        .png({ quality: 100, compressionLevel: 9 })
         .toBuffer();
 }
 
-async function writeIcon(name, size, innerScale = 0.9) {
-    await renderPng(size, innerScale).then((buffer) => writeFile(`${OUT_DIR}/${name}`, buffer));
-}
-
-async function writeFavicon() {
-    const sizes = [16, 32, 48];
-    const images = await Promise.all(
-        sizes.map(async (size) => {
-            const innerScale = size <= 16 ? 0.98 : 0.96;
-            const buffer = await renderPng(size, innerScale);
-            return { width: size, height: size, buffer };
-        }),
-    );
-
-    await writeFile(FAVICON_OUT, encodeIco(images));
-}
-
-await mkdir(OUT_DIR, { recursive: true });
-
-await writeFile(`${OUT_DIR}/vkara-icon.svg`, iconSvg(512, 0.9), 'utf8');
-
-await writeIcon('icon-192.png', 192, 0.9);
-await writeIcon('icon-512.png', 512, 0.9);
-await writeIcon('apple-touch-icon.png', 180, 0.9);
-
-// Larger safe area for Android maskable icons
-await writeIcon('maskable-icon-512.png', 512, 0.8);
-
-// Android TV Leanback banner (320×180) — letterboxed icon-512 on dark bg
-{
-    const BANNER_W = 320;
-    const BANNER_H = 180;
-    const iconSize = Math.round(BANNER_H * 0.72);
-    const iconBuf = await sharp(Buffer.from(iconSvg(512, 0.9)))
-        .resize(512, 512)
-        .resize(iconSize, iconSize)
+/** Square app icon: mark contained in the inner safe area. */
+async function renderIcon(markBuf, size, innerScale) {
+    const pad = Math.round((size * (1 - innerScale)) / 2);
+    const inner = Math.max(1, size - pad * 2);
+    const fitted = await sharp(markBuf)
+        .resize(inner, inner, {
+            fit: 'contain',
+            background: BG,
+        })
         .png()
         .toBuffer();
-    const left = Math.round((BANNER_W - iconSize) / 2);
-    const top = Math.round((BANNER_H - iconSize) / 2);
-    await sharp({
-        create: {
-            width: BANNER_W,
-            height: BANNER_H,
-            channels: 3,
-            background: { r: 2, g: 6, b: 23 },
-        },
+    return roundedTile(size, fitted, pad, pad);
+}
+
+async function fitOnCanvas(srcBuf, width, height, { maxW = 0.86, maxH = 0.62 } = {}) {
+    const fitted = await sharp(srcBuf)
+        .resize(Math.round(width * maxW), Math.round(height * maxH), { fit: 'inside' })
+        .png()
+        .toBuffer();
+    const meta = await sharp(fitted).metadata();
+    const left = Math.round((width - meta.width) / 2);
+    const top = Math.round((height - meta.height) / 2);
+    return sharp({
+        create: { width, height, channels: 3, background: BG },
     })
-        .composite([{ input: iconBuf, left, top }])
+        .composite([{ input: fitted, left, top }])
         .png({ quality: 100, compressionLevel: 9 })
-        .toFile(`${OUT_DIR}/tv-banner-320x180.png`);
+        .toBuffer();
 }
 
-// Small favicon stays readable with TV + phone + V only
-await writeIcon('icon-32.png', 32, 0.96);
+const sheetBounds = await contentBounds(SHEET);
+const gap = largestInnerGap(sheetBounds.colBright, sheetBounds.x0, sheetBounds.x1, 40);
+if (!gap) throw new Error('could not split sheet into mark + lockup');
 
-await writeFavicon();
+const markBox = await contentBounds(SHEET, { maxX: gap.x0 - 1 });
+const sheetLockupBox = await contentBounds(SHEET, { minX: gap.x1 + 1 });
+const wideLockupBox = await contentBounds(LOCKUP_WIDE);
 
-const OG_WIDTH = 1200;
-const OG_HEIGHT = 630;
+const markBuf = await extractBox(SHEET, markBox);
+const lockupBuf = await extractBox(LOCKUP_WIDE, wideLockupBox);
 
-function ogImageSvg() {
-    return `
-<svg xmlns="http://www.w3.org/2000/svg" width="${OG_WIDTH}" height="${OG_HEIGHT}" viewBox="0 0 ${OG_WIDTH} ${OG_HEIGHT}">
-  <defs>
-    <linearGradient id="ogBg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${COLORS.bg2}"/>
-      <stop offset="52%" stop-color="${COLORS.bg0}"/>
-      <stop offset="100%" stop-color="#00030a"/>
-    </linearGradient>
-    <radialGradient id="ogGlow" cx="35%" cy="45%" r="55%">
-      <stop offset="0%" stop-color="${COLORS.cyan}" stop-opacity="0.22"/>
-      <stop offset="100%" stop-color="${COLORS.bg0}" stop-opacity="0"/>
-    </radialGradient>
-    <linearGradient id="ogAccent" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="${COLORS.cyanSoft}"/>
-      <stop offset="55%" stop-color="${COLORS.cyan}"/>
-      <stop offset="100%" stop-color="${COLORS.blue}"/>
-    </linearGradient>
-  </defs>
-  <rect width="${OG_WIDTH}" height="${OG_HEIGHT}" fill="url(#ogBg)"/>
-  <circle cx="420" cy="315" r="360" fill="url(#ogGlow)"/>
-  <text x="80" y="280" fill="${COLORS.white}" font-family="system-ui, sans-serif" font-size="96" font-weight="700">vkara</text>
-  <text x="84" y="360" fill="${COLORS.cyanSoft}" font-family="system-ui, sans-serif" font-size="42" font-weight="500">Sing karaoke together online</text>
-  <text x="84" y="430" fill="${COLORS.white}" opacity="0.72" font-family="system-ui, sans-serif" font-size="28">Create a room. Invite friends. Sing anytime.</text>
-  <g transform="translate(820 130)">
-    ${iconSvg(360, 0.88)}
-  </g>
-</svg>`;
+const taglineGap = largestInnerGap(sheetLockupBox.rowBright, sheetLockupBox.y0, sheetLockupBox.y1, 16);
+const wordmarkHeight = taglineGap ? taglineGap.x0 - sheetLockupBox.y0 : sheetLockupBox.height;
+const wordmarkBuf = await extractBox(SHEET, {
+    x0: sheetLockupBox.x0,
+    y0: sheetLockupBox.y0,
+    width: sheetLockupBox.width,
+    height: wordmarkHeight,
+});
+
+await mkdir(BRAND_DIR, { recursive: true });
+await mkdir(OUT_DIR, { recursive: true });
+await writeFile(join(BRAND_DIR, 'mark.png'), markBuf);
+await writeFile(join(BRAND_DIR, 'lockup.png'), lockupBuf);
+await writeFile(join(BRAND_DIR, 'wordmark.png'), wordmarkBuf);
+
+const icons = [
+    ['icon-512.png', 512, 0.9],
+    ['icon-192.png', 192, 0.9],
+    ['apple-touch-icon.png', 180, 0.9],
+    ['maskable-icon-512.png', 512, 0.8],
+    ['icon-32.png', 32, 0.94],
+];
+
+for (const [name, size, scale] of icons) {
+    await writeFile(join(OUT_DIR, name), await renderIcon(markBuf, size, scale));
 }
 
-await sharp(Buffer.from(ogImageSvg()))
-    .resize(OG_WIDTH, OG_HEIGHT)
-    .png({ quality: 100, compressionLevel: 9 })
-    .toFile('public/og-image.png');
+const faviconSizes = [16, 32, 48];
+const faviconImages = await Promise.all(
+    faviconSizes.map(async (size) => ({
+        width: size,
+        height: size,
+        buffer: await renderIcon(markBuf, size, size <= 16 ? 0.98 : 0.94),
+    })),
+);
+await writeFile(FAVICON_OUT, encodeIco(faviconImages));
 
-console.log(`VKara PWA icons generated in ${OUT_DIR}/ and ${FAVICON_OUT}`);
-console.log('Open Graph image generated at public/og-image.png');
+const iconSvgB64 = (await renderIcon(markBuf, 256, 0.9)).toString('base64');
+await writeFile(
+    join(OUT_DIR, 'vkara-icon.svg'),
+    `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <image href="data:image/png;base64,${iconSvgB64}" width="512" height="512"/>
+</svg>`,
+    'utf8',
+);
+
+await writeFile(OG_OUT, await fitOnCanvas(lockupBuf, 1200, 630, { maxW: 0.88, maxH: 0.58 }));
+await writeFile(
+    join(OUT_DIR, 'tv-banner-320x180.png'),
+    await fitOnCanvas(wordmarkBuf, 320, 180, { maxW: 0.9, maxH: 0.72 }),
+);
+
+const copies = [
+    [join(OUT_DIR, 'icon-512.png'), join(repoRoot, 'apps/tizen/src/icon.png')],
+    [join(OUT_DIR, 'icon-512.png'), join(repoRoot, 'apps/android-tv/assets/icon.png')],
+    [join(OUT_DIR, 'tv-banner-320x180.png'), join(repoRoot, 'apps/android-tv/assets/tv-banner.png')],
+];
+for (const [from, to] of copies) {
+    await copyFile(from, to);
+}
+
+console.log(`VKara assets from brand masters → ${OUT_DIR}/`);
+console.log(`OG ${OG_OUT}`);
+console.log('Synced Tizen icon + Android TV icon/banner');

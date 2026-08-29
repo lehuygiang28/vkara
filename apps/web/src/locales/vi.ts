@@ -437,5 +437,5 @@ export default {
     'seo.keywords':
         'karaoke trực tuyến,hát karaoke online,hát cùng nhau,karaoke YouTube,phòng karaoke,ứng dụng karaoke,vkara',
     'seo.siteName': 'vkara',
-    'seo.ogImageAlt': 'vkara - Ứng dụng hát karaoke trực tuyến cùng bạn bè',
+    'seo.ogImageAlt': 'VKara — karaoke room in the browser',
 } as const;
