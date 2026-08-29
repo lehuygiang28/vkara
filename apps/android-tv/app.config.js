@@ -34,7 +34,7 @@ module.exports = ({ config }) => {
 
     return {
         ...config,
-        name: 'vKara',
+        name: 'VKara',
         slug: 'vkara-tv',
         version,
         orientation: 'landscape',
@@ -44,7 +44,7 @@ module.exports = ({ config }) => {
         splash: {
             image: './assets/icon.png',
             resizeMode: 'contain',
-            backgroundColor: '#020617',
+            backgroundColor: '#05030a',
         },
         android: {
             ...(typeof config.android === 'object' && config.android ? config.android : {}),
@@ -52,12 +52,12 @@ module.exports = ({ config }) => {
             versionCode,
             adaptiveIcon: {
                 foregroundImage: './assets/icon.png',
-                backgroundColor: '#020617',
+                backgroundColor: '#05030a',
             },
             splash: {
                 image: './assets/icon.png',
                 resizeMode: 'contain',
-                backgroundColor: '#020617',
+                backgroundColor: '#05030a',
             },
         },
         plugins: [

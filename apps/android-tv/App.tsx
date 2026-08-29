@@ -182,15 +182,15 @@ export default function App() {
 
             {!handoffCommitted && !error ? (
                 <View style={styles.overlay} pointerEvents="none">
-                    <Text style={styles.brand}>vKara</Text>
-                    <ActivityIndicator color="#38bdf8" size="large" style={styles.spinner} />
+                    <Text style={styles.brand}>VKara</Text>
+                    <ActivityIndicator color="#e53e7d" size="large" style={styles.spinner} />
                     <Text style={styles.hint}>Loading karaoke…</Text>
                 </View>
             ) : null}
 
             {error ? (
                 <View style={styles.overlay}>
-                    <Text style={styles.brand}>vKara</Text>
+                    <Text style={styles.brand}>VKara</Text>
                     <Text style={styles.errorText}>{error}</Text>
                     <Pressable
                         onPress={() => {
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 48,
     },
     brand: {
-        color: '#e6f4ff',
+        color: '#f8fafc',
         fontSize: 48,
         fontWeight: '700',
         marginBottom: 24,
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
         maxWidth: 720,
     },
     retryBtn: {
-        backgroundColor: '#2563eb',
+        backgroundColor: '#7c3aed',
         paddingHorizontal: 32,
         paddingVertical: 16,
         borderRadius: 8,
