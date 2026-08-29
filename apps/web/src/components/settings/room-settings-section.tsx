@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo } from 'react';
 import { QRCode } from 'react-qrcode-logo';
-import { Copy, Eye, EyeOff } from 'lucide-react';
+import { Copy, Eye, EyeOff, Bot } from 'lucide-react';
 
 import {
     SettingsActions,
@@ -33,6 +33,7 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import { generateShareableUrl } from '@/lib/room-share';
+import { buildAgentInviteInstructions } from '@/lib/agent-invite-instructions';
 import {
     roomCodeFieldProps,
     roomCodeOtpSlotClassName,
@@ -143,6 +144,26 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
             }
         }
     }, [ensureConnectedAndSend, room?.id, isRemoteLayout, setRoom, enterTvLobby]);
+
+    const copyAgentInstructions = useCallback(() => {
+        if (!room?.id || typeof window === 'undefined') {
+            return;
+        }
+
+        const text = buildAgentInviteInstructions({
+            llmsTxtUrl: `${window.location.origin}/llms.txt`,
+            roomId: room.id,
+            locale,
+        });
+
+        void navigator.clipboard.writeText(text).then(() => {
+            toast({
+                title: tRoom('copyAgentInstructionsSuccess'),
+                variant: 'success',
+                duration: 1800,
+            });
+        });
+    }, [locale, room?.id, tRoom]);
 
     return (
         <SettingsSection
@@ -261,6 +282,20 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                         <Copy className="h-4 w-4" />
                                     </Button>
                                 </div>
+                            </div>
+                            <div className="space-y-2">
+                                <Button
+                                    type="button"
+                                    variant="secondary"
+                                    className="w-full gap-2"
+                                    onClick={copyAgentInstructions}
+                                >
+                                    <Bot className="h-4 w-4 shrink-0" aria-hidden />
+                                    {tRoom('copyAgentInstructions')}
+                                </Button>
+                                <p className="text-xs text-muted-foreground">
+                                    {tRoom('copyAgentInstructionsHint')}
+                                </p>
                             </div>
                         </SettingsBlock>
 

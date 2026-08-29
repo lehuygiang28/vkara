@@ -1,0 +1,29 @@
+import { describe, expect, it } from 'vitest';
+
+import { buildAgentInviteInstructions } from '@/lib/agent-invite-instructions';
+
+describe('buildAgentInviteInstructions', () => {
+    it('returns one Vietnamese line with llms.txt and room id', () => {
+        const text = buildAgentInviteInstructions({
+            llmsTxtUrl: 'https://vkara.vercel.app/llms.txt',
+            roomId: '2690',
+            locale: 'vi',
+        });
+
+        expect(text).toBe(
+            'Đọc https://vkara.vercel.app/llms.txt và vào phòng 2690 để giúp tôi điều khiển phòng.',
+        );
+    });
+
+    it('returns one English line with llms.txt and room id', () => {
+        const text = buildAgentInviteInstructions({
+            llmsTxtUrl: 'https://vkara.vercel.app/llms.txt',
+            roomId: '2690',
+            locale: 'en',
+        });
+
+        expect(text).toBe(
+            'Read https://vkara.vercel.app/llms.txt and join room 2690 to help me control the room.',
+        );
+    });
+});

@@ -182,6 +182,10 @@ export default {
     'roomSettings.joinRoom': 'Tham gia phòng',
     'roomSettings.shareableUrl': 'URL chia sẻ',
     'roomSettings.copyUrlSuccess': 'URL đã được sao chép',
+    'roomSettings.copyAgentInstructions': 'Sao chép hướng dẫn AI Agent',
+    'roomSettings.copyAgentInstructionsHint':
+        'Dán vào Cursor rồi thêm yêu cầu của bạn (vd. thêm bài karaoke trên YouTube)',
+    'roomSettings.copyAgentInstructionsSuccess': 'Đã sao chép hướng dẫn AI Agent',
     'roomSettings.qrCode': 'Mã QR',
     'roomSettings.showQRInPlayer': 'Hiện QR trên TV',
     'roomSettings.show': 'Hiển thị',

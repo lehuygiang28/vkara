@@ -183,6 +183,10 @@ export default {
     'roomSettings.joinRoom': 'Join Room',
     'roomSettings.shareableUrl': 'Shareable URL',
     'roomSettings.copyUrlSuccess': 'URL copied to clipboard',
+    'roomSettings.copyAgentInstructions': 'Copy agent instructions',
+    'roomSettings.copyAgentInstructionsHint':
+        'Paste into Cursor, then add your request (e.g. queue karaoke songs on YouTube)',
+    'roomSettings.copyAgentInstructionsSuccess': 'Agent instructions copied',
     'roomSettings.qrCode': 'QR Code',
     'roomSettings.showQRInPlayer': 'Show QR on TV',
     'roomSettings.show': 'Show',
