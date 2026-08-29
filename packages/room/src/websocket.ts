@@ -89,6 +89,7 @@ export type ServerMessage =
     | { type: 'errorWithCode'; code: ErrorCode; message?: string }
     | { type: 'roomClosed'; reason: string }
     | { type: 'youAreHost' }
+    | { type: 'joinTokenMinted'; joinToken: string; roomId: string; exp: number }
     | { type: 'kicked'; reason: string }
     | { type: 'replay' }
     | { type: 'play' }

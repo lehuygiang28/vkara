@@ -27,6 +27,7 @@ describe('wsClientMessageSchema', () => {
     it('accepts minimal valid control messages', () => {
         expect(check({ ...base, type: 'ping' })).toBe(true);
         expect(check({ ...base, type: 'nextVideo' })).toBe(true);
+        expect(check({ ...base, type: 'mintJoinToken' })).toBe(true);
         expect(
             check({
                 ...base,

@@ -60,7 +60,7 @@ export function pruneStaleParticipants(
 
 function promoteHostAfterStalePrune(room: Room): void {
     const candidates = Object.values(room.participants)
-        .filter((p) => p.connectionIds.length > 0)
+        .filter((p) => p.connectionIds.length > 0 && !p.isAgent)
         .sort((a, b) => a.joinedAt - b.joinedAt);
     const nextHost = candidates[0];
     if (nextHost) {

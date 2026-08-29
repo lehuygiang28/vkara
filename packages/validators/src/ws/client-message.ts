@@ -71,6 +71,7 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
         isAgent: z.boolean().optional(),
     }),
     withBase({ type: z.literal('leaveRoom') }),
+    withBase({ type: z.literal('mintJoinToken') }),
     withBase({ type: z.literal('closeRoom') }),
     withBase({ type: z.literal('lockRoom') }),
     withBase({ type: z.literal('unlockRoom') }),

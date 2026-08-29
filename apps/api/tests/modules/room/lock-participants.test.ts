@@ -129,6 +129,30 @@ describe('pruneStaleParticipants', () => {
         expect(room.hostDeviceId).toBe('guest');
         expect(room.participants.guest?.role).toBe('host');
     });
+
+    it('does not promote an agent when the primary host is pruned', () => {
+        const room = createTestRoom({
+            locked: false,
+            hostDeviceId: 'host',
+            participants: {
+                host: participant('host', { role: 'host', lastSeen: 0, joinedAt: 1 }),
+                agent: participant('agent', {
+                    role: 'member',
+                    lastSeen: 100,
+                    joinedAt: 2,
+                    connectionIds: ['ws-agent'],
+                    isAgent: true,
+                }),
+            },
+        });
+        const now = STALE_PARTICIPANT_TTL_MS + 1;
+
+        pruneStaleParticipants(room, now, (id) => id === 'ws-agent');
+
+        expect(room.participants.host).toBeUndefined();
+        expect(room.hostDeviceId).toBe('');
+        expect(room.participants.agent?.role).toBe('member');
+    });
 });
 
 describe('host and unlock helpers', () => {

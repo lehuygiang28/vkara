@@ -9,7 +9,6 @@ import {
     RoomError,
     shouldBroadcastPlaybackTime,
     acceptSyncPlaybackPositionTime,
-    type PlaybackTimeSyncState,
     type ClientInfo,
     type Participant,
     type Room,
@@ -19,17 +18,22 @@ import { isValidRoomId, ROOM_ID_LENGTH } from '@vkara/room';
 import type { ClientMessage, TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 import { applyTvRestoreToRoom } from '@/modules/room/apply-tv-restore';
 import { applyClaimHost, canJoinWhenLocked } from '@/modules/room/participant-policy';
+import { assignHostOnJoin } from '@/modules/room/assign-host';
 import { upsertParticipant } from '@/modules/room/upsert-participant';
 import { publishToRoom } from '@/modules/room/room-broadcast';
+import { addVideoToRoom, nextVideoInRoom, playVideoNowInRoom } from '@/modules/room/room-commands';
+import {
+    lastPlaybackBroadcastByRoom,
+    resetTikTokPhotoIndex,
+} from '@/modules/room/room-playback-state';
 import { resolvePlaylistDetails } from '@/modules/youtube/fetch-playlist-details-cached';
 import {
     checkEmbeddable,
     filterYouTubeVideosByEmbeddability,
 } from '@/modules/youtube/resolve-embed-playability';
-import { resolveNextEmbeddableFromQueue } from '@/modules/youtube/resolve-embeddable-queue';
-import { mergeQueueAfterAdvance } from '@/modules/room/merge-queue-after-advance';
 import { redis } from '@/redis';
-import { consumeJoinToken } from '@/modules/url-commands/join-token';
+import { consumeJoinToken, mintJoinToken } from '@/modules/url-commands/join-token';
+import { assertWsMintBudget, RateLimitedError } from '@/modules/url-commands/http-guardrails';
 import {
     isVideoAlreadyInRoom,
     loadRoom,
@@ -110,7 +114,12 @@ function promoteNewHost(room: Room, excludingDeviceId?: string): Participant | u
     }
 
     const candidates = Object.values(room.participants)
-        .filter((p) => p.deviceId !== excludingDeviceId && p.connectionIds.length > 0)
+        .filter(
+            (p) =>
+                p.deviceId !== excludingDeviceId &&
+                p.connectionIds.length > 0 &&
+                !p.isAgent,
+        )
         .sort((a, b) => a.joinedAt - b.joinedAt);
     const newHost = candidates[0];
     if (!newHost) return undefined;
@@ -123,16 +132,6 @@ function promoteNewHost(room: Room, excludingDeviceId?: string): Participant | u
         }
     });
     return newHost;
-}
-
-function markCaptionTracksPending(room: Room, videoId: string | null): void {
-    room.captionTracks = [];
-    room.captionTracksVideoId = videoId;
-}
-
-function resetTikTokPhotoIndex(room: Room): void {
-    room.tiktokPhotoIndex = 0;
-    room.tiktokPhotoMaxIndex = getTikTokPhotoMaxIndex({ video: room.playingNow, roomMaxIndex: 0 });
 }
 
 function clampCaptionTracks(tracks: CaptionTrack[]): CaptionTrack[] {
@@ -183,12 +182,6 @@ async function validateClientInRoom(ws: ElysiaWS): Promise<string> {
 async function roomIdExists(roomId: string): Promise<boolean> {
     return Boolean(await redis.exists(`room:${roomId}`));
 }
-
-/** Throttles currentTime WS spam per room. */
-const lastPlaybackBroadcastByRoom = new Map<string, PlaybackTimeSyncState>();
-
-/** Coalesces concurrent advance/skip requests per room. */
-const advanceInFlightByRoom = new Map<string, Promise<void>>();
 
 export function createRoomService({ wsConnections, sendToClient }: RoomServiceDeps) {
     async function buildClientDeviceIdMap(
@@ -367,34 +360,10 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     opts.displayName,
                     opts.isAgent,
                 );
-                // First connection / empty room → becomes host.
-                if (!room.hostDeviceId || !room.participants[room.hostDeviceId]) {
-                    room.hostDeviceId = participant.deviceId;
-                    participant.role = 'host';
-                } else if (opts.isTvClient) {
-                    // TV always reclaims the primary-host slot when it (re)joins, so the
-                    // living-room device leads the room — but it no longer demotes other
-                    // co-hosts (first remote stays a host so they can lock/kick too).
-                    room.hostDeviceId = participant.deviceId;
-                    participant.role = 'host';
-                } else {
-                    // First remote to arrive in a TV-led room becomes a co-host so they
-                    // can coordinate (lock/kick/closeRoom) without fumbling on the TV UI.
-                    const existingHost = room.participants[room.hostDeviceId];
-                    const hasRemoteCoHost = Object.values(room.participants).some(
-                        (p) =>
-                            p.role === 'host' &&
-                            !p.isTvConnection &&
-                            p.deviceId !== participant.deviceId,
-                    );
-                    if (
-                        existingHost?.isTvConnection &&
-                        !hasRemoteCoHost &&
-                        participant.role !== 'host'
-                    ) {
-                        participant.role = 'host';
-                    }
-                }
+                assignHostOnJoin(room, participant, {
+                    isTvClient: opts.isTvClient,
+                    isAgent: opts.isAgent,
+                });
             },
             { isRejoin: opts.isRejoin },
         );
@@ -896,6 +865,31 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         ]);
     }
 
+    async function mintJoinTokenForHost(ws: ElysiaWS): Promise<void> {
+        const roomId = await validateClientInRoom(ws);
+        const room = await requireRoom(roomId);
+        const deviceId = await resolveDeviceIdForWs(ws);
+        if (!deviceId) {
+            throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Missing device id');
+        }
+        requireHost(room, deviceId);
+        try {
+            await assertWsMintBudget(redis, roomId);
+        } catch (error) {
+            if (error instanceof RateLimitedError) {
+                throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Too many join tokens');
+            }
+            throw error;
+        }
+        const minted = await mintJoinToken(redis, roomId);
+        sendToClient(ws, {
+            type: 'joinTokenMinted',
+            joinToken: minted.joinToken,
+            roomId: minted.roomId,
+            exp: minted.exp,
+        });
+    }
+
     async function handleCloseRoom(ws: ElysiaWS) {
         const roomId = await validateClientInRoom(ws);
         const room = await requireRoom(roomId);
@@ -919,40 +913,8 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
     }
 
     async function addVideo(ws: ElysiaWS, video: YouTubeVideo): Promise<void> {
-        if (!video?.id) {
-            throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid video data');
-        }
-
         const roomId = await validateClientInRoom(ws);
-
-        try {
-            if (!isTikTokVideo(video) && !(await checkEmbeddable(redis, video.id))) {
-                throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
-            }
-
-            const room = await mutateRoom(roomId, (room) => {
-                if (isVideoAlreadyInRoom(room, video.id)) {
-                    throw new RoomError(ErrorCode.ALREADY_IN_QUEUE);
-                }
-
-                if (!room.playingNow && room.videoQueue.length <= 0) {
-                    room.playingNow = video;
-                    room.isPlaying = true;
-                    room.currentTime = 0;
-                    resetTikTokPhotoIndex(room);
-                    markCaptionTracksPending(room, video.id);
-                    lastPlaybackBroadcastByRoom.delete(roomId);
-                } else {
-                    room.videoQueue = [...room.videoQueue, video];
-                }
-            });
-
-            broadcastRoomState(roomId, room);
-        } catch (error) {
-            if (error instanceof RoomError) throw error;
-            serviceLogger.error('Failed to add video', { videoId: video.id, error });
-            throw new RoomError(ErrorCode.INTERNAL_ERROR, 'Failed to add video');
-        }
+        await addVideoToRoom(roomId, video);
     }
 
     async function restartPlayingNow(ws: ElysiaWS): Promise<void> {
@@ -974,44 +936,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
 
     async function playVideoNow(ws: ElysiaWS, video: YouTubeVideo) {
         const roomId = await validateClientInRoom(ws);
-
-        if (!isTikTokVideo(video) && !(await checkEmbeddable(redis, video.id))) {
-            throw new RoomError(ErrorCode.VIDEO_NOT_EMBEDDABLE, 'Video is not embeddable');
-        }
-
-        let restartedSameVideo = false;
-        const room = await mutateRoom(roomId, (room) => {
-            if (room.playingNow?.id === video.id) {
-                restartedSameVideo = true;
-                room.isPlaying = true;
-                room.currentTime = 0;
-                resetTikTokPhotoIndex(room);
-                lastPlaybackBroadcastByRoom.delete(roomId);
-                return;
-            }
-
-            room.historyQueue = room.historyQueue.filter((v) => v.id !== video.id);
-            room.videoQueue = room.videoQueue.filter((v) => v.id !== video.id);
-
-            if (room.playingNow?.id) {
-                room.historyQueue = [
-                    room.playingNow,
-                    ...room.historyQueue.filter((v) => v.id !== room.playingNow!.id),
-                ];
-            }
-
-            room.playingNow = video;
-            room.isPlaying = true;
-            room.currentTime = 0;
-            resetTikTokPhotoIndex(room);
-            markCaptionTracksPending(room, video.id);
-            lastPlaybackBroadcastByRoom.delete(roomId);
-        });
-
-        broadcastRoomState(roomId, room);
-        if (restartedSameVideo) {
-            publishToRoom(roomId, { type: 'replay' });
-        }
+        await playVideoNowInRoom(roomId, video);
     }
 
     async function advanceToNextPlayable(
@@ -1019,67 +944,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         options: { archiveCurrent?: boolean } = {},
     ): Promise<void> {
         const roomId = await validateClientInRoom(ws);
-        const inFlight = advanceInFlightByRoom.get(roomId);
-        if (inFlight) {
-            return inFlight;
-        }
-
-        const advancePromise = (async () => {
-            const archiveCurrent = options.archiveCurrent ?? true;
-            const snapshot = await requireRoom(roomId);
-
-            if (!snapshot.playingNow && snapshot.videoQueue.length === 0) {
-                return;
-            }
-
-            const snapshotQueue = snapshot.videoQueue;
-            const { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
-                redis,
-                snapshotQueue,
-            );
-
-            const room = await mutateRoom(roomId, (room) => {
-                if (archiveCurrent && room.playingNow?.id) {
-                    room.historyQueue = [
-                        room.playingNow,
-                        ...room.historyQueue.filter((v) => v.id !== room.playingNow!.id),
-                    ];
-                }
-
-                room.videoQueue = mergeQueueAfterAdvance(
-                    snapshotQueue,
-                    remainingQueue,
-                    room.videoQueue,
-                );
-
-                if (nextPlayable) {
-                    room.playingNow = nextPlayable;
-                    room.isPlaying = true;
-                    room.currentTime = 0;
-                    resetTikTokPhotoIndex(room);
-                    markCaptionTracksPending(room, nextPlayable.id);
-                } else {
-                    room.playingNow = null;
-                    room.isPlaying = false;
-                    room.currentTime = 0;
-                    resetTikTokPhotoIndex(room);
-                    markCaptionTracksPending(room, null);
-                }
-
-                lastPlaybackBroadcastByRoom.delete(roomId);
-            });
-
-            broadcastRoomState(roomId, room);
-        })();
-
-        advanceInFlightByRoom.set(roomId, advancePromise);
-        try {
-            await advancePromise;
-        } finally {
-            if (advanceInFlightByRoom.get(roomId) === advancePromise) {
-                advanceInFlightByRoom.delete(roomId);
-            }
-        }
+        await nextVideoInRoom(roomId, options);
     }
 
     async function nextVideo(ws: ElysiaWS) {
@@ -1517,6 +1382,9 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                 break;
             case 'leaveRoom':
                 await leaveRoom(ws);
+                break;
+            case 'mintJoinToken':
+                await mintJoinTokenForHost(ws);
                 break;
             case 'closeRoom':
                 await handleCloseRoom(ws);
