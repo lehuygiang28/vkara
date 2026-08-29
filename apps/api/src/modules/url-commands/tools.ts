@@ -9,10 +9,9 @@ import {
 } from '@vkara/url-commands';
 import type { UrlCommandDocument } from '@vkara/validators';
 
-import { ErrorCode, RoomError } from '@vkara/room';
-
 import { loadRoom } from '@/utils/room-store';
 import { mintJoinToken } from './join-token';
+import { RoomUnavailableError } from './room-unavailable';
 
 export type McpBind = {
     roomId: string;
@@ -64,12 +63,9 @@ export function buildBoundCommandUrl({
 
 export async function mintBoundJoinToken(redis: Redis, bind: McpBind, password?: string) {
     const room = await loadRoom(bind.roomId);
-    if (!room) {
-        throw new RoomError(ErrorCode.ROOM_NOT_FOUND);
-    }
-    const expected = room.password?.trim();
-    if (expected && expected !== password?.trim()) {
-        throw new RoomError(ErrorCode.INCORRECT_PASSWORD);
+    const expected = room?.password?.trim();
+    if (!room || !expected || expected !== password?.trim()) {
+        throw new RoomUnavailableError();
     }
     const minted = await mintJoinToken(redis, bind.roomId);
     return { ...minted, bind: echoBind(bind) };

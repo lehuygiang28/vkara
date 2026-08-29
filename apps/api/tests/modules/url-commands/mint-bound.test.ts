@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { ErrorCode, RoomError } from '@vkara/room';
+import { RoomUnavailableError } from '@/modules/url-commands/room-unavailable';
 
 vi.mock('@/utils/room-store', () => ({
     loadRoom: vi.fn(),
@@ -31,23 +31,18 @@ describe('mintBoundJoinToken', () => {
         vi.mocked(loadRoom).mockReset();
     });
 
-    it('refuses to mint when the room is missing', async () => {
+    it('refuses to mint when the room is missing with the opaque error', async () => {
         vi.mocked(loadRoom).mockResolvedValue(null as never);
-        await expect(mintBoundJoinToken(memoryRedis() as never, bind)).rejects.toMatchObject({
-            code: ErrorCode.ROOM_NOT_FOUND,
-        });
+        await expect(mintBoundJoinToken(memoryRedis() as never, bind)).rejects.toBeInstanceOf(
+            RoomUnavailableError,
+        );
     });
 
     it('requires the room password when the room has one', async () => {
         vi.mocked(loadRoom).mockResolvedValue({ password: 'party' } as never);
         await expect(
             mintBoundJoinToken(memoryRedis() as never, bind, 'nope'),
-        ).rejects.toBeInstanceOf(RoomError);
-        await expect(
-            mintBoundJoinToken(memoryRedis() as never, bind, 'nope'),
-        ).rejects.toMatchObject({
-            code: ErrorCode.INCORRECT_PASSWORD,
-        });
+        ).rejects.toBeInstanceOf(RoomUnavailableError);
     });
 
     it('mints when the room password matches', async () => {
@@ -58,9 +53,22 @@ describe('mintBoundJoinToken', () => {
         expect(minted.joinToken.length).toBeGreaterThanOrEqual(8);
     });
 
-    it('mints a public room without a password', async () => {
+    it('refuses a public room without a password', async () => {
         vi.mocked(loadRoom).mockResolvedValue({} as never);
-        const minted = await mintBoundJoinToken(memoryRedis() as never, bind);
-        expect(minted.roomId).toBe('4821');
+        await expect(mintBoundJoinToken(memoryRedis() as never, bind)).rejects.toBeInstanceOf(
+            RoomUnavailableError,
+        );
+    });
+
+    it('does not mint a different room with a stolen password', async () => {
+        vi.mocked(loadRoom).mockImplementation(async (roomId: string) => {
+            if (roomId === '4821') {
+                return { password: 'party' } as never;
+            }
+            return { password: 'other-room' } as never;
+        });
+        await expect(
+            mintBoundJoinToken(memoryRedis() as never, { roomId: '9999', displayName: 'Claude' }, 'party'),
+        ).rejects.toBeInstanceOf(RoomUnavailableError);
     });
 });
