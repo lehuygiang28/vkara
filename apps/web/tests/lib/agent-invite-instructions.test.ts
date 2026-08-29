@@ -50,4 +50,17 @@ describe('buildAgentInviteInstructions', () => {
             'Read https://vkara.vercel.app/llms.txt and join room 2690 (password: party) to help me control the room.',
         );
     });
+
+    it('includes joinToken when the room has no password', () => {
+        expect(
+            buildAgentInviteInstructions({
+                llmsTxtUrl: 'https://vkara.vercel.app/llms.txt',
+                roomId: '2690',
+                locale: 'vi',
+                joinToken: 'tok_abc',
+            }),
+        ).toBe(
+            'Đọc https://vkara.vercel.app/llms.txt và vào phòng 2690 (joinToken: tok_abc) để giúp tôi điều khiển phòng.',
+        );
+    });
 });

@@ -34,6 +34,7 @@ import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import { generateShareableUrl } from '@/lib/room-share';
 import { buildAgentInviteInstructions } from '@/lib/agent-invite-instructions';
+import { mintJoinTokenFromWs } from '@/lib/mint-join-token-from-ws';
 import {
     roomCodeFieldProps,
     roomCodeOtpSlotClassName,
@@ -150,21 +151,28 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
             return;
         }
 
-        const text = buildAgentInviteInstructions({
-            llmsTxtUrl: `${window.location.origin}/llms.txt`,
-            roomId: room.id,
-            locale,
-            password: sharePassword || undefined,
-        });
+        void (async () => {
+            let joinToken: string | undefined;
+            if (!sharePassword) {
+                joinToken = await mintJoinTokenFromWs(ensureConnectedAndSend);
+            }
 
-        void navigator.clipboard.writeText(text).then(() => {
+            const text = buildAgentInviteInstructions({
+                llmsTxtUrl: `${window.location.origin}/llms.txt`,
+                roomId: room.id,
+                locale,
+                password: sharePassword || undefined,
+                joinToken,
+            });
+
+            await navigator.clipboard.writeText(text);
             toast({
                 title: tRoom('copyAgentInstructionsSuccess'),
                 variant: 'success',
                 duration: 1800,
             });
-        });
-    }, [locale, room?.id, sharePassword, tRoom]);
+        })();
+    }, [ensureConnectedAndSend, locale, room?.id, sharePassword, tRoom]);
 
     return (
         <SettingsSection
