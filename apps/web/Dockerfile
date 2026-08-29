@@ -18,11 +18,13 @@ COPY packages/room/package.json ./packages/room/package.json
 COPY packages/tiktok/package.json ./packages/tiktok/package.json
 COPY packages/personalization/package.json ./packages/personalization/package.json
 COPY packages/curated-playlists/package.json ./packages/curated-playlists/package.json
+COPY packages/url-commands/package.json ./packages/url-commands/package.json
 
 RUN bun install --frozen-lockfile \
     --filter '@vkara/web' \
     --filter '@vkara/env' \
     --filter '@vkara/validators' \
+    --filter '@vkara/url-commands' \
     --filter '@vkara/youtube' \
     --filter '@vkara/room' \
     --filter '@vkara/tiktok' \
@@ -33,6 +35,7 @@ RUN bun install --frozen-lockfile \
 COPY apps/web ./apps/web
 COPY packages/env ./packages/env
 COPY packages/validators ./packages/validators
+COPY packages/url-commands ./packages/url-commands
 COPY packages/youtube ./packages/youtube
 COPY packages/room ./packages/room
 COPY packages/tiktok ./packages/tiktok

@@ -18,6 +18,7 @@ COPY packages/room/package.json ./packages/room/package.json
 COPY packages/tiktok/package.json ./packages/tiktok/package.json
 COPY packages/personalization/package.json ./packages/personalization/package.json
 COPY packages/curated-playlists/package.json ./packages/curated-playlists/package.json
+COPY packages/url-commands/package.json ./packages/url-commands/package.json
 
 # Aio workspaces only (+ typescript for next build; lives in root devDeps today).
 FROM base AS deps
@@ -28,6 +29,7 @@ RUN bun install --frozen-lockfile \
     --filter '@vkara/redis' \
     --filter '@vkara/cache-redis' \
     --filter '@vkara/validators' \
+    --filter '@vkara/url-commands' \
     --filter '@vkara/youtube' \
     --filter '@vkara/room' \
     --filter '@vkara/tiktok' \
@@ -41,6 +43,7 @@ COPY packages/env ./packages/env
 COPY packages/redis ./packages/redis
 COPY packages/cache-redis ./packages/cache-redis
 COPY packages/validators ./packages/validators
+COPY packages/url-commands ./packages/url-commands
 COPY packages/youtube ./packages/youtube
 COPY packages/room ./packages/room
 COPY packages/tiktok ./packages/tiktok
@@ -62,6 +65,7 @@ FROM deps AS build-web
 COPY apps/web ./apps/web
 COPY packages/env ./packages/env
 COPY packages/validators ./packages/validators
+COPY packages/url-commands ./packages/url-commands
 COPY packages/youtube ./packages/youtube
 COPY packages/tiktok ./packages/tiktok
 COPY packages/room ./packages/room

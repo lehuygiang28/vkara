@@ -19,6 +19,7 @@ const nextConfig: NextConfig = {
     transpilePackages: [
         '@vkara/env',
         '@vkara/validators',
+        '@vkara/url-commands',
         '@vkara/youtube',
         '@vkara/room',
         '@vkara/personalization',
@@ -45,6 +46,10 @@ const nextConfig: NextConfig = {
     },
     async headers() {
         return [
+            {
+                source: '/:path*',
+                headers: [{ key: 'Link', value: '</llms.txt>; rel="describedby"' }],
+            },
             // Smart TV clients cache the /tv HTML in the app's private browser
             // profile and old engines don't reliably revalidate, leaving the
             // TV on a stale deploy until the app is reinstalled. The document
