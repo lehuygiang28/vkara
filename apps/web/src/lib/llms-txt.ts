@@ -235,6 +235,6 @@ Base: \`${factory}\`. v1 does **not** join WebSocket as a hidden participant.
 ## Optional
 
 - [Vietnamese README](${GITHUB}/docs/vi/README.md)
-- [OpenSpec change](${GITHUB}/openspec/changes/url-command-surface): design and security specs
+- [OpenSpec specs](https://github.com/lehuygiang28/vkara/tree/main/openspec/specs/url-command-surface): design and security specs
 `;
 }
