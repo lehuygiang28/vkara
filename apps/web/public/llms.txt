@@ -1,0 +1,74 @@
+# vkara
+
+> Shared karaoke rooms: one TV or laptop is the player, phones are remotes. No account. Guests scan a QR or type a 4-digit room code. Optional URL commands and an HTTP factory exist for power users and AI agents only.
+
+vkara is a party app. Keep the guest path short: open the site, create or join, search, add a song. Do not ask non-technical people to edit query strings, mint tokens, or open MCP tools.
+
+## Guests (non-tech)
+
+- Phone: open the site (or scan the QR on the TV). Join with the 4-digit code. Password only if the host set one.
+- TV: open `/tv` (or the Tizen app). Create a room. Show the QR. Play.
+- Human share/QR links are **only** `roomId` and optional `password`. Never add `queue`, `play`, `next`, `layoutMode`, or `name` to a guest invite.
+- Compact in-app payload: `vkara:<roomId>` or `vkara:<roomId>:<password>`.
+
+## Agents and power users
+
+Optional query document. Missing keys are no-ops. Unknown keys are ignored. After apply, consumed keys are stripped (`history.replace`). Prefer a `joinToken` over putting a password in a URL.
+
+Apply order: `name` → stash secrets → join → `provider` → `karaoke` → `q` → `tab` → `layoutMode` → wait session → `queue` / `play` / `next` → strip.
+
+On `/tv` or `/en/tv`: join and `name` still apply; `layoutMode`, `q`, and `tab` are ignored. No focus steal, no success toast. `play` / `queue` / `next` still apply when `roomId` matches (automation).
+
+### Catalog
+
+- `roomId` — 4 digits
+- `password` — human invite secret
+- `joinToken` — 8–64 `A-Za-z0-9_-`; wins over `password`; single-use, Redis TTL 600s
+- `layoutMode` — `auto` | `remote` | `player` | `both` (home only)
+- `q` — search text (home only)
+- `karaoke` — `0` | `1`
+- `provider` — `youtube` | `tiktok` (TikTok needs experiments)
+- `name` — max 40; required for agents and mutations
+- `tab` — `search` | `queue` | `history` | `controls` | `settings` (home only)
+- `agent` — `1` (requires `name`)
+- `queue` / `play` — video id; needs `roomId` + `once` + `name`
+- `next` — `1`; needs `roomId` + `once` + `name`
+- `once` — 8–64 token; consume before WebSocket send
+- `exp` — unix seconds; stale acts drop
+- `launch` — TV cache-bust; reserved; never stripped
+
+Never executed from the query: `deviceId`, `closeRoom`, `leaveRoom`, `lockRoom`, `unlockRoom`, `kick`, `promote`, `demote`, `clearQueue`, `clearHistory`, `claimHost`, `redirect`.
+
+Mutations apply only when the live room id equals `roomId`. Wrong room = no act.
+
+### Recipes
+
+```
+https://vkara.example/?roomId=4821
+https://vkara.example/en?roomId=4821&name=Claude&q=son+tung&karaoke=1
+https://vkara.example/?roomId=4821&queue=<videoId>&once=<token>&name=Claude
+https://vkara.example/tv?roomId=4821
+```
+
+## HTTP factory (MCP v1)
+
+Base: `{API}/url-commands`. v1 does **not** join WebSocket as a hidden participant.
+
+- `POST /validate` — `{ query, bind }` → parsed document + bind
+- `POST /build-url` — `{ origin, path, command, bind }` → `{ url, bind }`. Refuses `password` (mint `joinToken`). Refuses destructive keys and a different `roomId`.
+- `POST /mint-once` — `{ bind }` → `{ once, bind }`
+- `POST /mint-join-token` — `{ bind, password? }` → `{ joinToken, roomId, exp, bind }`. Password required when the room has one.
+
+`bind` is `{ roomId, displayName }`. `path` is `/` | `/en` | `/tv` | `/en/tv`. Echo bind before acting. Search stays `POST /search` and `POST /tiktok/search`.
+
+## Docs
+
+- [URL commands (EN)](https://github.com/lehuygiang28/vkara/blob/main/docs/agents/url-commands.md): full catalog and apply order
+- [MCP factory](https://github.com/lehuygiang28/vkara/blob/main/docs/agents/mcp.md): Cursor / HTTP bind
+- [URL commands (VI)](https://github.com/lehuygiang28/vkara/blob/main/docs/vi/url-commands.md): tiếng Việt
+- [Human README](https://github.com/lehuygiang28/vkara/blob/main/README.md): guest usage, no-account karaoke
+
+## Optional
+
+- [Vietnamese README](https://github.com/lehuygiang28/vkara/blob/main/docs/vi/README.md)
+- [OpenSpec change](https://github.com/lehuygiang28/vkara/tree/main/openspec/changes/url-command-surface): design and security specs

@@ -75,5 +75,5 @@ function middleware(request: NextRequest) {
 export default Sentry.wrapMiddlewareWithSentry(middleware);
 
 export const config = {
-    matcher: ['/((?!api|static|monitoring|.*\\..*|_next|favicon.ico|robots.txt|icons).*)'],
+    matcher: ['/((?!api|static|monitoring|.*\\..*|_next|favicon.ico|robots.txt|llms.txt|icons).*)'],
 };

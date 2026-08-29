@@ -253,7 +253,7 @@ Realtime message shapes live in `packages/validators` (zod); room/YouTube domain
 
 **Scripts:** `bun run dev` · `bun run test` · `bun run typecheck` · `bun run lint` · `bun run build` · `bun run build:tizen` · `bun run build:android-tv` · `bun run format`
 
-**Docs:** [Monorepo architecture](docs/monorepo-architecture.md)
+**Docs:** [Monorepo architecture](docs/monorepo-architecture.md) · [URL commands / agents](docs/agents/url-commands.md)
 
 </details>
 

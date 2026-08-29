@@ -9,4 +9,6 @@
 
 Technical deployment (English): [containers/README.md](../containers/README.md)
 
+Agent / URL automation: [agents/url-commands.md](agents/url-commands.md) · [agents/mcp.md](agents/mcp.md) · [Tiếng Việt](vi/url-commands.md)
+
 Copyright complaints and takedown requests: [lehuygiang28@gmail.com](mailto:lehuygiang28@gmail.com)
