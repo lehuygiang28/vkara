@@ -44,7 +44,19 @@ describe('llms.txt route content', () => {
     });
 
     it('defaults API to localhost:8000 when app is localhost:3000', () => {
-        expect(resolveApiOriginForRequest('http://localhost:3000')).toBe('http://localhost:8000');
+        const prev = process.env.NEXT_PUBLIC_API_URL;
+        delete process.env.NEXT_PUBLIC_API_URL;
+        try {
+            expect(resolveApiOriginForRequest('http://localhost:3000')).toBe(
+                'http://localhost:8000',
+            );
+        } finally {
+            if (prev === undefined) {
+                delete process.env.NEXT_PUBLIC_API_URL;
+            } else {
+                process.env.NEXT_PUBLIC_API_URL = prev;
+            }
+        }
     });
 
     it('joins relative NEXT_PUBLIC_API_URL to the request app origin', () => {
