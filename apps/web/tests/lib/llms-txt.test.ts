@@ -30,6 +30,8 @@ describe('llms.txt route content', () => {
         expect(text).toContain('What you can do (tell the user');
         expect(text).toContain('Thêm bài vào hàng đợi');
         expect(text).toContain('POST https://api.test/search');
+        expect(text).toContain('POST https://api.test/url-commands/session');
+        expect(text).toContain('POST https://api.test/url-commands/queue');
     });
 
     it('resolves request origin from forwarded headers', () => {

@@ -84,7 +84,9 @@ They may append a task on the **same line** (e.g. \`… Thêm 3 bài kara của 
 
 1. Fetch **this file** (\`${llmsUrl}\`). Follow links here only when a step is unclear.
 2. Extract \`roomId\` (4 digits) from the user message.
-3. **Join the room** as an agent: open a URL like \`${app}/?roomId=<roomId>&name=<YourName>&agent=1\` (add \`password=\` or mint \`joinToken\` via factory if the room is protected). Wait until the session is connected before queue/play/next.
+3. **Join the room** as an agent:
+   - **Browser:** open \`${app}/?roomId=<roomId>&name=<YourName>&agent=1\` (add \`password=\` or \`joinToken=\` from the invite).
+   - **Headless / API:** \`POST ${factory}/session\` with \`bind: { roomId, displayName }\` and the invite \`password\` **or** \`joinToken\`. Room-id-only join is refused. Do **not** call HTTP \`mint-join-token\` on passwordless rooms.
 4. Reply in the **same language** as the user (VI → Vietnamese, EN → English).
 
 ### Case A — invite only (no task)
@@ -159,10 +161,22 @@ Append \`karaoke\` to vague artist/song queries unless the user said otherwise.
 
 **Skip:** \`command: { "roomId", "next": "1", "once", "name" }\`.
 
-**Protected room:** \`POST ${factory}/mint-join-token\` with \`password\` if needed → join URL with \`joinToken=\` (never put password in chat if avoidable).
+**Protected room (browser):** \`POST ${factory}/mint-join-token\` with \`password\` → join URL with \`joinToken=\`. Passwordless HTTP mint is refused.
 
-**Multi-song request:** repeat search → mint-once → build-url → open for each track; summarize all results in one reply.
+**Headless HTTP (no browser):**
 
+1. \`POST ${factory}/session\` \`{ bind, password? | joinToken? }\` → \`sessionToken\`
+2. \`POST ${api}/search\` → video ids
+3. \`POST ${factory}/mint-once\` → \`once\`
+4. \`POST ${factory}/queue\` \`{ bind, sessionToken, videoId, once }\` (or \`/play\`, \`/next\`)
+5. \`GET ${factory}/session\` with \`Authorization: Bearer <sessionToken>\` for a snapshot
+6. \`POST ${factory}/leave\` when done
+
+HTTP mutations use the Redis session room only. \`bind.roomId\` must match. Never pass a client \`deviceId\`.
+
+**Multi-song request:** repeat search → mint-once → queue (HTTP) or build-url + open (browser); summarize all results in one reply.
+
+## Guests (non-tech)
 
 - Phone: open the site (or scan the QR on the TV). Join with the 4-digit code. Password only if the host set one.
 - TV: open \`${app}/tv\` (or the Tizen app). Create a room. Show the QR. Play.
