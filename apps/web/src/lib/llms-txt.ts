@@ -242,7 +242,7 @@ Base: \`${factory}\`. v1 does **not** join WebSocket as a hidden participant.
 ## Docs
 
 - [URL commands (EN)](${GITHUB}/docs/agents/url-commands.md): full catalog and apply order
-- [MCP factory](${GITHUB}/docs/agents/mcp.md): Cursor / HTTP bind
+- [MCP factory](${GITHUB}/docs/agents/mcp.md): Claude / ChatGPT / Gemini / Grok / Cursor / HTTP bind
 - [URL commands (VI)](${GITHUB}/docs/vi/url-commands.md): tiếng Việt
 - [Human README](${GITHUB}/README.md): guest usage, no-account karaoke
 

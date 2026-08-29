@@ -34,7 +34,7 @@ Base: `{API}/url-commands`
 
 Open rooms: a host mints `joinToken` over WebSocket (`mintJoinToken`). Do not call HTTP `/mint-join-token` without a password.
 
-## Cursor config
+## Example MCP config (Cursor, Claude Desktop, …)
 
 ```json
 {

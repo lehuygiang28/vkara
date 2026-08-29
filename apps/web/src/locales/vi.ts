@@ -184,8 +184,12 @@ export default {
     'roomSettings.copyUrlSuccess': 'URL đã được sao chép',
     'roomSettings.copyAgentInstructions': 'Sao chép hướng dẫn AI Agent',
     'roomSettings.copyAgentInstructionsHint':
-        'Dán vào Cursor rồi thêm yêu cầu của bạn (vd. thêm bài karaoke trên YouTube)',
+        'Dán vào Claude, ChatGPT, Gemini, Grok, Cursor hoặc AI assistant khác, rồi thêm yêu cầu (vd. thêm bài karaoke trên YouTube)',
     'roomSettings.copyAgentInstructionsSuccess': 'Đã sao chép hướng dẫn AI Agent',
+    'roomSettings.copyAgentInstructionsPreparing': 'Đang chuẩn bị lời mời… thử lại sau giây lát',
+    'roomSettings.copyAgentInstructionsHostOnly':
+        'Chỉ host mới sao chép được hướng dẫn agent cho phòng không mật khẩu',
+    'roomSettings.copyAgentInstructionsFailed': 'Không sao chép được hướng dẫn agent',
     'roomSettings.qrCode': 'Mã QR',
     'roomSettings.showQRInPlayer': 'Hiện QR trên TV',
     'roomSettings.show': 'Hiển thị',

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { QRCode } from 'react-qrcode-logo';
 import { Copy, Eye, EyeOff, Bot } from 'lucide-react';
 
@@ -34,6 +34,8 @@ import { toast } from '@/hooks/use-toast';
 import { toastSessionNotReady } from '@/lib/session-toast';
 import { generateShareableUrl } from '@/lib/room-share';
 import { buildAgentInviteInstructions } from '@/lib/agent-invite-instructions';
+import { copyTextToClipboard } from '@/lib/copy-text-to-clipboard';
+import { getOrCreateDeviceId } from '@/lib/device-id';
 import { mintJoinTokenFromWs } from '@/lib/mint-join-token-from-ws';
 import {
     roomCodeFieldProps,
@@ -68,6 +70,16 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
     const locale = useCurrentLocale();
     const isConnected = connectionStatus === 'OPEN';
     const canJoin = isConnected && isValidRoomId(joinRoomId);
+    const myDeviceId = getOrCreateDeviceId();
+    const [agentJoinToken, setAgentJoinToken] = useState<string>();
+    const [agentJoinTokenPending, setAgentJoinTokenPending] = useState(false);
+    const agentJoinTokenRoomRef = useRef<string | undefined>(undefined);
+
+    const isHost = useMemo(() => {
+        if (!room || !myDeviceId) return false;
+        const me = room.participants?.[myDeviceId];
+        return me?.role === 'host' || room.hostDeviceId === myDeviceId;
+    }, [room, myDeviceId]);
 
     const storedRejoinPassword = useRoomRejoinSecretStore(
         selectRejoinPassword(room?.id),
@@ -146,33 +158,102 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
         }
     }, [ensureConnectedAndSend, room?.id, isRemoteLayout, setRoom, enterTvLobby]);
 
+    useEffect(() => {
+        if (!room?.id || sharePassword || !isHost || !isConnected) {
+            setAgentJoinToken(undefined);
+            setAgentJoinTokenPending(false);
+            agentJoinTokenRoomRef.current = undefined;
+            return;
+        }
+
+        if (agentJoinTokenRoomRef.current === room.id) {
+            return;
+        }
+
+        let cancelled = false;
+        setAgentJoinTokenPending(true);
+        void mintJoinTokenFromWs(ensureConnectedAndSend).then((token) => {
+            if (cancelled) {
+                return;
+            }
+            if (token) {
+                agentJoinTokenRoomRef.current = room.id;
+                setAgentJoinToken(token);
+            } else {
+                setAgentJoinToken(undefined);
+            }
+            setAgentJoinTokenPending(false);
+        });
+
+        return () => {
+            cancelled = true;
+        };
+    }, [ensureConnectedAndSend, isConnected, isHost, room?.id, sharePassword]);
+
     const copyAgentInstructions = useCallback(() => {
         if (!room?.id || typeof window === 'undefined') {
             return;
         }
 
-        void (async () => {
-            let joinToken: string | undefined;
-            if (!sharePassword) {
-                joinToken = await mintJoinTokenFromWs(ensureConnectedAndSend);
+        if (!sharePassword && !isHost) {
+            toast({
+                title: tRoom('copyAgentInstructionsHostOnly'),
+                variant: 'destructive',
+                duration: 2800,
+            });
+            return;
+        }
+
+        if (!sharePassword && agentJoinTokenPending) {
+            toast({
+                title: tRoom('copyAgentInstructionsPreparing'),
+                duration: 1800,
+            });
+            return;
+        }
+
+        if (!sharePassword && !agentJoinToken) {
+            toast({
+                title: tRoom('copyAgentInstructionsFailed'),
+                variant: 'destructive',
+                duration: 2800,
+            });
+            return;
+        }
+
+        const text = buildAgentInviteInstructions({
+            llmsTxtUrl: `${window.location.origin}/llms.txt`,
+            roomId: room.id,
+            locale,
+            password: sharePassword || undefined,
+            joinToken: agentJoinToken,
+        });
+
+        void copyTextToClipboard(text).then((copied) => {
+            if (!copied) {
+                toast({
+                    title: tRoom('copyAgentInstructionsFailed'),
+                    variant: 'destructive',
+                    duration: 2800,
+                });
+                return;
             }
 
-            const text = buildAgentInviteInstructions({
-                llmsTxtUrl: `${window.location.origin}/llms.txt`,
-                roomId: room.id,
-                locale,
-                password: sharePassword || undefined,
-                joinToken,
-            });
-
-            await navigator.clipboard.writeText(text);
             toast({
                 title: tRoom('copyAgentInstructionsSuccess'),
                 variant: 'success',
                 duration: 1800,
             });
-        })();
-    }, [ensureConnectedAndSend, locale, room?.id, sharePassword, tRoom]);
+        });
+    }, [
+        agentJoinToken,
+        agentJoinTokenPending,
+        isHost,
+        locale,
+        room?.id,
+        sharePassword,
+        tRoom,
+    ]);
 
     return (
         <SettingsSection
@@ -298,6 +379,11 @@ export function RoomSettingsSection({ isRemoteLayout }: RoomSettingsSectionProps
                                     variant="secondary"
                                     className="w-full gap-2"
                                     onClick={copyAgentInstructions}
+                                    disabled={
+                                        !sharePassword &&
+                                        isHost &&
+                                        agentJoinTokenPending
+                                    }
                                 >
                                     <Bot className="h-4 w-4 shrink-0" aria-hidden />
                                     {tRoom('copyAgentInstructions')}

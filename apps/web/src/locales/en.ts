@@ -185,8 +185,12 @@ export default {
     'roomSettings.copyUrlSuccess': 'URL copied to clipboard',
     'roomSettings.copyAgentInstructions': 'Copy agent instructions',
     'roomSettings.copyAgentInstructionsHint':
-        'Paste into Cursor, then add your request (e.g. queue karaoke songs on YouTube)',
+        'Paste into Claude, ChatGPT, Gemini, Grok, Cursor, or any AI assistant, then add your request (e.g. queue karaoke songs on YouTube)',
     'roomSettings.copyAgentInstructionsSuccess': 'Agent instructions copied',
+    'roomSettings.copyAgentInstructionsPreparing': 'Preparing invite… try again in a moment',
+    'roomSettings.copyAgentInstructionsHostOnly':
+        'Only the host can copy agent instructions for an open room',
+    'roomSettings.copyAgentInstructionsFailed': 'Could not copy agent instructions',
     'roomSettings.qrCode': 'QR Code',
     'roomSettings.showQRInPlayer': 'Show QR on TV',
     'roomSettings.show': 'Show',
