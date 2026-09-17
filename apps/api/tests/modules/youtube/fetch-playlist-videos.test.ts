@@ -1,4 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import type { VideoCompact } from 'youtubei';
+
+import type { RendererMetadataMaps } from '@/modules/youtube/renderer-metadata';
 
 const { getPlaylist, postInnertube, prepareYoutubeVideos } = vi.hoisted(() => ({
     getPlaylist: vi.fn(),
@@ -195,8 +198,14 @@ describe('fetchYoutubePlaylistVideos', () => {
         postInnertube.mockResolvedValue({
             data: lockupBrowsePayload('HX3UcwUYMjM', 'Made In Vietnam'),
         });
-        prepareYoutubeVideos.mockImplementation(async (_client, _redis, items, metadata) =>
-            items.map((item) => ({
+        prepareYoutubeVideos.mockImplementation(
+            async (
+                _client: unknown,
+                _redis: unknown,
+                items: VideoCompact[],
+                metadata: RendererMetadataMaps,
+            ) =>
+                items.map((item: VideoCompact) => ({
                 id: item.id,
                 title: item.title,
                 duration: item.duration,
@@ -207,7 +216,7 @@ describe('fetchYoutubePlaylistVideos', () => {
                 views: metadata.viewCountByVideoId.get(item.id) ?? 0,
                 channels: [{ name: 'Channel', verified: false }],
                 thumbnails: [],
-            })),
+                })),
         );
 
         const videos = await fetchYoutubePlaylistVideos(LIST_ID, {
