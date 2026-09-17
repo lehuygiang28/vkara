@@ -229,6 +229,50 @@ describe('fetchYoutubePlaylistVideos', () => {
         expect(videos[0]?.views).toBe(1_000);
     });
 
+    it('prefetches browse metadata when redis is provided and youtubei returns videos', async () => {
+        getPlaylist.mockResolvedValue({
+            id: LIST_ID,
+            videos: {
+                items: [
+                    {
+                        id: 'legacyVideo1',
+                        title: 'Legacy row',
+                        duration: 180,
+                        thumbnails: [{ url: 'https://i.ytimg.com/vi/legacyVideo1/hqdefault.jpg' }],
+                        channel: { name: 'Channel' },
+                    },
+                ],
+                continuation: undefined,
+            },
+        });
+        postInnertube.mockResolvedValue({
+            data: lockupBrowsePayload('legacyVideo1', 'Legacy row'),
+        });
+        prepareYoutubeVideos.mockResolvedValue([
+            {
+                id: 'legacyVideo1',
+                title: 'Legacy row',
+                duration: 180,
+                duration_formatted: '3:00',
+                type: 'video',
+                url: 'https://www.youtube.com/watch?v=legacyVideo1',
+                uploadedAt: '',
+                views: 1_000,
+                channels: [{ name: 'Channel', verified: false }],
+                thumbnails: [],
+            },
+        ]);
+
+        await fetchYoutubePlaylistVideos(LIST_ID, {
+            limit: 10,
+            fetchAll: false,
+            redisClient: {} as never,
+        });
+
+        expect(postInnertube).toHaveBeenCalled();
+        expect(prepareYoutubeVideos).toHaveBeenCalled();
+    });
+
     it('keeps youtubei playlistVideoRenderer results without a browse fallback', async () => {
         getPlaylist.mockResolvedValue({
             id: LIST_ID,

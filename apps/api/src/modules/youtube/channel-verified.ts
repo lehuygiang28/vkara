@@ -3,7 +3,10 @@ import type Redis from 'ioredis';
 
 import { getCachedChannel, setCachedChannel } from './channel-cache';
 import { createInFlightDedup } from './in-flight-dedup';
+import { mapWithConcurrency } from './map-with-concurrency';
 import { postInnertube } from './innertube-post';
+
+const CHANNEL_VERIFY_PREFETCH_CONCURRENCY = 8;
 
 const VERIFIED_ACCESSIBILITY_LABEL = /verified|official artist channel/i;
 
@@ -115,8 +118,10 @@ export const prefetchUniqueChannelVerified = async (
         });
     }
 
-    await Promise.all(
-        [...unique.values()].map((channel) =>
+    await mapWithConcurrency(
+        [...unique.values()],
+        CHANNEL_VERIFY_PREFETCH_CONCURRENCY,
+        (channel) =>
             resolveChannelVerified(
                 redisClient,
                 client,
@@ -124,6 +129,5 @@ export const prefetchUniqueChannelVerified = async (
                 channel.name,
                 channel.verified,
             ),
-        ),
     );
 };

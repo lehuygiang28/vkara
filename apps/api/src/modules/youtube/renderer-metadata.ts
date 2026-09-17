@@ -58,7 +58,8 @@ const joinTextSource = (source?: TextRunSource): string | undefined => {
 const getVideoRenderer = (node: Record<string, unknown>): CompactVideoRenderer | undefined =>
     (node.videoRenderer ??
         node.compactVideoRenderer ??
-        node.playlistVideoRenderer) as CompactVideoRenderer | undefined;
+        node.playlistVideoRenderer ??
+        node.playlistPanelVideoRenderer) as CompactVideoRenderer | undefined;
 
 const extractViewCountText = (renderer: CompactVideoRenderer): string | undefined => {
     const direct =
