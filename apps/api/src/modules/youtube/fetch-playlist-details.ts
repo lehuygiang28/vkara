@@ -1,4 +1,5 @@
 import type { Playlist } from 'youtubei';
+import type Redis from 'ioredis';
 import type {
     PlaylistDetailsResponse,
     YouTubeThumbnailVariant,
@@ -85,17 +86,21 @@ async function fetchStandardPlaylistMetadata(
 
 export async function fetchYoutubePlaylistDetails(
     playlistUrlOrId: string,
-    options?: { limit?: number; fetchAll?: boolean; videoLimit?: number },
+    options?: {
+        limit?: number;
+        fetchAll?: boolean;
+        videoLimit?: number;
+        redisClient?: Redis;
+    },
 ): Promise<PlaylistDetailsResponse> {
     const parsed = parseYoutubePlaylistInput(playlistUrlOrId);
     const videoLimit = options?.videoLimit ?? options?.limit ?? 200;
     const fetchAll = options?.fetchAll ?? options?.videoLimit === undefined;
 
-    // TODO(phase-2): Same metadata gap as WS import — videos lack views/verified until
-    // playlist path uses prepareYoutubeVideos (rate-limit research required).
     const videos = await fetchYoutubePlaylistVideos(playlistUrlOrId, {
         limit: videoLimit,
         fetchAll,
+        redisClient: options?.redisClient,
     });
 
     if (parsed.isMix) {

@@ -15,6 +15,7 @@ export function parseYoutubeViewCountText(text: string): number | null {
         .replace(/,/g, '')
         .replace(/\s*watching$/i, '')
         .replace(/\s*views?$/i, '')
+        .replace(/\s*lượt\s*xem$/i, '')
         .trim();
 
     const compactMatch = COMPACT_VIEW_PATTERN.exec(trimmed);

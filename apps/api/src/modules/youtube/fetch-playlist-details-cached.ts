@@ -74,7 +74,10 @@ export async function resolvePlaylistDetails(
     const cacheKey = buildPlaylistDetailsCacheKey(parsed.listId, scope);
 
     if (mode === 'refresh') {
-        const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, options);
+        const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, {
+            ...options,
+            redisClient,
+        });
         await storeFullPlaylistDetailsCache(redisClient, details);
         return servePlaylistDetails(redisClient, details);
     }
@@ -90,7 +93,10 @@ export async function resolvePlaylistDetails(
             return servePlaylistDetails(redisClient, cachedAgain);
         }
 
-        const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, options);
+        const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, {
+            ...options,
+            redisClient,
+        });
         await writePlaylistDetailsCache(redisClient, parsed.listId, scope, details);
         return servePlaylistDetails(redisClient, details);
     });

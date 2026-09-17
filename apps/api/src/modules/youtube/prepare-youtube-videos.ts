@@ -78,7 +78,6 @@ async function cacheResolvedChannels(
  * validate → prefetch channels/live → map → optional embed prefilter (feature flag).
  * WebSocket add/play always re-checks embeddability (Redis-backed).
  *
- * TODO(phase-2): Wire playlist import through here for views/verified (rate-limit research).
  */
 export async function prepareYoutubeVideos(
     client: Client,

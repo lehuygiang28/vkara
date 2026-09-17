@@ -1,4 +1,5 @@
 import type { MixPlaylist, Playlist, VideoCompact } from 'youtubei';
+import type Redis from 'ioredis';
 import type { YouTubeVideo } from '@vkara/youtube';
 import { parseYoutubePlaylistInput, type YoutubePlaylistInput } from '@vkara/youtube';
 
@@ -10,20 +11,14 @@ import {
     parsePlaylistBrowseContinuation,
     parsePlaylistBrowseVideos,
 } from './parse-playlist-browse';
+import { prepareYoutubeVideos } from './prepare-youtube-videos';
+import { extractRendererMetadata, mergeRendererMetadata } from './renderer-metadata';
 import { youtubeOutboundFetch } from './youtube-outbound-fetch';
 import { getYoutubeiClient } from './youtubei-client';
 import { asYoutubeRawData } from './youtubei-raw-data';
 import { mapYoutubeiFullVideo, mapYoutubeiVideo, mapYoutubeiThumbnails } from './video-mapper';
 
 const logger = createContextLogger('FetchPlaylist');
-
-/**
- * TODO(phase-2): Enrich playlist rows with view counts and channel verified badges.
- * Search/related use `prepareYoutubeVideos` (renderer metadata + channel prefetch).
- * Playlist import maps `VideoCompact` directly, so views/verified are often 0/false
- * (mix/HTML paths hardcode them). Reuse or extend that pipeline only after research:
- * large playlists mean many Innertube/Redis calls and risk YouTube rate limits.
- */
 
 type MixPanelRenderer = {
     videoId?: string;
@@ -128,9 +123,37 @@ function buildSeedYouTubeVideo(videoId: string): YouTubeVideo {
     };
 }
 
-/** Maps playlist compacts without `prepareYoutubeVideos` — see module TODO(phase-2). */
-function mapCompactsToYouTubeVideos(compacts: VideoCompact[], limit: number): YouTubeVideo[] {
-    return compacts.slice(0, limit).map((compact) => mapYoutubeiVideo(compact));
+async function preparePlaylistVideos(
+    compacts: VideoCompact[],
+    limit: number,
+    options: { redisClient?: Redis; metadataSources?: unknown[] },
+): Promise<YouTubeVideo[]> {
+    const limited = compacts.slice(0, limit);
+    const { redisClient, metadataSources = [] } = options;
+
+    if (!redisClient) {
+        return limited.map((compact) => mapYoutubeiVideo(compact));
+    }
+
+    const metadata = mergeRendererMetadata(
+        ...metadataSources.map((source) => extractRendererMetadata(source)),
+    );
+
+    return prepareYoutubeVideos(getYoutubeiClient(), redisClient, limited, metadata);
+}
+
+async function fetchPlaylistBrowseMetadata(listId: string): Promise<unknown | undefined> {
+    const client = getYoutubeiClient();
+
+    try {
+        const response = await postInnertube(client, '/youtubei/v1/browse', {
+            browseId: `VL${listId}`,
+        });
+        return response.data;
+    } catch (error) {
+        logger.warn('Failed to prefetch playlist browse metadata', { error, listId });
+        return undefined;
+    }
 }
 
 function parseMixPlaylistFromHtml(html: string, limit: number): YouTubeVideo[] {
@@ -194,18 +217,21 @@ async function loadPlaylistVideos(
 async function fetchStandardPlaylistViaLockupBrowse(
     listId: string,
     limit: number,
+    redisClient?: Redis,
 ): Promise<YouTubeVideo[]> {
     const client = getYoutubeiClient();
     const response = await postInnertube(client, '/youtubei/v1/browse', {
         browseId: `VL${listId}`,
     });
 
+    const metadataSources: unknown[] = [response.data];
     const collected = parsePlaylistBrowseVideos(response.data, client);
     let continuation = parsePlaylistBrowseContinuation(response.data);
 
     while (continuation && collected.length < limit) {
         try {
             const next = await postInnertube(client, '/youtubei/v1/browse', { continuation });
+            metadataSources.push(next.data);
             const page = parsePlaylistBrowseVideos(next.data, client);
             if (page.length === 0) {
                 break;
@@ -218,21 +244,32 @@ async function fetchStandardPlaylistViaLockupBrowse(
         }
     }
 
-    return mapCompactsToYouTubeVideos(collected, limit);
+    return preparePlaylistVideos(collected, limit, { redisClient, metadataSources });
 }
 
 async function fetchStandardPlaylistViaInnertube(
     listId: string,
-    options: { limit: number; fetchAll: boolean },
+    options: { limit: number; fetchAll: boolean; redisClient?: Redis },
 ): Promise<YouTubeVideo[]> {
     const client = getYoutubeiClient();
+    const metadataSources: unknown[] = [];
+
+    if (options.redisClient) {
+        const browseMetadata = await fetchPlaylistBrowseMetadata(listId);
+        if (browseMetadata) {
+            metadataSources.push(browseMetadata);
+        }
+    }
 
     try {
         const playlist = await client.getPlaylist<Playlist>(listId);
         if (playlist?.videos?.items.length) {
             const compacts = await loadPlaylistVideos(playlist, options);
             if (compacts.length > 0) {
-                return mapCompactsToYouTubeVideos(compacts, options.limit);
+                return preparePlaylistVideos(compacts, options.limit, {
+                    redisClient: options.redisClient,
+                    metadataSources,
+                });
             }
         }
     } catch (error) {
@@ -242,16 +279,20 @@ async function fetchStandardPlaylistViaInnertube(
         });
     }
 
-    return fetchStandardPlaylistViaLockupBrowse(listId, options.limit);
+    return fetchStandardPlaylistViaLockupBrowse(listId, options.limit, options.redisClient);
 }
 
-async function fetchMixViaInnertube(listId: string, limit: number): Promise<YouTubeVideo[]> {
+async function fetchMixViaInnertube(
+    listId: string,
+    limit: number,
+    redisClient?: Redis,
+): Promise<YouTubeVideo[]> {
     const client = getYoutubeiClient();
 
     try {
         const mix = await client.getPlaylist<MixPlaylist>(listId);
         if (mix?.videos.length) {
-            return mapCompactsToYouTubeVideos(mix.videos, limit);
+            return preparePlaylistVideos(mix.videos, limit, { redisClient });
         }
     } catch (error) {
         logger.warn('youtubei getPlaylist mix failed, trying raw next', { error, listId });
@@ -316,11 +357,11 @@ async function fetchSeedYouTubeVideo(videoId: string): Promise<YouTubeVideo | nu
 
 async function fetchMixPlaylist(
     parsed: YoutubePlaylistInput,
-    options: { limit: number },
+    options: { limit: number; redisClient?: Redis },
 ): Promise<YouTubeVideo[]> {
-    const { limit } = options;
+    const { limit, redisClient } = options;
 
-    const fromInnertube = await fetchMixViaInnertube(parsed.listId, limit);
+    const fromInnertube = await fetchMixViaInnertube(parsed.listId, limit, redisClient);
     if (fromInnertube.length > 0) {
         return fromInnertube;
     }
@@ -343,15 +384,16 @@ async function fetchMixPlaylist(
 
 export async function fetchYoutubePlaylistVideos(
     playlistUrlOrId: string,
-    options?: { limit?: number; fetchAll?: boolean },
+    options?: { limit?: number; fetchAll?: boolean; redisClient?: Redis },
 ): Promise<YouTubeVideo[]> {
     const parsed = parseYoutubePlaylistInput(playlistUrlOrId);
     const limit = options?.limit ?? 200;
     const fetchAll = options?.fetchAll ?? true;
+    const redisClient = options?.redisClient;
 
     if (parsed.isMix) {
-        return fetchMixPlaylist(parsed, { limit });
+        return fetchMixPlaylist(parsed, { limit, redisClient });
     }
 
-    return fetchStandardPlaylistViaInnertube(parsed.listId, { limit, fetchAll });
+    return fetchStandardPlaylistViaInnertube(parsed.listId, { limit, fetchAll, redisClient });
 }

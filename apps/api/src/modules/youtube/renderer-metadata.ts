@@ -31,6 +31,7 @@ type CompactVideoRenderer = {
     ownerBadges?: unknown[];
     viewCountText?: TextRunSource;
     shortViewCountText?: TextRunSource;
+    shortViewsText?: TextRunSource;
 };
 
 const joinTextSource = (source?: TextRunSource): string | undefined => {
@@ -55,11 +56,15 @@ const joinTextSource = (source?: TextRunSource): string | undefined => {
 };
 
 const getVideoRenderer = (node: Record<string, unknown>): CompactVideoRenderer | undefined =>
-    (node.videoRenderer ?? node.compactVideoRenderer) as CompactVideoRenderer | undefined;
+    (node.videoRenderer ??
+        node.compactVideoRenderer ??
+        node.playlistVideoRenderer) as CompactVideoRenderer | undefined;
 
 const extractViewCountText = (renderer: CompactVideoRenderer): string | undefined => {
     const direct =
-        joinTextSource(renderer.viewCountText) ?? joinTextSource(renderer.shortViewCountText);
+        joinTextSource(renderer.viewCountText) ??
+        joinTextSource(renderer.shortViewCountText) ??
+        joinTextSource(renderer.shortViewsText);
     if (direct) {
         return direct;
     }
@@ -147,7 +152,9 @@ const getLockupMetadataRows = (lockup: Record<string, unknown>): LockupMetadataR
     )?.lockupMetadataViewModel?.metadata?.contentMetadataViewModel?.metadataRows;
 
 const looksLikeUploadDate = (text: string): boolean =>
-    /\b(ago|hour|day|week|month|year|streamed|yesterday|today)\b/i.test(text);
+    /\b(ago|hour|day|week|month|year|streamed|yesterday|today)\b/i.test(text) ||
+    /\b(trước|hôm qua|hôm nay)\b/i.test(text) ||
+    /\b\d+\s*(giờ|ngày|tuần|tháng|năm)\b/i.test(text);
 
 const extractLockupViewCountText = (lockup: Record<string, unknown>): string | undefined => {
     const metadataParts = getLockupMetadataRows(lockup)?.[1]?.metadataParts;
@@ -184,6 +191,31 @@ const collectLockupMetadata = (
 
     setParsedViewCount(maps, videoId, extractLockupViewCountText(lockup));
 };
+
+/** Merge metadata maps from multiple InnerTube payloads (e.g. playlist browse pages). */
+export function mergeRendererMetadata(
+    ...sources: RendererMetadataMaps[]
+): RendererMetadataMaps {
+    const merged: RendererMetadataMaps = {
+        verifiedByVideoId: new Map(),
+        viewCountByVideoId: new Map(),
+    };
+
+    for (const source of sources) {
+        for (const [videoId, verified] of source.verifiedByVideoId) {
+            merged.verifiedByVideoId.set(
+                videoId,
+                merged.verifiedByVideoId.get(videoId) || verified,
+            );
+        }
+
+        for (const [videoId, views] of source.viewCountByVideoId) {
+            merged.viewCountByVideoId.set(videoId, views);
+        }
+    }
+
+    return merged;
+}
 
 /** Extract renderer metadata from a raw YouTube InnerTube response payload. */
 export const extractRendererMetadata = (data: unknown): RendererMetadataMaps => {
