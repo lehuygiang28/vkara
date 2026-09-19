@@ -26,4 +26,25 @@ describe('resolveCompactVideoChannels', () => {
 
         expect(channels.map((channel) => channel.name)).toEqual(['Sơn Tùng M-TP Official', 'Tyga']);
     });
+
+    it('uses lockup channel label before calling getVideo', async () => {
+        const compact = {
+            id: 'kXUjz4xQKRo',
+            title: 'CHON MAT GUI VANG',
+            channel: {},
+            getVideo: async () => {
+                throw new Error('should not be called');
+            },
+        } as never;
+
+        const channels = await resolveCompactVideoChannels(
+            compact,
+            { get: async () => null, set: async () => 'OK' } as never,
+            false,
+            {} as never,
+            'Phương Mỹ Chi',
+        );
+
+        expect(channels).toEqual([{ name: 'Phương Mỹ Chi', verified: false }]);
+    });
 });

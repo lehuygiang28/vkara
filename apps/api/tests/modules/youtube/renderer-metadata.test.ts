@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
     extractRendererMetadata,
     mergeRendererMetadata,
+    normalizeLockupChannelLabel,
 } from '@/modules/youtube/renderer-metadata';
 
 describe('extractRendererMetadata lockup playlists', () => {
@@ -16,7 +17,11 @@ describe('extractRendererMetadata lockup playlists', () => {
                         metadata: {
                             contentMetadataViewModel: {
                                 metadataRows: [
-                                    { metadataParts: [{ text: { content: 'PM Entertainment' } }] },
+                                    {
+                                        metadataParts: [
+                                            { text: { content: 'Phương Mỹ Chi and 2 more' } },
+                                        ],
+                                    },
                                     {
                                         metadataParts: [
                                             { text: { content: '31.1M lượt xem' } },
@@ -32,6 +37,14 @@ describe('extractRendererMetadata lockup playlists', () => {
         });
 
         expect(metadata.viewCountByVideoId.get('kXUjz4xQKRo')).toBe(31_100_000);
+        expect(metadata.channelNameByVideoId.get('kXUjz4xQKRo')).toBe('Phương Mỹ Chi');
+    });
+
+    it('normalizes collab lockup channel labels', () => {
+        expect(normalizeLockupChannelLabel('Phương Mỹ Chi and 2 more')).toBe('Phương Mỹ Chi');
+        expect(normalizeLockupChannelLabel('Phương Mỹ Chi and DTAP')).toBe(
+            'Phương Mỹ Chi and DTAP',
+        );
     });
 
     it('reads mix panel renderer view counts', () => {

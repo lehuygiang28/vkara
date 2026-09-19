@@ -23,7 +23,7 @@ type ResolvedChannel = Awaited<ReturnType<typeof resolveCompactVideoChannels>>[n
 
 export type YoutubeRendererMetadata = Pick<
     RendererMetadataMaps,
-    'verifiedByVideoId' | 'viewCountByVideoId'
+    'verifiedByVideoId' | 'viewCountByVideoId' | 'channelNameByVideoId'
 >;
 
 /** Drop channel rows, playlists, and other non-playable compact entries. */
@@ -106,6 +106,7 @@ export async function prepareYoutubeVideos(
                 redisClient,
                 metadataVerified,
                 client,
+                metadata.channelNameByVideoId.get(item.id),
             );
             const resolvedChannels = applyVerifiedFromMetadata(channels, item.id, metadata);
             await cacheResolvedChannels(redisClient, resolvedChannels);

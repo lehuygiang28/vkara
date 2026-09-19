@@ -11,6 +11,13 @@ const VERIFIED_BADGE_STYLES = new Set([
 export interface RendererMetadataMaps {
     verifiedByVideoId: Map<string, boolean>;
     viewCountByVideoId: Map<string, number>;
+    /** Lockup playlist row-0 artist/channel label when compact.channel is omitted. */
+    channelNameByVideoId: Map<string, string>;
+}
+
+/** Collab lockups use "Artist and 2 more"; keep "Artist and DTAP" intact. */
+export function normalizeLockupChannelLabel(label: string): string {
+    return label.trim().replace(/\s+and\s+\d+\s+more$/i, '').trim();
 }
 
 const hasVerifiedOwnerBadge = (ownerBadges: unknown[] = []): boolean =>
@@ -157,6 +164,21 @@ const looksLikeUploadDate = (text: string): boolean =>
     /\b(trước|hôm qua|hôm nay)\b/i.test(text) ||
     /\b\d+\s*(giờ|ngày|tuần|tháng|năm)\b/i.test(text);
 
+const extractLockupChannelName = (lockup: Record<string, unknown>): string | undefined => {
+    const metadataParts = getLockupMetadataRows(lockup)?.[0]?.metadataParts;
+    if (!metadataParts?.length) {
+        return undefined;
+    }
+
+    const joined = metadataParts
+        .map((part) => joinTextSource(part.text))
+        .filter((text): text is string => Boolean(text))
+        .join('');
+
+    const normalized = joined ? normalizeLockupChannelLabel(joined) : '';
+    return normalized || undefined;
+};
+
 const extractLockupViewCountText = (lockup: Record<string, unknown>): string | undefined => {
     const metadataParts = getLockupMetadataRows(lockup)?.[1]?.metadataParts;
     if (!metadataParts?.length) {
@@ -190,6 +212,11 @@ const collectLockupMetadata = (
         return;
     }
 
+    const channelName = extractLockupChannelName(lockup);
+    if (channelName) {
+        maps.channelNameByVideoId.set(videoId, channelName);
+    }
+
     setParsedViewCount(maps, videoId, extractLockupViewCountText(lockup));
 };
 
@@ -200,6 +227,7 @@ export function mergeRendererMetadata(
     const merged: RendererMetadataMaps = {
         verifiedByVideoId: new Map(),
         viewCountByVideoId: new Map(),
+        channelNameByVideoId: new Map(),
     };
 
     for (const source of sources) {
@@ -213,6 +241,12 @@ export function mergeRendererMetadata(
         for (const [videoId, views] of source.viewCountByVideoId) {
             merged.viewCountByVideoId.set(videoId, views);
         }
+
+        for (const [videoId, channelName] of source.channelNameByVideoId) {
+            if (!merged.channelNameByVideoId.has(videoId)) {
+                merged.channelNameByVideoId.set(videoId, channelName);
+            }
+        }
     }
 
     return merged;
@@ -223,6 +257,7 @@ export const extractRendererMetadata = (data: unknown): RendererMetadataMaps => 
     const maps: RendererMetadataMaps = {
         verifiedByVideoId: new Map(),
         viewCountByVideoId: new Map(),
+        channelNameByVideoId: new Map(),
     };
     collectRendererMetadata(data, maps);
     return maps;
