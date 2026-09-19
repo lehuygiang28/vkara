@@ -23,7 +23,7 @@ type ResolvedChannel = Awaited<ReturnType<typeof resolveCompactVideoChannels>>[n
 
 export type YoutubeRendererMetadata = Pick<
     RendererMetadataMaps,
-    'verifiedByVideoId' | 'viewCountByVideoId'
+    'verifiedByVideoId' | 'viewCountByVideoId' | 'channelNameByVideoId'
 >;
 
 /** Drop channel rows, playlists, and other non-playable compact entries. */
@@ -78,7 +78,6 @@ async function cacheResolvedChannels(
  * validate → prefetch channels/live → map → optional embed prefilter (feature flag).
  * WebSocket add/play always re-checks embeddability (Redis-backed).
  *
- * TODO(phase-2): Wire playlist import through here for views/verified (rate-limit research).
  */
 export async function prepareYoutubeVideos(
     client: Client,
@@ -107,6 +106,7 @@ export async function prepareYoutubeVideos(
                 redisClient,
                 metadataVerified,
                 client,
+                metadata.channelNameByVideoId.get(item.id),
             );
             const resolvedChannels = applyVerifiedFromMetadata(channels, item.id, metadata);
             await cacheResolvedChannels(redisClient, resolvedChannels);

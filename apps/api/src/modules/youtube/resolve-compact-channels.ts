@@ -127,13 +127,33 @@ export async function resolveCompactVideoChannels(
     redisClient: Redis,
     metadataVerified?: boolean,
     client?: Client,
+    lockupChannelName?: string,
 ): Promise<ResolvedChannel[]> {
     if (!video.channel?.name) {
+        if (lockupChannelName) {
+            return [
+                {
+                    name: lockupChannelName,
+                    verified: metadataVerified === true,
+                },
+            ];
+        }
+
         if (!client) {
             return [];
         }
 
-        return resolveFromFullVideo(client, redisClient, video, metadataVerified);
+        const fromFullVideo = await resolveFromFullVideo(
+            client,
+            redisClient,
+            video,
+            metadataVerified,
+        );
+        if (fromFullVideo.length > 0) {
+            return fromFullVideo;
+        }
+
+        return [];
     }
 
     if (!video.channel.id) {

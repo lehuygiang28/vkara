@@ -12,6 +12,12 @@ describe('parseYoutubeViewCountText', () => {
         expect(parseYoutubeViewCountText('1.2K')).toBe(1_200);
     });
 
+    it('parses Vietnamese view labels with K/M suffixes', () => {
+        expect(parseYoutubeViewCountText('31.1M lượt xem')).toBe(31_100_000);
+        expect(parseYoutubeViewCountText('337.5K lượt xem')).toBe(337_500);
+        expect(parseYoutubeViewCountText('269 lượt xem')).toBe(269);
+    });
+
     it('parses plain digit strings', () => {
         expect(parseYoutubeViewCountText('1,234,567 views')).toBe(1_234_567);
     });

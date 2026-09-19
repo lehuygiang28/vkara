@@ -47,13 +47,15 @@ describe('fetchYoutubePlaylistDetails', () => {
             videos: { items: [] },
         });
 
+        const redisClient = {} as never;
         const result = await fetchYoutubePlaylistDetails('PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI', {
             videoLimit: 25,
+            redisClient,
         });
 
         expect(fetchYoutubePlaylistVideos).toHaveBeenCalledWith(
             'PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI',
-            expect.objectContaining({ limit: 25, fetchAll: false }),
+            expect.objectContaining({ limit: 25, fetchAll: false, redisClient }),
         );
         expect(result.playlist.title).toBe('Karaoke Hits');
         expect(result.playlist.videoCount).toBe(42);
