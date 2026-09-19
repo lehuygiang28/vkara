@@ -243,15 +243,6 @@ function parseMixPlaylistHtmlPayload(html: string): MixHtmlPayload | null {
     }
 }
 
-function parseMixPlaylistFromHtml(html: string, limit: number): YouTubeVideo[] {
-    const payload = parseMixPlaylistHtmlPayload(html);
-    if (!payload) {
-        return [];
-    }
-
-    return parseMixPlaylistContents(payload.contents, limit);
-}
-
 async function prepareMixFromContents(
     contents: MixPlaylistContents,
     limit: number,
