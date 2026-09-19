@@ -9,6 +9,8 @@
 
 Technical deployment (English): [containers/README.md](../containers/README.md)
 
+Product exploration (2026-08-31): [vkara opportunity map](superpowers/specs/2026-08-31-vkara-opportunity-map.md)
+
 Agent / URL automation: [agents/url-commands.md](agents/url-commands.md) · [agents/mcp.md](agents/mcp.md) · [Tiếng Việt](vi/url-commands.md)
 
 Copyright complaints and takedown requests: [lehuygiang28@gmail.com](mailto:lehuygiang28@gmail.com)
