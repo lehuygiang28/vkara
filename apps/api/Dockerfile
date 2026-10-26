@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1.3.13 AS build
+FROM oven/bun:1.4.4 AS build
 
 WORKDIR /repo
 
@@ -50,6 +50,11 @@ RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
     TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
     bunx turbo run build --filter='@vkara/api' --force
 
+# Bun --compile marks playwright as external; copy runtime deps next to the binary.
+RUN mkdir -p /runtime/node_modules && \
+    cp -r /repo/node_modules/.bun/playwright@*/node_modules/playwright /runtime/node_modules/ && \
+    cp -r /repo/node_modules/.bun/playwright-core@*/node_modules/playwright-core /runtime/node_modules/
+
 FROM gcr.io/distroless/base AS production
 
 LABEL git="https://github.com/lehuygiang28/vkara"
@@ -59,6 +64,7 @@ LABEL org.opencontainers.image.maintainer="lehuygiang28 <lehuygiang28@gmail.com>
 WORKDIR /app
 
 COPY --from=build /repo/apps/api/dist/server ./server
+COPY --from=build /runtime/node_modules ./node_modules
 
 ENV NODE_ENV=production
 

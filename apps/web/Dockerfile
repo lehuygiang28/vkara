@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1.3.13 AS build
+FROM oven/bun:1.4.4 AS build
 
 WORKDIR /repo
 
@@ -59,7 +59,7 @@ RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
     TURBO_TOKEN=$(test -f /run/secrets/TURBO_TOKEN && cat /run/secrets/TURBO_TOKEN || true) \
     bunx turbo run build --filter='@vkara/web'
 
-FROM node:22-alpine AS production
+FROM node:22.23.4-alpine AS production
 
 WORKDIR /app
 

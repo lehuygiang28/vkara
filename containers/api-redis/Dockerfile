@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1.3.13-alpine AS build
+FROM oven/bun:1.4.4-alpine AS build
 
 WORKDIR /repo
 

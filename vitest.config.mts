@@ -9,6 +9,14 @@ export default defineConfig({
         projects: [
             {
                 test: {
+                    name: 'containers',
+                    root: repoRoot,
+                    include: ['containers/**/*.test.ts'],
+                    environment: 'node',
+                },
+            },
+            {
+                test: {
                     name: '@vkara/api',
                     root: path.join(repoRoot, 'apps/api'),
                     include: ['tests/**/*.test.ts'],

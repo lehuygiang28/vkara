@@ -29,8 +29,9 @@ see [#6](https://github.com/lehuygiang28/vkara/issues/6) if missing on upstream
    **Add New → Project** → import your fork.
 2. **Set Root Directory to `apps/web`** — the one critical monorepo setting.
    Everything else comes from [apps/web/vercel.json](../apps/web/vercel.json)
-   (Bun 1.x, `bun install` + `bun run build:web` from the repo root, Next.js
-   auto-detected).
+   (Bun ≥ 1.4.4 via `bunVersion` `1.4.x` in
+   [apps/web/vercel.json](../apps/web/vercel.json); `bun install` +
+   `bun run build:web` from the repo root, Next.js auto-detected).
 
 ## 2. Set the environment variables
 

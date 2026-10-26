@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM oven/bun:1.3.13-alpine AS base
+FROM oven/bun:1.4.4-alpine AS base
 
 WORKDIR /repo
 
@@ -88,7 +88,7 @@ RUN --mount=type=secret,id=TURBO_TOKEN,required=false \
 FROM caddy:2.10-alpine AS caddy
 FROM redis:7-alpine AS redis
 
-FROM oven/bun:1.3.13-alpine AS production
+FROM oven/bun:1.4.4-alpine AS production
 
 LABEL git="https://github.com/lehuygiang28/vkara"
 LABEL author="lehuygiang28 <lehuygiang28@gmail.com>"
