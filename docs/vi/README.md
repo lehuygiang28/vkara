@@ -166,7 +166,7 @@ Nếu muốn tách web/API, cấu hình production, hoặc dùng các profile kh
 <details>
 <summary><strong>Chạy local</strong></summary>
 
-**Yêu cầu:** [Bun](https://bun.sh) ≥ 1.3.13, Redis, Node.js 22+ nếu cần build web production.
+**Yêu cầu:** [Bun](https://bun.sh) ≥ 1.4.4, Redis, Node.js ≥ 22.23.4 nếu cần build web production.
 
 ```bash
 git clone https://github.com/lehuygiang28/vkara.git

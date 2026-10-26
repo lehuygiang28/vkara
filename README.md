@@ -162,7 +162,7 @@ Split web/API, production env, and other profiles: **[containers/README.md](cont
 <details>
 <summary><strong>Local development</strong></summary>
 
-**Requirements:** [Bun](https://bun.sh) ≥ 1.3.13, Redis, Node.js 22+ (for production web builds only).
+**Requirements:** [Bun](https://bun.sh) ≥ 1.4.4, Redis, Node.js ≥ 22.23.4 (for production web builds only).
 
 ```bash
 git clone https://github.com/lehuygiang28/vkara.git
