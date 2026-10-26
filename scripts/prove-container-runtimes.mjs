@@ -188,12 +188,26 @@ if (!runtime) {
     console.log('container runtime: not available, registry config was the live image check');
 } else {
     console.log(`container runtime: ${runtime}`);
-    const commands = [
-        ['docker.io/oven/bun:1.4.4', ['bun', '--version'], '1.4.4'],
-        ['docker.io/oven/bun:1.4.4-alpine', ['bun', '--version'], '1.4.4'],
-        ['docker.io/library/node:22.23.4-alpine', ['node', '-p', 'process.version'], 'v22.23.4'],
-    ];
-    for (const [image, args, expectedOutput] of commands) {
+    const uniquePins = [];
+    const seenPins = new Set();
+    for (const pin of pins) {
+        const key = `${pin.image}:${pin.tag}`;
+        if (seenPins.has(key)) continue;
+        seenPins.add(key);
+        uniquePins.push(pin);
+    }
+
+    for (const pin of uniquePins) {
+        if (!pin.version) {
+            failures.push(`${pin.image}:${pin.tag} has no release version to run`);
+            continue;
+        }
+        const image =
+            pin.image === 'bun'
+                ? `docker.io/oven/bun:${pin.tag}`
+                : `docker.io/library/node:${pin.tag}`;
+        const args = pin.image === 'bun' ? ['bun', '--version'] : ['node', '-p', 'process.version'];
+        const expectedOutput = pin.image === 'bun' ? pin.version : `v${pin.version}`;
         const result = run(runtime, ['run', '--rm', image, ...args]);
         const stdout = result.stdout.split('\n').at(-1) ?? '';
         console.log(result.ok ? `ran ${image} -> ${stdout}` : `FAILED ${image}: ${result.stderr}`);
@@ -206,7 +220,9 @@ if (!runtime) {
 
     const compileScript =
         'printf "%s\\n" "console.log(Bun.version)" > /tmp/v.ts && bun build /tmp/v.ts --compile --target bun --outfile /tmp/v && /tmp/v';
-    for (const image of ['docker.io/oven/bun:1.4.4', 'docker.io/oven/bun:1.4.4-alpine']) {
+    for (const pin of uniquePins) {
+        if (pin.image !== 'bun' || !pin.version) continue;
+        const image = `docker.io/oven/bun:${pin.tag}`;
         const result = run(runtime, [
             'run',
             '--rm',
@@ -222,9 +238,9 @@ if (!runtime) {
                 ? `compile ${image} embeds ${embedded}`
                 : `FAILED compile ${image}: ${result.stderr}`,
         );
-        if (!result.ok || embedded !== '1.4.4') {
+        if (!result.ok || embedded !== pin.version) {
             failures.push(
-                `${image} compiled binary embedded ${embedded || result.stderr}, expected 1.4.4`,
+                `${image} compiled binary embedded ${embedded || result.stderr}, expected ${pin.version}`,
             );
         }
     }

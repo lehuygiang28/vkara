@@ -255,4 +255,4 @@ cd apps/api && bunx playwright install chromium
 
 **Docker (`api-redis` / bundle profile):** includes `cloudflared`. Set `CF_PROXY_TUNNEL_HOSTNAME` + `PLAYWRIGHT_PROXY_USERNAME` / `PLAYWRIGHT_PROXY_PASSWORD` to route TikTok Playwright traffic through a home gost proxy via Cloudflare Tunnel TCP. See [api-redis/README.md](./api-redis/README.md).
 
-**Docker (standalone `apps/api` distroless):** no Chromium — use profile `bundle` or `aio` for TikTok search.
+**Docker (standalone `apps/api` distroless):** copies the external `playwright` package beside the compiled binary, but has no Chromium. Use profile `bundle` or `aio` for TikTok search.

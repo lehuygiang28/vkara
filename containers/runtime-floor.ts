@@ -48,11 +48,21 @@ export function compareSemver(left: string, right: string): number {
     return 0;
 }
 
-/** Leading x.y.z of an image tag. `1.4.4-alpine` and `22.23.4-alpine3.22` match; `22-alpine` does not. */
+/** Debian/Ubuntu/Alpine image suffixes. Prerelease ids such as `rc.1` are not variants. */
+const IMAGE_VARIANT =
+    /^(?:alpine(?:\d+(?:\.\d+)*)?|slim|distroless|(?:bookworm|bullseye|trixie|noble|jammy)(?:-slim)?)$/;
+
+/**
+ * Leading x.y.z of a release image tag.
+ * `1.4.4-alpine` and `22.23.4-bookworm-slim` match. `1.4.4-rc.1` and `22-alpine` do not.
+ */
 export function semverFromTag(tag: string): string | null {
-    const withoutDigest = tag.split('@')[0] ?? tag;
-    const match = /^(\d+\.\d+\.\d+)(?:-|$)/.exec(withoutDigest);
-    return match?.[1] ?? null;
+    const withoutDigest = (tag.split('@')[0] ?? tag).trim();
+    const match = /^(\d+\.\d+\.\d+)(?:-([A-Za-z0-9.]+(?:-[A-Za-z0-9.]+)*))?$/.exec(withoutDigest);
+    if (!match?.[1]) return null;
+    const variant = match[2];
+    if (variant && !IMAGE_VARIANT.test(variant)) return null;
+    return match[1];
 }
 
 export function bunPinError(version: string | null): string | null {
@@ -102,15 +112,27 @@ export function listDockerfiles(repoRoot: string): string[] {
 
 export function pinsFromDockerfile(file: string, source: string): RuntimePin[] {
     const pins: RuntimePin[] = [];
-    const pattern = /^FROM\s+(oven\/bun|node):(\S+)/gm;
-    for (const match of source.matchAll(pattern)) {
-        const tag = match[2] ?? '';
-        pins.push({
-            file,
-            image: match[1] === 'oven/bun' ? 'bun' : 'node',
-            tag,
-            version: semverFromTag(tag),
-        });
+    for (const match of source.matchAll(/^FROM\s+(.+)$/gm)) {
+        const tokens = (match[1] ?? '').trim().split(/\s+/);
+        let index = 0;
+        while (index < tokens.length) {
+            const token = tokens[index] ?? '';
+            if (token === 'AS' || token === 'as') break;
+            if (token.startsWith('--')) {
+                index += token.includes('=') ? 1 : 2;
+                continue;
+            }
+            const image = /^(oven\/bun|node):(\S+)$/.exec(token);
+            if (image?.[1] && image[2]) {
+                pins.push({
+                    file,
+                    image: image[1] === 'oven/bun' ? 'bun' : 'node',
+                    tag: image[2],
+                    version: semverFromTag(image[2]),
+                });
+            }
+            break;
+        }
     }
     return pins;
 }
@@ -136,6 +158,59 @@ function readText(repoRoot: string, relativePath: string): string {
     return readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
+function tryRead(repoRoot: string, relativePath: string): string | null {
+    try {
+        return readText(repoRoot, relativePath);
+    } catch (error) {
+        if (error instanceof Error && 'code' in error && error.code === 'ENOENT') return null;
+        throw error;
+    }
+}
+
+type WorkflowStep = {
+    uses: string;
+    inputs: Map<string, string>;
+};
+
+/** One GitHub Actions step, so a later pin cannot cover an earlier unpinned `uses`. */
+function workflowSteps(source: string): WorkflowStep[] {
+    const lines = source.split('\n');
+    const steps: WorkflowStep[] = [];
+    let index = 0;
+    while (index < lines.length) {
+        const start = /^(\s*)-\s+/.exec(lines[index] ?? '');
+        if (!start) {
+            index += 1;
+            continue;
+        }
+        const indent = start[1]?.length ?? 0;
+        const block: string[] = [];
+        while (index < lines.length) {
+            const line = lines[index] ?? '';
+            if (block.length > 0 && line.trim() !== '') {
+                const lineIndent = /^(\s*)/.exec(line)?.[1]?.length ?? 0;
+                if (lineIndent <= indent && /^\s*-\s+/.test(line)) break;
+                if (lineIndent < indent) break;
+            }
+            block.push(line);
+            index += 1;
+        }
+        const text = block.join('\n');
+        const uses = /(?:^|\n)\s*(?:-\s+)?uses:\s*['"]?([^\s#'"]+)/.exec(text)?.[1];
+        if (!uses) continue;
+        const inputs = new Map<string, string>();
+        const withBody = text
+            .split(/\n\s*with:\s*\n/)
+            .slice(1)
+            .join('\n');
+        for (const input of withBody.matchAll(/^\s+([A-Za-z0-9_-]+):\s*['"]?([^\s#'"]+)/gm)) {
+            if (input[1] && input[2]) inputs.set(input[1], input[2]);
+        }
+        steps.push({ uses, inputs });
+    }
+    return steps;
+}
+
 const REQUIRED_BUN_DOCKERFILES = [
     'apps/api/Dockerfile',
     'apps/web/Dockerfile',
@@ -145,8 +220,8 @@ const REQUIRED_BUN_DOCKERFILES = [
 
 /**
  * Executable runtime pins: Dockerfiles, the packageManager field (local and CI
- * compiles), and setup-bun versions. Docs are checked so the written minimum
- * cannot stay on a vulnerable release.
+ * compiles), and each setup-bun / setup-node step. Docs must name every
+ * patched Node line, because `Node.js ≥ 22.23.4` reads as any later major.
  */
 export function collectFloorViolations(repoRoot: string): FloorViolation[] {
     const violations: FloorViolation[] = [];
@@ -189,39 +264,71 @@ export function collectFloorViolations(repoRoot: string): FloorViolation[] {
     }
 
     for (const file of workflowFiles(repoRoot)) {
-        const source = readText(repoRoot, file);
-        if (!source.includes('oven-sh/setup-bun')) continue;
-        const versions = [...source.matchAll(/bun-version:\s*['"]?([^\s#'"]+)/g)];
-        if (versions.length === 0) {
-            violations.push({ file, detail: 'setup-bun has no bun-version pin' });
-            continue;
-        }
-        for (const match of versions) {
-            const raw = match[1] ?? '';
-            const error = bunPinError(semverFromTag(raw));
-            if (error) violations.push({ file, detail: `bun-version ${raw}: ${error}` });
+        for (const step of workflowSteps(readText(repoRoot, file))) {
+            if (step.uses.startsWith('oven-sh/setup-bun')) {
+                const raw = step.inputs.get('bun-version');
+                if (!raw) {
+                    violations.push({ file, detail: 'setup-bun has no bun-version pin' });
+                    continue;
+                }
+                const error = bunPinError(semverFromTag(raw));
+                if (error) violations.push({ file, detail: `bun-version ${raw}: ${error}` });
+            }
+            if (step.uses.startsWith('actions/setup-node')) {
+                const raw = step.inputs.get('node-version');
+                if (!raw) {
+                    violations.push({ file, detail: 'setup-node has no node-version pin' });
+                    continue;
+                }
+                const error = nodePinError(semverFromTag(raw));
+                if (error) violations.push({ file, detail: `node-version ${raw}: ${error}` });
+            }
         }
     }
 
     for (const file of ['README.md', 'docs/vi/README.md']) {
-        const source = readText(repoRoot, file);
-        const bunDoc = /\[Bun\]\([^)]+\)\s*≥\s*(\d+\.\d+\.\d+)/.exec(source);
-        const bunError = bunPinError(bunDoc?.[1] ?? null);
-        if (bunError) {
+        pushDocErrors(violations, file, readText(repoRoot, file), true);
+    }
+
+    const tvPath = 'docs/standalone-tv-deployment.md';
+    const tvSource = tryRead(repoRoot, tvPath);
+    if (tvSource !== null) pushDocErrors(violations, tvPath, tvSource, false);
+
+    const vercelPath = 'apps/web/vercel.json';
+    const vercelSource = tryRead(repoRoot, vercelPath);
+    if (vercelSource !== null) {
+        const vercel = JSON.parse(vercelSource) as { bunVersion?: string };
+        if (vercel.bunVersion !== '1.4.x') {
             violations.push({
-                file,
-                detail: `documented Bun minimum ${bunDoc?.[1] ?? '(missing)'}: ${bunError}`,
-            });
-        }
-        const nodeDoc = /Node\.js\s*≥\s*(\d+\.\d+\.\d+)/.exec(source);
-        const nodeError = nodePinError(nodeDoc?.[1] ?? null);
-        if (nodeError) {
-            violations.push({
-                file,
-                detail: `documented Node minimum ${nodeDoc?.[1] ?? '(unpinned)'}: ${nodeError}`,
+                file: vercelPath,
+                detail: `bunVersion ${vercel.bunVersion ?? '(missing)'} must be 1.4.x (Vercel does not accept an exact 1.4.4 pin)`,
             });
         }
     }
 
     return violations;
+}
+
+function pushDocErrors(
+    violations: FloorViolation[],
+    file: string,
+    source: string,
+    requireNodeFloors: boolean,
+): void {
+    const bunDoc = /Bun(?:\]\([^)]+\))?\s*≥\s*(\d+\.\d+\.\d+)/.exec(source);
+    const bunError = bunPinError(bunDoc?.[1] ?? null);
+    if (bunError) {
+        violations.push({
+            file,
+            detail: `documented Bun minimum ${bunDoc?.[1] ?? '(missing)'}: ${bunError}`,
+        });
+    }
+    if (!requireNodeFloors) return;
+    const requiredNodeDocs = Object.values(NODE_FLOOR_BY_MAJOR);
+    const missingNodeDocs = requiredNodeDocs.filter((version) => !source.includes(version));
+    if (missingNodeDocs.length === 0) return;
+    violations.push({
+        file,
+        detail: `documented Node releases must name ${requiredNodeDocs.join(', ')} (missing ${missingNodeDocs.join(', ')})`,
+    });
 }
