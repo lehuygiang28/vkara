@@ -12,13 +12,13 @@ The web client MUST show the Experiments section in device Settings only when `N
 
 #### Scenario: Experiments flag disabled
 
-- **WHEN** `VKARA_EXPERIMENTS` is unset or falsy in the web environment
+- **WHEN** `NEXT_PUBLIC_VKARA_EXPERIMENTS` is unset or falsy in the web build/runtime environment
 - **THEN** the Experiments section MUST NOT appear in Settings
 - **AND** the video provider MUST remain YouTube regardless of any stale localStorage value
 
 #### Scenario: Experiments flag enabled
 
-- **WHEN** `VKARA_EXPERIMENTS` is truthy in the web environment
+- **WHEN** `NEXT_PUBLIC_VKARA_EXPERIMENTS` is truthy in the web build/runtime environment
 - **THEN** the Experiments section MUST appear in device Settings
 - **AND** it MUST include a warning that features are experimental and may be unstable
 

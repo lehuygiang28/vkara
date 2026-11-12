@@ -29,6 +29,13 @@ describe('web client t3-env guards', () => {
             path.join(repoRoot, 'containers/aio/Dockerfile'),
             'utf8',
         );
-        expect(dockerfile).toMatch(/NEXT_PUBLIC_VKARA_EXPERIMENTS/);
+        expect(dockerfile).toMatch(/ARG NEXT_PUBLIC_VKARA_EXPERIMENTS=false/);
+        expect(dockerfile).toMatch(/ENV NEXT_PUBLIC_VKARA_EXPERIMENTS=\$\{NEXT_PUBLIC_VKARA_EXPERIMENTS\}/);
+    });
+
+    it('standalone web image forwards NEXT_PUBLIC_VKARA_EXPERIMENTS into next build', () => {
+        const dockerfile = readFileSync(path.join(repoRoot, 'apps/web/Dockerfile'), 'utf8');
+        expect(dockerfile).toMatch(/ARG NEXT_PUBLIC_VKARA_EXPERIMENTS=false/);
+        expect(dockerfile).toMatch(/ENV NEXT_PUBLIC_VKARA_EXPERIMENTS=\$\{NEXT_PUBLIC_VKARA_EXPERIMENTS\}/);
     });
 });

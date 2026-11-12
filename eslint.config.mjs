@@ -108,6 +108,12 @@ export default tseslint.config(
                     message:
                         'Browser helpers must not read VKARA_EXPERIMENTS; use NEXT_PUBLIC_VKARA_EXPERIMENTS only.',
                 },
+                {
+                    selector:
+                        'FunctionDeclaration[id.name="isExperimentsEnabledOnWeb"] CallExpression[callee.name="isExperimentsEnabled"]',
+                    message:
+                        'Browser helpers must not delegate to isExperimentsEnabled (server-only VKARA_EXPERIMENTS).',
+                },
             ],
         },
     },

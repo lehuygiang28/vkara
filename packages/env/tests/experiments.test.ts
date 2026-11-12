@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
-import { isExperimentsEnabled, isExperimentsEnabledOnWeb } from '../src/experiments';
+import {
+    type ExperimentsEnvValues,
+    isExperimentsEnabled,
+    isExperimentsEnabledOnWeb,
+} from '../src/experiments';
 
 describe('isExperimentsEnabled', () => {
     it('reads VKARA_EXPERIMENTS for server/runtime', () => {
@@ -16,11 +20,10 @@ describe('isExperimentsEnabledOnWeb', () => {
     });
 
     it('does not read VKARA_EXPERIMENTS when NEXT_PUBLIC is unset', () => {
-        expect(
-            isExperimentsEnabledOnWeb({
-                VKARA_EXPERIMENTS: '1',
-            }),
-        ).toBe(false);
+        const serverOnlyFlag: ExperimentsEnvValues = {
+            VKARA_EXPERIMENTS: '1',
+        };
+        expect(isExperimentsEnabledOnWeb(serverOnlyFlag)).toBe(false);
     });
 
     it('uses only NEXT_PUBLIC_VKARA_EXPERIMENTS when set', () => {
