@@ -55,6 +55,7 @@ services:
                 NEXT_PUBLIC_TIKTOK_API_URL: ${NEXT_PUBLIC_TIKTOK_API_URL:-}
                 NEXT_PUBLIC_WS_URL: ${NEXT_PUBLIC_WS_URL:-ws://localhost:8000/ws}
                 NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+                NEXT_PUBLIC_VKARA_EXPERIMENTS: ${NEXT_PUBLIC_VKARA_EXPERIMENTS:-false}
         image: lehuygiang28/vkara-web:${COMPOSE_TAG:-latest}
         env_file:
             - path: ./apps/web/.env.local
@@ -75,6 +76,7 @@ services:
             dockerfile: ./containers/aio/Dockerfile
             args:
                 NEXT_PUBLIC_TIKTOK_API_URL: ${NEXT_PUBLIC_TIKTOK_API_URL:-}
+                NEXT_PUBLIC_VKARA_EXPERIMENTS: ${NEXT_PUBLIC_VKARA_EXPERIMENTS:-false}
         image: lehuygiang28/vkara-aio:${COMPOSE_TAG:-latest}
         env_file:
             - path: ./containers/aio/.env
