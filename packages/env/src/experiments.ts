@@ -33,10 +33,9 @@ export function isExperimentsEnabled(
     return parseEnvFlagValue(env.VKARA_EXPERIMENTS, false);
 }
 
-/** Web client mirror for Settings visibility (falls back to server flag when unset). */
-export function isExperimentsEnabledOnWeb(env: ExperimentsEnvValues): boolean {
-    if (env.NEXT_PUBLIC_VKARA_EXPERIMENTS !== undefined) {
-        return parseEnvFlagValue(env.NEXT_PUBLIC_VKARA_EXPERIMENTS, false);
-    }
-    return isExperimentsEnabled(env);
+/** Web client mirror for Settings visibility (NEXT_PUBLIC only; never read VKARA_EXPERIMENTS in the browser). */
+export function isExperimentsEnabledOnWeb(
+    env: Pick<ExperimentsEnvValues, 'NEXT_PUBLIC_VKARA_EXPERIMENTS'>,
+): boolean {
+    return parseEnvFlagValue(env.NEXT_PUBLIC_VKARA_EXPERIMENTS, false);
 }

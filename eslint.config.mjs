@@ -98,6 +98,20 @@ export default tseslint.config(
         },
     },
     {
+        files: ['packages/env/src/experiments.ts'],
+        rules: {
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector:
+                        'FunctionDeclaration[id.name="isExperimentsEnabledOnWeb"] MemberExpression[object.name="env"][property.name="VKARA_EXPERIMENTS"]',
+                    message:
+                        'Browser helpers must not read VKARA_EXPERIMENTS; use NEXT_PUBLIC_VKARA_EXPERIMENTS only.',
+                },
+            ],
+        },
+    },
+    {
         files: ['packages/**/*.ts'],
         rules: {
             'no-restricted-imports': [

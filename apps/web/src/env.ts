@@ -1,8 +1,8 @@
 import { createEnv } from '@t3-oss/env-nextjs';
-import { envSkipValidation, experimentsEnv, webPublicEnv, webServerEnv } from '@vkara/env';
+import { envSkipValidation, webPublicEnv, webServerEnv } from '@vkara/env';
 
 export const env = createEnv({
-    extends: [webPublicEnv(), experimentsEnv(), webServerEnv()],
+    extends: [webPublicEnv(), webServerEnv()],
     runtimeEnv: {
         NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
         NEXT_PUBLIC_TIKTOK_API_URL: process.env.NEXT_PUBLIC_TIKTOK_API_URL,
@@ -20,7 +20,6 @@ export const env = createEnv({
         NEXT_PUBLIC_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE:
             process.env.NEXT_PUBLIC_SENTRY_REPLAYS_ON_ERROR_SAMPLE_RATE,
         NEXT_PUBLIC_SENTRY_ENABLED: process.env.NEXT_PUBLIC_SENTRY_ENABLED,
-        VKARA_EXPERIMENTS: process.env.VKARA_EXPERIMENTS,
         WHISPER_URL: process.env.WHISPER_URL,
         HF_TOKEN: process.env.HF_TOKEN,
         VKARA_AIO: process.env.VKARA_AIO,
