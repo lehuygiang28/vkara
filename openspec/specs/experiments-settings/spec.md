@@ -8,17 +8,17 @@ Let operators enable experimental TikTok integration from device Settings when t
 
 ### Requirement: Experiments section visibility is deploy-gated
 
-The web client MUST show the Experiments section in device Settings only when `NEXT_PUBLIC_VKARA_EXPERIMENTS` is truthy (mirroring `VKARA_EXPERIMENTS`).
+The web client MUST show the Experiments section in device Settings only when the API reports `experimentsEnabled: true` from `GET /config` (derived from `VKARA_EXPERIMENTS` at API runtime). An optional `NEXT_PUBLIC_VKARA_EXPERIMENTS` build override MAY be used for local web-only development.
 
 #### Scenario: Experiments flag disabled
 
-- **WHEN** `NEXT_PUBLIC_VKARA_EXPERIMENTS` is unset or falsy in the web build/runtime environment
+- **WHEN** `GET /config` reports `experimentsEnabled` falsy or the config has not loaded yet
 - **THEN** the Experiments section MUST NOT appear in Settings
 - **AND** the video provider MUST remain YouTube regardless of any stale localStorage value
 
 #### Scenario: Experiments flag enabled
 
-- **WHEN** `NEXT_PUBLIC_VKARA_EXPERIMENTS` is truthy in the web build/runtime environment
+- **WHEN** `GET /config` reports `experimentsEnabled` truthy (API `VKARA_EXPERIMENTS` enabled)
 - **THEN** the Experiments section MUST appear in device Settings
 - **AND** it MUST include a warning that features are experimental and may be unstable
 

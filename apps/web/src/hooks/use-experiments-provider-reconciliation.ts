@@ -3,10 +3,20 @@
 import { useEffect } from 'react';
 
 import { reconcileVideoProviderWithExperiments } from '@/lib/reconcile-experiments-provider';
+import { useExperimentsConfigStore } from '@/store/experimentsConfigStore';
 
-/** On load, move users off TikTok when deploy experiments flag is off (Settings UI hidden). */
+/** Fetch API config, then reconcile provider when experiments deploy flag is known. */
 export function useExperimentsProviderReconciliation(): void {
+    const status = useExperimentsConfigStore((state) => state.status);
+    const experimentsEnabled = useExperimentsConfigStore((state) => state.experimentsEnabled);
+
     useEffect(() => {
-        reconcileVideoProviderWithExperiments();
+        void useExperimentsConfigStore.getState().fetchExperimentsConfig();
     }, []);
+
+    useEffect(() => {
+        if (status === 'ready' || status === 'error') {
+            reconcileVideoProviderWithExperiments();
+        }
+    }, [status, experimentsEnabled]);
 }

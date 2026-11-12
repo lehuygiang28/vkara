@@ -2,7 +2,7 @@
 
 import type { VideoSource } from '@vkara/youtube';
 import { useScopedI18n } from '@/locales/client';
-import { isExperimentsEnabled } from '@/lib/experiments';
+import { useExperimentsEnabled } from '@/lib/experiments';
 import { useAppSettingsStore } from '@/store/appSettingsStore';
 import { useSearchStore } from '@/store/searchStore';
 import { SettingsGroup, SettingsSection } from '@/components/settings/settings-section';
@@ -11,10 +11,11 @@ import { Label } from '@/components/ui/label';
 
 export function ExperimentsSettingsSection() {
     const t = useScopedI18n('experimentsSettings');
+    const experimentsEnabled = useExperimentsEnabled();
     const videoProvider = useAppSettingsStore((state) => state.videoProvider);
     const setVideoProvider = useAppSettingsStore((state) => state.setVideoProvider);
 
-    if (!isExperimentsEnabled()) {
+    if (!experimentsEnabled) {
         return null;
     }
 

@@ -28,6 +28,25 @@ export type ApiPostOptions = {
     baseUrl?: string | null;
 };
 
+export async function apiGet<TResponse>(
+    path: string,
+    signal?: AbortSignal,
+    options?: ApiPostOptions,
+): Promise<TResponse> {
+    const url = buildApiUrl(path, options?.baseUrl);
+    const response = await fetch(url, {
+        method: 'GET',
+        headers: { Accept: 'application/json' },
+        signal,
+    });
+
+    if (!response.ok) {
+        throw new Error(`API request failed (${response.status}) for ${path}`);
+    }
+
+    return (await response.json()) as TResponse;
+}
+
 export async function apiPost<TResponse, TBody extends JsonRecord = JsonRecord>(
     path: string,
     body: TBody,

@@ -19,6 +19,7 @@ import { applyTlsInsecureRuntime, isExperimentsEnabled, parseEnvFlagValue } from
 import { resolveCorsConfig } from '@vkara/env/server';
 import { readSentryEnvironmentFromProcess } from '@vkara/env/sentry';
 
+import { buildPublicConfig } from './modules/public-config';
 import { env } from './env';
 import { redis } from './redis';
 import { searchTiktokElysia, shutdownTikTokPool, warmupTikTokPool } from './tiktok';
@@ -134,6 +135,7 @@ export const wsServer = Sentry.withElysia(
             wsConnections: wsConnections.size,
         }),
     )
+    .get('/config', () => buildPublicConfig(env))
     .get('/debug-sentry', () => {
         // Never expose the verify route in Sentry production (vkara.vercel.app / VERCEL_ENV=production).
         const sentryEnvironment = readSentryEnvironmentFromProcess();

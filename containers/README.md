@@ -243,9 +243,9 @@ For local development without Docker, use `bun run dev` from the repo root ([REA
 
 ## Experiments (`VKARA_EXPERIMENTS`)
 
-TikTok search is gated behind `VKARA_EXPERIMENTS=1` on the API and `NEXT_PUBLIC_VKARA_EXPERIMENTS=1` on the web. When off, the TikTok route is not mounted and the Settings experiments section stays hidden.
+TikTok search is gated behind `VKARA_EXPERIMENTS=1` on the **API**. The web UI reads `GET /config` at runtime (`experimentsEnabled`) and does not require a frontend rebuild when toggling the flag (see issue #12). When off, the TikTok route is not mounted and the Settings experiments section stays hidden.
 
-The **AIO** web image build sets `NEXT_PUBLIC_VKARA_EXPERIMENTS=false` by default (overridable via build arg) so client bundles never read the server-only `VKARA_EXPERIMENTS` flag (see issue #12). Enable TikTok on web by rebuilding with `--build-arg NEXT_PUBLIC_VKARA_EXPERIMENTS=1` (or `NEXT_PUBLIC_VKARA_EXPERIMENTS=1` in Compose) and `VKARA_EXPERIMENTS=1` on the API.
+**AIO / Docker:** set `VKARA_EXPERIMENTS=1` in the container environment and restart the API process (or the whole stack). Refresh the browser — no web image rebuild needed.
 
 **Local dev (API on host):** install Playwright Chromium once:
 
