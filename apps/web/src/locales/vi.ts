@@ -407,6 +407,7 @@ export default {
     'joinLobby.passwordPlaceholder': 'Nhập mật khẩu phòng',
     'joinLobby.joinButton': 'Tham gia phòng',
     'joinLobby.or': 'hoặc',
+    'joinLobby.openCabinet': 'Xem bài tủ',
     'joinLobby.joinRequiredTitle': 'Hãy tham gia phòng trước',
     'joinLobby.joinRequiredDescription': 'Nhập mã phòng hoặc quét QR trước khi thêm bài hát.',
     'joinLobby.modeHint': 'Chọn sai chế độ? Đổi ở đây để quay lại màn hình phù hợp.',

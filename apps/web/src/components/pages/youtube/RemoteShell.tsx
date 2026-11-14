@@ -65,7 +65,7 @@ export function RemoteShell() {
         }
     }, [currentTab, setCurrentTab]);
 
-    if (showJoinLobby) {
+    if (showJoinLobby && currentTab !== 'cabinet') {
         return (
             <TooltipProvider delayDuration={400}>
                 <div className="flex h-full min-h-0 flex-col">

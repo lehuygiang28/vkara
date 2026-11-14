@@ -1,4 +1,5 @@
 import type { YouTubeVideo } from '@vkara/youtube';
+import { youtubeVideoSchema } from '@vkara/validators/youtube/video';
 
 import { normalizePersistedYouTubeVideo } from '@/lib/persisted-storage';
 
@@ -20,10 +21,11 @@ export function parseCabinetVideos(raw: unknown): YouTubeVideo[] {
     const videos: YouTubeVideo[] = [];
     for (const item of raw) {
         const video = normalizePersistedYouTubeVideo(item);
-        if (!video || videos.some((existing) => existing.id === video.id)) {
+        const parsed = video ? youtubeVideoSchema.safeParse(video) : null;
+        if (!parsed?.success || videos.some((existing) => existing.id === parsed.data.id)) {
             continue;
         }
-        videos.push(video);
+        videos.push(parsed.data);
         if (videos.length >= CABINET_VIDEO_LIMIT) {
             break;
         }

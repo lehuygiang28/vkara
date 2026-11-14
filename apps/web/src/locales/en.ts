@@ -410,6 +410,7 @@ export default {
     'joinLobby.passwordPlaceholder': 'Enter room password',
     'joinLobby.joinButton': 'Join room',
     'joinLobby.or': 'or',
+    'joinLobby.openCabinet': 'View saved songs',
     'joinLobby.joinRequiredTitle': 'Join a room first',
     'joinLobby.joinRequiredDescription':
         'Enter a room code or scan the QR code before adding songs.',

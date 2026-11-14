@@ -67,6 +67,15 @@ describe('parseCabinetVideos', () => {
         expect(parsed[0]?.tiktokImageCount).toBe(3);
     });
 
+    it('skips a row whose type is not a string', () => {
+        const parsed = parseCabinetVideos([
+            { id: 'bad', type: 42 },
+            { id: 'good', title: 'kept' },
+        ]);
+
+        expect(parsed.map((item) => item.id)).toEqual(['good']);
+    });
+
     it('returns an empty list for a non-array', () => {
         expect(parseCabinetVideos({ videos: [] })).toEqual([]);
     });
