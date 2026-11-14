@@ -197,7 +197,10 @@ describe('tv-polyfills Promise.allSettled', () => {
 
         runPolyfills();
 
-        await expect(Promise.allSettled(undefined)).rejects.toBeInstanceOf(TypeError);
+        const allSettled = Promise.allSettled as (
+            values: Iterable<unknown> | undefined,
+        ) => Promise<PromiseSettledResult<unknown>[]>;
+        await expect(allSettled(undefined)).rejects.toBeInstanceOf(TypeError);
     });
 
     it('rejects the returned promise when the iterator throws', async () => {
