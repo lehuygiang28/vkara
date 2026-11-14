@@ -64,6 +64,17 @@ describe('useCabinetStore', () => {
         expect(useCabinetStore.getState().savedIds.size).toBe(0);
     });
 
+    it('restores the cabinet from the backup when the stored json does not parse', () => {
+        useCabinetStore.getState().toggle(video('b'));
+        storage.setItem('vkara-cabinet', '{not json');
+
+        useCabinetStore.getState().toggle(video('c'));
+
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['c', 'b']);
+        expect(storage.getItem('vkara-cabinet.bad')).toBe('{not json');
+        expect(storage.getItem('vkara-cabinet')).not.toBe('{not json');
+    });
+
     it('keeps a song another tab wrote before this tab saves', () => {
         useCabinetStore.getState().toggle(video('a'));
         storage.setItem(

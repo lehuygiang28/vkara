@@ -105,11 +105,55 @@ describe('createMigratingPersistStorage', () => {
         expect(parsed.state.room.captionsLanguage).toBe(DEFAULT_CAPTION_LANGUAGE);
     });
 
-    it('removes corrupt entries instead of throwing', () => {
+    it('keeps a corrupt blob aside and does not throw', () => {
         storage.setItem(PERSIST_STORE_KEYS.youtube, '{not json');
         const persistStorage = createMigratingPersistStorage();
         expect(persistStorage.getItem(PERSIST_STORE_KEYS.youtube)).toBeNull();
         expect(storage.getItem(PERSIST_STORE_KEYS.youtube)).toBeNull();
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.youtube}.bad`)).toBe('{not json');
+    });
+
+    it('restores the previous good write when the primary blob does not parse', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const good = JSON.stringify({ state: { layoutMode: 'remote' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.youtube, good);
+        storage.setItem(PERSIST_STORE_KEYS.youtube, '{not json');
+
+        const raw = persistStorage.getItem(PERSIST_STORE_KEYS.youtube);
+        expect(raw).not.toBeNull();
+        expect(JSON.parse(raw as string).state.layoutMode).toBe('remote');
+        expect(JSON.parse(storage.getItem(PERSIST_STORE_KEYS.youtube) as string).state.layoutMode).toBe(
+            'remote',
+        );
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.youtube}.bad`)).toBe('{not json');
+    });
+
+    it('refuses to replace a good blob with json that does not parse', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const good = JSON.stringify({ state: { layoutMode: 'remote' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.youtube, good);
+        persistStorage.setItem(PERSIST_STORE_KEYS.youtube, '{not json');
+        expect(storage.getItem(PERSIST_STORE_KEYS.youtube)).toBe(good);
+    });
+
+    it('leaves the previous blob in place when the write throws', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const good = JSON.stringify({ state: { layoutMode: 'remote' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.youtube, good);
+        const setItem = storage.setItem.bind(storage);
+        storage.setItem = (key: string, value: string) => {
+            if (key === PERSIST_STORE_KEYS.youtube && value.includes('player')) {
+                throw new Error('quota');
+            }
+            setItem(key, value);
+        };
+
+        persistStorage.setItem(
+            PERSIST_STORE_KEYS.youtube,
+            JSON.stringify({ state: { layoutMode: 'player' }, version: 1 }),
+        );
+
+        expect(storage.getItem(PERSIST_STORE_KEYS.youtube)).toBe(good);
     });
 
     it('copies legacy key aliases once', () => {

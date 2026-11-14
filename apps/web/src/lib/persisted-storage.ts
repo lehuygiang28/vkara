@@ -159,13 +159,118 @@ function migrateEnvelope(name: string, envelope: PersistEnvelope): PersistEnvelo
 function parsePersistEnvelope(raw: string): PersistEnvelope | null {
     try {
         const parsed: unknown = JSON.parse(raw);
-        if (!parsed || typeof parsed !== 'object') {
+        if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
             return null;
         }
         return parsed as PersistEnvelope;
     } catch {
         return null;
     }
+}
+
+function backupKey(name: string): string {
+    return `${name}.bak`;
+}
+
+function quarantineKey(name: string): string {
+    return `${name}.bad`;
+}
+
+function storageSet(key: string, value: string): boolean {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function rememberGood(name: string, raw: string): void {
+    if (localStorage.getItem(backupKey(name)) === raw) {
+        return;
+    }
+    storageSet(backupKey(name), raw);
+}
+
+function quarantineCorrupt(name: string, raw: string): void {
+    if (!localStorage.getItem(quarantineKey(name))) {
+        storageSet(quarantineKey(name), raw);
+    }
+    try {
+        localStorage.removeItem(name);
+    } catch {
+        // The corrupt bytes stay on the primary key. The next read quarantines them again.
+    }
+}
+
+function restoreBackup(name: string): string | null {
+    const backup = localStorage.getItem(backupKey(name));
+    if (!backup || !parsePersistEnvelope(backup)) {
+        return null;
+    }
+    storageSet(name, backup);
+    return backup;
+}
+
+function publishEnvelope(name: string, raw: string, envelope: PersistEnvelope): string {
+    const migrated = migrateEnvelope(name, envelope);
+    const serialized = JSON.stringify(migrated);
+    if (serialized !== raw) {
+        storageSet(name, serialized);
+    }
+    rememberGood(name, serialized);
+    return serialized;
+}
+
+/**
+ * Read one persisted store. A blob that does not parse is kept aside and, when a
+ * previous good write exists, copied back onto the primary key.
+ */
+export function readClientPersistItem(name: string): string | null {
+    if (typeof localStorage === 'undefined') {
+        return null;
+    }
+
+    runLegacyLocalStorageKeyMigration();
+
+    const raw = localStorage.getItem(name);
+    if (!raw) {
+        const restored = restoreBackup(name);
+        if (!restored) {
+            return null;
+        }
+        const envelope = parsePersistEnvelope(restored);
+        return envelope ? publishEnvelope(name, restored, envelope) : null;
+    }
+
+    const envelope = parsePersistEnvelope(raw);
+    if (!envelope) {
+        quarantineCorrupt(name, raw);
+        const restored = restoreBackup(name);
+        if (!restored) {
+            return null;
+        }
+        const backupEnvelope = parsePersistEnvelope(restored);
+        return backupEnvelope ? publishEnvelope(name, restored, backupEnvelope) : null;
+    }
+
+    return publishEnvelope(name, raw, envelope);
+}
+
+function writeClientPersistItem(name: string, value: string): void {
+    if (typeof localStorage === 'undefined' || !parsePersistEnvelope(value)) {
+        return;
+    }
+
+    const current = localStorage.getItem(name);
+    if (current && current !== value && parsePersistEnvelope(current)) {
+        rememberGood(name, current);
+    }
+
+    if (!storageSet(name, value)) {
+        return;
+    }
+    rememberGood(name, value);
 }
 
 /** Copy legacy localStorage keys into the current names once. */
@@ -184,38 +289,21 @@ export function runLegacyLocalStorageKeyMigration(): void {
 
 /**
  * Drop-in replacement for `localStorage` used by Zustand `createJSONStorage`.
- * Migrates legacy blobs on read and clears corrupt entries instead of crashing hydration.
+ * Each successful write keeps a backup. A later read repairs the primary key from that backup.
  */
 export function createMigratingPersistStorage(): StateStorage {
     return {
-        getItem: (name) => {
-            runLegacyLocalStorageKeyMigration();
-
-            const raw = localStorage.getItem(name);
-            if (!raw) {
-                return null;
-            }
-
-            const envelope = parsePersistEnvelope(raw);
-            if (!envelope) {
-                localStorage.removeItem(name);
-                return null;
-            }
-
-            const migrated = migrateEnvelope(name, envelope);
-            const serialized = JSON.stringify(migrated);
-
-            if (serialized !== raw) {
-                localStorage.setItem(name, serialized);
-            }
-
-            return serialized;
-        },
+        getItem: (name) => readClientPersistItem(name),
         setItem: (name, value) => {
-            localStorage.setItem(name, value);
+            writeClientPersistItem(name, value);
         },
         removeItem: (name) => {
-            localStorage.removeItem(name);
+            try {
+                localStorage.removeItem(name);
+                localStorage.removeItem(backupKey(name));
+            } catch {
+                // Leaving the key in place is safer than throwing out of hydration.
+            }
         },
     };
 }

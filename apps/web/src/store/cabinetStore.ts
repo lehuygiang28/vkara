@@ -8,7 +8,7 @@ import {
     parseCabinetVideos,
     type CabinetWrite,
 } from '@/lib/cabinet';
-import { createMigratingPersistStorage } from '@/lib/persisted-storage';
+import { createMigratingPersistStorage, readClientPersistItem } from '@/lib/persisted-storage';
 
 export const CABINET_STORAGE_KEY = 'vkara-cabinet';
 
@@ -20,14 +20,11 @@ type CabinetState = {
 };
 
 function readPersistedCabinet(): YouTubeVideo[] | null {
-    if (typeof localStorage === 'undefined') {
+    const raw = readClientPersistItem(CABINET_STORAGE_KEY);
+    if (!raw) {
         return null;
     }
     try {
-        const raw = localStorage.getItem(CABINET_STORAGE_KEY);
-        if (!raw) {
-            return null;
-        }
         const envelope: unknown = JSON.parse(raw);
         const videos =
             envelope && typeof envelope === 'object' && 'state' in envelope
