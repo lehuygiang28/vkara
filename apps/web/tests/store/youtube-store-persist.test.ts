@@ -147,7 +147,7 @@ describe('youtubeStore persist partialize', () => {
                 getCurrentTime() {
                     throw new Error('detached');
                 },
-            } as YT.Player,
+            } as unknown as YT.Player,
             room: {
                 ...room,
                 id: 'ROOM42',

@@ -8,7 +8,7 @@ describe('readPlaybackPositionSeconds', () => {
     it('floors the time reported by a usable player', () => {
         const youtubePlayer = {
             getCurrentTime: () => 4.8,
-        } as YT.Player;
+        } as unknown as YT.Player;
 
         expect(
             readPlaybackPositionSeconds({
@@ -28,7 +28,7 @@ describe('readPlaybackPositionSeconds', () => {
             getCurrentTime() {
                 throw new Error('detached');
             },
-        } as YT.Player;
+        } as unknown as YT.Player;
 
         expect(
             readPlaybackPositionSeconds({
