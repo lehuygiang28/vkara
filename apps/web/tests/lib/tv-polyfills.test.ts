@@ -187,6 +187,40 @@ describe('tv-polyfills Promise.allSettled', () => {
         runPolyfills();
         expect(Promise.allSettled).toBe(native);
     });
+
+    it('rejects the returned promise when the input is not iterable', async () => {
+        Object.defineProperty(Promise, 'allSettled', {
+            configurable: true,
+            writable: true,
+            value: undefined,
+        });
+
+        runPolyfills();
+
+        await expect(Promise.allSettled(undefined)).rejects.toBeInstanceOf(TypeError);
+    });
+
+    it('rejects the returned promise when the iterator throws', async () => {
+        Object.defineProperty(Promise, 'allSettled', {
+            configurable: true,
+            writable: true,
+            value: undefined,
+        });
+
+        runPolyfills();
+
+        const values = {
+            [Symbol.iterator]() {
+                return {
+                    next() {
+                        throw new Error('boom');
+                    },
+                };
+            },
+        };
+
+        await expect(Promise.allSettled(values)).rejects.toThrow('boom');
+    });
 });
 
 describe('tv-polyfills leaves the DOM alone', () => {

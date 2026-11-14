@@ -139,7 +139,12 @@
     if (typeof Promise.allSettled !== 'function') {
         Promise.allSettled = function allSettled(values) {
             var pending = [];
-            var list = Array.isArray(values) ? values : Array.from(values);
+            var list;
+            try {
+                list = Array.isArray(values) ? values : Array.from(values);
+            } catch (error) {
+                return Promise.reject(error);
+            }
             for (var i = 0; i < list.length; i++) {
                 pending.push(
                     Promise.resolve(list[i]).then(
