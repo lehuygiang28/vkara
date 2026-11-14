@@ -476,7 +476,8 @@ export const usePlayerAction = (): PlayerAction => {
             if (!(await ensureRoomReady())) return;
 
             const currentRoom = useYouTubeStore.getState().room;
-            if (videos.every((video) => isVideoInRoom(currentRoom, video.id))) {
+            const fresh = videos.find((video) => !isVideoInRoom(currentRoom, video.id));
+            if (!fresh) {
                 toast({
                     title: t('toast.alreadyInQueue'),
                     description: t('toast.alreadyInQueueDescription'),
@@ -485,11 +486,13 @@ export const usePlayerAction = (): PlayerAction => {
                 return;
             }
 
-            ensureConnectedAndSend({ type: 'addVideos', videos });
-            toast({
+            registerPendingQueueAdd({
+                videoId: fresh.id,
                 title: t('toast.addVideosHandler'),
+                variant: 'success',
                 duration: ACTION_FEEDBACK_DURATION_MS,
             });
+            ensureConnectedAndSend({ type: 'addVideos', videos });
         },
         [ensureRoomReady, ensureConnectedAndSend, t],
     );

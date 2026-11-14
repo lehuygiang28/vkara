@@ -52,6 +52,21 @@ describe('parseCabinetVideos', () => {
         expect(parsed.map((item) => item.title)).toEqual(['first', 'other']);
     });
 
+    it('keeps the TikTok photo count', () => {
+        const parsed = parseCabinetVideos([
+            {
+                id: '7123456789012345678',
+                title: 'photo',
+                source: 'tiktok',
+                type: 'video',
+                url: 'https://www.tiktok.com/@name/photo/7123456789012345678',
+                tiktokImageCount: 3,
+            },
+        ]);
+
+        expect(parsed[0]?.tiktokImageCount).toBe(3);
+    });
+
     it('returns an empty list for a non-array', () => {
         expect(parseCabinetVideos({ videos: [] })).toEqual([]);
     });

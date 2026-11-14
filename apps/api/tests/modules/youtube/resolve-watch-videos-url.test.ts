@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
-import { coercePlaylistFetchInput } from '@/modules/youtube/resolve-watch-videos-url';
+import {
+    coercePlaylistFetchInput,
+    resolveWatchVideosPlaylistUrl,
+} from '@/modules/youtube/resolve-watch-videos-url';
 
 const SAMPLE =
     'https://www.youtube.com/watch_videos?video_ids=Cfa2FTJG7CQ,9bZkp7q19f0,kJQP7kiw5Fk';
@@ -59,6 +62,21 @@ describe('coercePlaylistFetchInput', () => {
             }),
         ).rejects.toThrow('Invalid playlist URL');
         expect(hops).toBe(4);
+    });
+
+    it('aborts a redirect hop that does not answer', async () => {
+        await expect(
+            resolveWatchVideosPlaylistUrl(
+                ['Cfa2FTJG7CQ'],
+                (_url, init) =>
+                    new Promise((_resolve, reject) => {
+                        init.signal.addEventListener('abort', () => {
+                            reject(init.signal.reason);
+                        });
+                    }),
+                20,
+            ),
+        ).rejects.toBeTruthy();
     });
 
     it('leaves a normal playlist URL untouched', async () => {

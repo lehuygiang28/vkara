@@ -52,6 +52,11 @@ export function normalizePersistedYouTubeVideo(video: unknown): YouTubeVideo | n
         ...(candidate.source === 'tiktok' || candidate.source === 'youtube'
             ? { source: candidate.source }
             : {}),
+        ...(typeof candidate.tiktokImageCount === 'number' &&
+        Number.isInteger(candidate.tiktokImageCount) &&
+        candidate.tiktokImageCount > 0
+            ? { tiktokImageCount: candidate.tiktokImageCount }
+            : {}),
     };
 }
 

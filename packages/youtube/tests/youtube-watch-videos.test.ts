@@ -13,6 +13,12 @@ describe('parseWatchVideosUrl', () => {
         });
     });
 
+    it('accepts an uppercase scheme', () => {
+        expect(
+            parseWatchVideosUrl('HTTPS://www.youtube.com/watch_videos?video_ids=Cfa2FTJG7CQ'),
+        ).toEqual({ kind: 'ok', videoIds: ['Cfa2FTJG7CQ'] });
+    });
+
     it('accepts youtube.com without www', () => {
         expect(
             parseWatchVideosUrl('https://youtube.com/watch_videos?video_ids=Cfa2FTJG7CQ'),

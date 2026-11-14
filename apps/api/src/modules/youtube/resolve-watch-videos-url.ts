@@ -3,6 +3,7 @@ import { isWatchVideosHost, parseWatchVideosUrl } from '@vkara/youtube';
 import { youtubeOutboundFetch } from './youtube-outbound-fetch';
 
 const REDIRECT_LIMIT = 4;
+const REDIRECT_HOP_TIMEOUT_MS = 8_000;
 
 const WATCH_VIDEOS_HEADERS = {
     'User-Agent':
@@ -12,12 +13,18 @@ const WATCH_VIDEOS_HEADERS = {
 
 export type WatchVideosFetch = (
     url: string,
-    init: { method: string; redirect: 'manual'; headers: Record<string, string> },
+    init: {
+        method: string;
+        redirect: 'manual';
+        headers: Record<string, string>;
+        signal: AbortSignal;
+    },
 ) => Promise<Response>;
 
 export async function resolveWatchVideosPlaylistUrl(
     videoIds: string[],
     fetchImpl: WatchVideosFetch = youtubeOutboundFetch,
+    timeoutMs = REDIRECT_HOP_TIMEOUT_MS,
 ): Promise<string> {
     const start = new URL('https://www.youtube.com/watch_videos');
     start.searchParams.set('video_ids', videoIds.join(','));
@@ -28,6 +35,7 @@ export async function resolveWatchVideosPlaylistUrl(
             method: 'GET',
             redirect: 'manual',
             headers: WATCH_VIDEOS_HEADERS,
+            signal: AbortSignal.timeout(timeoutMs),
         });
         const location = response.headers.get('location');
         if (!location || response.status < 300 || response.status >= 400) {

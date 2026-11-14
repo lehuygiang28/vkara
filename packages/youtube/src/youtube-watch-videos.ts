@@ -20,7 +20,7 @@ export type WatchVideosParse =
 
 export function parseWatchVideosUrl(raw: string): WatchVideosParse {
     const trimmed = raw.trim();
-    if (!trimmed.startsWith('http')) {
+    if (!/^https?:\/\//i.test(trimmed)) {
         return { kind: 'absent' };
     }
 
