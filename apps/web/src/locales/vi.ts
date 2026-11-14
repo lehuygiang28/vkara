@@ -256,6 +256,7 @@ export default {
     'videoCabinet.saved': 'Đã lưu trên điện thoại này',
     'videoCabinet.remove': 'Gỡ khỏi bài tủ',
     'videoCabinet.removeShort': 'Gỡ',
+    'videoCabinet.evictedOldest': 'Bài tủ đã đủ 200 bài. Bài cũ nhất đã được gỡ.',
     'videoCabinet.addAll': 'Thêm cả tủ vào hàng chờ',
     'videoCabinet.clear': 'Xóa bài tủ',
     'videoCabinet.clearConfirm': 'Gỡ mọi bài đã lưu trên điện thoại này?',

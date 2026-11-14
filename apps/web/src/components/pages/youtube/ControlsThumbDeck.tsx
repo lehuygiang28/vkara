@@ -2,6 +2,7 @@
 
 import { Star } from 'lucide-react';
 
+import { toast } from '@/hooks/use-toast';
 import { usePlaybackDisplayTime } from '@/hooks/use-playback-display-time';
 import { usePlayerAction } from '@/hooks/use-player-action';
 import { useCabinetStore } from '@/store/cabinetStore';
@@ -74,7 +75,12 @@ export function ControlsThumbDeck({ className, tickEnabled = true }: ControlsThu
                             className="h-11 w-11 justify-self-end rounded-full text-muted-foreground hover:text-foreground"
                             aria-pressed={saved}
                             aria-label={saved ? tCabinet('remove') : tCabinet('save')}
-                            onClick={() => toggleSaved(playing)}
+                            onClick={() => {
+                                const evicted = toggleSaved(playing);
+                                if (evicted) {
+                                    toast({ title: tCabinet('evictedOldest'), variant: 'warning' });
+                                }
+                            }}
                         >
                             <Star
                                 className={cn(

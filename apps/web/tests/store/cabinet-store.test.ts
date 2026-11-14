@@ -64,6 +64,36 @@ describe('useCabinetStore', () => {
         expect(useCabinetStore.getState().savedIds.size).toBe(0);
     });
 
+    it('keeps a song another tab wrote before this tab saves', () => {
+        useCabinetStore.getState().toggle(video('a'));
+        storage.setItem(
+            'vkara-cabinet',
+            JSON.stringify({
+                state: { videos: [video('b')] },
+                version: 1,
+            }),
+        );
+
+        useCabinetStore.getState().toggle(video('c'));
+
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['c', 'b']);
+    });
+
+    it('removes from the list another tab already extended', () => {
+        useCabinetStore.getState().toggle(video('a'));
+        storage.setItem(
+            'vkara-cabinet',
+            JSON.stringify({
+                state: { videos: [video('a'), video('b')] },
+                version: 1,
+            }),
+        );
+
+        useCabinetStore.getState().toggle(video('a'));
+
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['b']);
+    });
+
     it('drops a corrupt persisted entry on hydrate', async () => {
         storage.setItem(
             'vkara-cabinet',

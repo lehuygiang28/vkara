@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import type { YouTubeVideo } from '@vkara/youtube';
 
-import { CABINET_VIDEO_LIMIT, parseCabinetVideos, toggleCabinetVideo } from '@/lib/cabinet';
+import {
+    CABINET_VIDEO_LIMIT,
+    applyCabinetWrite,
+    cabinetSaveEvictedOldest,
+    parseCabinetVideos,
+    toggleCabinetVideo,
+} from '@/lib/cabinet';
 
 function video(id: string, title = id): YouTubeVideo {
     return {
@@ -17,6 +23,27 @@ function video(id: string, title = id): YouTubeVideo {
         thumbnails: [],
     };
 }
+
+describe('applyCabinetWrite', () => {
+    it('adds once and leaves an existing song where it is', () => {
+        const saved = [video('a'), video('b')];
+        expect(applyCabinetWrite(saved, video('c'), 'add').map((item) => item.id)).toEqual([
+            'c',
+            'a',
+            'b',
+        ]);
+        expect(applyCabinetWrite(saved, video('a'), 'add')).toBe(saved);
+    });
+
+    it('reports the oldest song only when a new save pushes it out', () => {
+        const saved = Array.from({ length: CABINET_VIDEO_LIMIT }, (_, index) =>
+            video(`id-${index}`),
+        );
+        const next = applyCabinetWrite(saved, video('new'), 'add');
+        expect(cabinetSaveEvictedOldest(saved, next, 'new')).toBe(true);
+        expect(cabinetSaveEvictedOldest(saved, next, 'id-0')).toBe(false);
+    });
+});
 
 describe('toggleCabinetVideo', () => {
     it('inserts a new song at the front', () => {

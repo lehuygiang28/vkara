@@ -258,6 +258,7 @@ export default {
     'videoCabinet.saved': 'Saved on this phone',
     'videoCabinet.remove': 'Remove from this phone',
     'videoCabinet.removeShort': 'Remove',
+    'videoCabinet.evictedOldest': 'This phone already has 200 saved songs. The oldest one was removed.',
     'videoCabinet.addAll': 'Add all saved songs to the queue',
     'videoCabinet.clear': 'Clear saved songs',
     'videoCabinet.clearConfirm': 'Remove every saved song from this phone?',
