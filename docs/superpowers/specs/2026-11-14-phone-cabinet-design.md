@@ -55,7 +55,7 @@ Validation rules:
 - The host is `youtube.com`, `www.youtube.com`, `m.youtube.com`, or `music.youtube.com`, and the path is `/watch_videos`.
 - `video_ids` is a comma-separated list. Every token must be an 11-character YouTube video id. One bad token rejects the URL.
 - More than 50 valid ids keeps the first 50, matching the measured YouTube cap.
-- The server follows at most four redirects. It stops at the first `Location` that has a `list` parameter and fetches that URL. No `list` after those hops is an invalid playlist.
+- The server follows at most four redirects. Each hop must stay on `youtube.com`, `www.youtube.com`, `m.youtube.com`, or `music.youtube.com`. Any other host is an invalid playlist and is not fetched. It stops at the first `Location` that has a `list` parameter and fetches that URL. No `list` after those hops is an invalid playlist.
 
 ## Out of scope
 

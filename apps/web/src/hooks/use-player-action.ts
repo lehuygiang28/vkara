@@ -474,6 +474,17 @@ export const usePlayerAction = (): PlayerAction => {
         async (videos: YouTubeVideo[]) => {
             if (videos.length === 0) return;
             if (!(await ensureRoomReady())) return;
+
+            const currentRoom = useYouTubeStore.getState().room;
+            if (videos.every((video) => isVideoInRoom(currentRoom, video.id))) {
+                toast({
+                    title: t('toast.alreadyInQueue'),
+                    description: t('toast.alreadyInQueueDescription'),
+                    variant: 'warning',
+                });
+                return;
+            }
+
             ensureConnectedAndSend({ type: 'addVideos', videos });
             toast({
                 title: t('toast.addVideosHandler'),

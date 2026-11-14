@@ -30,6 +30,37 @@ describe('coercePlaylistFetchInput', () => {
         ).rejects.toThrow('Invalid playlist URL');
     });
 
+    it('rejects a redirect onto another host without fetching it', async () => {
+        const calls: string[] = [];
+        await expect(
+            coercePlaylistFetchInput(SAMPLE, async (url) => {
+                calls.push(url);
+                return new Response(null, {
+                    status: 303,
+                    headers: {
+                        location: 'https://evil.example/watch?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI',
+                    },
+                });
+            }),
+        ).rejects.toThrow('Invalid playlist URL');
+        expect(calls).toHaveLength(1);
+        expect(calls[0]).toContain('https://www.youtube.com/watch_videos');
+    });
+
+    it('stops after four YouTube redirects that never include a list id', async () => {
+        let hops = 0;
+        await expect(
+            coercePlaylistFetchInput(SAMPLE, async () => {
+                hops += 1;
+                return new Response(null, {
+                    status: 302,
+                    headers: { location: `https://www.youtube.com/redirect?hop=${hops}` },
+                });
+            }),
+        ).rejects.toThrow('Invalid playlist URL');
+        expect(hops).toBe(4);
+    });
+
     it('leaves a normal playlist URL untouched', async () => {
         const playlist = 'https://www.youtube.com/playlist?list=PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI';
         await expect(coercePlaylistFetchInput(playlist, async () => {

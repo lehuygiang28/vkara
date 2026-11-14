@@ -9,6 +9,10 @@ const WATCH_VIDEOS_HOSTS = new Set([
     'music.youtube.com',
 ]);
 
+export function isWatchVideosHost(hostname: string): boolean {
+    return WATCH_VIDEOS_HOSTS.has(hostname.toLowerCase());
+}
+
 export type WatchVideosParse =
     | { kind: 'absent' }
     | { kind: 'invalid' }
@@ -27,7 +31,7 @@ export function parseWatchVideosUrl(raw: string): WatchVideosParse {
         return { kind: 'absent' };
     }
 
-    if (!WATCH_VIDEOS_HOSTS.has(url.hostname.toLowerCase())) {
+    if (!isWatchVideosHost(url.hostname)) {
         return { kind: 'absent' };
     }
 

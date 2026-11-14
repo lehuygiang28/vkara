@@ -1,4 +1,4 @@
-import { parseWatchVideosUrl } from '@vkara/youtube';
+import { isWatchVideosHost, parseWatchVideosUrl } from '@vkara/youtube';
 
 import { youtubeOutboundFetch } from './youtube-outbound-fetch';
 
@@ -34,7 +34,15 @@ export async function resolveWatchVideosPlaylistUrl(
             break;
         }
 
-        const next = new URL(location, current);
+        let next: URL;
+        try {
+            next = new URL(location, current);
+        } catch {
+            throw new Error('Invalid playlist URL');
+        }
+        if (!isWatchVideosHost(next.hostname)) {
+            throw new Error('Invalid playlist URL');
+        }
         if (next.searchParams.get('list')) {
             return next.toString();
         }
