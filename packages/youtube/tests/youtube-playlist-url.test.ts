@@ -28,7 +28,7 @@ describe('parseYoutubePlaylistInput', () => {
 
     it('accepts a temporary TL list URL as a standard playlist', () => {
         const parsed = parseYoutubePlaylistInput(
-            'https://www.youtube.com/watch?v=Cfa2FTJG7CQ&list=TLGGph6XLhEqeG8xNDExMjAyNg',
+            'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=TLGGph6XLhEqeG8xNDExMjAyNg',
         );
 
         expect(parsed.isMix).toBe(false);

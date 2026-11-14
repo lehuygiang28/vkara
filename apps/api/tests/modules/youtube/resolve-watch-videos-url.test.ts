@@ -6,9 +6,9 @@ import {
 } from '@/modules/youtube/resolve-watch-videos-url';
 
 const SAMPLE =
-    'https://www.youtube.com/watch_videos?video_ids=Cfa2FTJG7CQ,9bZkp7q19f0,kJQP7kiw5Fk';
+    'https://www.youtube.com/watch_videos?video_ids=dQw4w9WgXcQ,9bZkp7q19f0,kJQP7kiw5Fk';
 const LIST_URL =
-    'https://www.youtube.com/watch?v=Cfa2FTJG7CQ&list=TLGGph6XLhEqeG8xNDExMjAyNg';
+    'https://www.youtube.com/watch?v=dQw4w9WgXcQ&list=TLGGph6XLhEqeG8xNDExMjAyNg';
 
 describe('coercePlaylistFetchInput', () => {
     it('follows a watch_videos redirect to the list URL', async () => {
@@ -27,7 +27,7 @@ describe('coercePlaylistFetchInput', () => {
             coercePlaylistFetchInput(SAMPLE, async () => {
                 return new Response(null, {
                     status: 303,
-                    headers: { location: 'https://www.youtube.com/watch?v=Cfa2FTJG7CQ' },
+                    headers: { location: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ' },
                 });
             }),
         ).rejects.toThrow('Invalid playlist URL');
@@ -67,7 +67,7 @@ describe('coercePlaylistFetchInput', () => {
     it('aborts a redirect hop that does not answer', async () => {
         await expect(
             resolveWatchVideosPlaylistUrl(
-                ['Cfa2FTJG7CQ'],
+                ['dQw4w9WgXcQ'],
                 (_url, init) =>
                     new Promise((_resolve, reject) => {
                         init.signal.addEventListener('abort', () => {
