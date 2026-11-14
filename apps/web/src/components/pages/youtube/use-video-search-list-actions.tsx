@@ -12,7 +12,6 @@ import { VideoListActionBar } from './video-list-action-bar';
 import type { VideoListActionHelpers } from './VideoList';
 import { useCabinetSaveAction } from './use-cabinet-save-action';
 
-/** Play/queue row actions for search + browse suggestion lists. */
 export function useVideoSearchListActions() {
     const t = useScopedI18n('videoSearch');
     const recordEngagement = usePersonalizationStore((state) => state.recordEngagement);
