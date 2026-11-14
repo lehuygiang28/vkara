@@ -129,7 +129,8 @@ export default function YoutubePlayerPage() {
                         className={cn(
                             'relative min-h-0 w-full',
                             useTvIdleShell ? 'bg-background' : 'bg-black',
-                            effectiveLayoutMode === 'both' && 'md:h-full md:w-2/3 lg:w-3/4',
+                            effectiveLayoutMode === 'both' &&
+                                'hidden md:block md:h-full md:w-2/3 lg:w-3/4',
                             effectiveLayoutMode === 'player' &&
                                 (useTvIdleShell ? 'h-full' : 'h-[42dvh] md:h-full'),
                             isRemoteOnly && 'hidden',
