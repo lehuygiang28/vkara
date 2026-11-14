@@ -162,6 +162,17 @@ describe('wsClientMessageSchema', () => {
         ).toBe(true);
     });
 
+    it('accepts addVideos with one to 200 videos and rejects an empty list', () => {
+        expect(
+            check({
+                ...base,
+                type: 'addVideos',
+                videos: [validVideo()],
+            }),
+        ).toBe(true);
+        expect(check({ ...base, type: 'addVideos', videos: [] })).toBe(false);
+    });
+
     it('accepts room protection messages and optional device identity fields', () => {
         expect(check({ ...base, type: 'lockRoom' })).toBe(true);
         expect(check({ ...base, type: 'unlockRoom' })).toBe(true);

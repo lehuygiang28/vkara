@@ -6,5 +6,6 @@ export * from './parse-relative-upload';
 export * from './parse-view-count';
 export * from './youtube-id';
 export * from './youtube-playlist-url';
+export * from './youtube-watch-videos';
 export * from './youtube-live';
 export * from './youtube-thumbnail';

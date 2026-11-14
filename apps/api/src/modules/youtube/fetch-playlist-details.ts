@@ -10,6 +10,7 @@ import { buildYouTubeThumbnails, parseYoutubePlaylistInput } from '@vkara/youtub
 import { createContextLogger } from '@/utils/logger';
 
 import { fetchYoutubePlaylistVideos } from './fetch-playlist-videos';
+import { coercePlaylistFetchInput } from './resolve-watch-videos-url';
 import { getYoutubeiClient } from './youtubei-client';
 
 const logger = createContextLogger('FetchPlaylistDetails');
@@ -93,11 +94,12 @@ export async function fetchYoutubePlaylistDetails(
         redisClient?: Redis;
     },
 ): Promise<PlaylistDetailsResponse> {
-    const parsed = parseYoutubePlaylistInput(playlistUrlOrId);
+    const fetchInput = await coercePlaylistFetchInput(playlistUrlOrId);
+    const parsed = parseYoutubePlaylistInput(fetchInput);
     const videoLimit = options?.videoLimit ?? options?.limit ?? 200;
     const fetchAll = options?.fetchAll ?? options?.videoLimit === undefined;
 
-    const videos = await fetchYoutubePlaylistVideos(playlistUrlOrId, {
+    const videos = await fetchYoutubePlaylistVideos(fetchInput, {
         limit: videoLimit,
         fetchAll,
         redisClient: options?.redisClient,

@@ -21,7 +21,7 @@ export const PERSIST_STORE_KEYS = {
     rejoinSecrets: 'vkara-room-rejoin-secrets',
 } as const;
 
-function normalizePersistedYouTubeVideo(video: unknown): YouTubeVideo | null {
+export function normalizePersistedYouTubeVideo(video: unknown): YouTubeVideo | null {
     if (!video || typeof video !== 'object') {
         return null;
     }

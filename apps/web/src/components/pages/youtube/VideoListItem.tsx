@@ -1,6 +1,7 @@
 'use client';
 
 import { memo, type ReactNode } from 'react';
+import { Star } from 'lucide-react';
 import { VideoChannels } from '@/components/video-channels';
 import { LiveBadge } from '@/components/youtube-live-badge';
 import { coerceViewCount, formatViewCount } from '@vkara/youtube';
@@ -8,6 +9,7 @@ import { getVideoThumbnailUrl, isTikTokVideo, isVideoLive } from '@vkara/tiktok'
 import { formatUploadedAt } from '@/lib/format-uploaded-at';
 import { cn } from '@/lib/utils';
 import { useI18n } from '@/locales/client';
+import { useCabinetStore } from '@/store/cabinetStore';
 import type { YouTubeVideo } from '@vkara/youtube';
 
 import { VideoListThumbnail } from './video-list-thumbnail';
@@ -43,6 +45,7 @@ export const VideoListItem = memo(function VideoListItem({
     onSelect,
 }: VideoListItemProps) {
     const t = useI18n();
+    const saved = useCabinetStore((state) => state.videos.some((item) => item.id === video.id));
     const uploadedAtLabel = video.uploadedAt ? formatUploadedAt(video.uploadedAt, t) : '';
     const views = coerceViewCount(video.views);
     const isLive = isVideoLive({ video });
@@ -107,8 +110,16 @@ export const VideoListItem = memo(function VideoListItem({
                     }
                 />
                 <div className="flex min-h-0 min-w-0 flex-1 flex-col justify-center gap-0.5 overflow-hidden">
-                    <div className="line-clamp-2 break-words text-sm font-medium leading-snug">
-                        {video.title}
+                    <div className="flex items-start gap-1">
+                        <div className="line-clamp-2 min-w-0 flex-1 break-words text-sm font-medium leading-snug">
+                            {video.title}
+                        </div>
+                        {saved ? (
+                            <Star
+                                className="mt-0.5 h-3.5 w-3.5 shrink-0 fill-amber-400 text-amber-500"
+                                aria-label={t('videoCabinet.saved')}
+                            />
+                        ) : null}
                     </div>
                     <VideoChannels video={video} tone="muted" maxLines={2} />
                     {metadataLine ? (

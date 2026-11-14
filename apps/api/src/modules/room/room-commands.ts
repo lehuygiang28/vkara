@@ -10,7 +10,10 @@ import {
     resetTikTokPhotoIndex,
 } from '@/modules/room/room-playback-state';
 import { resolveNextEmbeddableFromQueue } from '@/modules/youtube/resolve-embeddable-queue';
-import { checkEmbeddable } from '@/modules/youtube/resolve-embed-playability';
+import {
+    checkEmbeddable,
+    filterYouTubeVideosByEmbeddability,
+} from '@/modules/youtube/resolve-embed-playability';
 import { mergeQueueAfterAdvance } from '@/modules/room/merge-queue-after-advance';
 import { redis } from '@/redis';
 import { isVideoAlreadyInRoom, mutateRoom, requireRoom } from '@/utils/room-store';
@@ -57,6 +60,65 @@ export async function addVideoToRoom(roomId: string, video: YouTubeVideo): Promi
         logger.error('Failed to add video', { videoId: video.id, error });
         throw new RoomError(ErrorCode.INTERNAL_ERROR, 'Failed to add video');
     }
+}
+
+export async function addVideosToRoom(roomId: string, videos: YouTubeVideo[]): Promise<Room> {
+    if (videos.length === 0) {
+        throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid video data');
+    }
+
+    const embeddable = await filterYouTubeVideosByEmbeddability(
+        redis,
+        videos.filter((video) => !isTikTokVideo(video)),
+    );
+    const allowed = new Set<string>([
+        ...videos.filter((video) => isTikTokVideo(video)).map((video) => video.id),
+        ...embeddable.map((video) => video.id),
+    ]);
+    const ordered: YouTubeVideo[] = [];
+    const seen = new Set<string>();
+    for (const video of videos) {
+        if (!video.id || seen.has(video.id) || !allowed.has(video.id)) {
+            continue;
+        }
+        seen.add(video.id);
+        ordered.push(video);
+    }
+
+    if (ordered.length === 0) {
+        throw new RoomError(ErrorCode.VIDEO_NOT_FOUND, 'No embeddable videos found in this list.');
+    }
+
+    const room = await mutateRoom(roomId, (room) => {
+        const existing = new Set<string>([
+            ...room.videoQueue.map((item) => item.id),
+            ...(room.playingNow?.id ? [room.playingNow.id] : []),
+        ]);
+        const fresh = ordered.filter((video) => !existing.has(video.id));
+        if (fresh.length === 0) {
+            throw new RoomError(ErrorCode.ALREADY_IN_QUEUE);
+        }
+
+        if (!room.playingNow && room.videoQueue.length === 0) {
+            const [first, ...rest] = fresh;
+            if (!first) {
+                throw new RoomError(ErrorCode.VIDEO_NOT_FOUND, 'No embeddable videos found in this list.');
+            }
+            room.playingNow = first;
+            room.isPlaying = true;
+            room.currentTime = 0;
+            resetTikTokPhotoIndex(room);
+            markCaptionTracksPending(room, first.id);
+            lastPlaybackBroadcastByRoom.delete(roomId);
+            room.videoQueue = rest;
+            return;
+        }
+
+        room.videoQueue = [...room.videoQueue, ...fresh];
+    });
+
+    broadcastRoomState(roomId, room);
+    return room;
 }
 
 export async function playVideoNowInRoom(roomId: string, video: YouTubeVideo): Promise<Room> {
