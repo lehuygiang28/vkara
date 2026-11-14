@@ -4,7 +4,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
     createMigratingPersistStorage,
+    normalizePersistedYouTubeVideo,
     PERSIST_STORE_KEYS,
+    readClientPersistItem,
     runLegacyLocalStorageKeyMigration,
 } from '@/lib/persisted-storage';
 
@@ -59,9 +61,13 @@ describe('normalizePersistedRoom', () => {
 
 describe('createMigratingPersistStorage', () => {
     const storage = createMapStorage();
+    const setItem = storage.setItem.bind(storage);
+    const removeItem = storage.removeItem.bind(storage);
 
     beforeEach(() => {
         storage.clear();
+        storage.setItem = setItem;
+        storage.removeItem = removeItem;
         vi.stubGlobal('localStorage', storage);
     });
 
@@ -161,6 +167,272 @@ describe('createMigratingPersistStorage', () => {
         runLegacyLocalStorageKeyMigration();
         expect(storage.getItem(PERSIST_STORE_KEYS.youtube)).toBe('{"state":{},"version":0}');
         expect(storage.getItem('youtubeStore')).toBeNull();
+    });
+
+    it('leaves a legacy key in place when the current key already has a value', () => {
+        storage.setItem(PERSIST_STORE_KEYS.youtube, '{"state":{"layoutMode":"player"},"version":2}');
+        storage.setItem('youtubeStore', '{"state":{},"version":0}');
+        runLegacyLocalStorageKeyMigration();
+        expect(storage.getItem(PERSIST_STORE_KEYS.youtube)).toBe(
+            '{"state":{"layoutMode":"player"},"version":2}',
+        );
+        expect(storage.getItem('youtubeStore')).toBe('{"state":{},"version":0}');
+    });
+
+    it('restores a missing primary key from the backup', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const good = JSON.stringify({ state: { query: 'hello' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, good);
+        storage.removeItem(PERSIST_STORE_KEYS.search);
+
+        const raw = persistStorage.getItem(PERSIST_STORE_KEYS.search);
+        expect(raw).toBe(good);
+        expect(storage.getItem(PERSIST_STORE_KEYS.search)).toBe(good);
+    });
+
+    it('returns null when the backup does not parse either', () => {
+        storage.setItem(`${PERSIST_STORE_KEYS.search}.bak`, '{also bad');
+        const persistStorage = createMigratingPersistStorage();
+        expect(persistStorage.getItem(PERSIST_STORE_KEYS.search)).toBeNull();
+        expect(storage.getItem(PERSIST_STORE_KEYS.search)).toBeNull();
+    });
+
+    it('keeps the first quarantined copy when the primary key breaks again', () => {
+        storage.setItem(`${PERSIST_STORE_KEYS.search}.bad`, 'first');
+        storage.setItem(PERSIST_STORE_KEYS.search, '{second');
+        const persistStorage = createMigratingPersistStorage();
+        expect(persistStorage.getItem(PERSIST_STORE_KEYS.search)).toBeNull();
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.search}.bad`)).toBe('first');
+    });
+
+    it('quarantines a json array and a json null without throwing', () => {
+        const persistStorage = createMigratingPersistStorage();
+        storage.setItem(PERSIST_STORE_KEYS.search, '[1,2]');
+        expect(persistStorage.getItem(PERSIST_STORE_KEYS.search)).toBeNull();
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.search}.bad`)).toBe('[1,2]');
+
+        storage.setItem(PERSIST_STORE_KEYS.appSettings, 'null');
+        expect(persistStorage.getItem(PERSIST_STORE_KEYS.appSettings)).toBeNull();
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.appSettings}.bad`)).toBe('null');
+    });
+
+    it('keeps the corrupt primary key when removing it throws', () => {
+        storage.setItem(PERSIST_STORE_KEYS.search, '{not json');
+        const removeItem = storage.removeItem.bind(storage);
+        storage.removeItem = (key: string) => {
+            if (key === PERSIST_STORE_KEYS.search) {
+                throw new Error('locked');
+            }
+            removeItem(key);
+        };
+
+        expect(createMigratingPersistStorage().getItem(PERSIST_STORE_KEYS.search)).toBeNull();
+        expect(storage.getItem(PERSIST_STORE_KEYS.search)).toBe('{not json');
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.search}.bad`)).toBe('{not json');
+    });
+
+    it('still returns the backup when copying it back onto the primary key throws', () => {
+        const good = JSON.stringify({ state: { query: 'kept' }, version: 1 });
+        storage.setItem(`${PERSIST_STORE_KEYS.search}.bak`, good);
+        const setItem = storage.setItem.bind(storage);
+        storage.setItem = (key: string, value: string) => {
+            if (key === PERSIST_STORE_KEYS.search) {
+                throw new Error('quota');
+            }
+            setItem(key, value);
+        };
+
+        const raw = createMigratingPersistStorage().getItem(PERSIST_STORE_KEYS.search);
+        expect(raw).toBe(good);
+        expect(storage.getItem(PERSIST_STORE_KEYS.search)).toBeNull();
+    });
+
+    it('does not copy a corrupt primary blob over the backup before a new write', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const previous = JSON.stringify({ state: { query: 'old' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, previous);
+        storage.setItem(PERSIST_STORE_KEYS.search, '{not json');
+        const next = JSON.stringify({ state: { query: 'new' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, next);
+
+        expect(storage.getItem(PERSIST_STORE_KEYS.search)).toBe(next);
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.search}.bak`)).toBe(next);
+    });
+
+    it('skips a second backup write when the backup already matches', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const good = JSON.stringify({ state: { query: 'same' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, good);
+        let backupWrites = 0;
+        const setItem = storage.setItem.bind(storage);
+        storage.setItem = (key: string, value: string) => {
+            if (key === `${PERSIST_STORE_KEYS.search}.bak`) {
+                backupWrites += 1;
+            }
+            setItem(key, value);
+        };
+
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, good);
+        persistStorage.getItem(PERSIST_STORE_KEYS.search);
+        expect(backupWrites).toBe(0);
+        expect(storage.getItem(PERSIST_STORE_KEYS.search)).toBe(good);
+    });
+
+    it('keeps the new primary value when the backup slot is full', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const setItem = storage.setItem.bind(storage);
+        storage.setItem = (key: string, value: string) => {
+            if (key.endsWith('.bak')) {
+                throw new Error('quota');
+            }
+            setItem(key, value);
+        };
+        const good = JSON.stringify({ state: { query: 'primary' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, good);
+        expect(storage.getItem(PERSIST_STORE_KEYS.search)).toBe(good);
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.search}.bak`)).toBeNull();
+    });
+
+    it('removes the primary key and its backup together', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const good = JSON.stringify({ state: { query: 'gone' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, good);
+        persistStorage.removeItem(PERSIST_STORE_KEYS.search);
+        expect(storage.getItem(PERSIST_STORE_KEYS.search)).toBeNull();
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.search}.bak`)).toBeNull();
+    });
+
+    it('does not throw when storage is missing', () => {
+        vi.stubGlobal('localStorage', undefined);
+        const persistStorage = createMigratingPersistStorage();
+        expect(readClientPersistItem(PERSIST_STORE_KEYS.search)).toBeNull();
+        expect(() => runLegacyLocalStorageKeyMigration()).not.toThrow();
+        expect(() =>
+            persistStorage.setItem(
+                PERSIST_STORE_KEYS.search,
+                JSON.stringify({ state: {}, version: 1 }),
+            ),
+        ).not.toThrow();
+        expect(() => persistStorage.removeItem(PERSIST_STORE_KEYS.search)).not.toThrow();
+    });
+
+    it('migrates a personalization blob and drops rows that are not videos', () => {
+        storage.setItem(
+            PERSIST_STORE_KEYS.personalization,
+            JSON.stringify({
+                state: {
+                    searchHistory: [{ query: 'son tung' }, { query: 1 }, null, 'x'],
+                    channelScores: ['nope'],
+                    recentVideos: [{ id: 'abc' }, { id: '' }, null, { title: 'missing' }],
+                },
+            }),
+        );
+
+        const raw = createMigratingPersistStorage().getItem(PERSIST_STORE_KEYS.personalization);
+        const parsed = JSON.parse(raw as string) as {
+            state: {
+                searchHistory: { query: string }[];
+                channelScores: Record<string, number>;
+                recentVideos: { id: string; title: string; isLive?: boolean }[];
+            };
+            version: number;
+        };
+
+        expect(parsed.version).toBe(1);
+        expect(parsed.state.searchHistory).toEqual([{ query: 'son tung' }]);
+        expect(parsed.state.channelScores).toEqual({});
+        expect(parsed.state.recentVideos.map((video) => video.id)).toEqual(['abc']);
+        expect(parsed.state.recentVideos[0]?.title).toBe('abc');
+    });
+
+    it('keeps valid personalization scores and ignores a non-object state', () => {
+        const persistStorage = createMigratingPersistStorage();
+        storage.setItem(
+            PERSIST_STORE_KEYS.personalization,
+            JSON.stringify({
+                state: {
+                    searchHistory: 'nope',
+                    channelScores: { 'UC-1': 4 },
+                    recentVideos: { id: 'abc' },
+                },
+                version: 3,
+            }),
+        );
+        const scores = JSON.parse(
+            persistStorage.getItem(PERSIST_STORE_KEYS.personalization) as string,
+        ).state;
+        expect(scores.channelScores).toEqual({ 'UC-1': 4 });
+        expect(scores.searchHistory).toEqual([]);
+        expect(scores.recentVideos).toEqual([]);
+
+        storage.setItem(
+            PERSIST_STORE_KEYS.personalization,
+            JSON.stringify({ state: null, version: 4 }),
+        );
+        expect(JSON.parse(persistStorage.getItem(PERSIST_STORE_KEYS.personalization) as string)).toMatchObject(
+            { state: null, version: 4 },
+        );
+    });
+
+    it('leaves a current non-youtube blob untouched when its version is already current', () => {
+        const good = JSON.stringify({ state: { query: 'stable' }, version: 1 });
+        storage.setItem(PERSIST_STORE_KEYS.search, good);
+        expect(createMigratingPersistStorage().getItem(PERSIST_STORE_KEYS.search)).toBe(good);
+    });
+});
+
+describe('normalizePersistedYouTubeVideo', () => {
+    it('returns null for an empty value or a video without an id', () => {
+        expect(normalizePersistedYouTubeVideo(null)).toBeNull();
+        expect(normalizePersistedYouTubeVideo('abc')).toBeNull();
+        expect(normalizePersistedYouTubeVideo({ id: '' })).toBeNull();
+        expect(normalizePersistedYouTubeVideo({ title: 'no id' })).toBeNull();
+    });
+
+    it('fills defaults and keeps live, source, and photo count when they are valid', () => {
+        const video = normalizePersistedYouTubeVideo({
+            id: 'abc',
+            isLive: false,
+            source: 'youtube',
+            tiktokImageCount: 3,
+            thumbnails: 'nope',
+        });
+
+        expect(video).toMatchObject({
+            id: 'abc',
+            title: 'abc',
+            duration: 0,
+            duration_formatted: '0:00',
+            type: 'video',
+            uploadedAt: '',
+            url: 'https://www.youtube.com/watch?v=abc',
+            views: 0,
+            thumbnails: [],
+            isLive: false,
+            source: 'youtube',
+            tiktokImageCount: 3,
+        });
+    });
+
+    it('drops a source and a photo count that are not usable', () => {
+        const video = normalizePersistedYouTubeVideo({
+            id: 'abc',
+            title: 'Title',
+            duration: 12,
+            duration_formatted: '0:12',
+            type: 'short',
+            uploadedAt: 'today',
+            url: 'https://youtu.be/abc',
+            views: 9,
+            thumbnails: [{ url: 'https://i.ytimg.com/a.jpg' }],
+            source: 'vimeo',
+            tiktokImageCount: 1.5,
+        });
+
+        expect(video?.source).toBeUndefined();
+        expect(video?.tiktokImageCount).toBeUndefined();
+        expect(video?.isLive).toBeUndefined();
+        expect(video?.title).toBe('Title');
     });
 });
 

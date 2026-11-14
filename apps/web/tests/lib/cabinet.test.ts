@@ -25,6 +25,20 @@ function video(id: string, title = id): YouTubeVideo {
 }
 
 describe('applyCabinetWrite', () => {
+    it('removes a saved song and ignores a remove for a song that is absent', () => {
+        const saved = [video('a'), video('b')];
+        expect(applyCabinetWrite(saved, video('a'), 'remove').map((item) => item.id)).toEqual(['b']);
+        expect(applyCabinetWrite(saved, video('c'), 'remove')).toBe(saved);
+    });
+
+    it('does not report an eviction when the cabinet still has room or the song was already saved', () => {
+        const saved = [video('a')];
+        const next = applyCabinetWrite(saved, video('b'), 'add');
+        expect(cabinetSaveEvictedOldest(saved, next, 'b')).toBe(false);
+        expect(cabinetSaveEvictedOldest(saved, saved, 'a')).toBe(false);
+        expect(cabinetSaveEvictedOldest(next, saved, 'missing')).toBe(false);
+    });
+
     it('adds once and leaves an existing song where it is', () => {
         const saved = [video('a'), video('b')];
         expect(applyCabinetWrite(saved, video('c'), 'add').map((item) => item.id)).toEqual([
@@ -105,5 +119,15 @@ describe('parseCabinetVideos', () => {
 
     it('returns an empty list for a non-array', () => {
         expect(parseCabinetVideos({ videos: [] })).toEqual([]);
+    });
+
+    it('stops at the cabinet limit', () => {
+        const raw = Array.from({ length: CABINET_VIDEO_LIMIT + 1 }, (_, index) => ({
+            id: `id-${index}`,
+            title: `Song ${index}`,
+        }));
+        const parsed = parseCabinetVideos(raw);
+        expect(parsed).toHaveLength(CABINET_VIDEO_LIMIT);
+        expect(parsed.at(-1)?.id).toBe(`id-${CABINET_VIDEO_LIMIT - 1}`);
     });
 });

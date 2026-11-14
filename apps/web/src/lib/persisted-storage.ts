@@ -203,13 +203,17 @@ function quarantineCorrupt(name: string, raw: string): void {
     }
 }
 
-function restoreBackup(name: string): string | null {
+function restoreBackup(name: string): { raw: string; envelope: PersistEnvelope } | null {
     const backup = localStorage.getItem(backupKey(name));
-    if (!backup || !parsePersistEnvelope(backup)) {
+    if (!backup) {
+        return null;
+    }
+    const envelope = parsePersistEnvelope(backup);
+    if (!envelope) {
         return null;
     }
     storageSet(name, backup);
-    return backup;
+    return { raw: backup, envelope };
 }
 
 function publishEnvelope(name: string, raw: string, envelope: PersistEnvelope): string {
@@ -234,27 +238,16 @@ export function readClientPersistItem(name: string): string | null {
     runLegacyLocalStorageKeyMigration();
 
     const raw = localStorage.getItem(name);
-    if (!raw) {
-        const restored = restoreBackup(name);
-        if (!restored) {
-            return null;
-        }
-        const envelope = parsePersistEnvelope(restored);
-        return envelope ? publishEnvelope(name, restored, envelope) : null;
-    }
-
-    const envelope = parsePersistEnvelope(raw);
-    if (!envelope) {
+    const envelope = raw ? parsePersistEnvelope(raw) : null;
+    if (raw && !envelope) {
         quarantineCorrupt(name, raw);
-        const restored = restoreBackup(name);
-        if (!restored) {
-            return null;
-        }
-        const backupEnvelope = parsePersistEnvelope(restored);
-        return backupEnvelope ? publishEnvelope(name, restored, backupEnvelope) : null;
+    }
+    if (envelope && raw) {
+        return publishEnvelope(name, raw, envelope);
     }
 
-    return publishEnvelope(name, raw, envelope);
+    const restored = restoreBackup(name);
+    return restored ? publishEnvelope(name, restored.raw, restored.envelope) : null;
 }
 
 function writeClientPersistItem(name: string, value: string): void {

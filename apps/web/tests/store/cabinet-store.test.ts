@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { YouTubeVideo } from '@vkara/youtube';
 
+import * as persistedStorage from '@/lib/persisted-storage';
 import { useCabinetStore } from '@/store/cabinetStore';
 
 function createMemoryStorage(): Storage {
@@ -121,5 +122,63 @@ describe('useCabinetStore', () => {
         expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['kept']);
         expect(useCabinetStore.getState().savedIds.has('kept')).toBe(true);
         expect(useCabinetStore.getState().savedIds.size).toBe(1);
+    });
+
+    it('saves from memory when the cabinet key is missing', () => {
+        useCabinetStore.setState({ videos: [video('a')], savedIds: new Set(['a']) });
+        storage.removeItem('vkara-cabinet');
+        storage.removeItem('vkara-cabinet.bak');
+
+        useCabinetStore.getState().toggle(video('b'));
+
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['b', 'a']);
+    });
+
+    it('treats an envelope without videos as an empty cabinet', () => {
+        storage.setItem('vkara-cabinet', JSON.stringify({ version: 1 }));
+        useCabinetStore.getState().toggle(video('a'));
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['a']);
+
+        storage.setItem('vkara-cabinet', JSON.stringify({ state: null, version: 1 }));
+        useCabinetStore.getState().toggle(video('b'));
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['b']);
+    });
+
+    it('retries a save when another tab changes the list before the write settles', () => {
+        useCabinetStore.getState().toggle(video('a'));
+        const originalGet = storage.getItem.bind(storage);
+        const originalSet = storage.setItem.bind(storage);
+        let readAfterWrite = false;
+        storage.setItem = (key: string, value: string) => {
+            originalSet(key, value);
+            if (key === 'vkara-cabinet') {
+                readAfterWrite = true;
+            }
+        };
+        storage.getItem = (key: string) => {
+            if (key === 'vkara-cabinet' && readAfterWrite) {
+                readAfterWrite = false;
+                return JSON.stringify({ state: { videos: [video('other')] }, version: 1 });
+            }
+            return originalGet(key);
+        };
+
+        useCabinetStore.getState().toggle(video('c'));
+
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['c', 'other']);
+    });
+
+    it('returns null from a thrown parse and still saves the song held in memory', () => {
+        useCabinetStore.setState({ videos: [video('a')], savedIds: new Set(['a']) });
+        storage.setItem(
+            'vkara-cabinet',
+            JSON.stringify({ state: { videos: [video('z')] }, version: 1 }),
+        );
+        vi.spyOn(persistedStorage, 'readClientPersistItem').mockReturnValue('{');
+
+        useCabinetStore.getState().toggle(video('b'));
+
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['b', 'a']);
+        vi.mocked(persistedStorage.readClientPersistItem).mockRestore();
     });
 });
