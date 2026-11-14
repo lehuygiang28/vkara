@@ -7,19 +7,27 @@ import { createMigratingPersistStorage } from '@/lib/persisted-storage';
 
 type CabinetState = {
     videos: YouTubeVideo[];
+    savedIds: ReadonlySet<string>;
     toggle: (video: YouTubeVideo) => void;
     clear: () => void;
 };
 
+function indexedCabinet(videos: YouTubeVideo[]): Pick<CabinetState, 'videos' | 'savedIds'> {
+    return {
+        videos,
+        savedIds: new Set(videos.map((video) => video.id)),
+    };
+}
+
 export const useCabinetStore = create(
     persist<CabinetState>(
         (set) => ({
-            videos: [],
+            ...indexedCabinet([]),
             toggle: (video) => {
-                set((state) => ({ videos: toggleCabinetVideo(state.videos, video) }));
+                set((state) => indexedCabinet(toggleCabinetVideo(state.videos, video)));
             },
             clear: () => {
-                set({ videos: [] });
+                set(indexedCabinet([]));
             },
         }),
         {
@@ -29,10 +37,12 @@ export const useCabinetStore = create(
             partialize: (state) => ({ videos: state.videos }) as CabinetState,
             merge: (persisted, current) => ({
                 ...current,
-                videos: parseCabinetVideos(
-                    persisted && typeof persisted === 'object' && 'videos' in persisted
-                        ? persisted.videos
-                        : undefined,
+                ...indexedCabinet(
+                    parseCabinetVideos(
+                        persisted && typeof persisted === 'object' && 'videos' in persisted
+                            ? persisted.videos
+                            : undefined,
+                    ),
                 ),
             }),
         },

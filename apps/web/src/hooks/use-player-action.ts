@@ -188,7 +188,7 @@ export const usePlayerAction = (): PlayerAction => {
 
             markActionCooldown(cooldownKey);
             registerPendingQueueAdd({
-                videoId: video.id,
+                videoIds: [video.id],
                 title: t('toast.addVideoHandler'),
                 description: truncateVideoTitle(video.title),
                 variant: 'success',
@@ -476,8 +476,10 @@ export const usePlayerAction = (): PlayerAction => {
             if (!(await ensureRoomReady())) return;
 
             const currentRoom = useYouTubeStore.getState().room;
-            const fresh = videos.find((video) => !isVideoInRoom(currentRoom, video.id));
-            if (!fresh) {
+            const freshIds = videos
+                .filter((video) => !isVideoInRoom(currentRoom, video.id))
+                .map((video) => video.id);
+            if (freshIds.length === 0) {
                 toast({
                     title: t('toast.alreadyInQueue'),
                     description: t('toast.alreadyInQueueDescription'),
@@ -487,7 +489,7 @@ export const usePlayerAction = (): PlayerAction => {
             }
 
             registerPendingQueueAdd({
-                videoId: fresh.id,
+                videoIds: freshIds,
                 title: t('toast.addVideosHandler'),
                 variant: 'success',
                 duration: ACTION_FEEDBACK_DURATION_MS,

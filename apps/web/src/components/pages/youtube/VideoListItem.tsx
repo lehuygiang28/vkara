@@ -45,7 +45,7 @@ export const VideoListItem = memo(function VideoListItem({
     onSelect,
 }: VideoListItemProps) {
     const t = useI18n();
-    const saved = useCabinetStore((state) => state.videos.some((item) => item.id === video.id));
+    const saved = useCabinetStore((state) => state.savedIds.has(video.id));
     const uploadedAtLabel = video.uploadedAt ? formatUploadedAt(video.uploadedAt, t) : '';
     const views = coerceViewCount(video.views);
     const isLive = isVideoLive({ video });

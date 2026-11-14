@@ -3,6 +3,9 @@ import type { LayoutModeSource, YouTubeStoreLayoutMode } from '@/store/youtubeSt
 /** Large screens → TV (player); phones → Mobile remote. */
 export const TV_MIN_WIDTH_PX = 1024;
 
+/** Tailwind `md`. Below this, `both` is the phone remote, not a side-by-side split. */
+export const LAYOUT_SPLIT_MIN_PX = 768;
+
 export function getSuggestedLayoutMode(width: number): YouTubeStoreLayoutMode {
     if (width >= TV_MIN_WIDTH_PX) {
         return 'player';

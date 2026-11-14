@@ -42,22 +42,26 @@ describe('useCabinetStore', () => {
     beforeEach(() => {
         storage.clear();
         vi.stubGlobal('localStorage', storage);
-        useCabinetStore.setState({ videos: [] });
+        useCabinetStore.setState({ videos: [], savedIds: new Set() });
     });
 
     it('saves a song and removes it on the second toggle', () => {
         useCabinetStore.getState().toggle(video('a'));
         useCabinetStore.getState().toggle(video('b'));
         expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['b', 'a']);
+        expect(useCabinetStore.getState().savedIds.has('a')).toBe(true);
+        expect(useCabinetStore.getState().savedIds.has('b')).toBe(true);
 
         useCabinetStore.getState().toggle(video('b'));
         expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['a']);
+        expect(useCabinetStore.getState().savedIds.has('b')).toBe(false);
     });
 
     it('clears the cabinet', () => {
         useCabinetStore.getState().toggle(video('a'));
         useCabinetStore.getState().clear();
         expect(useCabinetStore.getState().videos).toEqual([]);
+        expect(useCabinetStore.getState().savedIds.size).toBe(0);
     });
 
     it('drops a corrupt persisted entry on hydrate', async () => {
@@ -74,5 +78,7 @@ describe('useCabinetStore', () => {
         await useCabinetStore.persist.rehydrate();
 
         expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['kept']);
+        expect(useCabinetStore.getState().savedIds.has('kept')).toBe(true);
+        expect(useCabinetStore.getState().savedIds.size).toBe(1);
     });
 });

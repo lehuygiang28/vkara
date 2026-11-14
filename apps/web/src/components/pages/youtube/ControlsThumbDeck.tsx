@@ -35,7 +35,7 @@ export function ControlsThumbDeck({ className, tickEnabled = true }: ControlsThu
     const { room } = useYouTubeStore();
     const playingId = room?.playingNow?.id;
     const saved = useCabinetStore((state) =>
-        playingId ? state.videos.some((item) => item.id === playingId) : false,
+        playingId ? state.savedIds.has(playingId) : false,
     );
     const toggleSaved = useCabinetStore((state) => state.toggle);
     const displayTime = usePlaybackDisplayTime({ enabled: tickEnabled });
