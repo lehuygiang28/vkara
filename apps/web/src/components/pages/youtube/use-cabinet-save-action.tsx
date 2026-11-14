@@ -14,10 +14,11 @@ import type { VideoListActionHelpers } from './VideoList';
 export function useCabinetSaveAction() {
     const t = useScopedI18n('videoCabinet');
     const toggle = useCabinetStore((state) => state.toggle);
+    const savedIds = useCabinetStore((state) => state.savedIds);
 
     return useCallback(
         (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers): VideoListAction => {
-            const saved = useCabinetStore.getState().savedIds.has(video.id);
+            const saved = savedIds.has(video.id);
             return {
                 id: 'cabinet',
                 label: saved ? t('remove') : t('save'),
@@ -32,6 +33,6 @@ export function useCabinetSaveAction() {
                 },
             };
         },
-        [t, toggle],
+        [savedIds, t, toggle],
     );
 }

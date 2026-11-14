@@ -39,9 +39,13 @@ function video(id: string): YouTubeVideo {
 
 describe('useCabinetStore', () => {
     const storage = createMemoryStorage();
+    const getItem = storage.getItem.bind(storage);
+    const setItem = storage.setItem.bind(storage);
 
     beforeEach(() => {
         storage.clear();
+        storage.getItem = getItem;
+        storage.setItem = setItem;
         vi.stubGlobal('localStorage', storage);
         useCabinetStore.setState({ videos: [], savedIds: new Set() });
     });
@@ -140,6 +144,7 @@ describe('useCabinetStore', () => {
         expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['a']);
 
         storage.setItem('vkara-cabinet', JSON.stringify({ state: null, version: 1 }));
+        storage.removeItem('vkara-cabinet.bak');
         useCabinetStore.getState().toggle(video('b'));
         expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['b']);
     });

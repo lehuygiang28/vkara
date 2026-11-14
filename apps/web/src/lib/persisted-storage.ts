@@ -176,6 +176,14 @@ function quarantineKey(name: string): string {
     return `${name}.bad`;
 }
 
+function storageGet(key: string): string | null {
+    try {
+        return localStorage.getItem(key);
+    } catch {
+        return null;
+    }
+}
+
 function storageSet(key: string, value: string): boolean {
     try {
         localStorage.setItem(key, value);
@@ -185,15 +193,27 @@ function storageSet(key: string, value: string): boolean {
     }
 }
 
+function hasPersistState(envelope: PersistEnvelope | null): envelope is PersistEnvelope {
+    return Boolean(
+        envelope &&
+            typeof envelope.state === 'object' &&
+            envelope.state !== null &&
+            !Array.isArray(envelope.state),
+    );
+}
+
 function rememberGood(name: string, raw: string): void {
-    if (localStorage.getItem(backupKey(name)) === raw) {
+    if (!hasPersistState(parsePersistEnvelope(raw))) {
+        return;
+    }
+    if (storageGet(backupKey(name)) === raw) {
         return;
     }
     storageSet(backupKey(name), raw);
 }
 
 function quarantineCorrupt(name: string, raw: string): void {
-    if (!localStorage.getItem(quarantineKey(name))) {
+    if (!storageGet(quarantineKey(name))) {
         storageSet(quarantineKey(name), raw);
     }
     try {
@@ -204,12 +224,12 @@ function quarantineCorrupt(name: string, raw: string): void {
 }
 
 function restoreBackup(name: string): { raw: string; envelope: PersistEnvelope } | null {
-    const backup = localStorage.getItem(backupKey(name));
+    const backup = storageGet(backupKey(name));
     if (!backup) {
         return null;
     }
     const envelope = parsePersistEnvelope(backup);
-    if (!envelope) {
+    if (!hasPersistState(envelope)) {
         return null;
     }
     storageSet(name, backup);
@@ -230,53 +250,78 @@ function publishEnvelope(name: string, raw: string, envelope: PersistEnvelope): 
  * Read one persisted store. A blob that does not parse is kept aside and, when a
  * previous good write exists, copied back onto the primary key.
  */
-export function readClientPersistItem(name: string): string | null {
-    if (typeof localStorage === 'undefined') {
-        return null;
-    }
-
+function readStoredPersistItem(name: string): string | null {
     runLegacyLocalStorageKeyMigration();
 
-    const raw = localStorage.getItem(name);
+    const raw = storageGet(name);
     const envelope = raw ? parsePersistEnvelope(raw) : null;
     if (raw && !envelope) {
         quarantineCorrupt(name, raw);
     }
-    if (envelope && raw) {
+    if (raw && hasPersistState(envelope)) {
         return publishEnvelope(name, raw, envelope);
     }
 
     const restored = restoreBackup(name);
-    return restored ? publishEnvelope(name, restored.raw, restored.envelope) : null;
+    if (restored) {
+        return publishEnvelope(name, restored.raw, restored.envelope);
+    }
+    if (envelope && raw) {
+        return publishEnvelope(name, raw, envelope);
+    }
+    return null;
+}
+
+export function readClientPersistItem(name: string): string | null {
+    try {
+        if (typeof localStorage === 'undefined') {
+            return null;
+        }
+        return readStoredPersistItem(name);
+    } catch {
+        return null;
+    }
 }
 
 function writeClientPersistItem(name: string, value: string): void {
-    if (typeof localStorage === 'undefined' || !parsePersistEnvelope(value)) {
-        return;
-    }
+    try {
+        if (typeof localStorage === 'undefined' || !parsePersistEnvelope(value)) {
+            return;
+        }
 
-    const current = localStorage.getItem(name);
-    if (current && current !== value && parsePersistEnvelope(current)) {
-        rememberGood(name, current);
-    }
+        const current = storageGet(name);
+        if (current && current !== value && parsePersistEnvelope(current)) {
+            rememberGood(name, current);
+        }
 
-    if (!storageSet(name, value)) {
-        return;
+        if (!storageSet(name, value)) {
+            return;
+        }
+        rememberGood(name, value);
+    } catch {
+        // A blocked storage write leaves the previous primary key in place.
     }
-    rememberGood(name, value);
 }
 
 /** Copy legacy localStorage keys into the current names once. */
 export function runLegacyLocalStorageKeyMigration(): void {
-    if (typeof localStorage === 'undefined') {
-        return;
-    }
-
-    for (const [legacyKey, targetKey] of Object.entries(LEGACY_KEY_ALIASES)) {
-        if (!localStorage.getItem(targetKey) && localStorage.getItem(legacyKey)) {
-            localStorage.setItem(targetKey, localStorage.getItem(legacyKey)!);
-            localStorage.removeItem(legacyKey);
+    try {
+        if (typeof localStorage === 'undefined') {
+            return;
         }
+
+        for (const [legacyKey, targetKey] of Object.entries(LEGACY_KEY_ALIASES)) {
+            const legacy = storageGet(legacyKey);
+            if (!storageGet(targetKey) && legacy && storageSet(targetKey, legacy)) {
+                try {
+                    localStorage.removeItem(legacyKey);
+                } catch {
+                    // The copy is already on the current key.
+                }
+            }
+        }
+    } catch {
+        // Storage is blocked. The next successful read can copy the legacy key.
     }
 }
 

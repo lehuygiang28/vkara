@@ -89,7 +89,7 @@ export function readPlaybackPositionSeconds({
         }
         return getTikTokSeekBaseSeconds(roomIsPlaying);
     }
-    if (youtubePlayer) {
+    if (isYoutubePlayerUsable(youtubePlayer)) {
         return Math.max(0, Math.floor(youtubePlayer.getCurrentTime()));
     }
     return roomCurrentTime;

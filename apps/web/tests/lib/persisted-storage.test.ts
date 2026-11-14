@@ -365,6 +365,7 @@ describe('createMigratingPersistStorage', () => {
         expect(scores.searchHistory).toEqual([]);
         expect(scores.recentVideos).toEqual([]);
 
+        storage.removeItem(`${PERSIST_STORE_KEYS.personalization}.bak`);
         storage.setItem(
             PERSIST_STORE_KEYS.personalization,
             JSON.stringify({ state: null, version: 4 }),
@@ -372,6 +373,52 @@ describe('createMigratingPersistStorage', () => {
         expect(JSON.parse(persistStorage.getItem(PERSIST_STORE_KEYS.personalization) as string)).toMatchObject(
             { state: null, version: 4 },
         );
+    });
+
+    it('restores the backup when the primary envelope has no state object', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const good = JSON.stringify({ state: { query: 'kept' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, good);
+        storage.setItem(PERSIST_STORE_KEYS.search, '{}');
+
+        expect(persistStorage.getItem(PERSIST_STORE_KEYS.search)).toBe(good);
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.search}.bak`)).toBe(good);
+    });
+
+    it('does not replace the backup with an envelope that has no state', () => {
+        const persistStorage = createMigratingPersistStorage();
+        const good = JSON.stringify({ state: { query: 'kept' }, version: 1 });
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, good);
+        persistStorage.setItem(PERSIST_STORE_KEYS.search, JSON.stringify({ version: 1 }));
+
+        expect(storage.getItem(`${PERSIST_STORE_KEYS.search}.bak`)).toBe(good);
+        expect(persistStorage.getItem(PERSIST_STORE_KEYS.search)).toBe(good);
+    });
+
+    it('returns null when the storage getter throws', () => {
+        const descriptor = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+        Object.defineProperty(globalThis, 'localStorage', {
+            configurable: true,
+            get() {
+                throw new DOMException('The operation is insecure.', 'SecurityError');
+            },
+        });
+        try {
+            const persistStorage = createMigratingPersistStorage();
+            expect(readClientPersistItem(PERSIST_STORE_KEYS.search)).toBeNull();
+            expect(() => runLegacyLocalStorageKeyMigration()).not.toThrow();
+            expect(() =>
+                persistStorage.setItem(
+                    PERSIST_STORE_KEYS.search,
+                    JSON.stringify({ state: { query: 'x' }, version: 1 }),
+                ),
+            ).not.toThrow();
+            expect(() => persistStorage.removeItem(PERSIST_STORE_KEYS.search)).not.toThrow();
+        } finally {
+            if (descriptor) {
+                Object.defineProperty(globalThis, 'localStorage', descriptor);
+            }
+        }
     });
 
     it('leaves a current non-youtube blob untouched when its version is already current', () => {

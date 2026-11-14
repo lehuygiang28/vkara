@@ -36,10 +36,14 @@ function createMemoryStorage(): Storage {
 
 describe('cabinet storage events', () => {
     const storage = createMemoryStorage();
+    const getItem = storage.getItem.bind(storage);
+    const setItem = storage.setItem.bind(storage);
     const listeners = new Map<string, (event: StorageEvent) => void>();
 
     beforeEach(() => {
         storage.clear();
+        storage.getItem = getItem;
+        storage.setItem = setItem;
         listeners.clear();
         vi.resetModules();
         vi.stubGlobal('localStorage', storage);
@@ -90,10 +94,37 @@ describe('cabinet storage events', () => {
     it('clears the cabinet when the other tab removes the key', async () => {
         const useCabinetStore = await loadStore();
         useCabinetStore.setState({ videos: [video('a')], savedIds: new Set(['a']) });
+        storage.removeItem('vkara-cabinet');
+        storage.removeItem('vkara-cabinet.bak');
 
         emit('vkara-cabinet', null);
 
         expect(useCabinetStore.getState().videos).toEqual([]);
+    });
+
+    it('leaves the open cabinet in memory when reading the primary key throws', async () => {
+        const useCabinetStore = await loadStore();
+        useCabinetStore.setState({ videos: [video('a')], savedIds: new Set(['a']) });
+        const getItem = storage.getItem.bind(storage);
+        storage.getItem = (key: string) => {
+            if (key === 'vkara-cabinet') {
+                throw new DOMException('The operation is insecure.', 'SecurityError');
+            }
+            return getItem(key);
+        };
+
+        emit('vkara-cabinet', null);
+
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['a']);
+    });
+
+    it('keeps the restored cabinet when a null event arrives after the key is written back', async () => {
+        const useCabinetStore = await loadStore();
+        useCabinetStore.setState({ videos: [video('a')], savedIds: new Set(['a']) });
+
+        emit('vkara-cabinet', null);
+
+        expect(useCabinetStore.getState().videos.map((item) => item.id)).toEqual(['a']);
     });
 
     it('ignores storage events for other keys', async () => {

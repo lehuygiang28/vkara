@@ -103,7 +103,13 @@ if (typeof window !== 'undefined') {
         if (event.key !== CABINET_STORAGE_KEY) {
             return;
         }
-        const videos = event.newValue ? readPersistedCabinet() ?? [] : [];
+        let primary: string | null = null;
+        try {
+            primary = localStorage.getItem(CABINET_STORAGE_KEY);
+        } catch {
+            return;
+        }
+        const videos = event.newValue || primary ? readPersistedCabinet() ?? [] : [];
         const current = useCabinetStore.getState().videos;
         if (sameCabinetOrder(current, videos)) {
             return;
