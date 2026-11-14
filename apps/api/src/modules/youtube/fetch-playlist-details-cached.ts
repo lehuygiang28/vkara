@@ -12,6 +12,7 @@ import {
     type PlaylistDetailsCacheScope,
 } from './playlist-details-cache';
 import { filterVideosForListPrefilter } from './resolve-embed-playability';
+import { coercePlaylistFetchInput } from './resolve-watch-videos-url';
 
 export type PlaylistDetailsResolveMode = 'cached' | 'refresh';
 
@@ -68,13 +69,14 @@ export async function resolvePlaylistDetails(
         mode?: PlaylistDetailsResolveMode;
     },
 ): Promise<PlaylistDetailsResponse> {
-    const parsed = parseYoutubePlaylistInput(playlistUrlOrId);
+    const fetchInput = await coercePlaylistFetchInput(playlistUrlOrId);
+    const parsed = parseYoutubePlaylistInput(fetchInput);
     const scope = resolveCacheScope(options);
     const mode = options?.mode ?? 'cached';
     const cacheKey = buildPlaylistDetailsCacheKey(parsed.listId, scope);
 
     if (mode === 'refresh') {
-        const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, {
+        const details = await fetchYoutubePlaylistDetails(fetchInput, {
             ...options,
             redisClient,
         });
@@ -93,7 +95,7 @@ export async function resolvePlaylistDetails(
             return servePlaylistDetails(redisClient, cachedAgain);
         }
 
-        const details = await fetchYoutubePlaylistDetails(playlistUrlOrId, {
+        const details = await fetchYoutubePlaylistDetails(fetchInput, {
             ...options,
             redisClient,
         });

@@ -45,6 +45,7 @@ export type PlayerAction = {
     handleClearQueue: () => void;
     handleClearHistory: () => void;
     handleAddVideoAndMoveToTop: (video: YouTubeVideo) => void;
+    handleAddVideos: (videos: YouTubeVideo[]) => void;
     handleImportPlaylist: (playlistUrlOrId: string) => void;
 };
 
@@ -469,6 +470,33 @@ export const usePlayerAction = (): PlayerAction => {
         [ensureRoomReady, ensureConnectedAndSend, t, isActionCoolingDown, markActionCooldown],
     );
 
+    const handleAddVideos = useCallback(
+        async (videos: YouTubeVideo[]) => {
+            if (videos.length === 0) return;
+            if (!(await ensureRoomReady())) return;
+
+            const currentRoom = useYouTubeStore.getState().room;
+            const fresh = videos.find((video) => !isVideoInRoom(currentRoom, video.id));
+            if (!fresh) {
+                toast({
+                    title: t('toast.alreadyInQueue'),
+                    description: t('toast.alreadyInQueueDescription'),
+                    variant: 'warning',
+                });
+                return;
+            }
+
+            registerPendingQueueAdd({
+                videoId: fresh.id,
+                title: t('toast.addVideosHandler'),
+                variant: 'success',
+                duration: ACTION_FEEDBACK_DURATION_MS,
+            });
+            ensureConnectedAndSend({ type: 'addVideos', videos });
+        },
+        [ensureRoomReady, ensureConnectedAndSend, t],
+    );
+
     const handleImportPlaylist = useCallback(
         async (playlistUrlOrId: string) => {
             if (!(await ensureRoomReady())) return;
@@ -499,6 +527,7 @@ export const usePlayerAction = (): PlayerAction => {
         handleClearQueue,
         handleClearHistory,
         handleAddVideoAndMoveToTop,
+        handleAddVideos,
         handleImportPlaylist,
     };
 };

@@ -26,6 +26,16 @@ describe('parseYoutubePlaylistInput', () => {
         );
     });
 
+    it('accepts a temporary TL list URL as a standard playlist', () => {
+        const parsed = parseYoutubePlaylistInput(
+            'https://www.youtube.com/watch?v=Cfa2FTJG7CQ&list=TLGGph6XLhEqeG8xNDExMjAyNg',
+        );
+
+        expect(parsed.isMix).toBe(false);
+        expect(parsed.listId).toBe('TLGGph6XLhEqeG8xNDExMjAyNg');
+        expect(parsed.fetchUrl).toContain('/playlist?list=TLGGph6XLhEqeG8xNDExMjAyNg');
+    });
+
     it('uses playlist URL for standard PL lists', () => {
         const parsed = parseYoutubePlaylistInput('PLFgquLnL59alCl_2TQvOiD5Vgm1hCaGSI');
 

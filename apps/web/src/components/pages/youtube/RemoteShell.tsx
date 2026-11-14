@@ -27,6 +27,10 @@ const VideoHistory = dynamic(() => import('./VideoHistory').then((mod) => mod.Vi
     loading: () => <RemoteShellSkeleton className="min-h-0 flex-1" />,
 });
 
+const VideoCabinet = dynamic(() => import('./VideoCabinet').then((mod) => mod.VideoCabinet), {
+    loading: () => <RemoteShellSkeleton className="min-h-0 flex-1" />,
+});
+
 const PlayerControlsTabs = dynamic(
     () => import('./PlayerControlsTabs').then((mod) => mod.PlayerControlsTabs),
     { loading: () => <RemoteShellSkeleton className="min-h-0 flex-1" /> },
@@ -61,7 +65,7 @@ export function RemoteShell() {
         }
     }, [currentTab, setCurrentTab]);
 
-    if (showJoinLobby) {
+    if (showJoinLobby && currentTab !== 'cabinet') {
         return (
             <TooltipProvider delayDuration={400}>
                 <div className="flex h-full min-h-0 flex-col">
@@ -84,6 +88,7 @@ export function RemoteShell() {
                             {currentTab === 'search' && <VideoSearch />}
                             {currentTab === 'queue' && <VideoQueue />}
                             {currentTab === 'history' && <VideoHistory />}
+                            {currentTab === 'cabinet' && <VideoCabinet />}
                             <RemoteTabKeepAlive
                                 active={currentTab === 'controls'}
                                 keepMounted={hasPlaying || currentTab === 'controls'}

@@ -37,6 +37,7 @@ export default {
     'toast.clearHistoryHandler': 'Watch history cleared',
     'toast.addVideoAndMoveToTopHandler': 'Added next, plays after the current song',
     'toast.importPlaylistHandler': 'Playlist imported to queue',
+    'toast.addVideosHandler': 'Saved songs added to the queue',
     'toast.roomNotFound': 'Room not found',
     'toast.roomNotFoundDescription': 'The room you are trying to join does not exist',
     'toast.incorrectPassword': 'Incorrect password',
@@ -73,6 +74,7 @@ export default {
     'youtubePage.volumeDown': 'Volume Down',
     'youtubePage.search': 'Search',
     'youtubePage.history': 'History',
+    'youtubePage.cabinet': 'Saved songs',
     'youtubePage.list': 'List',
     'youtubePage.settings': 'Settings',
     'youtubePage.searchPlaceholder': 'Search and select a video to play',
@@ -251,6 +253,25 @@ export default {
     'videoHistory.clearHistory': 'Clear All History',
     'videoHistory.clearHistoryConfirm': 'Are you sure you want to clear the history?',
 
+    'videoCabinet.save': 'Save to this phone',
+    'videoCabinet.saveShort': 'Save',
+    'videoCabinet.saved': 'Saved on this phone',
+    'videoCabinet.remove': 'Remove from this phone',
+    'videoCabinet.removeShort': 'Remove',
+    'videoCabinet.addAll': 'Add all saved songs to the queue',
+    'videoCabinet.clear': 'Clear saved songs',
+    'videoCabinet.clearConfirm': 'Remove every saved song from this phone?',
+    'videoCabinet.empty': 'No saved songs',
+    'videoCabinet.emptyHint':
+        'Save a song from search, the queue, or history. This list stays on this phone.',
+    'videoCabinet.searchCta': 'Search',
+    'videoCabinet.playNow': 'Play now on TV',
+    'videoCabinet.playNowShort': 'Play',
+    'videoCabinet.addToQueue': 'Add to end of queue',
+    'videoCabinet.addToQueueShort': 'Add',
+    'videoCabinet.playNext': 'Add next, plays after the current song',
+    'videoCabinet.playNextShort': 'Play next',
+
     'videoQueue.noVideos': 'Queue is empty',
     'videoQueue.noVideosHint':
         'Search for a song, then choose Add last or Play next. You can also import a YouTube playlist from the menu above.',
@@ -264,7 +285,7 @@ export default {
     'videoQueue.clearQueueConfirm': 'Are you sure you want to clear the queue?',
     'videoQueue.importPlaylist': 'Import playlist',
     'videoQueue.importPlaylistDescription':
-        'Import a playlist from YouTube to the queue by providing the ID or URL',
+        'Import a YouTube playlist by ID or URL. A watch_videos link of video ids works too.',
     'videoQueue.importPlaylistPlaceholder': 'Playlist ID/URL',
 
     'videoSearch.searchPlaceholder': 'Search YouTube videos...',
@@ -389,6 +410,7 @@ export default {
     'joinLobby.passwordPlaceholder': 'Enter room password',
     'joinLobby.joinButton': 'Join room',
     'joinLobby.or': 'or',
+    'joinLobby.openCabinet': 'View saved songs',
     'joinLobby.joinRequiredTitle': 'Join a room first',
     'joinLobby.joinRequiredDescription':
         'Enter a room code or scan the QR code before adding songs.',

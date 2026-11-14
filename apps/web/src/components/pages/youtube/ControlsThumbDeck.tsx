@@ -1,12 +1,16 @@
 'use client';
 
+import { Star } from 'lucide-react';
+
 import { usePlaybackDisplayTime } from '@/hooks/use-playback-display-time';
 import { usePlayerAction } from '@/hooks/use-player-action';
+import { useCabinetStore } from '@/store/cabinetStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { cn } from '@/lib/utils';
 import { isTikTokPhotoPost, isVideoLive } from '@vkara/tiktok';
 import { useScopedI18n } from '@/locales/client';
 
+import { Button } from '@/components/ui/button';
 import { PlaybackScrubber } from '@/components/pages/youtube/PlaybackScrubber';
 import { PlayerControls } from '@/components/pages/youtube/PlayerControls';
 import {
@@ -27,7 +31,13 @@ type ControlsThumbDeckProps = {
 
 export function ControlsThumbDeck({ className, tickEnabled = true }: ControlsThumbDeckProps) {
     const t = useScopedI18n('youtubePage');
+    const tCabinet = useScopedI18n('videoCabinet');
     const { room } = useYouTubeStore();
+    const playingId = room?.playingNow?.id;
+    const saved = useCabinetStore((state) =>
+        playingId ? state.videos.some((item) => item.id === playingId) : false,
+    );
+    const toggleSaved = useCabinetStore((state) => state.toggle);
     const displayTime = usePlaybackDisplayTime({ enabled: tickEnabled });
     const { handleSeekToSeconds, handleTikTokPhotoNavigate } = usePlayerAction();
 
@@ -51,10 +61,29 @@ export function ControlsThumbDeck({ className, tickEnabled = true }: ControlsThu
             aria-label="Playback controls"
         >
             <div className="mx-auto flex w-full max-w-md flex-col gap-3 short-viewport:gap-2.5 min-[400px]:gap-4">
-                <div className="space-y-0.5 px-0.5 text-center">
-                    <h2 className="line-clamp-2 break-words text-base font-semibold leading-snug">
-                        {playing.title}
-                    </h2>
+                <div className="space-y-0.5 px-0.5">
+                    <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-1">
+                        <span aria-hidden />
+                        <h2 className="line-clamp-2 break-words text-center text-base font-semibold leading-snug">
+                            {playing.title}
+                        </h2>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-11 w-11 justify-self-end rounded-full text-muted-foreground hover:text-foreground"
+                            aria-pressed={saved}
+                            aria-label={saved ? tCabinet('remove') : tCabinet('save')}
+                            onClick={() => toggleSaved(playing)}
+                        >
+                            <Star
+                                className={cn(
+                                    'h-5 w-5',
+                                    saved && 'fill-amber-400 text-amber-500',
+                                )}
+                            />
+                        </Button>
+                    </div>
                     <VideoChannels
                         video={playing}
                         tone="emphasis"

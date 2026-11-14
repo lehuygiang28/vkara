@@ -21,7 +21,7 @@ export const PERSIST_STORE_KEYS = {
     rejoinSecrets: 'vkara-room-rejoin-secrets',
 } as const;
 
-function normalizePersistedYouTubeVideo(video: unknown): YouTubeVideo | null {
+export function normalizePersistedYouTubeVideo(video: unknown): YouTubeVideo | null {
     if (!video || typeof video !== 'object') {
         return null;
     }
@@ -51,6 +51,11 @@ function normalizePersistedYouTubeVideo(video: unknown): YouTubeVideo | null {
         ...(candidate.isLive === undefined ? {} : { isLive: candidate.isLive }),
         ...(candidate.source === 'tiktok' || candidate.source === 'youtube'
             ? { source: candidate.source }
+            : {}),
+        ...(typeof candidate.tiktokImageCount === 'number' &&
+        Number.isInteger(candidate.tiktokImageCount) &&
+        candidate.tiktokImageCount > 0
+            ? { tiktokImageCount: candidate.tiktokImageCount }
             : {}),
     };
 }

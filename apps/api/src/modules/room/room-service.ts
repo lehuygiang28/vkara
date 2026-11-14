@@ -21,7 +21,12 @@ import { applyClaimHost, canJoinWhenLocked } from '@/modules/room/participant-po
 import { assignHostOnJoin } from '@/modules/room/assign-host';
 import { upsertParticipant } from '@/modules/room/upsert-participant';
 import { publishToRoom } from '@/modules/room/room-broadcast';
-import { addVideoToRoom, nextVideoInRoom, playVideoNowInRoom } from '@/modules/room/room-commands';
+import {
+    addVideoToRoom,
+    addVideosToRoom,
+    nextVideoInRoom,
+    playVideoNowInRoom,
+} from '@/modules/room/room-commands';
 import {
     lastPlaybackBroadcastByRoom,
     resetTikTokPhotoIndex,
@@ -917,6 +922,11 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         await addVideoToRoom(roomId, video);
     }
 
+    async function addVideos(ws: ElysiaWS, videos: YouTubeVideo[]): Promise<void> {
+        const roomId = await validateClientInRoom(ws);
+        await addVideosToRoom(roomId, videos);
+    }
+
     async function restartPlayingNow(ws: ElysiaWS): Promise<void> {
         const roomId = await validateClientInRoom(ws);
 
@@ -1443,6 +1453,9 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Missing video data');
                 }
                 await addVideo(ws, message.video);
+                break;
+            case 'addVideos':
+                await addVideos(ws, message.videos);
                 break;
             case 'playNow':
                 if (!message.video) {
