@@ -13,17 +13,31 @@
     var originalRemoveChild = Node.prototype.removeChild;
     var originalInsertBefore = Node.prototype.insertBefore;
 
-    Node.prototype.removeChild = function removeChild(child) {
-        if (!child || child.parentNode !== this) {
-            return child;
+    /* The node Chrome moved may sit under <font> inside this parent.
+       Act on that ancestor. A node in some other parent is left alone. */
+    function ancestorOwnedBy(parent, node) {
+        var current = node;
+        var hops = 0;
+        while (current && current.parentNode !== parent && hops < 32) {
+            current = current.parentNode;
+            hops += 1;
         }
-        return originalRemoveChild.call(this, child);
+        if (current && current.parentNode === parent) return current;
+        return null;
+    }
+
+    Node.prototype.removeChild = function removeChild(child) {
+        if (!child) return child;
+        if (child.parentNode === this) return originalRemoveChild.call(this, child);
+        var owned = ancestorOwnedBy(this, child);
+        if (!owned) return child;
+        return originalRemoveChild.call(this, owned);
     };
 
     Node.prototype.insertBefore = function insertBefore(node, child) {
-        if (child && child.parentNode !== this) {
-            return node;
-        }
-        return originalInsertBefore.call(this, node, child);
+        if (!child || child.parentNode === this) return originalInsertBefore.call(this, node, child);
+        var owned = ancestorOwnedBy(this, child);
+        if (!owned) return node;
+        return originalInsertBefore.call(this, node, owned);
     };
 })();

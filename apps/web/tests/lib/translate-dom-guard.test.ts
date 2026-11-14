@@ -115,9 +115,40 @@ describe('translate DOM guard', () => {
         parent.appendChild(text);
         wrapLikeTranslate(parent, text);
 
-        expect(text.parentNode?.nodeName).toBe('FONT');
+        const font = wrapLikeTranslate(parent, text);
+
+        expect(text.parentNode).toBe(font);
         expect(() => parent.removeChild(text)).not.toThrow();
-        expect(text.parentNode?.nodeName).toBe('FONT');
+        expect(font.parentNode).toBeNull();
+        expect(parent.childNodes).not.toContain(font);
+    });
+
+    it('removeChild follows a nested font wrap back to this parent', () => {
+        const NodeCtor = installTranslatedDom();
+        runGuard();
+
+        const parent = new NodeCtor('DIV');
+        const text = new NodeCtor('#text');
+        parent.appendChild(text);
+        const inner = wrapLikeTranslate(parent, text);
+        const outer = wrapLikeTranslate(parent, inner);
+
+        expect(() => parent.removeChild(text)).not.toThrow();
+        expect(outer.parentNode).toBeNull();
+        expect(parent.childNodes).not.toContain(outer);
+    });
+
+    it('removeChild of a node outside this parent does not throw or detach it', () => {
+        const NodeCtor = installTranslatedDom();
+        runGuard();
+
+        const parent = new NodeCtor('DIV');
+        const other = new NodeCtor('DIV');
+        const stray = new NodeCtor('#text');
+        other.appendChild(stray);
+
+        expect(() => parent.removeChild(stray)).not.toThrow();
+        expect(stray.parentNode).toBe(other);
     });
 
     it('removeChild still detaches a node that is actually a child', () => {
@@ -141,11 +172,27 @@ describe('translate DOM guard', () => {
         const anchor = new NodeCtor('#text');
         const incoming = new NodeCtor('#text');
         parent.appendChild(anchor);
-        wrapLikeTranslate(parent, anchor);
+        const font = wrapLikeTranslate(parent, anchor);
+
+        expect(() => parent.insertBefore(incoming, anchor)).not.toThrow();
+        expect(incoming.parentNode).toBe(parent);
+        expect(parent.childNodes).toEqual([incoming, font]);
+        expect(anchor.parentNode).toBe(font);
+    });
+
+    it('insertBefore a reference node outside this parent does not insert', () => {
+        const NodeCtor = installTranslatedDom();
+        runGuard();
+
+        const parent = new NodeCtor('DIV');
+        const other = new NodeCtor('DIV');
+        const anchor = new NodeCtor('#text');
+        const incoming = new NodeCtor('SPAN');
+        other.appendChild(anchor);
 
         expect(() => parent.insertBefore(incoming, anchor)).not.toThrow();
         expect(incoming.parentNode).toBeNull();
-        expect(anchor.parentNode?.nodeName).toBe('FONT');
+        expect(parent.childNodes).toEqual([]);
     });
 
     it('insertBefore still inserts before a real child', () => {
