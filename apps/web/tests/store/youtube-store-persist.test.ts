@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { resetPlaybackSyncForTests } from '@/lib/youtube-playback-sync';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
 function createMapStorage(): Storage {
@@ -133,5 +134,38 @@ describe('youtubeStore persist partialize', () => {
         ).persist;
         const partial = persistApi.getOptions().partialize(useYouTubeStore.getState());
         expect(partial.layoutModeSource).toBe('auto');
+    });
+
+    it('applies a remote time when the stored player iframe is gone', () => {
+        resetPlaybackSyncForTests();
+        const room = useYouTubeStore.getState().room;
+        useYouTubeStore.setState({
+            player: {
+                getIframe() {
+                    throw new Error('detached');
+                },
+                getCurrentTime() {
+                    throw new Error('detached');
+                },
+            } as unknown as YT.Player,
+            room: {
+                ...room,
+                id: 'ROOM42',
+                currentTime: 10,
+                isPlaying: true,
+                playingNow: {
+                    id: 'vid',
+                    source: 'youtube',
+                    url: 'https://www.youtube.com/watch?v=vid',
+                },
+            } as NonNullable<typeof room>,
+        });
+
+        useYouTubeStore.getState().handleServerMessage(
+            { type: 'currentTimeChanged', currentTime: 40, videoId: 'vid' },
+            (() => '') as never,
+        );
+
+        expect(useYouTubeStore.getState().room?.currentTime).toBe(40);
     });
 });

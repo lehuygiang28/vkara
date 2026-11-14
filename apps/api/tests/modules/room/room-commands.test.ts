@@ -22,6 +22,7 @@ vi.mock('@/utils/room-store', () => ({
 
 vi.mock('@/modules/youtube/resolve-embed-playability', () => ({
     checkEmbeddable: vi.fn(async () => true),
+    filterYouTubeVideosByEmbeddability: vi.fn(async (_redis: unknown, videos: unknown[]) => videos),
 }));
 
 vi.mock('@/modules/room/room-broadcast', () => ({
@@ -30,7 +31,10 @@ vi.mock('@/modules/room/room-broadcast', () => ({
 
 vi.mock('@/redis', () => ({ redis: {} }));
 
-import { addVideoToRoom, playVideoNowInRoom } from '@/modules/room/room-commands';
+import { ErrorCode } from '@vkara/room';
+
+import { addVideoToRoom, addVideosToRoom, playVideoNowInRoom } from '@/modules/room/room-commands';
+import { filterYouTubeVideosByEmbeddability } from '@/modules/youtube/resolve-embed-playability';
 
 function video(id: string): YouTubeVideo {
     return {
@@ -84,5 +88,43 @@ describe('playVideoNowInRoom', () => {
             '4821',
             expect.objectContaining({ type: 'roomUpdate' }),
         );
+    });
+});
+
+describe('addVideosToRoom', () => {
+    beforeEach(() => {
+        roomState.current = createTestRoom({ id: '4821' });
+        publishToRoom.mockClear();
+        vi.mocked(filterYouTubeVideosByEmbeddability).mockImplementation(
+            async (_redis, videos) => videos,
+        );
+    });
+
+    it('starts the first song and queues the rest when the room is empty', async () => {
+        await addVideosToRoom('4821', [video('a'), video('b')]);
+        expect(roomState.current.playingNow?.id).toBe('a');
+        expect(roomState.current.videoQueue.map((item) => item.id)).toEqual(['b']);
+    });
+
+    it('appends songs and skips the one already playing', async () => {
+        roomState.current.playingNow = video('now');
+        await addVideosToRoom('4821', [video('now'), video('next')]);
+        expect(roomState.current.playingNow?.id).toBe('now');
+        expect(roomState.current.videoQueue.map((item) => item.id)).toEqual(['next']);
+    });
+
+    it('rejects when every video fails the embed check', async () => {
+        vi.mocked(filterYouTubeVideosByEmbeddability).mockResolvedValueOnce([]);
+        await expect(addVideosToRoom('4821', [video('a')])).rejects.toMatchObject({
+            code: ErrorCode.VIDEO_NOT_FOUND,
+        });
+    });
+
+    it('rejects when every song is already in the room', async () => {
+        roomState.current.playingNow = video('a');
+        roomState.current.videoQueue = [video('b')];
+        await expect(addVideosToRoom('4821', [video('a'), video('b')])).rejects.toMatchObject({
+            code: ErrorCode.ALREADY_IN_QUEUE,
+        });
     });
 });

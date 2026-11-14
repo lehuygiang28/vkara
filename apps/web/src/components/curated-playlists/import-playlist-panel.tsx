@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import { Link2, ListMusic } from 'lucide-react';
-import { parseYoutubePlaylistInput } from '@vkara/youtube';
+import { parseWatchVideosUrl, parseYoutubePlaylistInput } from '@vkara/youtube';
 
 import {
     RemotePanelOverlayHeader,
@@ -45,11 +45,18 @@ export function ImportPlaylistPanel({ open }: ImportPlaylistPanelProps) {
                 return;
             }
 
-            try {
-                parseYoutubePlaylistInput(trimmed);
-            } catch {
+            const watchVideos = parseWatchVideosUrl(trimmed);
+            if (watchVideos.kind === 'invalid') {
                 setUrlError(tCurated('invalidPlaylistUrl'));
                 return;
+            }
+            if (watchVideos.kind === 'absent') {
+                try {
+                    parseYoutubePlaylistInput(trimmed);
+                } catch {
+                    setUrlError(tCurated('invalidPlaylistUrl'));
+                    return;
+                }
             }
 
             setUrlError(null);

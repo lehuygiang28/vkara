@@ -3,7 +3,7 @@ import { useActionFeedbackStore, type ActionFeedbackVariant } from '@/store/acti
 import { isVideoInRoom, type RoomQueueSlice } from '@/lib/room-queue';
 
 type PendingQueueAdd = {
-    videoId: string;
+    videoIds: readonly string[];
     title: string;
     description?: string;
     variant: ActionFeedbackVariant;
@@ -35,10 +35,11 @@ export function confirmPendingQueueAdd(prevRoom: RoomQueueSlice, nextRoom: RoomQ
     if (!pending) return;
 
     const entry = pending;
-    const wasInRoom = isVideoInRoom(prevRoom, entry.videoId);
-    const nowInRoom = isVideoInRoom(nextRoom, entry.videoId);
+    const accepted = entry.videoIds.some(
+        (videoId) => !isVideoInRoom(prevRoom, videoId) && isVideoInRoom(nextRoom, videoId),
+    );
 
-    if (!wasInRoom && nowInRoom) {
+    if (accepted) {
         pending = null;
         clearPendingTimer();
         useActionFeedbackStore.getState().show({

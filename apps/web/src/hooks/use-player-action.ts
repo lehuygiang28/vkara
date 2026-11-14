@@ -45,6 +45,7 @@ export type PlayerAction = {
     handleClearQueue: () => void;
     handleClearHistory: () => void;
     handleAddVideoAndMoveToTop: (video: YouTubeVideo) => void;
+    handleAddVideos: (videos: YouTubeVideo[]) => void;
     handleImportPlaylist: (playlistUrlOrId: string) => void;
 };
 
@@ -187,7 +188,7 @@ export const usePlayerAction = (): PlayerAction => {
 
             markActionCooldown(cooldownKey);
             registerPendingQueueAdd({
-                videoId: video.id,
+                videoIds: [video.id],
                 title: t('toast.addVideoHandler'),
                 description: truncateVideoTitle(video.title),
                 variant: 'success',
@@ -469,6 +470,35 @@ export const usePlayerAction = (): PlayerAction => {
         [ensureRoomReady, ensureConnectedAndSend, t, isActionCoolingDown, markActionCooldown],
     );
 
+    const handleAddVideos = useCallback(
+        async (videos: YouTubeVideo[]) => {
+            if (videos.length === 0) return;
+            if (!(await ensureRoomReady())) return;
+
+            const currentRoom = useYouTubeStore.getState().room;
+            const freshIds = videos
+                .filter((video) => !isVideoInRoom(currentRoom, video.id))
+                .map((video) => video.id);
+            if (freshIds.length === 0) {
+                toast({
+                    title: t('toast.alreadyInQueue'),
+                    description: t('toast.alreadyInQueueDescription'),
+                    variant: 'warning',
+                });
+                return;
+            }
+
+            registerPendingQueueAdd({
+                videoIds: freshIds,
+                title: t('toast.addVideosHandler'),
+                variant: 'success',
+                duration: ACTION_FEEDBACK_DURATION_MS,
+            });
+            ensureConnectedAndSend({ type: 'addVideos', videos });
+        },
+        [ensureRoomReady, ensureConnectedAndSend, t],
+    );
+
     const handleImportPlaylist = useCallback(
         async (playlistUrlOrId: string) => {
             if (!(await ensureRoomReady())) return;
@@ -499,6 +529,7 @@ export const usePlayerAction = (): PlayerAction => {
         handleClearQueue,
         handleClearHistory,
         handleAddVideoAndMoveToTop,
+        handleAddVideos,
         handleImportPlaylist,
     };
 };

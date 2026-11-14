@@ -93,6 +93,10 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
     withBase({ type: z.literal('setDisplayName'), displayName: displayNameSchema }),
     withBase({ type: z.literal('sendMessage'), message: z.string() }),
     withBase({ type: z.literal('addVideo'), video: youtubeVideoSchema }),
+    withBase({
+        type: z.literal('addVideos'),
+        videos: z.array(youtubeVideoSchema).min(1).max(200),
+    }),
     withBase({ type: z.literal('removeVideoFromQueue'), videoId: z.string() }),
     withBase({ type: z.literal('playNow'), video: youtubeVideoSchema }),
     withBase({ type: z.literal('nextVideo') }),

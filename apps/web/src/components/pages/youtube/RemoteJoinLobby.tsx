@@ -15,6 +15,7 @@ import { useWebSocket } from '@/providers/websocket-provider';
 import { useScopedI18n } from '@/locales/client';
 import { useJoinRoom } from '@/hooks/use-join-room';
 import { useRoomSettingsStore } from '@/store/roomSettingsStore';
+import { useYouTubeStore } from '@/store/youtubeStore';
 
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { LayoutModeSwitch, RECOVERY_MODE_CHOICES } from '@/components/layout-mode-switch';
@@ -43,6 +44,7 @@ function JoinDivider({ label }: { label: string }) {
 
 export function RemoteJoinLobby({ allowCreateRoom = false }: RemoteJoinLobbyProps) {
     const t = useScopedI18n('joinLobby');
+    const setCurrentTab = useYouTubeStore((state) => state.setCurrentTab);
     const tRoom = useScopedI18n('roomSettings');
     const searchParams = useSearchParams();
     const { connectionStatus, ensureConnectedAndSend } = useWebSocket();
@@ -208,6 +210,16 @@ export function RemoteJoinLobby({ allowCreateRoom = false }: RemoteJoinLobbyProp
                 </div>
 
                 <div className="mt-5 flex justify-center pb-1 sm:mt-6">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        className="h-11"
+                        onClick={() => setCurrentTab('cabinet')}
+                    >
+                        {t('openCabinet')}
+                    </Button>
+                </div>
+                <div className="flex justify-center pb-1">
                     <LayoutModeSwitch tone="inline" choices={RECOVERY_MODE_CHOICES} />
                 </div>
             </div>

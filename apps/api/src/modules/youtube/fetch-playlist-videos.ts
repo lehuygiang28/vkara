@@ -14,6 +14,7 @@ import {
 import { prepareYoutubeVideos } from './prepare-youtube-videos';
 import { extractRendererMetadata, mergeRendererMetadata } from './renderer-metadata';
 import { youtubeOutboundFetch } from './youtube-outbound-fetch';
+import { coercePlaylistFetchInput } from './resolve-watch-videos-url';
 import { getYoutubeiClient } from './youtubei-client';
 import { asYoutubeRawData } from './youtubei-raw-data';
 import { mapYoutubeiFullVideo, mapYoutubeiVideo, mapYoutubeiThumbnails } from './video-mapper';
@@ -482,7 +483,8 @@ export async function fetchYoutubePlaylistVideos(
     playlistUrlOrId: string,
     options?: { limit?: number; fetchAll?: boolean; redisClient?: Redis },
 ): Promise<YouTubeVideo[]> {
-    const parsed = parseYoutubePlaylistInput(playlistUrlOrId);
+    const fetchInput = await coercePlaylistFetchInput(playlistUrlOrId);
+    const parsed = parseYoutubePlaylistInput(fetchInput);
     const limit = options?.limit ?? 200;
     const fetchAll = options?.fetchAll ?? true;
     const redisClient = options?.redisClient;

@@ -14,6 +14,7 @@ import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 import { VideoListToolbar } from './video-list-toolbar';
 import { VideoListEmptyState } from './video-list-empty-state';
+import { useCabinetSaveAction } from './use-cabinet-save-action';
 
 export function VideoHistory() {
     const {
@@ -24,6 +25,7 @@ export function VideoHistory() {
     } = usePlayerAction();
     const { room, setCurrentTab } = useYouTubeStore();
     const t = useScopedI18n('videoHistory');
+    const cabinetSaveAction = useCabinetSaveAction();
 
     const renderActions = useCallback(
         (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers) => (
@@ -62,10 +64,11 @@ export function VideoHistory() {
                             handleAddVideoAndMoveToTop(video);
                         },
                     },
+                    cabinetSaveAction(video, { closeMenu }),
                 ]}
             />
         ),
-        [t, handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop],
+        [t, handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop, cabinetSaveAction],
     );
 
     const hasHistory = (room?.historyQueue?.length || 0) > 0;

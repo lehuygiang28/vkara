@@ -1,7 +1,7 @@
 'use client';
 
 import { forwardRef } from 'react';
-import { Clock3, ListVideo, MoreHorizontal, Search, Settings, SlidersVertical } from 'lucide-react';
+import { Clock3, ListVideo, MoreHorizontal, Search, Settings, SlidersVertical, Star } from 'lucide-react';
 
 import { useI18n, useScopedI18n } from '@/locales/client';
 import { prefetchPlayerControlsTabs } from '@/lib/layout-chunk-prefetch';
@@ -95,6 +95,10 @@ export const MobileBottomNav = forwardRef<HTMLElement, MobileBottomNavProps>(
                         className="w-64"
                         style={{ zIndex: REMOTE_CHROME_Z_INDEX.transientChrome }}
                     >
+                        <DropdownMenuItem onClick={() => setCurrentTab('cabinet')}>
+                            <Star className="mr-2 h-4 w-4" />
+                            {t('cabinet')}
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => setCurrentTab('history')}>
                             <Clock3 className="mr-2 h-4 w-4" />
                             {t('history')}

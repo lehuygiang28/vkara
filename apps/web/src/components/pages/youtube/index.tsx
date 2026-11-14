@@ -7,6 +7,7 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 import { useScopedI18n } from '@/locales/client';
 import { cn } from '@/lib/utils';
 import { useEffectiveLayoutMode } from '@/hooks/use-viewport-layout';
+import { LAYOUT_SPLIT_MIN_PX } from '@/lib/layout-mode';
 import { LayoutModeSwitch, RECOVERY_MODE_CHOICES } from '@/components/layout-mode-switch';
 import { useLayoutChunkPrefetch, prefetchRemoteShell } from '@/hooks/use-layout-chunk-prefetch';
 import { useStripRoomQueryFromUrl } from '@/hooks/use-strip-room-query';
@@ -46,8 +47,12 @@ export default function YoutubePlayerPage() {
     const setCurrentTab = useYouTubeStore((s) => s.setCurrentTab);
 
     const t_Toast = useScopedI18n('toast');
+    const tPage = useScopedI18n('youtubePage');
     const [showRemotePanel, setShowRemotePanel] = useState(false);
-    const { effectiveLayoutMode, isTvViewport, needsLayoutBootstrap } = useEffectiveLayoutMode();
+    const { effectiveLayoutMode, isTvViewport, needsLayoutBootstrap, viewportWidth } =
+        useEffectiveLayoutMode();
+    const bothBelowSplit =
+        effectiveLayoutMode === 'both' && viewportWidth > 0 && viewportWidth < LAYOUT_SPLIT_MIN_PX;
     const hasFinePointer = useSyncExternalStore(
         subscribeFinePointer,
         getFinePointerSnapshot,
@@ -124,12 +129,13 @@ export default function YoutubePlayerPage() {
         <div className={cn('flex h-dvh-screen w-full flex-col overflow-hidden', 'bg-background')}>
             <ConnectionStatusToast />
             <main className="flex min-h-0 flex-1 flex-col overflow-hidden md:h-full md:flex-row">
-                {showsPlayer && (
+                {showsPlayer && !bothBelowSplit && (
                     <div
                         className={cn(
                             'relative min-h-0 w-full',
                             useTvIdleShell ? 'bg-background' : 'bg-black',
-                            effectiveLayoutMode === 'both' && 'md:h-full md:w-2/3 lg:w-3/4',
+                            effectiveLayoutMode === 'both' &&
+                                'hidden md:block md:h-full md:w-2/3 lg:w-3/4',
                             effectiveLayoutMode === 'player' &&
                                 (useTvIdleShell ? 'h-full' : 'h-[42dvh] md:h-full'),
                             isRemoteOnly && 'hidden',
@@ -154,6 +160,18 @@ export default function YoutubePlayerPage() {
                                 'mx-auto w-full max-w-md border-border/40 sm:max-w-[26rem] lg:border-x',
                         )}
                     >
+                        {effectiveLayoutMode === 'both' ? (
+                            <div className="shrink-0 border-b border-border px-3 py-2 md:hidden">
+                                <p className="mb-2 text-center text-xs text-muted-foreground">
+                                    {tPage('tvIdleModeHint')}
+                                </p>
+                                <LayoutModeSwitch
+                                    tone="inline"
+                                    className="w-full"
+                                    choices={RECOVERY_MODE_CHOICES}
+                                />
+                            </div>
+                        ) : null}
                         <RemoteShell />
                     </div>
                 )}

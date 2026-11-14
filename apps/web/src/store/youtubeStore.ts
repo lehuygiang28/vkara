@@ -24,6 +24,7 @@ import {
 } from '@/lib/active-playback';
 import {
     clearPlaybackBroadcastSuppression,
+    isYoutubePlayerUsable,
     markServerPlaybackCommand,
     markPlaybackTrackChange,
     shouldApplyRemoteCurrentTime,
@@ -363,7 +364,9 @@ export const useYouTubeStore = create(
                                 if (playing) {
                                     const seekBase = isTikTokPlayback({ video: playing })
                                         ? getTikTokSeekBaseSeconds(state.room?.isPlaying ?? false)
-                                        : (state.player?.getCurrentTime() ?? roomTime);
+                                        : isYoutubePlayerUsable(state.player)
+                                          ? state.player.getCurrentTime()
+                                          : roomTime;
                                     needsSeek =
                                         needsPlaybackSeekCorrection(
                                             seekBase,

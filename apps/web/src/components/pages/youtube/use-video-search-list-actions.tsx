@@ -10,13 +10,14 @@ import { usePlayerAction } from '@/hooks/use-player-action';
 
 import { VideoListActionBar } from './video-list-action-bar';
 import type { VideoListActionHelpers } from './VideoList';
+import { useCabinetSaveAction } from './use-cabinet-save-action';
 
-/** Play/queue row actions for search + browse suggestion lists. */
 export function useVideoSearchListActions() {
     const t = useScopedI18n('videoSearch');
     const recordEngagement = usePersonalizationStore((state) => state.recordEngagement);
     const { handlePlayVideoNow, handleAddVideoToQueue, handleAddVideoAndMoveToTop } =
         usePlayerAction();
+    const cabinetSaveAction = useCabinetSaveAction();
 
     return useCallback(
         (video: YouTubeVideo, { closeMenu }: VideoListActionHelpers) => (
@@ -59,6 +60,7 @@ export function useVideoSearchListActions() {
                             handleAddVideoAndMoveToTop(video);
                         },
                     },
+                    cabinetSaveAction(video, { closeMenu }),
                 ]}
             />
         ),
@@ -68,6 +70,7 @@ export function useVideoSearchListActions() {
             handlePlayVideoNow,
             handleAddVideoToQueue,
             handleAddVideoAndMoveToTop,
+            cabinetSaveAction,
         ],
     );
 }

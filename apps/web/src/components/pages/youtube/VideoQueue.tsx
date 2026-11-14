@@ -16,6 +16,7 @@ import { VideoList, type VideoListActionHelpers } from './VideoList';
 import { VideoListActionBar } from './video-list-action-bar';
 import { VideoListToolbar } from './video-list-toolbar';
 import { VideoListEmptyState } from './video-list-empty-state';
+import { useCabinetSaveAction } from './use-cabinet-save-action';
 
 export function VideoQueue() {
     const { room, setCurrentTab } = useYouTubeStore();
@@ -26,6 +27,7 @@ export function VideoQueue() {
         handleClearQueue,
     } = usePlayerAction();
     const t = useScopedI18n('videoQueue');
+    const cabinetSaveAction = useCabinetSaveAction();
     const setImportPlaylistPanelOpen = useCuratedStore((state) => state.setImportPlaylistPanelOpen);
     const hideYoutubeOnlyActions = isTikTokProviderActive();
 
@@ -55,10 +57,11 @@ export function VideoQueue() {
                             handleRemoveVideoFromQueue(video);
                         },
                     },
+                    cabinetSaveAction(video, { closeMenu }),
                 ]}
             />
         ),
-        [t, handleMoveVideoToTop, handleRemoveVideoFromQueue],
+        [t, handleMoveVideoToTop, handleRemoveVideoFromQueue, cabinetSaveAction],
     );
 
     return (
