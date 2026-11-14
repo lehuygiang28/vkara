@@ -89,11 +89,11 @@ export default async function RootLayout({
     return (
         <html lang={appLocale} dir={dir} suppressHydrationWarning>
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased cursor-auto`}>
-                {/* API shims for old Smart TV engines (Tizen 6.0 ≈ Chrome 76) stay
-                    guarded. removeChild and insertBefore are always wrapped,
-                    because Chrome translate reparents text on current browsers
-                    too. Must run before any app chunk. */}
+                {/* Missing JS APIs for old Smart TV engines (Tizen 6.0 ≈ Chrome 76).
+                    No-op when the native method exists. Must run before any app chunk. */}
                 <Script src="/tv-polyfills.js" strategy="beforeInteractive" />
+                {/* Chrome translate reparents text on current browsers. Must run before React. */}
+                <Script src="/translate-dom-guard.js" strategy="beforeInteractive" />
                 <JsonLd
                     locale={appLocale}
                     title={t('seo.title')}

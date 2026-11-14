@@ -3,10 +3,10 @@
  * Baseline: Tizen 6.0 / 2021 ≈ Chrome 76. Also shims Intl.PluralRules and
  * MediaQueryList EventTarget when missing (no-op on modern engines).
  *
- * Loaded beforeInteractive from the root layout. Feature shims are guarded.
- * The DOM guard always wraps removeChild and insertBefore, because Chrome's
- * translator reparents text on current browsers too. Syntax downleveling of
- * the app bundles themselves is handled by scripts/tv-downlevel.mjs.
+ * Loaded beforeInteractive from the root layout. Every shim is guarded, so on
+ * modern browsers this is a no-op. Syntax downleveling of the app bundles
+ * themselves is handled by scripts/tv-downlevel.mjs. Chrome's translator is
+ * handled by translate-dom-guard.js, not here.
  */
 (function () {
     'use strict';
@@ -153,25 +153,6 @@
                 );
             }
             return Promise.all(pending);
-        };
-    }
-
-    /* Chrome translate wraps text in <font>. React then calls removeChild
-       or insertBefore on a node that is no longer a child, which throws. */
-    if (typeof Node === 'function' && Node.prototype) {
-        var originalRemoveChild = Node.prototype.removeChild;
-        var originalInsertBefore = Node.prototype.insertBefore;
-        Node.prototype.removeChild = function removeChild(child) {
-            if (!child || child.parentNode !== this) {
-                return child;
-            }
-            return originalRemoveChild.call(this, child);
-        };
-        Node.prototype.insertBefore = function insertBefore(node, child) {
-            if (child && child.parentNode !== this) {
-                return node;
-            }
-            return originalInsertBefore.call(this, node, child);
         };
     }
 
