@@ -89,8 +89,10 @@ export default async function RootLayout({
     return (
         <html lang={appLocale} dir={dir} suppressHydrationWarning>
             <body className={`${geistSans.variable} ${geistMono.variable} antialiased cursor-auto`}>
-                {/* Guarded API shims for old Smart TV engines (Tizen 6.0 ≈ Chrome 76);
-                    no-op on modern browsers. Must run before any app chunk. */}
+                {/* API shims for old Smart TV engines (Tizen 6.0 ≈ Chrome 76) stay
+                    guarded. removeChild and insertBefore are always wrapped,
+                    because Chrome translate reparents text on current browsers
+                    too. Must run before any app chunk. */}
                 <Script src="/tv-polyfills.js" strategy="beforeInteractive" />
                 <JsonLd
                     locale={appLocale}
