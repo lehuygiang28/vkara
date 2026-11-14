@@ -5,7 +5,8 @@
  *
  * Loaded beforeInteractive from the root layout. Every shim is guarded, so on
  * modern browsers this is a no-op. Syntax downleveling of the app bundles
- * themselves is handled by scripts/tv-downlevel.mjs.
+ * themselves is handled by scripts/tv-downlevel.mjs. Chrome's translator is
+ * handled by translate-dom-guard.js, not here.
  */
 (function () {
     'use strict';
@@ -130,6 +131,33 @@
         };
         Intl.PluralRules.prototype.resolvedOptions = function resolvedOptions() {
             return { locale: this.locale, type: 'cardinal' };
+        };
+    }
+
+    /* Promise.allSettled (Chrome 76). Xiaomi TV WebView 74 rejects Sentry's
+       flush because the method is missing. */
+    if (typeof Promise.allSettled !== 'function') {
+        Promise.allSettled = function allSettled(values) {
+            var pending = [];
+            var list;
+            try {
+                list = Array.isArray(values) ? values : Array.from(values);
+            } catch (error) {
+                return Promise.reject(error);
+            }
+            for (var i = 0; i < list.length; i++) {
+                pending.push(
+                    Promise.resolve(list[i]).then(
+                        function (value) {
+                            return { status: 'fulfilled', value: value };
+                        },
+                        function (reason) {
+                            return { status: 'rejected', reason: reason };
+                        },
+                    ),
+                );
+            }
+            return Promise.all(pending);
         };
     }
 

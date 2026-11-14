@@ -40,14 +40,31 @@ function runPolyfills() {
     vm.runInThisContext(polyfillSource, { filename: 'tv-polyfills.js' });
 }
 
+const originalAllSettled = Promise.allSettled;
+const originalNode = (globalThis as { Node?: unknown }).Node;
+
 afterEach(() => {
     Object.defineProperty(Intl, 'PluralRules', {
         configurable: true,
         writable: true,
         value: originalPluralRules,
     });
+    Object.defineProperty(Promise, 'allSettled', {
+        configurable: true,
+        writable: true,
+        value: originalAllSettled,
+    });
     if (originalWindow === undefined) {
         Reflect.deleteProperty(globalThis, 'window');
+    }
+    if (originalNode === undefined) {
+        Reflect.deleteProperty(globalThis, 'Node');
+    } else {
+        Object.defineProperty(globalThis, 'Node', {
+            configurable: true,
+            writable: true,
+            value: originalNode,
+        });
     }
     Reflect.deleteProperty(globalThis, 'MediaQueryList');
 });
@@ -141,5 +158,98 @@ describe('tv-polyfills MediaQueryList', () => {
             (ModernMediaQueryList.prototype as ModernMediaQueryList & MqlEventTarget)
                 .addEventListener,
         ).toBe(nativeAdd);
+    });
+});
+
+describe('tv-polyfills Promise.allSettled', () => {
+    it('settles mixed results when the engine has no Promise.allSettled', async () => {
+        Object.defineProperty(Promise, 'allSettled', {
+            configurable: true,
+            writable: true,
+            value: undefined,
+        });
+
+        runPolyfills();
+
+        const rejected = Promise.reject(new Error('nope'));
+        void rejected.catch(() => undefined);
+        const settled = await Promise.allSettled([Promise.resolve('ok'), rejected, 3]);
+
+        expect(settled).toEqual([
+            { status: 'fulfilled', value: 'ok' },
+            { status: 'rejected', reason: expect.objectContaining({ message: 'nope' }) },
+            { status: 'fulfilled', value: 3 },
+        ]);
+    });
+
+    it('does not replace a native Promise.allSettled', () => {
+        const native = Promise.allSettled;
+        runPolyfills();
+        expect(Promise.allSettled).toBe(native);
+    });
+
+    it('rejects the returned promise when the input is not iterable', async () => {
+        Object.defineProperty(Promise, 'allSettled', {
+            configurable: true,
+            writable: true,
+            value: undefined,
+        });
+
+        runPolyfills();
+
+        const allSettled = Promise.allSettled as (
+            values: Iterable<unknown> | undefined,
+        ) => Promise<PromiseSettledResult<unknown>[]>;
+        await expect(allSettled(undefined)).rejects.toBeInstanceOf(TypeError);
+    });
+
+    it('rejects the returned promise when the iterator throws', async () => {
+        Object.defineProperty(Promise, 'allSettled', {
+            configurable: true,
+            writable: true,
+            value: undefined,
+        });
+
+        runPolyfills();
+
+        const values = {
+            [Symbol.iterator]() {
+                return {
+                    next() {
+                        throw new Error('boom');
+                    },
+                };
+            },
+        };
+
+        await expect(Promise.allSettled(values)).rejects.toThrow('boom');
+    });
+});
+
+describe('tv-polyfills leaves the DOM alone', () => {
+    it('does not wrap removeChild or insertBefore', () => {
+        function removeChild(child: unknown) {
+            return child;
+        }
+        function insertBefore(node: unknown) {
+            return node;
+        }
+        function HostNode() {}
+        const proto = HostNode.prototype as {
+            removeChild: (child: unknown) => unknown;
+            insertBefore: (node: unknown) => unknown;
+        };
+        proto.removeChild = removeChild;
+        proto.insertBefore = insertBefore;
+        Object.defineProperty(globalThis, 'Node', {
+            configurable: true,
+            writable: true,
+            value: HostNode,
+        });
+
+        runPolyfills();
+
+        expect(proto.removeChild).toBe(removeChild);
+        expect(proto.insertBefore).toBe(insertBefore);
     });
 });
