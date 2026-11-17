@@ -60,7 +60,11 @@ async function sendFirstEmbeddable(
 ): Promise<'sent' | 'empty' | 'failed'> {
     const eligible = items
         .filter(
-            (item) => item.id !== forVideoId && item.isLive !== true && item.source !== 'tiktok',
+            (item) =>
+                item.id !== forVideoId &&
+                item.isLive !== true &&
+                item.source !== 'tiktok' &&
+                item.channels.length > 0,
         )
         .slice(0, 8);
     if (eligible.length === 0) {
