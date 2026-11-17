@@ -5,18 +5,24 @@ import type { YouTubeVideo } from '@vkara/youtube';
 
 const { roomState, publishToRoom } = vi.hoisted(() => ({
     roomState: {
-        current: { id: '4821', playingNow: null, videoQueue: [] } as unknown as ReturnType<typeof createTestRoom>,
+        current: { id: '4821', playingNow: null, videoQueue: [] } as unknown as ReturnType<
+            typeof createTestRoom
+        >,
     },
     publishToRoom: vi.fn(),
 }));
 
 vi.mock('@/utils/room-store', () => ({
-    isVideoAlreadyInRoom: (room: { playingNow?: { id: string } | null; videoQueue: { id: string }[] }, id: string) =>
-        room.playingNow?.id === id || room.videoQueue.some((v) => v.id === id),
-    mutateRoom: vi.fn(async (_roomId: string, mutator: (room: typeof roomState.current) => void) => {
-        mutator(roomState.current);
-        return roomState.current;
-    }),
+    isVideoAlreadyInRoom: (
+        room: { playingNow?: { id: string } | null; videoQueue: { id: string }[] },
+        id: string,
+    ) => room.playingNow?.id === id || room.videoQueue.some((v) => v.id === id),
+    mutateRoom: vi.fn(
+        async (_roomId: string, mutator: (room: typeof roomState.current) => void) => {
+            mutator(roomState.current);
+            return roomState.current;
+        },
+    ),
     requireRoom: vi.fn(async () => roomState.current),
 }));
 
@@ -33,7 +39,12 @@ vi.mock('@/redis', () => ({ redis: {} }));
 
 import { ErrorCode } from '@vkara/room';
 
-import { addVideoToRoom, addVideosToRoom, playVideoNowInRoom } from '@/modules/room/room-commands';
+import {
+    addVideoToRoom,
+    addVideosToRoom,
+    nextVideoInRoom,
+    playVideoNowInRoom,
+} from '@/modules/room/room-commands';
 import { filterYouTubeVideosByEmbeddability } from '@/modules/youtube/resolve-embed-playability';
 
 function video(id: string): YouTubeVideo {
@@ -88,6 +99,27 @@ describe('playVideoNowInRoom', () => {
             '4821',
             expect.objectContaining({ type: 'roomUpdate' }),
         );
+    });
+});
+
+describe('nextVideoInRoom', () => {
+    beforeEach(() => {
+        roomState.current = createTestRoom({ id: '4821' });
+        publishToRoom.mockClear();
+    });
+
+    it('plays the autoplay candidate when the queue is empty and clears it', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow?.id).toBe('related');
+        expect(roomState.current.isPlaying).toBe(true);
+        expect(roomState.current.historyQueue.map((item) => item.id)).toEqual(['now']);
+        expect(roomState.current.videoQueue).toEqual([]);
+        expect(roomState.current.autoPlayCandidate).toBeNull();
     });
 });
 

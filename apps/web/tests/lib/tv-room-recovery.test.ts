@@ -41,9 +41,9 @@ function installBrowserStorage(): void {
 }
 
 function uninstallBrowserStorage(): void {
-  // @ts-expect-error test cleanup
+    // @ts-expect-error test cleanup
     delete globalThis.window;
-  // @ts-expect-error test cleanup
+    // @ts-expect-error test cleanup
     delete globalThis.localStorage;
 }
 
@@ -68,12 +68,14 @@ describe('tv-room-recovery', () => {
                 videoQueue: [{ id: 'a' } as never],
                 historyQueue: [{ id: 'h' } as never],
                 volume: 70,
+                autoPlayNext: true,
             }),
         );
 
         expect(snapshot?.previousRoomId).toBe('5678');
         expect(snapshot?.password).toBe('secret');
         expect(snapshot?.restore.videoQueue).toHaveLength(1);
+        expect(snapshot?.restore.autoPlayNext).toBe(true);
         expect(buildTvRecoveryCreateRoomMessage(snapshot!).preferredRoomId).toBe('5678');
         expect(buildTvRecoveryCreateRoomMessage(snapshot!).password).toBe('secret');
     });

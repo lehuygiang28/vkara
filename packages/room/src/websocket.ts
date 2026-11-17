@@ -30,6 +30,11 @@ export interface Participant {
     isAgent: boolean;
 }
 
+export type AutoPlayCandidate = {
+    video: YouTubeVideo;
+    forVideoId: string;
+};
+
 export interface Room {
     id: string;
     password?: string;
@@ -49,6 +54,8 @@ export interface Room {
     captionTracks: CaptionTrack[];
     captionTracksVideoId: string | null;
     playingNow: YouTubeVideo | null;
+    autoPlayNext: boolean;
+    autoPlayCandidate: AutoPlayCandidate | null;
     lastActivity: number;
     /** Set when the last client leaves; used to release empty rooms after a grace period. */
     emptySince?: number;

@@ -152,6 +152,38 @@ describe('wsClientMessageSchema', () => {
         ).toBe(true);
     });
 
+    it('accepts setAutoPlayNext with a boolean only', () => {
+        expect(check({ ...base, type: 'setAutoPlayNext', enabled: true })).toBe(true);
+        expect(check({ ...base, type: 'setAutoPlayNext', enabled: 'yes' })).toBe(false);
+        expect(check({ ...base, type: 'setAutoPlayNext' })).toBe(false);
+    });
+
+    it('accepts setAutoPlayCandidate with a valid video and forVideoId', () => {
+        expect(
+            check({
+                ...base,
+                type: 'setAutoPlayCandidate',
+                video: validVideo(),
+                forVideoId: 'abc123',
+            }),
+        ).toBe(true);
+        expect(
+            check({
+                ...base,
+                type: 'setAutoPlayCandidate',
+                video: validVideo(),
+            }),
+        ).toBe(false);
+        expect(
+            check({
+                ...base,
+                type: 'setAutoPlayCandidate',
+                video: { id: 'dQw4w9WgXcQ' },
+                forVideoId: 'abc123',
+            }),
+        ).toBe(false);
+    });
+
     it('accepts well-formed addVideo payload', () => {
         expect(
             check({

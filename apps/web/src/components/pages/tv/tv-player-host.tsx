@@ -11,6 +11,7 @@ import { useCurrentLocale } from '@/locales/client';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useTikTokHiddenPlayGuard } from '@/hooks/use-tiktok-hidden-play-guard';
 import { useTikTokPhotoIndexSync } from '@/hooks/use-tiktok-photo-index-sync';
+import { usePublishAutoPlayCandidate } from '@/hooks/use-publish-auto-play-candidate';
 import { ensureConnectedAndSend } from '@/lib/ensure-ws-send';
 import {
     applyYoutubeCaptions,
@@ -46,6 +47,7 @@ type TvPlayerHostProps = {
 function TvPlayerHostInner({ onOpenSettingsAction }: TvPlayerHostProps) {
     useTikTokHiddenPlayGuard();
     useTikTokPhotoIndexSync();
+    usePublishAutoPlayCandidate();
 
     const {
         playingNow,

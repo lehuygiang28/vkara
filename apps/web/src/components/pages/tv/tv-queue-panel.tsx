@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { pendingAutoPlayCandidate } from '@vkara/room';
 import type { YouTubeVideo } from '@vkara/youtube';
 
 import { useScopedI18n } from '@/locales/client';
@@ -33,6 +34,7 @@ export function TvQueuePanel({
     const tSearch = useScopedI18n('videoSearch');
     const playingNow = useYouTubeStore((s) => s.room?.playingNow);
     const videoQueue = useYouTubeStore((s) => s.room?.videoQueue ?? EMPTY_VIDEO_QUEUE);
+    const autoPlayCandidate = useYouTubeStore((s) => pendingAutoPlayCandidate(s.room));
     const { handlePlayVideoNow } = usePlayerAction();
 
     const allItems = useMemo(
@@ -98,6 +100,19 @@ export function TvQueuePanel({
                             onLeaveQueueAction={onLeaveQueueAction}
                         />
                     ))}
+                    {autoPlayCandidate ? (
+                        <TvQueueVideoCard
+                            key={autoPlayCandidate.id}
+                            video={autoPlayCandidate}
+                            focusEnabled={focusEnabled}
+                            isNowPlaying={false}
+                            nowPlayingLabel={t('nowPlaying')}
+                            autoPlayLabel={t('autoPlayBadge')}
+                            viewsLabel={tSearch('views')}
+                            onPlayAction={() => handlePlayVideoNow(autoPlayCandidate)}
+                            onLeaveQueueAction={onLeaveQueueAction}
+                        />
+                    ) : null}
                 </div>
             )}
         </TvSpatialOverlayShell>

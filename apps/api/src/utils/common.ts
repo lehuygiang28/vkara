@@ -87,6 +87,14 @@ export function cleanUpRoomField(room: Room): Omit<Room, 'clients'> {
         playingNow: cleanedRoom.playingNow
             ? sanitizeVideoForClient(cleanedRoom.playingNow as VideoWithLegacyChannel)
             : null,
+        autoPlayCandidate: cleanedRoom.autoPlayCandidate
+            ? {
+                  forVideoId: cleanedRoom.autoPlayCandidate.forVideoId,
+                  video: sanitizeVideoForClient(
+                      cleanedRoom.autoPlayCandidate.video as VideoWithLegacyChannel,
+                  ),
+              }
+            : null,
         videoQueue: cleanedRoom.videoQueue.map((video) =>
             sanitizeVideoForClient(video as VideoWithLegacyChannel),
         ),

@@ -44,6 +44,7 @@ export function captureTvRoomSnapshot(room: Omit<Room, 'clients'> | null): TvRoo
             captionTracksVideoId: normalized.captionTracksVideoId,
             tiktokPhotoIndex: normalized.tiktokPhotoIndex,
             tiktokPhotoMaxIndex: normalized.tiktokPhotoMaxIndex,
+            autoPlayNext: normalized.autoPlayNext,
         },
     };
 }

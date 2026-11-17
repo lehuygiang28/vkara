@@ -284,6 +284,10 @@ export default {
     'videoQueue.shuffle': 'Shuffle',
     'videoQueue.clearQueue': 'Clear All Queue',
     'videoQueue.clearQueueConfirm': 'Are you sure you want to clear the queue?',
+    'videoQueue.autoPlayNext': 'Autoplay next',
+    'videoQueue.autoPlayNextHint': 'When the queue is empty, play a related video',
+    'videoQueue.autoPlayBadge': 'Up next',
+    'videoQueue.autoPlayCaption': 'Plays if the queue stays empty',
     'videoQueue.importPlaylist': 'Import playlist',
     'videoQueue.importPlaylistDescription':
         'Import a YouTube playlist by ID or URL. A watch_videos link of video ids works too.',
@@ -439,6 +443,7 @@ export default {
     'tvPage.queueEmpty': 'Queue is empty. Add songs from your phone.',
     'tvPage.queueCount': '{count} videos',
     'tvPage.nowPlaying': 'Now playing',
+    'tvPage.autoPlayBadge': 'Up next',
     'tvPage.nextUpTitle': 'Up next',
     'tvPage.playNext': 'Play next',
     'tvPage.playNextHint': 'Press OK to play now',

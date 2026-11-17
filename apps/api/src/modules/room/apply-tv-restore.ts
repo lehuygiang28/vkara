@@ -1,4 +1,4 @@
-import type { Room } from '@vkara/room';
+import { reconcileAutoPlay, type Room } from '@vkara/room';
 import type { TvRoomRestoreState } from '@vkara/validators/ws/client-message';
 
 const MAX_RESTORE_QUEUE_LENGTH = 200;
@@ -18,6 +18,7 @@ export function clampRestoreState(restore: TvRoomRestoreState): TvRoomRestoreSta
         captionTracksVideoId: restore.captionTracksVideoId,
         tiktokPhotoIndex: Math.max(0, Math.floor(restore.tiktokPhotoIndex)),
         tiktokPhotoMaxIndex: Math.max(0, Math.floor(restore.tiktokPhotoMaxIndex)),
+        autoPlayNext: restore.autoPlayNext,
     };
 }
 
@@ -36,4 +37,6 @@ export function applyTvRestoreToRoom(room: Room, restore: TvRoomRestoreState): v
     room.captionTracksVideoId = clamped.captionTracksVideoId;
     room.tiktokPhotoIndex = clamped.tiktokPhotoIndex;
     room.tiktokPhotoMaxIndex = clamped.tiktokPhotoMaxIndex;
+    room.autoPlayNext = clamped.autoPlayNext ?? false;
+    reconcileAutoPlay(room);
 }

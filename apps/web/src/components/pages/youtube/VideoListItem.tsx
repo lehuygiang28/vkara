@@ -35,6 +35,7 @@ interface VideoListItemProps {
     isActive?: boolean;
     actions?: ReactNode;
     onSelect?: (video: YouTubeVideo) => void;
+    interactive?: boolean;
 }
 
 export const VideoListItem = memo(function VideoListItem({
@@ -43,6 +44,7 @@ export const VideoListItem = memo(function VideoListItem({
     isActive = false,
     actions,
     onSelect,
+    interactive = true,
 }: VideoListItemProps) {
     const t = useI18n();
     const saved = useCabinetStore((state) => state.savedIds.has(video.id));
@@ -80,18 +82,23 @@ export const VideoListItem = memo(function VideoListItem({
             )}
         >
             <div
-                role="button"
-                tabIndex={0}
-                onClick={() => onSelect?.(video)}
-                onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        onSelect?.(video);
-                    }
-                }}
+                role={interactive ? 'button' : undefined}
+                tabIndex={interactive ? 0 : undefined}
+                onClick={interactive ? () => onSelect?.(video) : undefined}
+                onKeyDown={
+                    interactive
+                        ? (e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                  e.preventDefault();
+                                  onSelect?.(video);
+                              }
+                          }
+                        : undefined
+                }
                 className={cn(
-                    'flex h-[100px] w-full cursor-pointer items-start gap-3 py-2',
-                    !isActive && 'hover:bg-accent/50 active:bg-accent/60',
+                    'flex h-[100px] w-full items-start gap-3 py-2',
+                    interactive && 'cursor-pointer',
+                    interactive && !isActive && 'hover:bg-accent/50 active:bg-accent/60',
                 )}
             >
                 <VideoListThumbnail

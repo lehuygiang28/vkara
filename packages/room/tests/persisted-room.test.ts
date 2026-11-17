@@ -28,6 +28,8 @@ describe('normalizePersistedRoom', () => {
             captionTracks: [],
             captionTracksVideoId: null,
             playingNow: null,
+            autoPlayNext: false,
+            autoPlayCandidate: null,
             isPlaying: false,
             currentTime: 0,
             tiktokPhotoIndex: 0,
@@ -38,6 +40,27 @@ describe('normalizePersistedRoom', () => {
             hostDeviceId: '',
         });
         expect(normalized?.lastActivity).toEqual(expect.any(Number));
+    });
+
+    it('keeps autoplay fields and drops a candidate without a string id', () => {
+        const kept = normalizePersistedRoom({
+            id: '1234',
+            autoPlayNext: true,
+            autoPlayCandidate: {
+                video: { id: 'related' } as never,
+                forVideoId: 'now',
+            },
+        });
+        expect(kept?.autoPlayNext).toBe(true);
+        expect(kept?.autoPlayCandidate?.video.id).toBe('related');
+        expect(kept?.autoPlayCandidate?.forVideoId).toBe('now');
+
+        const dropped = normalizePersistedRoom({
+            id: '1234',
+            autoPlayNext: true,
+            autoPlayCandidate: { video: { id: 42 } as never, forVideoId: 'now' },
+        });
+        expect(dropped?.autoPlayCandidate).toBeNull();
     });
 
     it('backfills participants and lock fields for legacy payloads', () => {

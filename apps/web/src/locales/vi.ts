@@ -282,6 +282,10 @@ export default {
     'videoQueue.shuffle': 'Ngẫu nhiên',
     'videoQueue.clearQueue': 'Xóa tất cả',
     'videoQueue.clearQueueConfirm': 'Xác nhận xóa tất cả?',
+    'videoQueue.autoPlayNext': 'Tự phát tiếp',
+    'videoQueue.autoPlayNextHint': 'Khi hàng chờ trống, phát một video liên quan',
+    'videoQueue.autoPlayBadge': 'Sắp phát',
+    'videoQueue.autoPlayCaption': 'Phát nếu hàng chờ vẫn trống',
     'videoQueue.importPlaylist': 'Nhập danh sách',
     'videoQueue.importPlaylistDescription':
         'Nhập playlist YouTube bằng ID hoặc URL. Link watch_videos gồm các id video cũng được.',
@@ -435,6 +439,7 @@ export default {
     'tvPage.queueEmpty': 'Chưa có bài trong hàng chờ. Thêm bài từ điện thoại.',
     'tvPage.queueCount': '{count} video',
     'tvPage.nowPlaying': 'Đang phát',
+    'tvPage.autoPlayBadge': 'Sắp phát',
     'tvPage.nextUpTitle': 'Tiếp theo',
     'tvPage.playNext': 'Phát bài tiếp theo',
     'tvPage.playNextHint': 'Nhấn OK để phát ngay',

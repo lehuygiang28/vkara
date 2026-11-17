@@ -1,6 +1,12 @@
 import { isTikTokVideo } from '@vkara/tiktok';
 import type { YouTubeVideo } from '@vkara/youtube';
-import { ErrorCode, RoomError, type Room } from '@vkara/room';
+import {
+    autoPlayVideoToPromote,
+    ErrorCode,
+    reconcileAutoPlay,
+    RoomError,
+    type Room,
+} from '@vkara/room';
 
 import { publishToRoom } from '@/modules/room/room-broadcast';
 import {
@@ -51,6 +57,7 @@ export async function addVideoToRoom(roomId: string, video: YouTubeVideo): Promi
             } else {
                 room.videoQueue = [...room.videoQueue, video];
             }
+            reconcileAutoPlay(room);
         });
 
         broadcastRoomState(roomId, room);
@@ -111,10 +118,12 @@ export async function addVideosToRoom(roomId: string, videos: YouTubeVideo[]): P
             markCaptionTracksPending(room, first.id);
             lastPlaybackBroadcastByRoom.delete(roomId);
             room.videoQueue = rest;
+            reconcileAutoPlay(room);
             return;
         }
 
         room.videoQueue = [...room.videoQueue, ...fresh];
+        reconcileAutoPlay(room);
     });
 
     broadcastRoomState(roomId, room);
@@ -153,6 +162,7 @@ export async function playVideoNowInRoom(roomId: string, video: YouTubeVideo): P
         resetTikTokPhotoIndex(room);
         markCaptionTracksPending(room, video.id);
         lastPlaybackBroadcastByRoom.delete(roomId);
+        reconcileAutoPlay(room);
     });
 
     broadcastRoomState(roomId, room);
@@ -196,12 +206,14 @@ export async function nextVideoInRoom(
 
             room.videoQueue = mergeQueueAfterAdvance(snapshotQueue, remainingQueue, room.videoQueue);
 
-            if (nextPlayable) {
-                room.playingNow = nextPlayable;
+            const next =
+                nextPlayable ?? autoPlayVideoToPromote(room, snapshot.playingNow?.id ?? null);
+            if (next) {
+                room.playingNow = next;
                 room.isPlaying = true;
                 room.currentTime = 0;
                 resetTikTokPhotoIndex(room);
-                markCaptionTracksPending(room, nextPlayable.id);
+                markCaptionTracksPending(room, next.id);
             } else {
                 room.playingNow = null;
                 room.isPlaying = false;
@@ -211,6 +223,7 @@ export async function nextVideoInRoom(
             }
 
             lastPlaybackBroadcastByRoom.delete(roomId);
+            reconcileAutoPlay(room);
         });
 
         broadcastRoomState(roomId, room);
@@ -235,4 +248,3 @@ async function loadAfterAdvance(roomId: string): Promise<Room | null> {
         return null;
     }
 }
-

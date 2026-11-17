@@ -4,6 +4,8 @@ import dynamic from 'next/dynamic';
 import { useEffect } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { pendingAutoPlayCandidate } from '@vkara/room';
+
 import { useScopedI18n, useCurrentLocale } from '@/locales/client';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { useCountdownStore } from '@/store/countdownTimersStore';
@@ -50,29 +52,23 @@ export default function TvPage() {
 
     const tToast = useScopedI18n('toast');
     const locale = useCurrentLocale();
-    const {
-        roomId,
-        roomPassword,
-        playingNow,
-        showQRInPlayer,
-        videoQueueLength,
-        tvSuppressAutoCreate,
-    } = useYouTubeStore(
-        useShallow((s) => ({
-            roomId: s.room?.id,
-            roomPassword: s.room?.password,
-            playingNow: s.room?.playingNow,
-            showQRInPlayer: s.room?.showQRInPlayer ?? true,
-            videoQueueLength: s.room?.videoQueue?.length ?? 0,
-            tvSuppressAutoCreate: s.tvSuppressAutoCreate,
-        })),
-    );
+    const { roomId, roomPassword, playingNow, showQRInPlayer, hasNextUp, tvSuppressAutoCreate } =
+        useYouTubeStore(
+            useShallow((s) => ({
+                roomId: s.room?.id,
+                roomPassword: s.room?.password,
+                playingNow: s.room?.playingNow,
+                showQRInPlayer: s.room?.showQRInPlayer ?? true,
+                hasNextUp: Boolean(s.room?.videoQueue?.length || pendingAutoPlayCandidate(s.room)),
+                tvSuppressAutoCreate: s.tvSuppressAutoCreate,
+            })),
+        );
     const shouldShowNextUp = useCountdownStore((s) => s.shouldShowTimer);
 
     const showLobby = !roomId && tvSuppressAutoCreate;
     const inRoom = Boolean(roomId) && !showLobby;
     const isPlayerActive = inRoom && Boolean(playingNow);
-    const nextUpVisible = isPlayerActive && shouldShowNextUp && videoQueueLength > 0;
+    const nextUpVisible = isPlayerActive && shouldShowNextUp && hasNextUp;
 
     const {
         controlsVisible,

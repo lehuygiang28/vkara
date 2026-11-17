@@ -57,14 +57,19 @@ export async function checkEmbeddableStatus(videoIds: string[]) {
 export async function getRelatedVideos(
     videoId: string,
     continuation?: string | null,
+    signal?: AbortSignal,
 ): Promise<{ items: YouTubeVideo[]; continuation: string | null }> {
     const data = await apiPost<{
         items: YouTubeVideo[];
         continuation: string | null;
-    }>('/related', {
-        videoId,
-        ...(continuation ? { continuation } : {}),
-    });
+    }>(
+        '/related',
+        {
+            videoId,
+            ...(continuation ? { continuation } : {}),
+        },
+        signal,
+    );
 
     return {
         items: data.items,

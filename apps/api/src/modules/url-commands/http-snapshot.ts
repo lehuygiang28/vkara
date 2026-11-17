@@ -29,6 +29,8 @@ export function cleanRoomForAgentHttp(room: Room) {
         captionsEnabled: cleaned.captionsEnabled,
         captionsLanguage: cleaned.captionsLanguage,
         playingNow: cleaned.playingNow,
+        autoPlayNext: cleaned.autoPlayNext,
+        autoPlayCandidate: cleaned.autoPlayCandidate,
         isPlaying: cleaned.isPlaying,
         currentTime: cleaned.currentTime,
         locked: cleaned.locked,

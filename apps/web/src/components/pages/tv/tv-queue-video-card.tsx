@@ -50,6 +50,7 @@ type TvQueueVideoCardProps = {
     focusEnabled?: boolean;
     isNowPlaying: boolean;
     nowPlayingLabel: string;
+    autoPlayLabel?: string;
     viewsLabel: string;
     onPlayAction: () => void;
     onLeaveQueueAction?: () => void;
@@ -60,6 +61,7 @@ export function TvQueueVideoCard({
     focusEnabled = true,
     isNowPlaying,
     nowPlayingLabel,
+    autoPlayLabel,
     viewsLabel,
     onPlayAction,
     onLeaveQueueAction,
@@ -96,10 +98,7 @@ export function TvQueueVideoCard({
             className={({ focused }) => cn('shrink-0 snap-center', tvFocusShellRect(focused))}
         >
             {({ focused }) => (
-                <article
-                    data-tv-queue-item={video.id}
-                    className="tv-queue-card__frame"
-                >
+                <article data-tv-queue-item={video.id} className="tv-queue-card__frame">
                     <div className={cn('tv-queue-thumb', tvQueueThumbFrame(focused, isNowPlaying))}>
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
@@ -116,6 +115,10 @@ export function TvQueueVideoCard({
                                 )}
                             >
                                 {nowPlayingLabel}
+                            </span>
+                        ) : autoPlayLabel ? (
+                            <span className="absolute left-2.5 top-2.5 rounded-md border border-dashed border-white/60 bg-black/80 px-2.5 py-1 text-xs font-bold uppercase tracking-wide text-zinc-200">
+                                {autoPlayLabel}
                             </span>
                         ) : isLive ? (
                             <div className="absolute left-2.5 top-2.5">

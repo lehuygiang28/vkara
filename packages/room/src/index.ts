@@ -1,3 +1,4 @@
+export * from './auto-play';
 export * from './errors';
 export * from './playback-sync';
 export * from './websocket';

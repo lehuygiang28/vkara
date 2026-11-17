@@ -4,12 +4,11 @@ import dynamic from 'next/dynamic';
 import { memo, useCallback } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 
+import { pendingAutoPlayCandidate } from '@vkara/room';
+
 import { applyPlaybackSeek } from '@/lib/active-playback';
 import { ensureConnectedAndSend } from '@/lib/ensure-ws-send';
-import {
-    markServerPlaybackCommand,
-    markUserSeekTarget,
-} from '@/lib/youtube-playback-sync';
+import { markServerPlaybackCommand, markUserSeekTarget } from '@/lib/youtube-playback-sync';
 import { useCountdownStore } from '@/store/countdownTimersStore';
 import { useYouTubeStore } from '@/store/youtubeStore';
 
@@ -21,17 +20,14 @@ const TvNextUpOverlay = dynamic(
 function TvNextUpGateInner() {
     const shouldShowTimer = useCountdownStore((s) => s.shouldShowTimer);
 
-    const { playingNowId, nextQueuedVideo, videoQueueLength } = useYouTubeStore(
+    const { playingNowId, nextQueuedVideo } = useYouTubeStore(
         useShallow((s) => ({
             playingNowId: s.room?.playingNow?.id ?? null,
-            nextQueuedVideo: s.room?.videoQueue?.[0] ?? null,
-            videoQueueLength: s.room?.videoQueue?.length ?? 0,
+            nextQueuedVideo: s.room?.videoQueue?.[0] ?? pendingAutoPlayCandidate(s.room),
         })),
     );
 
-    const showOverlay = Boolean(
-        playingNowId && shouldShowTimer && videoQueueLength > 0 && nextQueuedVideo,
-    );
+    const showOverlay = Boolean(playingNowId && shouldShowTimer && nextQueuedVideo);
 
     const dismissNextUp = useCallback(() => {
         useCountdownStore.getState().cancelCountdown();
