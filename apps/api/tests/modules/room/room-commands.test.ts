@@ -38,6 +38,7 @@ vi.mock('@/modules/room/room-broadcast', () => ({
 vi.mock('@/redis', () => ({ redis: {} }));
 
 import { ErrorCode } from '@vkara/room';
+import { mutateRoom } from '@/utils/room-store';
 
 import {
     addVideoToRoom,
@@ -135,6 +136,23 @@ describe('nextVideoInRoom', () => {
         await nextVideoInRoom('4821');
 
         expect(roomState.current.playingNow).toBeNull();
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+    });
+
+    it('keeps a song that replaced the finished one while advance was resolving', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        vi.mocked(mutateRoom).mockImplementationOnce(async (_roomId, mutator) => {
+            roomState.current.playingNow = video('jumped');
+            mutator(roomState.current);
+            return roomState.current;
+        });
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow?.id).toBe('jumped');
+        expect(roomState.current.historyQueue).toEqual([]);
         expect(roomState.current.autoPlayCandidate).toBeNull();
     });
 });

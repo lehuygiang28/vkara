@@ -226,6 +226,11 @@ export async function nextVideoInRoom(
             snapshotCandidate !== null && (await checkEmbeddable(redis, snapshotCandidate.id));
 
         const room = await mutateRoom(roomId, (room) => {
+            if (finishedVideoId && room.playingNow && room.playingNow.id !== finishedVideoId) {
+                reconcileAutoPlay(room);
+                return;
+            }
+
             if (archiveCurrent && room.playingNow?.id) {
                 room.historyQueue = [
                     room.playingNow,
