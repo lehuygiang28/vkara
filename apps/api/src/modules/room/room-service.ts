@@ -8,7 +8,6 @@ import {
     ErrorCode,
     RoomError,
     shouldBroadcastPlaybackTime,
-    acceptAutoPlayCandidate,
     acceptSyncPlaybackPositionTime,
     reconcileAutoPlay,
     type ClientInfo,
@@ -28,6 +27,7 @@ import {
     addVideosToRoom,
     nextVideoInRoom,
     playVideoNowInRoom,
+    setAutoPlayCandidateInRoom,
 } from '@/modules/room/room-commands';
 import {
     lastPlaybackBroadcastByRoom,
@@ -1030,15 +1030,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         forVideoId: string,
     ): Promise<void> {
         const roomId = await validateClientInRoom(ws);
-
-        let accepted = false;
-        const room = await mutateRoom(roomId, (room) => {
-            accepted = acceptAutoPlayCandidate(room, video, forVideoId);
-        });
-
-        if (accepted) {
-            broadcastRoomState(roomId, room);
-        }
+        await setAutoPlayCandidateInRoom(roomId, video, forVideoId);
     }
 
     async function setCaptionsLanguage(ws: ElysiaWS, languageCode: string): Promise<void> {

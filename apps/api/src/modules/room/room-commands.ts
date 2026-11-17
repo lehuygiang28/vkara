@@ -1,6 +1,7 @@
 import { isTikTokVideo } from '@vkara/tiktok';
 import type { YouTubeVideo } from '@vkara/youtube';
 import {
+    acceptAutoPlayCandidate,
     autoPlayVideoToPromote,
     ErrorCode,
     reconcileAutoPlay,
@@ -172,6 +173,28 @@ export async function playVideoNowInRoom(roomId: string, video: YouTubeVideo): P
     return room;
 }
 
+export async function setAutoPlayCandidateInRoom(
+    roomId: string,
+    video: YouTubeVideo,
+    forVideoId: string,
+): Promise<Room | null> {
+    if (!video?.id || !(await checkEmbeddable(redis, video.id))) {
+        return null;
+    }
+
+    let accepted = false;
+    const room = await mutateRoom(roomId, (room) => {
+        accepted = acceptAutoPlayCandidate(room, video, forVideoId);
+    });
+
+    if (!accepted) {
+        return null;
+    }
+
+    broadcastRoomState(roomId, room);
+    return room;
+}
+
 export async function nextVideoInRoom(
     roomId: string,
     options: { archiveCurrent?: boolean } = {},
@@ -191,10 +214,16 @@ export async function nextVideoInRoom(
         }
 
         const snapshotQueue = snapshot.videoQueue;
+        const finishedVideoId = snapshot.playingNow?.id ?? null;
         const { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
             redis,
             snapshotQueue,
         );
+        const snapshotCandidate = nextPlayable
+            ? null
+            : autoPlayVideoToPromote(snapshot, finishedVideoId);
+        const autoPlayEmbeddable =
+            snapshotCandidate !== null && (await checkEmbeddable(redis, snapshotCandidate.id));
 
         const room = await mutateRoom(roomId, (room) => {
             if (archiveCurrent && room.playingNow?.id) {
@@ -206,8 +235,10 @@ export async function nextVideoInRoom(
 
             room.videoQueue = mergeQueueAfterAdvance(snapshotQueue, remainingQueue, room.videoQueue);
 
-            const next =
-                nextPlayable ?? autoPlayVideoToPromote(room, snapshot.playingNow?.id ?? null);
+            const promoted = autoPlayVideoToPromote(room, finishedVideoId);
+            const autoplay =
+                autoPlayEmbeddable && promoted?.id === snapshotCandidate?.id ? promoted : null;
+            const next = nextPlayable ?? autoplay;
             if (next) {
                 room.playingNow = next;
                 room.isPlaying = true;

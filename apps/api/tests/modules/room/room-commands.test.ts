@@ -44,8 +44,12 @@ import {
     addVideosToRoom,
     nextVideoInRoom,
     playVideoNowInRoom,
+    setAutoPlayCandidateInRoom,
 } from '@/modules/room/room-commands';
-import { filterYouTubeVideosByEmbeddability } from '@/modules/youtube/resolve-embed-playability';
+import {
+    checkEmbeddable,
+    filterYouTubeVideosByEmbeddability,
+} from '@/modules/youtube/resolve-embed-playability';
 
 function video(id: string): YouTubeVideo {
     return {
@@ -120,6 +124,50 @@ describe('nextVideoInRoom', () => {
         expect(roomState.current.historyQueue.map((item) => item.id)).toEqual(['now']);
         expect(roomState.current.videoQueue).toEqual([]);
         expect(roomState.current.autoPlayCandidate).toBeNull();
+    });
+
+    it('does not promote a candidate that cannot be embedded', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        vi.mocked(checkEmbeddable).mockResolvedValueOnce(false);
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow).toBeNull();
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+    });
+});
+
+describe('setAutoPlayCandidateInRoom', () => {
+    beforeEach(() => {
+        roomState.current = createTestRoom({
+            id: '4821',
+            autoPlayNext: true,
+            playingNow: video('now'),
+        });
+        publishToRoom.mockClear();
+        vi.mocked(checkEmbeddable).mockResolvedValue(true);
+    });
+
+    it('stores an embeddable related video', async () => {
+        const stored = await setAutoPlayCandidateInRoom('4821', video('related'), 'now');
+
+        expect(stored?.autoPlayCandidate?.video.id).toBe('related');
+        expect(publishToRoom).toHaveBeenCalledWith(
+            '4821',
+            expect.objectContaining({ type: 'roomUpdate' }),
+        );
+    });
+
+    it('does not store a video that cannot be embedded', async () => {
+        vi.mocked(checkEmbeddable).mockResolvedValueOnce(false);
+
+        const stored = await setAutoPlayCandidateInRoom('4821', video('blocked'), 'now');
+
+        expect(stored).toBeNull();
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+        expect(publishToRoom).not.toHaveBeenCalled();
     });
 });
 
