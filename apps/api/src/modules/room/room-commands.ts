@@ -219,10 +219,15 @@ export async function nextVideoInRoom(
         const snapshotQueue = snapshot.videoQueue;
         const snapshotIds = new Set(snapshotQueue.map((item) => item.id));
         const finishedVideoId = snapshot.playingNow?.id ?? null;
-        const { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
+        let { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
             redis,
             snapshotQueue,
         );
+        while (!nextPlayable && remainingQueue.length > 0) {
+            const continued = await resolveNextEmbeddableFromQueue(redis, remainingQueue);
+            nextPlayable = continued.video;
+            remainingQueue = continued.remainingQueue;
+        }
         const snapshotCandidate = nextPlayable
             ? null
             : autoPlayVideoToPromote(snapshot, finishedVideoId);
@@ -253,7 +258,7 @@ export async function nextVideoInRoom(
             const autoplay =
                 autoPlayEmbeddable && promoted?.id === snapshotCandidate?.id ? promoted : null;
             let next = nextPlayable ?? autoplay;
-            if (!next) {
+            if (!next && remainingQueue.length === 0) {
                 const queuedDuringResolve = room.videoQueue.find(
                     (item) => !snapshotIds.has(item.id),
                 );

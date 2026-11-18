@@ -188,6 +188,29 @@ describe('nextVideoInRoom', () => {
         expect(roomState.current.historyQueue.map((item) => item.id)).toEqual(['now']);
         expect(roomState.current.autoPlayCandidate).toBeNull();
     });
+
+    it('plays a retained song past the embed skip cap before one added during the check', async () => {
+        const blocked = Array.from({ length: 25 }, (_, index) => video(`blocked-${index}`));
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        roomState.current.videoQueue = [...blocked, video('retained')];
+        vi.mocked(checkEmbeddable).mockImplementation(async (_redis, id: string) => {
+            if (
+                id === 'blocked-0' &&
+                !roomState.current.videoQueue.some((item) => item.id === 'added')
+            ) {
+                roomState.current.videoQueue = [...roomState.current.videoQueue, video('added')];
+            }
+            return id === 'retained';
+        });
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow?.id).toBe('retained');
+        expect(roomState.current.videoQueue.map((item) => item.id)).toEqual(['added']);
+        vi.mocked(checkEmbeddable).mockImplementation(async () => true);
+    });
 });
 
 describe('setAutoPlayCandidateInRoom', () => {
