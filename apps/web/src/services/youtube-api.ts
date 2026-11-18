@@ -50,8 +50,12 @@ export async function getYoutubeSuggestions(query: string, signal?: AbortSignal)
     return apiPost<string[]>('/suggestions', { query }, signal);
 }
 
-export async function checkEmbeddableStatus(videoIds: string[]) {
-    return apiPost<{ videoId: string; canEmbed: boolean }[]>('/check-embeddable', { videoIds });
+export async function checkEmbeddableStatus(videoIds: string[], signal?: AbortSignal) {
+    return apiPost<{ videoId: string; canEmbed: boolean }[]>(
+        '/check-embeddable',
+        { videoIds },
+        signal,
+    );
 }
 
 export async function getRelatedVideos(

@@ -155,6 +155,39 @@ describe('nextVideoInRoom', () => {
         expect(roomState.current.historyQueue).toEqual([]);
         expect(roomState.current.autoPlayCandidate).toBeNull();
     });
+
+    it('still advances when the autoplay embed check throws', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        vi.mocked(checkEmbeddable).mockRejectedValueOnce(new Error('youtube down'));
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow).toBeNull();
+        expect(roomState.current.isPlaying).toBe(false);
+        expect(publishToRoom).toHaveBeenCalledWith(
+            '4821',
+            expect.objectContaining({ type: 'roomUpdate' }),
+        );
+    });
+
+    it('plays a song that was queued while the autoplay embed check was in flight', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        vi.mocked(checkEmbeddable).mockImplementationOnce(async () => {
+            roomState.current.videoQueue = [video('queued')];
+            return true;
+        });
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow?.id).toBe('queued');
+        expect(roomState.current.videoQueue).toEqual([]);
+        expect(roomState.current.historyQueue.map((item) => item.id)).toEqual(['now']);
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+    });
 });
 
 describe('setAutoPlayCandidateInRoom', () => {

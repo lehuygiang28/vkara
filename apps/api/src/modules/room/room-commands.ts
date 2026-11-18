@@ -110,7 +110,10 @@ export async function addVideosToRoom(roomId: string, videos: YouTubeVideo[]): P
         if (!room.playingNow && room.videoQueue.length === 0) {
             const [first, ...rest] = fresh;
             if (!first) {
-                throw new RoomError(ErrorCode.VIDEO_NOT_FOUND, 'No embeddable videos found in this list.');
+                throw new RoomError(
+                    ErrorCode.VIDEO_NOT_FOUND,
+                    'No embeddable videos found in this list.',
+                );
             }
             room.playingNow = first;
             room.isPlaying = true;
@@ -214,6 +217,7 @@ export async function nextVideoInRoom(
         }
 
         const snapshotQueue = snapshot.videoQueue;
+        const snapshotIds = new Set(snapshotQueue.map((item) => item.id));
         const finishedVideoId = snapshot.playingNow?.id ?? null;
         const { video: nextPlayable, remainingQueue } = await resolveNextEmbeddableFromQueue(
             redis,
@@ -223,7 +227,8 @@ export async function nextVideoInRoom(
             ? null
             : autoPlayVideoToPromote(snapshot, finishedVideoId);
         const autoPlayEmbeddable =
-            snapshotCandidate !== null && (await checkEmbeddable(redis, snapshotCandidate.id));
+            snapshotCandidate !== null &&
+            (await checkEmbeddable(redis, snapshotCandidate.id).catch(() => false));
 
         const room = await mutateRoom(roomId, (room) => {
             if (finishedVideoId && room.playingNow && room.playingNow.id !== finishedVideoId) {
@@ -238,12 +243,27 @@ export async function nextVideoInRoom(
                 ];
             }
 
-            room.videoQueue = mergeQueueAfterAdvance(snapshotQueue, remainingQueue, room.videoQueue);
+            room.videoQueue = mergeQueueAfterAdvance(
+                snapshotQueue,
+                remainingQueue,
+                room.videoQueue,
+            );
 
             const promoted = autoPlayVideoToPromote(room, finishedVideoId);
             const autoplay =
                 autoPlayEmbeddable && promoted?.id === snapshotCandidate?.id ? promoted : null;
-            const next = nextPlayable ?? autoplay;
+            let next = nextPlayable ?? autoplay;
+            if (!next) {
+                const queuedDuringResolve = room.videoQueue.find(
+                    (item) => !snapshotIds.has(item.id),
+                );
+                if (queuedDuringResolve) {
+                    next = queuedDuringResolve;
+                    room.videoQueue = room.videoQueue.filter(
+                        (item) => item.id !== queuedDuringResolve.id,
+                    );
+                }
+            }
             if (next) {
                 room.playingNow = next;
                 room.isPlaying = true;

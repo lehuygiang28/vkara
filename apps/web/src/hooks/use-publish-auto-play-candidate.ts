@@ -10,9 +10,12 @@ import { useYouTubeStore } from '@/store/youtubeStore';
 const RELATED_ATTEMPTS = 2;
 const RELATED_TIMEOUT_MS = 8_000;
 
-function startAttempt(parent: AbortSignal): { signal: AbortSignal; stop: () => void } {
+function startAttempt(
+    parent: AbortSignal,
+    timeoutMs: number,
+): { signal: AbortSignal; stop: () => void } {
     const attempt = new AbortController();
-    const timer = setTimeout(() => attempt.abort(), RELATED_TIMEOUT_MS);
+    const timer = setTimeout(() => attempt.abort(), timeoutMs);
     const abortAttempt = () => attempt.abort();
     if (parent.aborted) {
         abortAttempt();
@@ -28,18 +31,22 @@ function startAttempt(parent: AbortSignal): { signal: AbortSignal; stop: () => v
     };
 }
 
-async function publishRelatedCandidate(forVideoId: string, parent: AbortSignal): Promise<void> {
+export async function publishRelatedCandidate(
+    forVideoId: string,
+    parent: AbortSignal,
+    timeoutMs = RELATED_TIMEOUT_MS,
+): Promise<void> {
     for (let attempt = 0; attempt < RELATED_ATTEMPTS; attempt += 1) {
         if (parent.aborted) {
             return;
         }
-        const current = startAttempt(parent);
+        const current = startAttempt(parent, timeoutMs);
         try {
             const { items } = await getRelatedVideos(forVideoId, null, current.signal);
             if (parent.aborted) {
                 return;
             }
-            const sent = await sendFirstEmbeddable(items, forVideoId, parent);
+            const sent = await sendFirstEmbeddable(items, forVideoId, current.signal);
             if (sent !== 'failed') {
                 return;
             }
@@ -56,8 +63,11 @@ async function publishRelatedCandidate(forVideoId: string, parent: AbortSignal):
 async function sendFirstEmbeddable(
     items: YouTubeVideo[],
     forVideoId: string,
-    parent: AbortSignal,
+    signal: AbortSignal,
 ): Promise<'sent' | 'empty' | 'failed'> {
+    if (signal.aborted) {
+        return 'failed';
+    }
     const eligible = items
         .filter(
             (item) =>
@@ -72,8 +82,11 @@ async function sendFirstEmbeddable(
     }
     let video = eligible[0];
     try {
-        const statuses = await checkEmbeddableStatus(eligible.map((item) => item.id));
-        if (parent.aborted) {
+        const statuses = await checkEmbeddableStatus(
+            eligible.map((item) => item.id),
+            signal,
+        );
+        if (signal.aborted) {
             return 'failed';
         }
         const embeddableIds = new Set(
@@ -85,9 +98,12 @@ async function sendFirstEmbeddable(
         }
         video = match;
     } catch {
-        if (parent.aborted) {
+        if (signal.aborted) {
             return 'failed';
         }
+    }
+    if (signal.aborted) {
+        return 'failed';
     }
     ensureConnectedAndSend({ type: 'setAutoPlayCandidate', video, forVideoId });
     return 'sent';
