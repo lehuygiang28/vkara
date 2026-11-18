@@ -50,6 +50,7 @@ describe('apply-tv-restore', () => {
             captionTracksVideoId: 'now',
             tiktokPhotoIndex: 2,
             tiktokPhotoMaxIndex: 4,
+            autoPlayNext: true,
         });
 
         expect(room.historyQueue).toEqual([]);
@@ -62,6 +63,36 @@ describe('apply-tv-restore', () => {
         expect(room.captionsEnabled).toBe(true);
         expect(room.tiktokPhotoIndex).toBe(2);
         expect(room.tiktokPhotoMaxIndex).toBe(4);
+        expect(room.autoPlayNext).toBe(true);
+    });
+
+    it('defaults autoPlayNext to off for older snapshots and drops a stale candidate', () => {
+        const room = createTestRoom({
+            autoPlayNext: true,
+            playingNow: { id: 'old' } as Room['playingNow'],
+            autoPlayCandidate: {
+                video: { id: 'related' } as NonNullable<Room['autoPlayCandidate']>['video'],
+                forVideoId: 'old',
+            },
+        });
+
+        applyTvRestoreToRoom(room, {
+            videoQueue: [],
+            playingNow: { id: 'now' } as Room['playingNow'],
+            isPlaying: true,
+            currentTime: 0,
+            volume: 100,
+            showQRInPlayer: true,
+            captionsEnabled: false,
+            captionsLanguage: 'vi',
+            captionTracks: [],
+            captionTracksVideoId: null,
+            tiktokPhotoIndex: 0,
+            tiktokPhotoMaxIndex: 0,
+        });
+
+        expect(room.autoPlayNext).toBe(false);
+        expect(room.autoPlayCandidate).toBeNull();
     });
 
     it('clamps caption track list length', () => {

@@ -9,6 +9,7 @@ import {
     RoomError,
     shouldBroadcastPlaybackTime,
     acceptSyncPlaybackPositionTime,
+    reconcileAutoPlay,
     type ClientInfo,
     type Participant,
     type Room,
@@ -26,6 +27,7 @@ import {
     addVideosToRoom,
     nextVideoInRoom,
     playVideoNowInRoom,
+    setAutoPlayCandidateInRoom,
 } from '@/modules/room/room-commands';
 import {
     lastPlaybackBroadcastByRoom,
@@ -473,6 +475,8 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             captionTracks: [],
             captionTracksVideoId: null,
             playingNow: null,
+            autoPlayNext: false,
+            autoPlayCandidate: null,
             lastActivity: Date.now(),
             creatorId: ws.id,
             isPlaying: false,
@@ -1009,6 +1013,26 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
         broadcastRoomState(roomId, room);
     }
 
+    async function setAutoPlayNext(ws: ElysiaWS, enabled: boolean): Promise<void> {
+        const roomId = await validateClientInRoom(ws);
+
+        const room = await mutateRoom(roomId, (room) => {
+            room.autoPlayNext = enabled;
+            reconcileAutoPlay(room);
+        });
+
+        broadcastRoomState(roomId, room);
+    }
+
+    async function setAutoPlayCandidate(
+        ws: ElysiaWS,
+        video: YouTubeVideo,
+        forVideoId: string,
+    ): Promise<void> {
+        const roomId = await validateClientInRoom(ws);
+        await setAutoPlayCandidateInRoom(roomId, video, forVideoId);
+    }
+
     async function setCaptionsLanguage(ws: ElysiaWS, languageCode: string): Promise<void> {
         const trimmed = languageCode.trim();
         if (!trimmed) {
@@ -1273,6 +1297,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             } else {
                 room.videoQueue = [video, ...room.videoQueue];
             }
+            reconcileAutoPlay(room);
         });
 
         broadcastRoomState(roomId, room);
@@ -1324,6 +1349,7 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
             const newVideos = embeddableVideos.filter((video) => !existingIds.has(video.id));
 
             room.videoQueue = [...room.videoQueue, ...newVideos];
+            reconcileAutoPlay(room);
         });
 
         if (shouldStartPlayback && room.videoQueue.length > 0) {
@@ -1483,6 +1509,15 @@ export function createRoomService({ wsConnections, sendToClient }: RoomServiceDe
                     throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid captionsEnabled value');
                 }
                 await setCaptionsEnabled(ws, message.enabled);
+                break;
+            case 'setAutoPlayNext':
+                if (typeof message.enabled !== 'boolean') {
+                    throw new RoomError(ErrorCode.INVALID_MESSAGE, 'Invalid autoPlayNext value');
+                }
+                await setAutoPlayNext(ws, message.enabled);
+                break;
+            case 'setAutoPlayCandidate':
+                await setAutoPlayCandidate(ws, message.video, message.forVideoId);
                 break;
             case 'setCaptionsLanguage':
                 if (typeof message.languageCode !== 'string') {

@@ -50,21 +50,30 @@ export async function getYoutubeSuggestions(query: string, signal?: AbortSignal)
     return apiPost<string[]>('/suggestions', { query }, signal);
 }
 
-export async function checkEmbeddableStatus(videoIds: string[]) {
-    return apiPost<{ videoId: string; canEmbed: boolean }[]>('/check-embeddable', { videoIds });
+export async function checkEmbeddableStatus(videoIds: string[], signal?: AbortSignal) {
+    return apiPost<{ videoId: string; canEmbed: boolean }[]>(
+        '/check-embeddable',
+        { videoIds },
+        signal,
+    );
 }
 
 export async function getRelatedVideos(
     videoId: string,
     continuation?: string | null,
+    signal?: AbortSignal,
 ): Promise<{ items: YouTubeVideo[]; continuation: string | null }> {
     const data = await apiPost<{
         items: YouTubeVideo[];
         continuation: string | null;
-    }>('/related', {
-        videoId,
-        ...(continuation ? { continuation } : {}),
-    });
+    }>(
+        '/related',
+        {
+            videoId,
+            ...(continuation ? { continuation } : {}),
+        },
+        signal,
+    );
 
     return {
         items: data.items,

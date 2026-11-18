@@ -43,6 +43,8 @@ describe('youtubeStore persist partialize', () => {
                 historyQueue: [],
                 volume: 80,
                 playingNow: null,
+                autoPlayNext: false,
+                autoPlayCandidate: null,
                 isPlaying: true,
                 currentTime: 123,
                 lastActivity: Date.now(),
@@ -161,10 +163,12 @@ describe('youtubeStore persist partialize', () => {
             } as NonNullable<typeof room>,
         });
 
-        useYouTubeStore.getState().handleServerMessage(
-            { type: 'currentTimeChanged', currentTime: 40, videoId: 'vid' },
-            (() => '') as never,
-        );
+        useYouTubeStore
+            .getState()
+            .handleServerMessage(
+                { type: 'currentTimeChanged', currentTime: 40, videoId: 'vid' },
+                (() => '') as never,
+            );
 
         expect(useYouTubeStore.getState().room?.currentTime).toBe(40);
     });

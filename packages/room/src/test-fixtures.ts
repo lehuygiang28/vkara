@@ -14,6 +14,8 @@ export function createTestPersistedRoom(overrides: Partial<PersistedRoom> = {}):
         captionTracks: [],
         captionTracksVideoId: null,
         playingNow: null,
+        autoPlayNext: false,
+        autoPlayCandidate: null,
         lastActivity: 0,
         creatorId: 'c1',
         isPlaying: false,

@@ -5,18 +5,24 @@ import type { YouTubeVideo } from '@vkara/youtube';
 
 const { roomState, publishToRoom } = vi.hoisted(() => ({
     roomState: {
-        current: { id: '4821', playingNow: null, videoQueue: [] } as unknown as ReturnType<typeof createTestRoom>,
+        current: { id: '4821', playingNow: null, videoQueue: [] } as unknown as ReturnType<
+            typeof createTestRoom
+        >,
     },
     publishToRoom: vi.fn(),
 }));
 
 vi.mock('@/utils/room-store', () => ({
-    isVideoAlreadyInRoom: (room: { playingNow?: { id: string } | null; videoQueue: { id: string }[] }, id: string) =>
-        room.playingNow?.id === id || room.videoQueue.some((v) => v.id === id),
-    mutateRoom: vi.fn(async (_roomId: string, mutator: (room: typeof roomState.current) => void) => {
-        mutator(roomState.current);
-        return roomState.current;
-    }),
+    isVideoAlreadyInRoom: (
+        room: { playingNow?: { id: string } | null; videoQueue: { id: string }[] },
+        id: string,
+    ) => room.playingNow?.id === id || room.videoQueue.some((v) => v.id === id),
+    mutateRoom: vi.fn(
+        async (_roomId: string, mutator: (room: typeof roomState.current) => void) => {
+            mutator(roomState.current);
+            return roomState.current;
+        },
+    ),
     requireRoom: vi.fn(async () => roomState.current),
 }));
 
@@ -32,9 +38,19 @@ vi.mock('@/modules/room/room-broadcast', () => ({
 vi.mock('@/redis', () => ({ redis: {} }));
 
 import { ErrorCode } from '@vkara/room';
+import { mutateRoom } from '@/utils/room-store';
 
-import { addVideoToRoom, addVideosToRoom, playVideoNowInRoom } from '@/modules/room/room-commands';
-import { filterYouTubeVideosByEmbeddability } from '@/modules/youtube/resolve-embed-playability';
+import {
+    addVideoToRoom,
+    addVideosToRoom,
+    nextVideoInRoom,
+    playVideoNowInRoom,
+    setAutoPlayCandidateInRoom,
+} from '@/modules/room/room-commands';
+import {
+    checkEmbeddable,
+    filterYouTubeVideosByEmbeddability,
+} from '@/modules/youtube/resolve-embed-playability';
 
 function video(id: string): YouTubeVideo {
     return {
@@ -88,6 +104,144 @@ describe('playVideoNowInRoom', () => {
             '4821',
             expect.objectContaining({ type: 'roomUpdate' }),
         );
+    });
+});
+
+describe('nextVideoInRoom', () => {
+    beforeEach(() => {
+        roomState.current = createTestRoom({ id: '4821' });
+        publishToRoom.mockClear();
+    });
+
+    it('plays the autoplay candidate when the queue is empty and clears it', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow?.id).toBe('related');
+        expect(roomState.current.isPlaying).toBe(true);
+        expect(roomState.current.historyQueue.map((item) => item.id)).toEqual(['now']);
+        expect(roomState.current.videoQueue).toEqual([]);
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+    });
+
+    it('does not promote a candidate that cannot be embedded', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        vi.mocked(checkEmbeddable).mockResolvedValueOnce(false);
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow).toBeNull();
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+    });
+
+    it('keeps a song that replaced the finished one while advance was resolving', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        vi.mocked(mutateRoom).mockImplementationOnce(async (_roomId, mutator) => {
+            roomState.current.playingNow = video('jumped');
+            mutator(roomState.current);
+            return roomState.current;
+        });
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow?.id).toBe('jumped');
+        expect(roomState.current.historyQueue).toEqual([]);
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+    });
+
+    it('still advances when the autoplay embed check throws', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        vi.mocked(checkEmbeddable).mockRejectedValueOnce(new Error('youtube down'));
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow).toBeNull();
+        expect(roomState.current.isPlaying).toBe(false);
+        expect(publishToRoom).toHaveBeenCalledWith(
+            '4821',
+            expect.objectContaining({ type: 'roomUpdate' }),
+        );
+    });
+
+    it('plays a song that was queued while the autoplay embed check was in flight', async () => {
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        vi.mocked(checkEmbeddable).mockImplementationOnce(async () => {
+            roomState.current.videoQueue = [video('queued')];
+            return true;
+        });
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow?.id).toBe('queued');
+        expect(roomState.current.videoQueue).toEqual([]);
+        expect(roomState.current.historyQueue.map((item) => item.id)).toEqual(['now']);
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+    });
+
+    it('plays a retained song past the embed skip cap before one added during the check', async () => {
+        const blocked = Array.from({ length: 25 }, (_, index) => video(`blocked-${index}`));
+        roomState.current.playingNow = video('now');
+        roomState.current.autoPlayNext = true;
+        roomState.current.autoPlayCandidate = { video: video('related'), forVideoId: 'now' };
+        roomState.current.videoQueue = [...blocked, video('retained')];
+        vi.mocked(checkEmbeddable).mockImplementation(async (_redis, id: string) => {
+            if (
+                id === 'blocked-0' &&
+                !roomState.current.videoQueue.some((item) => item.id === 'added')
+            ) {
+                roomState.current.videoQueue = [...roomState.current.videoQueue, video('added')];
+            }
+            return id === 'retained';
+        });
+
+        await nextVideoInRoom('4821');
+
+        expect(roomState.current.playingNow?.id).toBe('retained');
+        expect(roomState.current.videoQueue.map((item) => item.id)).toEqual(['added']);
+        vi.mocked(checkEmbeddable).mockImplementation(async () => true);
+    });
+});
+
+describe('setAutoPlayCandidateInRoom', () => {
+    beforeEach(() => {
+        roomState.current = createTestRoom({
+            id: '4821',
+            autoPlayNext: true,
+            playingNow: video('now'),
+        });
+        publishToRoom.mockClear();
+        vi.mocked(checkEmbeddable).mockResolvedValue(true);
+    });
+
+    it('stores an embeddable related video', async () => {
+        const stored = await setAutoPlayCandidateInRoom('4821', video('related'), 'now');
+
+        expect(stored?.autoPlayCandidate?.video.id).toBe('related');
+        expect(publishToRoom).toHaveBeenCalledWith(
+            '4821',
+            expect.objectContaining({ type: 'roomUpdate' }),
+        );
+    });
+
+    it('does not store a video that cannot be embedded', async () => {
+        vi.mocked(checkEmbeddable).mockResolvedValueOnce(false);
+
+        const stored = await setAutoPlayCandidateInRoom('4821', video('blocked'), 'now');
+
+        expect(stored).toBeNull();
+        expect(roomState.current.autoPlayCandidate).toBeNull();
+        expect(publishToRoom).not.toHaveBeenCalled();
     });
 });
 

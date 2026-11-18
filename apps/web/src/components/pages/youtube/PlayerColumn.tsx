@@ -6,14 +6,15 @@ import { Settings } from 'lucide-react';
 import { LayoutGroup } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 
-import { type CaptionTrack, type YouTubeVideo } from '@vkara/youtube';
+import { type CaptionTrack } from '@vkara/youtube';
 import { getVideoThumbnailSrcSet, getVideoThumbnailUrl } from '@vkara/tiktok';
 import { useYouTubeStore } from '@/store/youtubeStore';
 import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
-import { needsPlaybackSeekCorrection } from '@vkara/room';
+import { needsPlaybackSeekCorrection, pendingAutoPlayCandidate } from '@vkara/room';
 import { useCurrentLocale, useScopedI18n } from '@/locales/client';
 import { NEXT_VIDEO_COUNTDOWN_SECONDS, useCountdownStore } from '@/store/countdownTimersStore';
 import { useWebSocket } from '@/providers/websocket-provider';
+import { usePublishAutoPlayCandidate } from '@/hooks/use-publish-auto-play-candidate';
 import {
     applyYoutubeCaptions,
     listYoutubeCaptionTracks,
@@ -49,7 +50,6 @@ import { TvRoomLobby } from './TvRoomLobby';
 import { PlayerEmbedSurfaceMemo } from '@/components/player/player-embed-surface';
 
 /** Stable fallbacks — `?? []` in selectors creates new refs and loops with useShallow. */
-const EMPTY_VIDEO_QUEUE: YouTubeVideo[] = [];
 const EMPTY_CAPTION_TRACKS: CaptionTrack[] = [];
 
 type PlayerColumnProps = {
@@ -73,7 +73,7 @@ function PlayerColumnInner({
         roomPassword,
         roomIsPlaying,
         currentTime,
-        videoQueue,
+        nextUpVideo,
         showQRInPlayer,
         captionsEnabled,
         captionsLanguage,
@@ -92,7 +92,7 @@ function PlayerColumnInner({
             roomPassword: s.room?.password,
             roomIsPlaying: s.room?.isPlaying ?? false,
             currentTime: s.room?.currentTime ?? 0,
-            videoQueue: s.room?.videoQueue ?? EMPTY_VIDEO_QUEUE,
+            nextUpVideo: s.room?.videoQueue[0] ?? pendingAutoPlayCandidate(s.room),
             showQRInPlayer: s.room?.showQRInPlayer ?? true,
             captionsEnabled: s.room?.captionsEnabled ?? false,
             captionsLanguage: s.room?.captionsLanguage ?? DEFAULT_CAPTION_LANGUAGE,
@@ -118,6 +118,7 @@ function PlayerColumnInner({
             })),
         );
     const { ensureConnectedAndSend } = useWebSocket();
+    usePublishAutoPlayCandidate();
 
     const skippedUnplayableRef = useRef<string | null>(null);
     const endedForVideoIdRef = useRef<string | null>(null);
@@ -524,7 +525,7 @@ function PlayerColumnInner({
                 </div>
             ) : null}
 
-            {playingNow && shouldShowTimer && videoQueue.length > 0 && (
+            {playingNow && shouldShowTimer && nextUpVideo && (
                 <div
                     className={cn(
                         'absolute inset-0 z-10 flex flex-col items-center justify-center p-4 text-center',
@@ -534,10 +535,10 @@ function PlayerColumnInner({
                     <h3 className="mb-4 text-xl font-semibold">{t('nextUp')}</h3>
                     <div className="flex w-full max-w-lg flex-col items-center gap-4 px-2">
                         <ControlsStageThumbnail
-                            src={getVideoThumbnailUrl({ video: videoQueue[0], size: 'large' })}
-                            videoId={videoQueue[0].id}
-                            srcSet={getVideoThumbnailSrcSet({ video: videoQueue[0] })}
-                            title={videoQueue[0].title}
+                            src={getVideoThumbnailUrl({ video: nextUpVideo, size: 'large' })}
+                            videoId={nextUpVideo.id}
+                            srcSet={getVideoThumbnailSrcSet({ video: nextUpVideo })}
+                            title={nextUpVideo.title}
                             flatOnTv={isTvViewport}
                         />
                         <div className="space-y-2">
@@ -547,9 +548,9 @@ function PlayerColumnInner({
                                     isTvViewport && 'text-base text-white',
                                 )}
                             >
-                                {videoQueue[0].title}
+                                {nextUpVideo.title}
                             </p>
-                            <VideoChannels video={videoQueue[0]} tone="inverse" align="center" />
+                            <VideoChannels video={nextUpVideo} tone="inverse" align="center" />
                             <p
                                 className={cn(
                                     'text-sm',

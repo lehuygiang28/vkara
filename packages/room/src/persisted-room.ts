@@ -1,5 +1,5 @@
 import { DEFAULT_CAPTION_LANGUAGE } from '@vkara/youtube';
-import type { Participant, Room } from './websocket';
+import type { AutoPlayCandidate, Participant, Room } from './websocket';
 
 /** Room snapshot persisted in the browser (no `clients`). */
 export type PersistedRoom = Omit<Room, 'clients'>;
@@ -18,6 +18,8 @@ export function normalizePersistedRoom(
         return null;
     }
 
+    const autoPlayCandidate = normalizeAutoPlayCandidate(room.autoPlayCandidate);
+
     return {
         ...room,
         id: room.id,
@@ -30,6 +32,8 @@ export function normalizePersistedRoom(
         captionTracks: Array.isArray(room.captionTracks) ? room.captionTracks : [],
         captionTracksVideoId: room.captionTracksVideoId ?? null,
         playingNow: room.playingNow ?? null,
+        autoPlayNext: room.autoPlayNext ?? false,
+        autoPlayCandidate,
         isPlaying: room.isPlaying ?? false,
         currentTime: typeof room.currentTime === 'number' ? room.currentTime : 0,
         tiktokPhotoIndex:
@@ -49,6 +53,18 @@ export function normalizePersistedRoom(
         hostDeviceId: typeof room.hostDeviceId === 'string' ? room.hostDeviceId : '',
         hasPassword: Boolean(room.hasPassword ?? room.password),
     };
+}
+
+function normalizeAutoPlayCandidate(
+    slot: Partial<AutoPlayCandidate> | null | undefined,
+): AutoPlayCandidate | null {
+    if (!slot || typeof slot.forVideoId !== 'string' || !slot.video) {
+        return null;
+    }
+    if (typeof slot.video.id !== 'string') {
+        return null;
+    }
+    return { video: slot.video, forVideoId: slot.forVideoId };
 }
 
 function normalizeParticipants(

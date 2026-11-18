@@ -29,6 +29,7 @@ export const tvRoomRestoreSchema = z.object({
     captionTracksVideoId: z.string().nullable(),
     tiktokPhotoIndex: z.number(),
     tiktokPhotoMaxIndex: z.number(),
+    autoPlayNext: z.boolean().optional(),
 });
 
 /**
@@ -103,6 +104,12 @@ export const wsClientMessageSchema = z.discriminatedUnion('type', [
     withBase({ type: z.literal('setVolume'), volume: z.number() }),
     withBase({ type: z.literal('setShowQRInPlayer'), show: z.boolean() }),
     withBase({ type: z.literal('setCaptionsEnabled'), enabled: z.boolean() }),
+    withBase({ type: z.literal('setAutoPlayNext'), enabled: z.boolean() }),
+    withBase({
+        type: z.literal('setAutoPlayCandidate'),
+        video: youtubeVideoSchema,
+        forVideoId: z.string(),
+    }),
     withBase({ type: z.literal('setCaptionsLanguage'), languageCode: z.string() }),
     withBase({
         type: z.literal('syncCaptionTracks'),
