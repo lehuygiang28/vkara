@@ -10,9 +10,9 @@ Package versions on this tree are `0.0.x` (`package.json` is `0.0.1`). No doc na
 | --- | --- | --- | --- | --- |
 | `yt-mapper-spike` | `main` | nothing | no | `apps/api/src/modules/youtube/ytjs-map.ts`, `apps/api/tests/modules/youtube/ytjs-map.test.ts` |
 | `yt-metadata-client` | `main`, then rebase onto `yt-mapper-spike` | spike pass below | yes | `apps/api/src/modules/youtube/*`, `apps/api/package.json`, `apps/api/src/types/youtubei-proto.d.ts` |
-| `phone-youtube-import` | `main` | nothing | yes | `apps/web` phone import UI, a new Data API module under `apps/api/src/modules/youtube/` |
+| `phone-youtube-import` | `main` | nothing | yes | `apps/web` phone import UI, `apps/api/src/modules/youtube/youtube-data-api-import.ts` |
 
-`phone-youtube-import` does not touch the Innertube client. `yt-metadata-client` does not add a Google OAuth client.
+`phone-youtube-import` adds only `youtube-data-api-import.ts` on the API. `yt-metadata-client` does not edit that file and does not add a Google OAuth client. `ytjs-map.ts` sits beside `video-mapper.ts` until the cutover deletes the `youtubei` mapper.
 
 If the spike fails its pass line, skip `yt-metadata-client`. Open `youtubei-1.8.17` instead. That pull request only bumps `youtubei` from `1.8.16` to `1.8.17` and reruns the existing YouTube tests.
 
@@ -49,9 +49,9 @@ Bun `1.4.4` was not repeated here. The image only had a musl `bun` binary, and t
 
 - [ ] Depends on nothing.
 - [ ] Files. Add `ytjs-map.ts` and its test. Do not change route handlers.
-- [ ] One change. Map a `youtubei.js` search `Video`, a playlist `LockupView`, and a related `LockupView` into `YouTubeVideo` from `packages/youtube/src/youtube.ts`. Use `parseYoutubeViewCountText` for view labels.
-- [ ] Result you see. The unit test builds those three fixtures with no network. Each video has a string `id`, a non-empty `title`, one channel `name`, and a numeric `views`. Search fixtures also set `channels[0].verified` from `author.is_verified`. Playlist fixtures set `verified` to false when the node has no badge.
-- [ ] Pass line for the next pull request. The mapper fills `id`, `title`, `channels[0].name`, and `views` for all three fixtures. `youtube-sr` is unused by the mapper.
+- [ ] One change. Map a `youtubei.js` search `Video`, a playlist `LockupView`, and a related `LockupView` into `YouTubeVideo` from `packages/youtube/src/youtube.ts`. Use `parseYoutubeViewCountText` for view labels. Leave embed prefilter in `prepare-youtube-videos.ts`. The mapper does not decide embeddability.
+- [ ] Result you see. The unit test builds those three fixtures with no network. Each video has `id`, `title`, `duration`, `duration_formatted`, `uploadedAt`, `url`, numeric `views`, `channels[0].name`, and at least one thumbnail `url`. `isLive` is true only when the node says the video is live. Search fixtures set `channels[0].verified` from `author.is_verified`. Playlist fixtures set `verified` to false when the node has no badge.
+- [ ] Pass line for the next pull request. Every field in the result line is filled for all three fixtures. `youtube-sr` is unused by the mapper. A spike that only fills `id`, `title`, channel name, and `views` does not pass.
 - [ ] Unit. `bunx vitest run --config vitest.config.mts apps/api/tests/modules/youtube/ytjs-map.test.ts` passes.
 - [ ] Live. One manual run, not in CI. Search, the playlist id above, and related for `dQw4w9WgXcQ` each return at least one mapped video with a non-empty title. Record the raw node type next to the mapped video in the pull request comment.
 - [ ] Perf. No request path changes. Record wall time of the live script once. The number does not gate merge.
@@ -59,9 +59,10 @@ Bun `1.4.4` was not repeated here. The image only had a musl `bun` binary, and t
 ## `yt-metadata-client`
 
 - [ ] Depends on the spike pass line.
-- [ ] Files. `apps/api/src/modules/youtube/*` call sites that import `youtubei`, `apps/api/package.json`, and `apps/api/src/types/youtubei-proto.d.ts`. Keep `embeddable.ts`, `channel-verified.ts`, and the mix fallback shape in `fetch-playlist-videos.ts` until a live mix import returns the same count the HTML fallback returns today.
-- [ ] One change. `Innertube.create({ retrieve_player: false, fetch })` uses `youtubeOutboundFetch`. Routes still return the same JSON. Delete `youtubei`, `youtube-sr`, `youtubei-native-fetch.ts`, and `youtubei-proto.d.ts` only when no import remains.
+- [ ] Files. Call sites under `apps/api/src/modules/youtube/` that import `youtubei`, plus `apps/api/package.json` and `apps/api/src/types/youtubei-proto.d.ts`. Do not edit `youtube-data-api-import.ts`. Keep `embeddable.ts`, `channel-verified.ts`, and the mix fallback shape in `fetch-playlist-videos.ts` until a live mix import returns the same count the HTML fallback returns today.
+- [ ] One change. `Innertube.create({ retrieve_player: false, fetch })` uses `youtubeOutboundFetch`. Point `fetch-search-suggestions.ts` at `getSearchSuggestions` before deleting `youtube-sr`. Routes still return the same JSON. Delete `youtubei`, `youtube-sr`, `youtubei-native-fetch.ts`, and `youtubei-proto.d.ts` only when no import remains.
 - [ ] Result you see. `POST /search`, `POST /playlist`, `POST /related`, and `POST /suggestions` return the same response types as today.
+- [ ] Snapshot gate. For one search id, one playlist id, and one related id, compare the prepared video with trunk `mapYoutubeiVideo` output. `id`, `title`, `duration`, `isLive`, and `channels[0].name` match. `views` stays in the same compact bucket from `parseYoutubeViewCountText` (`K`, `M`, or `B`). At least one thumbnail URL is present. Embed skip still comes from `embeddable.ts`, not from `playability_status.embeddable`.
 - [ ] Unit. `bunx vitest run --config vitest.config.mts apps/api/tests/modules/youtube` passes.
 - [ ] Live. Against a local API, search `karaoke` returns a video with `id`, `title`, and `channels[0].name`. Playlist import of `PLMC9KNkIncKtPzgY-5rmhvj7fax8fdxoj` returns a first row with a non-empty title. Related for `dQw4w9WgXcQ` returns a list. `POST /check-embeddable` for that id still reads the embed HTML page.
 - [ ] Perf. Cold-cache `POST /search` for `karaoke`. Measure 5 trunk runs and 5 branch runs after one warmup each. Ignore non-200 responses. Fail only when every branch time is slower than every trunk time. Overlap means inconclusive. This number includes YouTube's own response time.
@@ -69,8 +70,9 @@ Bun `1.4.4` was not repeated here. The image only had a musl `bun` binary, and t
 ## `phone-youtube-import`
 
 - [ ] Depends on nothing.
-- [ ] Files. Phone UI under `apps/web` and one Data API client that calls `playlists.list` with `mine=true` and `playlistItems.list`. The token comes from Google's browser token model (`youtube.readonly`). The API does not write the token to Redis or to the room.
+- [ ] Files. Phone UI under `apps/web` and `youtube-data-api-import.ts`. That file calls `playlists.list` with `mine=true` and `playlistItems.list`. The token comes from Google's browser token model (`youtube.readonly` only).
 - [ ] One change. A signed-in phone user can copy their own playlists into the existing `vkara-cabinet` list. The TV page gains no account screen.
+- [ ] Token handling. The access token stays in phone memory. The phone sends it only on the import route, over HTTPS, for that request. The handler does not write it to Redis, room state, or logs. Playlist titles stay on that phone until the user confirms the cabinet write. The room WebSocket does not carry those titles.
 - [ ] Result you see. On the phone, **Import from my YouTube** lists that account's playlists and a confirm writes them into **Bài tủ**. The room queue changes only after the existing cabinet send action. A second phone in the room does not see the list.
 - [ ] Unit. A parser test maps a fixture `playlistItems.list` payload into `YouTubeVideo` rows and drops a row with no video id.
 - [ ] Live. With a test Google account, the phone lists at least one playlist the account owns, including one that is private on youtube.com. The TV embed for a queued public video still loads from `youtube-nocookie.com`. Confirm the network panel shows no `Authorization` header on the iframe request.
